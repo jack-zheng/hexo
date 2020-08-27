@@ -978,101 +978,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Hexo 保存博客源码</title>
-    <url>/hexo/2019/11/13/Hexo%20%E4%BF%9D%E5%AD%98%E5%8D%9A%E5%AE%A2%E6%BA%90%E7%A0%81/</url>
-    <content><![CDATA[<p>按照之前的教程，虽然 github page 上顺利发布了，但是 blog 的 source code 并没有一起同步过去，还在本地。Hexo 工具只是把你翻译之后的 web 信息同步过去了。search 了一下，想要同步 source 有大概三种路子：</p>
-<ol>
-<li>hexo 插件: hexo-git-backup</li>
-<li>在原来的 blog repo 里面新建分支存储</li>
-<li>官方方法，集成 Travis CI，每次 push 自动帮你部署</li>
-</ol>
-<p>本文只描述怎么集成 Travis CI, 其他的方案有机会再补，网上教程很多，随便找找就有了。</p>
-<blockquote>
-<p>采用 Travis CI 的方案之后，原来的 repo name 需要改变，不然 blog 访问不了, 针对这种情况，其实还有另一种解决方案，将 master 用来存放编译好的 blog, 源码用新的 branch 存放，和前面的那些原理都一样</p>
-</blockquote>
-<h3 id="Travis-CI-集成"><a href="#Travis-CI-集成" class="headerlink" title="Travis CI 集成"></a>Travis CI 集成</h3><ol>
-<li>新建一个 repo, 这里我用 hexo 作为 repo name</li>
-<li>clone 到本地，将之前的 blog source copy 进去，添加 <code>.gitignore</code> 文件，把 <code>public\</code> 添加进 list</li>
-<li>注册 Travis 账号，用 github 授权就行，授权 repo, 添加 token. 官方文档都有链接，很方便</li>
-<li>update <code>_config.yml</code> 里的 url 和 root 值</li>
-<li>添加 <code>.travis.yml</code> 做 CI 集成管理</li>
-<li>commit + push 这些改动，Travis 自动 build 就会被触发了</li>
-<li>build 完成后，repo 会有一个新的 branch 叫 gh-pages. 访问 <code>https://jack-zheng.github.io/hexo</code> 查看改动结果</li>
-</ol>
-<p>国内，第一次访问会比较慢，cache 了文件之后后面访问会快一点</p>
-<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># _config.yml setting</span></span><br><span class="line"><span class="attr">url:</span> <span class="string">https://jack-zheng.github.io/hexo</span></span><br><span class="line"><span class="attr">root:</span> <span class="string">/hexo/</span></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#.gitignore</span><br><span class="line">public&#x2F;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># .travis.yml</span></span><br><span class="line"><span class="attr">sudo:</span> <span class="literal">false</span></span><br><span class="line"><span class="attr">language:</span> <span class="string">node_js</span></span><br><span class="line"><span class="attr">node_js:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="number">10</span> <span class="comment"># use nodejs v10 LTS</span></span><br><span class="line"><span class="attr">cache:</span> <span class="string">npm</span></span><br><span class="line"><span class="attr">branches:</span></span><br><span class="line">  <span class="attr">only:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">master</span> <span class="comment"># build master branch only</span></span><br><span class="line"><span class="attr">script:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">hexo</span> <span class="string">generate</span> <span class="comment"># generate static files</span></span><br><span class="line"><span class="attr">deploy:</span></span><br><span class="line">  <span class="attr">provider:</span> <span class="string">pages</span></span><br><span class="line">  <span class="attr">skip-cleanup:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">github-token:</span> <span class="string">$GH_TOKEN</span></span><br><span class="line">  <span class="attr">keep-history:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">on:</span></span><br><span class="line">    <span class="attr">branch:</span> <span class="string">master</span></span><br><span class="line">  <span class="attr">local-dir:</span> <span class="string">public</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Issue-Trace"><a href="#Issue-Trace" class="headerlink" title="Issue Trace"></a>Issue Trace</h3><p>在按照官方教程走完流程后，repo 的 setting page 会有如下 Warning, 删了 <code>themes/landscape/README.md</code> 这个文件再 build 一下就行了</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Your site is having problems building: The tag fancybox on line 77 in themes/landscape/README.md is not a recognized Liquid tag. For more information, see https://help.github.com/en/github/working-with-github-pages/troubleshooting-jekyll-build-errors-for-github-pages-sites#unknown-tag-error.</span><br></pre></td></tr></table></figure>
-
-<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><p><a href="https://hexo.io/docs/github-pages">Travis CI 集成 - 官方</a></p>
-]]></content>
-      <categories>
-        <category>博客</category>
-      </categories>
-      <tags>
-        <tag>hexo</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Hexo 博客 Setup</title>
-    <url>/hexo/2019/11/12/Hexo%20%E5%8D%9A%E5%AE%A2%20Setup%20/</url>
-    <content><![CDATA[<p>Hexo setup 笔记。网上有好多 setup 的教程，这里就不赘述了。记录一下我 setup 时候用到的命令，作为备忘。</p>
-<p>这里使用的 Next 版本 <strong>V7.5.0</strong></p>
-<h3 id="Commands"><a href="#Commands" class="headerlink" title="Commands"></a>Commands</h3><ol>
-<li>安装 node/npm, <code>brew install node</code>, type <code>node -v</code>, <code>npm -v</code> to check if install successfully.</li>
-<li>run command: <code>npm install -g hexo-cli</code>, 安装 hexo 工具, 安装完成，type <code>hexo</code> to check</li>
-<li>Setup 博客基础架构 <code>hexo init &lt;folder&gt;</code>, cd &lt;folder&gt;, run command: <code>hexo server</code> 就可以得到一个本地可访问的 hello world 博客模版</li>
-<li><code>hexo new post_name</code>, 在 source 文件夹下面会创建一个新的 post_name.md 文件作为新博客的载体</li>
-<li>为你的博客新建一个git repo, repo name 必须是<strong>你的Git用户名.github.io</strong>, 如果已经创建了, rename 一下</li>
-<li>编辑 &lt;folder&gt;_config.yml 关联 git repo</li>
-<li><code>npm install hexo-deployer-git --save</code> 安装 git 集成工具</li>
-<li><code>hexo g</code>, <code>hexo d</code> 部署发布到 github, 等一两分钟访问 <code>https://&lt;你的Git用户名&gt;.github.io</code> 就可以看到你的作品了 ٩(˃̶͈̀௰˂̶͈́)و</li>
-</ol>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># Deployment</span><br><span class="line">## Docs: https:&#x2F;&#x2F;hexo.io&#x2F;docs&#x2F;deployment.html</span><br><span class="line">deploy:</span><br><span class="line">  type: git</span><br><span class="line">  repo: https:&#x2F;&#x2F;github.com&#x2F;&lt;username&gt;&#x2F;&lt;username&gt;.github.io.git</span><br><span class="line">  # SSH 格式的也OK, 简单理解就是去 github repo 页面, 把你的 repo 地址复制一下</span><br><span class="line">  branch: master</span><br></pre></td></tr></table></figure>
-
-<h3 id="异地环境-setup"><a href="#异地环境-setup" class="headerlink" title="异地环境 setup"></a>异地环境 setup</h3><h4 id="Win10"><a href="#Win10" class="headerlink" title="Win10"></a>Win10</h4><p>在其他机子上面重新 setup 环境只需要安装 git 和 nodejs, 把项目 clone 到本地之后 cd 到博客根目录下运行命令</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install -g hexo-cli</span><br></pre></td></tr></table></figure>
-
-<p>就行了，在 Windows 下使用 VS Code 的默认命令行时还遇到另外一个问题，hexo 命令不能执行，抛出 Exception:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">PS C:\Users\lanmo\gitStore\hexo&gt; hexo</span><br><span class="line">hexo : 无法加载文件 C:\Users\lanmo\AppData\Roaming\npm\hexo.ps1，因为在此系统上禁止运行脚本。有关详细信息，请参阅 https:/go.microsoft</span><br><span class="line">.com/fwlink/?LinkID=135170 中的 about_Execution_Policies。</span><br><span class="line">所在位置 行:1 字符: 1</span><br><span class="line">+ hexo</span><br><span class="line">+ ~~~~</span><br><span class="line">    + CategoryInfo          : SecurityError: (:) []，PSSecurityException</span><br><span class="line">    + FullyQualifiedErrorId : UnauthorizedAccess</span><br></pre></td></tr></table></figure>
-
-<p>这是由于 powershell 的默认脚本执行策略把这个 command 阻塞了，可以执行</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 允许本地脚本执行</span></span><br><span class="line">Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser</span><br></pre></td></tr></table></figure>
-
-<p>来开放权限，其他可用命令还有</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 查看可用策略</span></span><br><span class="line">Get-ExecutionPolicy -List</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看当前策略</span></span><br><span class="line">Get-ExecutionPolicy</span><br></pre></td></tr></table></figure>
-
-<p>更多可以参考官方文档 <a href="https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-6">About Execution Policies</a></p>
-<h4 id="Win10-WSL"><a href="#Win10-WSL" class="headerlink" title="Win10 WSL"></a>Win10 WSL</h4><p>WSL 默认已经安装了 git, 所以只需要额外安装 nodejs 就行了。</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sudo apt-get install nodejs</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果速度慢可以使用 taobao 源加速</span></span><br><span class="line">npm --registry https://registry.npm.taobao.org install nodejs</span><br><span class="line"><span class="comment"># 配置永久源</span></span><br><span class="line">npm config <span class="built_in">set</span> registry https://registry.npm.taobao.org</span><br></pre></td></tr></table></figure>
-
-<p>安装完后运行 <code>node -v</code> 和 <code>npm -v</code> 查看是否安装成功。我本地安装完后，node 可以正常调用，但是 npm 不行，报错</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">jack@DESKTOP-9TGTFK1:~$ npm -v</span><br><span class="line">: not foundram Files/nodejs/npm: 3: /mnt/c/Program Files/nodejs/npm:</span><br><span class="line">: not foundram Files/nodejs/npm: 5: /mnt/c/Program Files/nodejs/npm:</span><br><span class="line">/mnt/c/Program Files/nodejs/npm: 6: /mnt/c/Program Files/nodejs/npm: Syntax error: word unexpected (expecting <span class="string">&quot;in&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 运行 which npm 查看路径</span></span><br><span class="line">jack@DESKTOP-9TGTFK1:~$ <span class="built_in">which</span> npm</span><br><span class="line">/usr/bin/npm</span><br></pre></td></tr></table></figure>
-
-<p>是应为路径有问题，修改 WSL 下的 <code>~/.profile</code> 文件，添加 npm 执行路径</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">PATH=<span class="string">&quot;<span class="variable">$HOME</span>/bin:<span class="variable">$HOME</span>/.local/bin:/usr/bin:<span class="variable">$PATH</span>&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>然后 <code>source ~/.profile</code> 在运行 <code>npm -v</code>, 成功。</p>
-<p>该问题可以参考 <a href="https://github.com/microsoft/WSL/issues/1512">VSCode Git Issue</a></p>
-<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><ul>
-<li><a href="https://hexo.io/docs/github-pages">Hexo 官方文档</a></li>
-<li><a href="https://juejin.im/post/5bebfe51e51d45332a456de0">Juejin-最全Hexo博客搭建+主题优化+插件配置+常用操作+错误分析</a></li>
-<li><a href="https://zhuanlan.zhihu.com/p/26625249">Zhihu-GitHub+Hexo 搭建个人网站详细教程</a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>博客</category>
-      </categories>
-      <tags>
-        <tag>hexo</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Hexo 博客添加 sitemap</title>
     <url>/hexo/2019/11/22/Hexo%20%E5%8D%9A%E5%AE%A2%E6%B7%BB%E5%8A%A0%20sitemap/</url>
     <content><![CDATA[<p>为博客添加 sitemap 并将博客添加至搜索引擎</p>
@@ -1273,6 +1178,103 @@
 <li><a href="https://github.com/gitalk/gitalk">gitalk</a></li>
 <li><a href="https://www.jianshu.com/p/b5f509f25872">简书-Jonzzs</a></li>
 </ul>
+]]></content>
+      <categories>
+        <category>博客</category>
+      </categories>
+      <tags>
+        <tag>hexo</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hexo 博客 Setup</title>
+    <url>/hexo/2019/11/12/Hexo-blog-setup/</url>
+    <content><![CDATA[<p>Hexo setup 笔记。网上有好多 setup 的教程，这里就不赘述了。记录一下我 setup 时候用到的命令，作为备忘。</p>
+<p>这里使用的 Next 版本 <strong>V7.5.0</strong></p>
+<h3 id="Commands"><a href="#Commands" class="headerlink" title="Commands"></a>Commands</h3><ol>
+<li>安装 node/npm, <code>brew install node</code>, type <code>node -v</code>, <code>npm -v</code> to check if install successfully.</li>
+<li>run command: <code>npm install -g hexo-cli</code>, 安装 hexo 工具, 安装完成，type <code>hexo</code> to check</li>
+<li>Setup 博客基础架构 <code>hexo init &lt;folder&gt;</code>, cd &lt;folder&gt;, run command: <code>hexo server</code> 就可以得到一个本地可访问的 hello world 博客模版</li>
+<li><code>hexo new post_name</code>, 在 source 文件夹下面会创建一个新的 post_name.md 文件作为新博客的载体</li>
+<li>为你的博客新建一个git repo, repo name 必须是<strong>你的Git用户名.github.io</strong>, 如果已经创建了, rename 一下</li>
+<li>编辑 &lt;folder&gt;_config.yml 关联 git repo</li>
+<li><code>npm install hexo-deployer-git --save</code> 安装 git 集成工具</li>
+<li><code>hexo g</code> 生成工程目录及相关文件</li>
+<li><code>hexo s</code> 启动本地 server 验证</li>
+<li><code>hexo d</code> 部署发布到 github, 等一两分钟访问 <code>https://&lt;你的Git用户名&gt;.github.io</code> 就可以看到你的作品了 (^з^)-☆</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># Deployment</span><br><span class="line">## Docs: https:&#x2F;&#x2F;hexo.io&#x2F;docs&#x2F;deployment.html</span><br><span class="line">deploy:</span><br><span class="line">  type: git</span><br><span class="line">  repo: https:&#x2F;&#x2F;github.com&#x2F;&lt;username&gt;&#x2F;&lt;username&gt;.github.io.git</span><br><span class="line">  # SSH 格式的也OK, 简单理解就是去 github repo 页面, 把你的 repo 地址复制一下</span><br><span class="line">  branch: master</span><br></pre></td></tr></table></figure>
+
+<h3 id="异地环境-setup"><a href="#异地环境-setup" class="headerlink" title="异地环境 setup"></a>异地环境 setup</h3><h4 id="Win10"><a href="#Win10" class="headerlink" title="Win10"></a>Win10</h4><p>在其他机子上面重新 setup 环境只需要安装 git 和 nodejs, 把项目 clone 到本地之后 cd 到博客根目录下运行命令</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install -g hexo-cli</span><br></pre></td></tr></table></figure>
+
+<p>就行了，在 Windows 下使用 VS Code 的默认命令行时还遇到另外一个问题，hexo 命令不能执行，抛出 Exception:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">PS C:\Users\lanmo\gitStore\hexo&gt; hexo</span><br><span class="line">hexo : 无法加载文件 C:\Users\lanmo\AppData\Roaming\npm\hexo.ps1，因为在此系统上禁止运行脚本。有关详细信息，请参阅 https:/go.microsoft</span><br><span class="line">.com/fwlink/?LinkID=135170 中的 about_Execution_Policies。</span><br><span class="line">所在位置 行:1 字符: 1</span><br><span class="line">+ hexo</span><br><span class="line">+ ~~~~</span><br><span class="line">    + CategoryInfo          : SecurityError: (:) []，PSSecurityException</span><br><span class="line">    + FullyQualifiedErrorId : UnauthorizedAccess</span><br></pre></td></tr></table></figure>
+
+<p>这是由于 powershell 的默认脚本执行策略把这个 command 阻塞了，可以执行</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 允许本地脚本执行</span></span><br><span class="line">Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser</span><br></pre></td></tr></table></figure>
+
+<p>来开放权限，其他可用命令还有</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 查看可用策略</span></span><br><span class="line">Get-ExecutionPolicy -List</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看当前策略</span></span><br><span class="line">Get-ExecutionPolicy</span><br></pre></td></tr></table></figure>
+
+<p>更多可以参考官方文档 <a href="https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-6">About Execution Policies</a></p>
+<h4 id="Win10-WSL"><a href="#Win10-WSL" class="headerlink" title="Win10 WSL"></a>Win10 WSL</h4><p>WSL 默认已经安装了 git, 所以只需要额外安装 nodejs 就行了。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sudo apt-get install nodejs</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果速度慢可以使用 taobao 源加速</span></span><br><span class="line">npm --registry https://registry.npm.taobao.org install nodejs</span><br><span class="line"><span class="comment"># 配置永久源</span></span><br><span class="line">npm config <span class="built_in">set</span> registry https://registry.npm.taobao.org</span><br></pre></td></tr></table></figure>
+
+<p>安装完后运行 <code>node -v</code> 和 <code>npm -v</code> 查看是否安装成功。我本地安装完后，node 可以正常调用，但是 npm 不行，报错</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">jack@DESKTOP-9TGTFK1:~$ npm -v</span><br><span class="line">: not foundram Files/nodejs/npm: 3: /mnt/c/Program Files/nodejs/npm:</span><br><span class="line">: not foundram Files/nodejs/npm: 5: /mnt/c/Program Files/nodejs/npm:</span><br><span class="line">/mnt/c/Program Files/nodejs/npm: 6: /mnt/c/Program Files/nodejs/npm: Syntax error: word unexpected (expecting <span class="string">&quot;in&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 运行 which npm 查看路径</span></span><br><span class="line">jack@DESKTOP-9TGTFK1:~$ <span class="built_in">which</span> npm</span><br><span class="line">/usr/bin/npm</span><br></pre></td></tr></table></figure>
+
+<p>是应为路径有问题，修改 WSL 下的 <code>~/.profile</code> 文件，添加 npm 执行路径</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">PATH=<span class="string">&quot;<span class="variable">$HOME</span>/bin:<span class="variable">$HOME</span>/.local/bin:/usr/bin:<span class="variable">$PATH</span>&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>然后 <code>source ~/.profile</code> 在运行 <code>npm -v</code>, 成功。</p>
+<p>该问题可以参考 <a href="https://github.com/microsoft/WSL/issues/1512">VSCode Git Issue</a></p>
+<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><ul>
+<li><a href="https://hexo.io/docs/github-pages">Hexo 官方文档</a></li>
+<li><a href="https://juejin.im/post/5bebfe51e51d45332a456de0">Juejin-最全Hexo博客搭建+主题优化+插件配置+常用操作+错误分析</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/26625249">Zhihu-GitHub+Hexo 搭建个人网站详细教程</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>博客</category>
+      </categories>
+      <tags>
+        <tag>hexo</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hexo 保存博客源码</title>
+    <url>/hexo/2019/11/13/Hexo-use-travis-to-auto-publish/</url>
+    <content><![CDATA[<p>按照之前的教程，虽然 github page 上顺利发布了，但是 blog 的 source code 并没有一起同步过去，还在本地。Hexo 工具只是把你翻译之后的 web 信息同步过去了。search 了一下，想要同步 source 有大概三种路子：</p>
+<ol>
+<li>hexo 插件: hexo-git-backup</li>
+<li>在原来的 blog repo 里面新建分支存储</li>
+<li>官方方法，集成 Travis CI，每次 push 自动帮你部署</li>
+</ol>
+<p>本文只描述怎么集成 Travis CI, 其他的方案有机会再补，网上教程很多，随便找找就有了。</p>
+<blockquote>
+<p>采用 Travis CI 的方案之后，原来的 repo name 需要改变，不然 blog 访问不了, 针对这种情况，其实还有另一种解决方案，将 master 用来存放编译好的 blog, 源码用新的 branch 存放，和前面的那些原理都一样</p>
+</blockquote>
+<h3 id="Travis-CI-集成"><a href="#Travis-CI-集成" class="headerlink" title="Travis CI 集成"></a>Travis CI 集成</h3><ol>
+<li>新建一个 repo, 这里我用 hexo 作为 repo name</li>
+<li>clone 到本地，将之前的 blog source copy 进去，添加 <code>.gitignore</code> 文件，把 <code>public\</code> 添加进 list</li>
+<li>注册 Travis 账号，用 github 授权就行，授权 repo, 添加 token. 官方文档都有链接，很方便</li>
+<li>update <code>_config.yml</code> 里的 url 和 root 值</li>
+<li>添加 <code>.travis.yml</code> 做 CI 集成管理</li>
+<li>commit + push 这些改动，Travis 自动 build 就会被触发了</li>
+<li>build 完成后，repo 会有一个新的 branch 叫 gh-pages. 访问 <code>https://jack-zheng.github.io/hexo</code> 查看改动结果</li>
+</ol>
+<p>国内，第一次访问会比较慢，cache 了文件之后后面访问会快一点</p>
+<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># _config.yml setting</span></span><br><span class="line"><span class="attr">url:</span> <span class="string">https://jack-zheng.github.io/hexo</span></span><br><span class="line"><span class="attr">root:</span> <span class="string">/hexo/</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#.gitignore</span><br><span class="line">.DS_Store</span><br><span class="line">Thumbs.db</span><br><span class="line">db.json</span><br><span class="line">*.log</span><br><span class="line">node_modules&#x2F;</span><br><span class="line">public&#x2F;</span><br><span class="line">.deploy*&#x2F;</span><br><span class="line">.vscode</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># .travis.yml</span></span><br><span class="line"><span class="attr">sudo:</span> <span class="literal">false</span></span><br><span class="line"><span class="attr">language:</span> <span class="string">node_js</span></span><br><span class="line"><span class="attr">node_js:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="number">10</span> <span class="comment"># use nodejs v10 LTS</span></span><br><span class="line"><span class="attr">cache:</span> <span class="string">npm</span></span><br><span class="line"><span class="attr">branches:</span></span><br><span class="line">  <span class="attr">only:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">master</span> <span class="comment"># build master branch only</span></span><br><span class="line"><span class="attr">script:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">hexo</span> <span class="string">generate</span> <span class="comment"># generate static files</span></span><br><span class="line"><span class="attr">deploy:</span></span><br><span class="line">  <span class="attr">provider:</span> <span class="string">pages</span></span><br><span class="line">  <span class="attr">skip-cleanup:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">github-token:</span> <span class="string">$GH_TOKEN</span></span><br><span class="line">  <span class="attr">keep-history:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">on:</span></span><br><span class="line">    <span class="attr">branch:</span> <span class="string">master</span></span><br><span class="line">  <span class="attr">local-dir:</span> <span class="string">public</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Issue-Trace"><a href="#Issue-Trace" class="headerlink" title="Issue Trace"></a>Issue Trace</h3><p>在按照官方教程走完流程后，repo 的 setting page 会有如下 Warning, 删了 <code>themes/landscape/README.md</code> 这个文件再 build 一下就行了</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Your site is having problems building: The tag fancybox on line 77 in themes/landscape/README.md is not a recognized Liquid tag. For more information, see https://help.github.com/en/github/working-with-github-pages/troubleshooting-jekyll-build-errors-for-github-pages-sites#unknown-tag-error.</span><br></pre></td></tr></table></figure>
+
+<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><p><a href="https://hexo.io/docs/github-pages">Travis CI 集成 - 官方</a></p>
 ]]></content>
       <categories>
         <category>博客</category>
@@ -1662,7 +1664,8 @@
 
 <h2 id="容量查询"><a href="#容量查询" class="headerlink" title="容量查询"></a>容量查询</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 显示系统容量</span></span><br><span class="line">df -hl</span><br><span class="line"></span><br><span class="line"><span class="comment"># 显示当前目录下个文件夹大小</span></span><br><span class="line">du -sh *</span><br><span class="line"></span><br><span class="line"><span class="comment"># 显示文件大小并倒序排列</span></span><br><span class="line">du -sh * | sort -hr</span><br></pre></td></tr></table></figure>
 
-<h2 id="ps-命令保留表头"><a href="#ps-命令保留表头" class="headerlink" title="ps 命令保留表头"></a>ps 命令保留表头</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 这个命令不是很好，比较繁琐，效率也不高。</span></span><br><span class="line"><span class="comment"># 实现方式是先 ps 一下拿到 head 打印出来，再 ps 一次拿到我们想要的结果</span></span><br><span class="line">ps | head -1; ps | grep java</span><br></pre></td></tr></table></figure>]]></content>
+<h2 id="ps-命令保留表头"><a href="#ps-命令保留表头" class="headerlink" title="ps 命令保留表头"></a>ps 命令保留表头</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 这个命令不是很好，比较繁琐，效率也不高。</span></span><br><span class="line"><span class="comment"># 实现方式是先 ps 一下拿到 head 打印出来，再 ps 一次拿到我们想要的结果</span></span><br><span class="line">ps | head -1; ps | grep java</span><br></pre></td></tr></table></figure>
+<h2 id="查看文件-夹大小"><a href="#查看文件-夹大小" class="headerlink" title="查看文件/夹大小"></a>查看文件/夹大小</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># du: disk usage</span></span><br><span class="line">du -sh *</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>配置</category>
       </categories>
