@@ -1,6 +1,7 @@
 ---
 title: Equals in python
 date: 2020-06-12 14:00:21
+categories:
 - 编程
 tags:
 - python
