@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/hexo/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/hexo/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/hexo/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/hexo/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="UgODgWVmvTsdD--vjodDR3tPUZRWM3i7JpHzbYejxUM">
+
+<link rel="stylesheet" href="/hexo/css/main.css">
+
+
+<link rel="stylesheet" href="/hexo/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/hexo/',
+    scheme: 'Muse',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="怎么添加 commited file 到 .gitignore 中 StackOverflow: applying-gitignore-to-committed-files  1git rm --cached path&#x2F;to&#x2F;file  怎么把local master branch 还原成和 remote 端一致 StackOverflow: reset-local-repository-bran">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Git 小贴士">
+<meta property="og:url" content="https://jack-zheng.github.io/hexo/2019/11/15/Git-Tips/index.html">
+<meta property="og:site_name" content="Jackpot">
+<meta property="og:description" content="怎么添加 commited file 到 .gitignore 中 StackOverflow: applying-gitignore-to-committed-files  1git rm --cached path&#x2F;to&#x2F;file  怎么把local master branch 还原成和 remote 端一致 StackOverflow: reset-local-repository-bran">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-11-15T08:35:00.000Z">
+<meta property="article:modified_time" content="2020-08-27T09:27:15.091Z">
+<meta property="article:author" content="Jack Zheng">
+<meta property="article:tag" content="git">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://jack-zheng.github.io/hexo/2019/11/15/Git-Tips/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>Git 小贴士 | Jackpot</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/hexo/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jackpot</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-tags">
+
+    <a href="/hexo/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/hexo/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/hexo/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/jack-zheng" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2019/11/15/Git-Tips/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Git 小贴士
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-11-15 16:35:00" itemprop="dateCreated datePublished" datetime="2019-11-15T16:35:00+08:00">2019-11-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-08-27 17:27:15" itemprop="dateModified" datetime="2020-08-27T17:27:15+08:00">2020-08-27</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E5%B0%8F%E5%B7%A5%E5%85%B7/" itemprop="url" rel="index">
+                    <span itemprop="name">小工具</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="怎么添加-commited-file-到-gitignore-中"><a href="#怎么添加-commited-file-到-gitignore-中" class="headerlink" title="怎么添加 commited file 到 .gitignore 中"></a>怎么添加 commited file 到 <code>.gitignore</code> 中</h2><blockquote>
+<p><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/7527982/applying-gitignore-to-committed-files/7528016">StackOverflow: applying-gitignore-to-committed-files</a></p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git rm --cached path/to/file</span><br></pre></td></tr></table></figure>
+
+<h2 id="怎么把local-master-branch-还原成和-remote-端一致"><a href="#怎么把local-master-branch-还原成和-remote-端一致" class="headerlink" title="怎么把local master branch 还原成和 remote 端一致"></a>怎么把local master branch 还原成和 remote 端一致</h2><blockquote>
+<p><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/1628088/reset-local-repository-branch-to-be-just-like-remote-repository-head">StackOverflow: reset-local-repository-branch-to-be-just-like-remote-repository-head</a></p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git fetch origin</span><br><span class="line">git reset --hard origin/master</span><br></pre></td></tr></table></figure>
+
+<h2 id="移除本地的-commit"><a href="#移除本地的-commit" class="headerlink" title="移除本地的 commit"></a>移除本地的 commit</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git reset HEAD~1</span><br></pre></td></tr></table></figure>
+
+<h2 id="将本地的单个文件还原成-master-版本"><a href="#将本地的单个文件还原成-master-版本" class="headerlink" title="将本地的单个文件还原成 master 版本"></a>将本地的单个文件还原成 master 版本</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git checkout origin/master -- /path/to/file</span><br></pre></td></tr></table></figure>
+
+<h2 id="将-git-add-commit-合并到一个命令中"><a href="#将-git-add-commit-合并到一个命令中" class="headerlink" title="将 git add, commit 合并到一个命令中"></a>将 git add, commit 合并到一个命令中</h2><blockquote>
+<p><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/4298960/git-add-and-commit-in-one-command">StackOverflow: git-add-and-commit-in-one-command</a></p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># config git alias</span></span><br><span class="line">git config --global alias.add-commit <span class="string">&#x27;!git add -A &amp;&amp; git commit&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># and use it with</span></span><br><span class="line">git add-commit -m <span class="string">&#x27;My commit message&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="Rename-local-repo"><a href="#Rename-local-repo" class="headerlink" title="Rename local repo"></a>Rename local repo</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">git checkout &lt;repo need to re-name&gt;</span><br><span class="line">git branch -m &lt;new name&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># or make sure you are not at renamed repo</span></span><br><span class="line">git branch -m &lt;old repo name&gt; &lt;new repo name&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="移除-merge-内容"><a href="#移除-merge-内容" class="headerlink" title="移除 merge 内容"></a>移除 merge 内容</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">git reset --hard HEAD</span><br><span class="line"></span><br><span class="line"><span class="comment"># or</span></span><br><span class="line">git merge --abort</span><br></pre></td></tr></table></figure>
+
+<h2 id="国内-git-clone-有时会卡住-有没有-debug-的选项"><a href="#国内-git-clone-有时会卡住-有没有-debug-的选项" class="headerlink" title="国内 git clone 有时会卡住, 有没有 debug 的选项"></a>国内 git clone 有时会卡住, 有没有 debug 的选项</h2><blockquote>
+<p><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/6178401/how-can-i-debug-git-git-shell-related-problems">StackOverflow: how-can-i-debug-git-git-shell-related-problems</a></p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GIT_CURL_VERBOSE&#x3D;1 GIT_TRACE&#x3D;1 git pull origin master</span><br></pre></td></tr></table></figure>
+
+<h2 id="已创建-repo-添加证书"><a href="#已创建-repo-添加证书" class="headerlink" title="已创建 repo 添加证书"></a>已创建 repo 添加证书</h2><blockquote>
+<p>跳转到项目页面，添加文件 ‘create a new file’ -&gt; 输入 ‘license’ 会给出提示</p>
+</blockquote>
+<h2 id="查看某人的-commit-记录"><a href="#查看某人的-commit-记录" class="headerlink" title="查看某人的 commit 记录"></a>查看某人的 commit 记录</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">log</span> --author=<span class="string">&#x27;jack&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="查看-log-反序"><a href="#查看-log-反序" class="headerlink" title="查看 log 反序"></a>查看 log 反序</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">log</span> --reverse</span><br></pre></td></tr></table></figure>
+
+<h2 id="对比文件"><a href="#对比文件" class="headerlink" title="对比文件"></a>对比文件</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git diff &lt;base-commit&gt; &lt;changed-commit&gt; -- &lt;file-path&gt;</span><br></pre></td></tr></table></figure>
+
+<p>比如我像比较 8ab244e3b2de31ca 相对于 f31762ada1764 有什么改动可以使用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git diff f31762ada1764 8ab244e3b2de31ca -- &lt;file-path&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果是相对于 header 的改动，可以省略第一个 commit 内容</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="查看被删除文件的历史记录"><a href="#查看被删除文件的历史记录" class="headerlink" title="查看被删除文件的历史记录"></a>查看被删除文件的历史记录</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">log</span> -- &lt;file path&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="查看文件某一行删除记录"><a href="#查看文件某一行删除记录" class="headerlink" title="查看文件某一行删除记录"></a>查看文件某一行删除记录</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -G 直接支持正则，-S 需要添加其他参数来支持正则</span></span><br><span class="line">git <span class="built_in">log</span> -S/G<span class="string">&#x27;key&#x27;</span> /path/to/file</span><br></pre></td></tr></table></figure>
+
+<h2 id="已经-check-in-的文件夹加入-gitignore"><a href="#已经-check-in-的文件夹加入-gitignore" class="headerlink" title="已经 check in 的文件夹加入 .gitignore"></a>已经 check in 的文件夹加入 .gitignore</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 处理文件夹</span></span><br><span class="line">git rm -r --cached /folder</span><br><span class="line"></span><br><span class="line"><span class="comment"># 处理文件</span></span><br><span class="line">git rm --cached /path/to/file</span><br></pre></td></tr></table></figure>
+
+<h2 id="显示-repo-关联的远端地址"><a href="#显示-repo-关联的远端地址" class="headerlink" title="显示 repo 关联的远端地址"></a>显示 repo 关联的远端地址</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git remote show origin</span><br></pre></td></tr></table></figure>
+
+<h2 id="cherry-pick-提取某一个-commit-和并到目标分支"><a href="#cherry-pick-提取某一个-commit-和并到目标分支" class="headerlink" title="cherry pick 提取某一个 commit 和并到目标分支"></a>cherry pick 提取某一个 commit 和并到目标分支</h2><p>情景描述：</p>
+<p>我自己又一个分之 A， 同时创建了另一个分之 B 并在上面做了改动，commit 为 c1。我对他的这个 commit 有依赖，又不想自己 CV 代码或者以后有 conflict 什么的，这时可以 checkout 到我自己的分支，然后 <code>git cherry pick c1</code> 来合并代码。他的代码 merge 之后我也不用解决冲突，美滋滋儿。</p>
+<h2 id="使用-rebase-来合并自己分支的-commit-记录，强迫症福音"><a href="#使用-rebase-来合并自己分支的-commit-记录，强迫症福音" class="headerlink" title="使用 rebase 来合并自己分支的 commit 记录，强迫症福音"></a>使用 rebase 来合并自己分支的 commit 记录，强迫症福音</h2><p>check out 一个测试 branch，修改 readme</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;a&#x27;</span> &gt;&gt; README.md</span><br><span class="line">git add-commit -m <span class="string">&#x27;edit01&#x27;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;b&#x27;</span> &gt;&gt; README.md</span><br><span class="line">git add-commit -m <span class="string">&#x27;edit01&#x27;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;c&#x27;</span> &gt;&gt; README.md</span><br><span class="line">git add-commit -m <span class="string">&#x27;edit01&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>git log –oneline 查看 commit 记录</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">dc0a087 (HEAD -&gt; testrebase2) edit03</span><br><span class="line">c6feb2a edit02</span><br><span class="line">0436650 edit01</span><br><span class="line">0dcdaac init porject</span><br></pre></td></tr></table></figure>
+
+<p>现在通过 rebase 将 edit01-03 合并为一个 commit。这里有一个地方要注意的是如果指定 commit id，start point 是你想要合并的 ID 的前一个</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git rebase -i HEAD~3 或者 git rebase -i 0dcdaac</span><br></pre></td></tr></table></figure>
+
+<p>terminal 给出提示</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">pick 0436650 edit01</span><br><span class="line">pick c6feb2a edit02</span><br><span class="line">pick dc0a087 edit03</span><br><span class="line"></span><br><span class="line"><span class="comment"># Rebase 0dcdaac..dc0a087 onto 0dcdaac (3 commands)</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Commands:</span></span><br><span class="line"><span class="comment"># p, pick &lt;commit&gt; = use commit</span></span><br><span class="line"><span class="comment"># r, reword &lt;commit&gt; = use commit, but edit the commit message</span></span><br><span class="line"><span class="comment"># e, edit &lt;commit&gt; = use commit, but stop for amending</span></span><br><span class="line"><span class="comment"># s, squash &lt;commit&gt; = use commit, but meld into previous commit</span></span><br><span class="line"><span class="comment"># f, fixup &lt;commit&gt; = like &quot;squash&quot;, but discard this commit&#x27;s log message</span></span><br><span class="line"><span class="comment"># x, exec &lt;command&gt; = run command (the rest of the line) using shell</span></span><br><span class="line"><span class="comment"># b, break = stop here (continue rebase later with &#x27;git rebase --continue&#x27;)</span></span><br><span class="line"><span class="comment"># d, drop &lt;commit&gt; = remove commit</span></span><br><span class="line"><span class="comment"># l, label &lt;label&gt; = label current HEAD with a name</span></span><br><span class="line"><span class="comment"># t, reset &lt;label&gt; = reset HEAD to a label</span></span><br><span class="line"><span class="comment"># m, merge [-C &lt;commit&gt; | -c &lt;commit&gt;] &lt;label&gt; [# &lt;oneline&gt;]</span></span><br><span class="line"><span class="comment"># .       create a merge commit using the original merge commit&#x27;s</span></span><br></pre></td></tr></table></figure>
+
+<p>将 edit02, 03 的前缀改成 s，然后 :wq 进入下一个界面需改 commit message</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">pick 0436650 edit01</span><br><span class="line">s c6feb2a edit02</span><br><span class="line">s dc0a087 edit03</span><br></pre></td></tr></table></figure>
+
+<p>提示信息如下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># This is a combination of 3 commits.</span></span><br><span class="line"><span class="comment"># This is the 1st commit message:</span></span><br><span class="line"></span><br><span class="line">edit01</span><br><span class="line"></span><br><span class="line"><span class="comment"># This is the commit message #2:</span></span><br><span class="line"></span><br><span class="line">edit02</span><br><span class="line"></span><br><span class="line"><span class="comment"># This is the commit message #3:</span></span><br><span class="line"></span><br><span class="line">edit03</span><br><span class="line"></span><br><span class="line"><span class="comment"># Please enter the commit message for your changes. Lines starting</span></span><br><span class="line"><span class="comment"># with &#x27;#&#x27; will be ignored, and an empty message aborts the commit.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Date:      Wed Jul 8 17:10:52 2020 +0800</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># interactive rebase in progress; onto 0dcdaac</span></span><br><span class="line"><span class="comment"># Last commands done (3 commands done):</span></span><br></pre></td></tr></table></figure>
+
+<p>带 # 号的行不会显示，只需要修改之前我们自己添加的那些行就行了，这里修改为</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">merge commit edit01-03</span><br><span class="line"></span><br><span class="line"><span class="comment"># Please enter the commit message for your changes. Lines starting</span></span><br><span class="line"><span class="comment"># with &#x27;#&#x27; will be ignored, and an empty message aborts the commit.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Date:      Wed Jul 8 17:10:52 2020 +0800</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># interactive rebase in progress; onto 0dcdaac</span></span><br><span class="line"><span class="comment"># Last commands done (3 commands done):</span></span><br><span class="line"><span class="comment">#    squash c6feb2a edit02</span></span><br><span class="line"><span class="comment">#    squash dc0a087 edit03</span></span><br><span class="line"><span class="comment"># No commands remaining.</span></span><br><span class="line"><span class="comment"># You are currently rebasing branch &#x27;testrebase2&#x27; on &#x27;0dcdaac&#x27;.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Changes to be committed:</span></span><br><span class="line"><span class="comment">#   modified:   README.md</span></span><br><span class="line"><span class="comment">#</span></span><br></pre></td></tr></table></figure>
+
+<p>esc + :wq 退出，终端会给出修改成功的提示</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[detached HEAD 6c42812] merge commit edit01-03</span><br><span class="line"> Date: Wed Jul 8 17:10:52 2020 +0800</span><br><span class="line"> 1 file changed, 3 insertions(+)</span><br><span class="line">Successfully rebased and updated refs/heads/testrebase2.</span><br></pre></td></tr></table></figure>
+
+<p>这是再使用 git log –oneline 查看，可以发现目标 commit 已经合并成功</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">6c42812 (HEAD -&gt; testrebase2) merge commit edit01-03</span><br><span class="line">0dcdaac init porject</span><br></pre></td></tr></table></figure>
+
+<h2 id="怎么避免-branch-上出现很多-merge-的-commit-强迫症福音-2-0"><a href="#怎么避免-branch-上出现很多-merge-的-commit-强迫症福音-2-0" class="headerlink" title="怎么避免 branch 上出现很多 merge 的 commit, 强迫症福音 2.0"></a>怎么避免 branch 上出现很多 merge 的 commit, 强迫症福音 2.0</h2>
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Jack Zheng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://jack-zheng.github.io/hexo/2019/11/15/Git-Tips/" title="Git 小贴士">https://jack-zheng.github.io/hexo/2019/11/15/Git-Tips/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/null" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/hexo/tags/git/" rel="tag"># git</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+                <a href="/hexo/2019/11/15/Hexo%20%E6%8D%A2%E7%9A%AE%E8%82%A4/" rel="next" title="Hexo 换皮肤">
+                  <i class="fa fa-chevron-left"></i> Hexo 换皮肤
+                </a>
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+                <a href="/hexo/2019/11/15/Hexo%20%E8%AE%BE%E7%BD%AE%20tags%20%E5%92%8C%20Categories%20%E5%88%86%E7%B1%BB/" rel="prev" title="Hexo 设置 tags 和 Categories 分类">
+                  Hexo 设置 tags 和 Categories 分类 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%8E%E4%B9%88%E6%B7%BB%E5%8A%A0-commited-file-%E5%88%B0-gitignore-%E4%B8%AD"><span class="nav-number">1.</span> <span class="nav-text">怎么添加 commited file 到 .gitignore 中</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%8E%E4%B9%88%E6%8A%8Alocal-master-branch-%E8%BF%98%E5%8E%9F%E6%88%90%E5%92%8C-remote-%E7%AB%AF%E4%B8%80%E8%87%B4"><span class="nav-number">2.</span> <span class="nav-text">怎么把local master branch 还原成和 remote 端一致</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A7%BB%E9%99%A4%E6%9C%AC%E5%9C%B0%E7%9A%84-commit"><span class="nav-number">3.</span> <span class="nav-text">移除本地的 commit</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%86%E6%9C%AC%E5%9C%B0%E7%9A%84%E5%8D%95%E4%B8%AA%E6%96%87%E4%BB%B6%E8%BF%98%E5%8E%9F%E6%88%90-master-%E7%89%88%E6%9C%AC"><span class="nav-number">4.</span> <span class="nav-text">将本地的单个文件还原成 master 版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%86-git-add-commit-%E5%90%88%E5%B9%B6%E5%88%B0%E4%B8%80%E4%B8%AA%E5%91%BD%E4%BB%A4%E4%B8%AD"><span class="nav-number">5.</span> <span class="nav-text">将 git add, commit 合并到一个命令中</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Rename-local-repo"><span class="nav-number">6.</span> <span class="nav-text">Rename local repo</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A7%BB%E9%99%A4-merge-%E5%86%85%E5%AE%B9"><span class="nav-number">7.</span> <span class="nav-text">移除 merge 内容</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%BD%E5%86%85-git-clone-%E6%9C%89%E6%97%B6%E4%BC%9A%E5%8D%A1%E4%BD%8F-%E6%9C%89%E6%B2%A1%E6%9C%89-debug-%E7%9A%84%E9%80%89%E9%A1%B9"><span class="nav-number">8.</span> <span class="nav-text">国内 git clone 有时会卡住, 有没有 debug 的选项</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%B2%E5%88%9B%E5%BB%BA-repo-%E6%B7%BB%E5%8A%A0%E8%AF%81%E4%B9%A6"><span class="nav-number">9.</span> <span class="nav-text">已创建 repo 添加证书</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B%E6%9F%90%E4%BA%BA%E7%9A%84-commit-%E8%AE%B0%E5%BD%95"><span class="nav-number">10.</span> <span class="nav-text">查看某人的 commit 记录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B-log-%E5%8F%8D%E5%BA%8F"><span class="nav-number">11.</span> <span class="nav-text">查看 log 反序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%B9%E6%AF%94%E6%96%87%E4%BB%B6"><span class="nav-number">12.</span> <span class="nav-text">对比文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B%E8%A2%AB%E5%88%A0%E9%99%A4%E6%96%87%E4%BB%B6%E7%9A%84%E5%8E%86%E5%8F%B2%E8%AE%B0%E5%BD%95"><span class="nav-number">13.</span> <span class="nav-text">查看被删除文件的历史记录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B%E6%96%87%E4%BB%B6%E6%9F%90%E4%B8%80%E8%A1%8C%E5%88%A0%E9%99%A4%E8%AE%B0%E5%BD%95"><span class="nav-number">14.</span> <span class="nav-text">查看文件某一行删除记录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%B2%E7%BB%8F-check-in-%E7%9A%84%E6%96%87%E4%BB%B6%E5%A4%B9%E5%8A%A0%E5%85%A5-gitignore"><span class="nav-number">15.</span> <span class="nav-text">已经 check in 的文件夹加入 .gitignore</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%98%BE%E7%A4%BA-repo-%E5%85%B3%E8%81%94%E7%9A%84%E8%BF%9C%E7%AB%AF%E5%9C%B0%E5%9D%80"><span class="nav-number">16.</span> <span class="nav-text">显示 repo 关联的远端地址</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#cherry-pick-%E6%8F%90%E5%8F%96%E6%9F%90%E4%B8%80%E4%B8%AA-commit-%E5%92%8C%E5%B9%B6%E5%88%B0%E7%9B%AE%E6%A0%87%E5%88%86%E6%94%AF"><span class="nav-number">17.</span> <span class="nav-text">cherry pick 提取某一个 commit 和并到目标分支</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8-rebase-%E6%9D%A5%E5%90%88%E5%B9%B6%E8%87%AA%E5%B7%B1%E5%88%86%E6%94%AF%E7%9A%84-commit-%E8%AE%B0%E5%BD%95%EF%BC%8C%E5%BC%BA%E8%BF%AB%E7%97%87%E7%A6%8F%E9%9F%B3"><span class="nav-number">18.</span> <span class="nav-text">使用 rebase 来合并自己分支的 commit 记录，强迫症福音</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%8E%E4%B9%88%E9%81%BF%E5%85%8D-branch-%E4%B8%8A%E5%87%BA%E7%8E%B0%E5%BE%88%E5%A4%9A-merge-%E7%9A%84-commit-%E5%BC%BA%E8%BF%AB%E7%97%87%E7%A6%8F%E9%9F%B3-2-0"><span class="nav-number">19.</span> <span class="nav-text">怎么避免 branch 上出现很多 merge 的 commit, 强迫症福音 2.0</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Jack Zheng"
+      src="/hexo/images/jack.jpg">
+  <p class="site-author-name" itemprop="name">Jack Zheng</p>
+  <div class="site-description" itemprop="description">我是张江搬砖小码农, 知识搬运工</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/hexo/archives/">
+        
+          <span class="site-state-item-count">65</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/hexo/categories/">
+          
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/hexo/tags/">
+          
+        <span class="site-state-item-count">66</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jack Zheng</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">112k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">1:42</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.5.0
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/hexo/lib/anime.min.js"></script>
+  <script src="/hexo/lib/velocity/velocity.min.js"></script>
+  <script src="/hexo/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/hexo/js/utils.js"></script>
+
+<script src="/hexo/js/motion.js"></script>
+
+
+<script src="/hexo/js/schemes/muse.js"></script>
+
+
+<script src="/hexo/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/hexo/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'd444c814810f7e73ee3a',
+      clientSecret: '9b3c417a0c1076887b3cf583c7d7a27456b708ef',
+      repo: 'hexo-comments',
+      owner: 'jack-zheng',
+      admin: ['jack-zheng'],
+      id: 'ea3eab040570cb83995662b99e477451',
+        language: '',
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

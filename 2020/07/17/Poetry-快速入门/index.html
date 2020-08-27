@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/hexo/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/hexo/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/hexo/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/hexo/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="UgODgWVmvTsdD--vjodDR3tPUZRWM3i7JpHzbYejxUM">
+
+<link rel="stylesheet" href="/hexo/css/main.css">
+
+
+<link rel="stylesheet" href="/hexo/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/hexo/',
+    scheme: 'Muse',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="Poetry 类 pipenv 工具，据说 lock 什么的速度更快，而且有集成发布功能，刚好 rich 这个项目有用这个，刚好在看源码的时候体验一把 安装Win1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859# powershe">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Poetry 快速入门">
+<meta property="og:url" content="https://jack-zheng.github.io/hexo/2020/07/17/Poetry-%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/index.html">
+<meta property="og:site_name" content="Jackpot">
+<meta property="og:description" content="Poetry 类 pipenv 工具，据说 lock 什么的速度更快，而且有集成发布功能，刚好 rich 这个项目有用这个，刚好在看源码的时候体验一把 安装Win1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859# powershe">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-07-17T09:59:45.000Z">
+<meta property="article:modified_time" content="2020-08-27T09:27:15.095Z">
+<meta property="article:author" content="Jack Zheng">
+<meta property="article:tag" content="python">
+<meta property="article:tag" content="poetry">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://jack-zheng.github.io/hexo/2020/07/17/Poetry-%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>Poetry 快速入门 | Jackpot</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/hexo/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jackpot</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-tags">
+
+    <a href="/hexo/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/hexo/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/hexo/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/jack-zheng" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/07/17/Poetry-%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Poetry 快速入门
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-07-17 17:59:45" itemprop="dateCreated datePublished" datetime="2020-07-17T17:59:45+08:00">2020-07-17</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-08-27 17:27:15" itemprop="dateModified" datetime="2020-08-27T17:27:15+08:00">2020-08-27</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
+                    <span itemprop="name">编程</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Poetry 类 pipenv 工具，据说 lock 什么的速度更快，而且有集成发布功能，刚好 rich 这个项目有用这个，刚好在看源码的时候体验一把</p>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><h3 id="Win"><a href="#Win" class="headerlink" title="Win"></a>Win</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># powershell 输入</span></span><br><span class="line">(Invoke-WebRequest -Uri https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py -UseBasicParsing).Content | python</span><br><span class="line"></span><br><span class="line"><span class="comment"># 提示 error, 原因是 DNS 污染</span></span><br><span class="line">Invoke-WebRequest : 未能解析此远程名称: <span class="string">&#x27;raw.githubusercontent.com&#x27;</span></span><br><span class="line">所在位置 行:1 字符: 2</span><br><span class="line">+ (Invoke-WebRequest -Uri https://raw.githubusercontent.com/python-poet ...</span><br><span class="line">+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span><br><span class="line">    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-WebRequest]，WebExce</span><br><span class="line">    ption</span><br><span class="line">    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeWebRequestCommand</span><br><span class="line"></span><br><span class="line"><span class="comment"># 解决方案：修改 host 文件</span></span><br><span class="line"><span class="comment"># 目录：C:/Windows/System32/drivers/etc/</span></span><br><span class="line"><span class="comment"># 管理员模式打开，添加文本: 151.101.0.133 raw.githubusercontent.com</span></span><br><span class="line"><span class="comment"># 刷新DNS</span></span><br><span class="line">ipconfig /flushdns</span><br><span class="line"></span><br><span class="line"><span class="comment"># 链接成功，但是报其他错误</span></span><br><span class="line">Invoke-WebRequest : 基础连接已经关闭: 发送时发生错误。</span><br><span class="line">所在位置 行:1 字符: 2</span><br><span class="line">+ (Invoke-WebRequest -Uri https://raw.githubusercontent.com/python-poet ...</span><br><span class="line">+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span><br><span class="line">    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-WebRequest]，WebExce</span><br><span class="line">    ption</span><br><span class="line">    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeWebRequestCommand</span><br><span class="line"></span><br><span class="line"><span class="comment"># 改完之后各种报错，烦躁。这个命令就是下载一个 get-poetry.py 的 raw 文件，然后使用 python get-poetry.py 安装。我直接下载这个文件然后安装了。。。</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 尼玛，被墙了安装超级慢 (╬▔皿▔)╯ 最后用小飞机开启全局代理， 再 CMD 窗口 python get-poetry.py 安装成功</span></span><br><span class="line"></span><br><span class="line">Retrieving Poetry metadata</span><br><span class="line"></span><br><span class="line">Before we start, please answer the following questions.</span><br><span class="line">You may simply press the Enter key to leave unchanged.</span><br><span class="line">Modify PATH variable? ([y]/n)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Welcome to Poetry!</span></span><br><span class="line">This will download and install the latest version of Poetry,</span><br><span class="line">a dependency and package manager <span class="keyword">for</span> Python.</span><br><span class="line">It will add the `poetry` <span class="built_in">command</span> to Poetry<span class="string">&#x27;s bin directory, located at:</span></span><br><span class="line"><span class="string">%USERPROFILE%\.poetry\bin</span></span><br><span class="line"><span class="string">This path will then be added to your `PATH` environment variable by</span></span><br><span class="line"><span class="string">modifying the `HKEY_CURRENT_USER/Environment/PATH` registry key.</span></span><br><span class="line"><span class="string">You can uninstall at any time by executing this script with the --uninstall option,</span></span><br><span class="line"><span class="string">and these changes will be reverted.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">Installing version: 1.0.10</span></span><br><span class="line"><span class="string">  - Downloading poetry-1.0.10-win32.tar.gz (11.96MB)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">Poetry (1.0.10) is installed now. Great!</span></span><br><span class="line"><span class="string">To get started you need Poetry&#x27;</span>s bin directory (%USERPROFILE%\.poetry\bin) <span class="keyword">in</span> your `PATH`</span><br><span class="line">environment variable. Future applications will automatically have the</span><br><span class="line">correct environment, but you may need to restart your current shell.</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重启一下终端，输入命令检测安装</span></span><br><span class="line">poetry --version</span><br><span class="line"></span><br><span class="line"><span class="comment"># 但是在 vscode 的终端中还是不能识别，手动将 user\.poetry\bin 添加到系统 path 中重启 vscode, 识别成功</span></span><br></pre></td></tr></table></figure>
+
+<p>PS: 国内安装各种软件有助于增长火气！！！</p>
+<h2 id="常用-Command"><a href="#常用-Command" class="headerlink" title="常用 Command"></a>常用 Command</h2><h3 id="poetry-new-project-name"><a href="#poetry-new-project-name" class="headerlink" title="poetry new project-name"></a>poetry new project-name</h3><p>初始化项目, 创建必要文件。你可以在 git 上先建一个空的仓库然后，本地做完 poetry init 和 git init 之后 match 一下</p>
+<p>初始化后目录为</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">job-spider</span><br><span class="line">├── pyproject.toml</span><br><span class="line">├── README.rst</span><br><span class="line">├── job_spider</span><br><span class="line">│   └── __init__.py</span><br><span class="line">└── tests</span><br><span class="line">    ├── __init__.py</span><br><span class="line">    └── test_job_spider.py</span><br></pre></td></tr></table></figure>
+
+<p>通过配置 toml 文件指定国内源加速</p>
+<figure class="highlight toml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[[tool.poetry.source]]</span></span><br><span class="line"><span class="attr">name</span> = <span class="string">&quot;douban&quot;</span></span><br><span class="line"><span class="attr">url</span> = <span class="string">&quot;https://pypi.doubanio.com/simple/&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="poetry-config-–list"><a href="#poetry-config-–list" class="headerlink" title="poetry config –list"></a>poetry config –list</h3><p>查看配置，比如 virtualenv 会创建在哪里之类的。这个 cmd 还是很有帮助的，可以通过它知道你的虚拟环境创建在哪里，是不是要在 project 创建 venv 等</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ poetry config --list</span><br><span class="line">cache-dir = <span class="string">&quot;/Users/jack/Library/Caches/pypoetry&quot;</span></span><br><span class="line">virtualenvs.create = <span class="literal">true</span></span><br><span class="line">virtualenvs.in-project = <span class="literal">false</span></span><br><span class="line">virtualenvs.path = <span class="string">&quot;&#123;cache-dir&#125;/virtualenvs&quot;</span> <span class="comment"># /Users/jack/Library/Caches/pypoetry/virtualenvs</span></span><br></pre></td></tr></table></figure>
+
+<p>通过指定 <code>poetry config virtualenvs.in-project true</code> 可以指定将虚拟环境创建到 project 目录下面，方便管理</p>
+<h3 id="poetry-shell"><a href="#poetry-shell" class="headerlink" title="poetry shell"></a>poetry shell</h3><p>激活环境, 如果还没有创建过虚拟环境，他还会根据 toml 文件新建一个</p>
+<h3 id="poetry-install"><a href="#poetry-install" class="headerlink" title="poetry install"></a>poetry install</h3><p>并不是安装依赖，而是根据 toml 文件安装项目依赖，对标 <code>pipenv sync</code></p>
+<h3 id="poetry-add"><a href="#poetry-add" class="headerlink" title="poetry add"></a>poetry add</h3><p>对标 pipenv 中的 <code>pipenv install</code>, 使用 <code>add --dev/-D flask</code> 安装 dev 相关的包</p>
+<h3 id="poetry-env-info"><a href="#poetry-env-info" class="headerlink" title="poetry env info"></a>poetry env info</h3><p><code>poetry env info</code>: 显示运行环境信息，包括本地 OS 和虚拟环境</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Virtualenv</span><br><span class="line">Python:         3.7.5</span><br><span class="line">Implementation: CPython</span><br><span class="line">Path:           /Users/jack/gitStore/mycommands/.venv</span><br><span class="line">Valid:          True</span><br><span class="line"></span><br><span class="line">System</span><br><span class="line">Platform: darwin</span><br><span class="line">OS:       posix</span><br><span class="line">Python:   /Library/Frameworks/Python.framework/Versions/3.7</span><br></pre></td></tr></table></figure>
+
+<p><code>poetry env list</code>: 显示可用的 env 列表</p>
+<p>官方推荐 poetry 结合 pyenv 管理各种版本的虚拟环境</p>
+<h2 id="poetry-show"><a href="#poetry-show" class="headerlink" title="poetry show"></a>poetry show</h2><p>显示已安装的依赖</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">poetry show</span><br><span class="line">atomicwrites       1.4.0  Atomic file writes.</span><br><span class="line">attrs              19.3.0 Classes Without Boilerplate</span><br><span class="line">click              7.1.2  Composable <span class="built_in">command</span> line interface toolkit</span><br><span class="line">flask              1.1.2  A simple framework <span class="keyword">for</span> building complex web applications.</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<h2 id="遇到的问题"><a href="#遇到的问题" class="headerlink" title="遇到的问题"></a>遇到的问题</h2><h3 id="Resolving-dependency-挺慢"><a href="#Resolving-dependency-挺慢" class="headerlink" title="Resolving dependency 挺慢"></a>Resolving dependency 挺慢</h3><p>在安装更新的时候 resolving dependency 挺慢的，等了好一会儿，一度认为进程死了。但是第二次就快多了，可能是有 cache</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">C:\Users\jack\gitStore\job-spider\job_spider&gt;poetry install --verbose</span><br><span class="line">Updating dependencies</span><br><span class="line">Resolving dependencies...</span><br></pre></td></tr></table></figure>
+
+<h3 id="编译器识别有问题"><a href="#编译器识别有问题" class="headerlink" title="编译器识别有问题"></a>编译器识别有问题</h3><p>观察 VSCode 的左下角，python 编译器经常选择有问题，会找不到自己创建的虚拟环境路径。可以点击它，然后根据 poetry shell 的提示手动设置，路径如 <code>C:\Users\jack\AppData\Local\pypoetry\Cache\virtualenvs\job-spider-UlnXzhyt-py3.7</code> 做完后他会自动保存到 <code>.vscode</code> 的工程文件夹下。但是我默认这个文件是不 check in 的，所以然并卵 ┑(￣Д ￣)┍</p>
+<h3 id="Win-启动-flask-失败"><a href="#Win-启动-flask-失败" class="headerlink" title="Win 启动 flask 失败"></a>Win 启动 flask 失败</h3><p>新建了一个 flask demo，启动的时候报错</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">PS C:\Users\jack\gitStore\job-spider&gt; poetry run .\job_spider\main.py</span><br><span class="line"></span><br><span class="line">[OSError]</span><br><span class="line">[WinError 193] %1 不是有效的 Win32 应用程序。</span><br></pre></td></tr></table></figure>
+
+<p>据说是 windows 上安装了 64 位的 python， 调用了 32 位的 dll 会报这个错，换个 32 位的 python 就能解决。将原有的 64 位卸载，删除各种环境变量，重新安装 32 位 python，然并卵，要自闭了 (￣ε(#￣)</p>
+<p>暂时没有什么其他更好的解决方案，打算用虚拟机或者在 MacOS 上完成开发以节省时间</p>
+<p>今天在 Mac 上用 3.7.8 的版本也会抛同样的错误！！！难道是版本有问题？果断用 <code>3.6.6</code>, <code>3.7.3</code> 试试，可行。。。。回去再到 Windows 的机子上试试这个版本。</p>
+<p>在 Win 上换 3.7.3 之后一切正常 ╰(艹皿艹 )</p>
+<h3 id="MacOS-poetry-install-报错"><a href="#MacOS-poetry-install-报错" class="headerlink" title="MacOS poetry install 报错"></a>MacOS poetry install 报错</h3><p>切换到 3.6.5 之后 poetry install 报错</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[EnvCommandError]</span><br><span class="line">Command [<span class="string">&#x27;/Users/jack/gitStore/splunk-collector/.venv/bin/pip&#x27;</span>, <span class="string">&#x27;install&#x27;</span>, <span class="string">&#x27;--no-deps&#x27;</span>, <span class="string">&#x27;zipp==3.1.0&#x27;</span>] errored with the following <span class="built_in">return</span> code 1, and output:</span><br><span class="line">pip is configured with locations that require TLS/SSL, however the ssl module <span class="keyword">in</span> Python is not available.</span><br><span class="line">...</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>是 OpenSSL 包缺失导致的</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 修复，第一行可以不运行，下载包经常卡住</span></span><br><span class="line">brew update &amp;&amp; brew upgrade</span><br><span class="line">brew uninstall --ignore-dependencies openssl; brew install https://github.com/tebelorg/Tump/releases/download/v1.0.0/openssl.rb</span><br><span class="line"></span><br><span class="line">brew reinstall python</span><br></pre></td></tr></table></figure>
+
+<p>这之后还重新将 pyenv 管理的 python 重新卸载安装了一下，问题解决</p>
+<h3 id="MacOS-poetry-run"><a href="#MacOS-poetry-run" class="headerlink" title="MacOS poetry run"></a>MacOS poetry run</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"> poetry run splunk_collector/main.py</span><br><span class="line"></span><br><span class="line">[PermissionError]</span><br><span class="line">[Errno 13] Permission denied</span><br></pre></td></tr></table></figure>
+
+<p>运行 flask demo, permission 报错。完全搞错了。。。。flask 并不是那样运行的。保存完文件之后, 通过如下方式运行，而不是直接用 poetry 或者 python 运行，我 凸^-^凸</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">export</span> FLASK_APP=hello.py</span><br><span class="line">$ flask run</span><br><span class="line"> * Running on http://127.0.0.1:5000/</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Jack Zheng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://jack-zheng.github.io/hexo/2020/07/17/Poetry-%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/" title="Poetry 快速入门">https://jack-zheng.github.io/hexo/2020/07/17/Poetry-%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/null" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/hexo/tags/python/" rel="tag"># python</a>
+              <a href="/hexo/tags/poetry/" rel="tag"># poetry</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+                <a href="/hexo/2020/07/14/Splunk-Tips/" rel="next" title="Splunk API 使用记录">
+                  <i class="fa fa-chevron-left"></i> Splunk API 使用记录
+                </a>
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+                <a href="/hexo/2020/07/22/Chrome-%E6%8F%92%E4%BB%B6%E8%AE%B0%E4%BA%8B/" rel="prev" title="Chrome 插件记事">
+                  Chrome 插件记事 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85"><span class="nav-number">1.</span> <span class="nav-text">安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Win"><span class="nav-number">1.1.</span> <span class="nav-text">Win</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8-Command"><span class="nav-number">2.</span> <span class="nav-text">常用 Command</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#poetry-new-project-name"><span class="nav-number">2.1.</span> <span class="nav-text">poetry new project-name</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#poetry-config-%E2%80%93list"><span class="nav-number">2.2.</span> <span class="nav-text">poetry config –list</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#poetry-shell"><span class="nav-number">2.3.</span> <span class="nav-text">poetry shell</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#poetry-install"><span class="nav-number">2.4.</span> <span class="nav-text">poetry install</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#poetry-add"><span class="nav-number">2.5.</span> <span class="nav-text">poetry add</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#poetry-env-info"><span class="nav-number">2.6.</span> <span class="nav-text">poetry env info</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#poetry-show"><span class="nav-number">3.</span> <span class="nav-text">poetry show</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">4.</span> <span class="nav-text">遇到的问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Resolving-dependency-%E6%8C%BA%E6%85%A2"><span class="nav-number">4.1.</span> <span class="nav-text">Resolving dependency 挺慢</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%96%E8%AF%91%E5%99%A8%E8%AF%86%E5%88%AB%E6%9C%89%E9%97%AE%E9%A2%98"><span class="nav-number">4.2.</span> <span class="nav-text">编译器识别有问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Win-%E5%90%AF%E5%8A%A8-flask-%E5%A4%B1%E8%B4%A5"><span class="nav-number">4.3.</span> <span class="nav-text">Win 启动 flask 失败</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MacOS-poetry-install-%E6%8A%A5%E9%94%99"><span class="nav-number">4.4.</span> <span class="nav-text">MacOS poetry install 报错</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MacOS-poetry-run"><span class="nav-number">4.5.</span> <span class="nav-text">MacOS poetry run</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Jack Zheng"
+      src="/hexo/images/jack.jpg">
+  <p class="site-author-name" itemprop="name">Jack Zheng</p>
+  <div class="site-description" itemprop="description">我是张江搬砖小码农, 知识搬运工</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/hexo/archives/">
+        
+          <span class="site-state-item-count">65</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/hexo/categories/">
+          
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/hexo/tags/">
+          
+        <span class="site-state-item-count">66</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jack Zheng</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">112k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">1:42</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.5.0
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/hexo/lib/anime.min.js"></script>
+  <script src="/hexo/lib/velocity/velocity.min.js"></script>
+  <script src="/hexo/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/hexo/js/utils.js"></script>
+
+<script src="/hexo/js/motion.js"></script>
+
+
+<script src="/hexo/js/schemes/muse.js"></script>
+
+
+<script src="/hexo/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/hexo/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'd444c814810f7e73ee3a',
+      clientSecret: '9b3c417a0c1076887b3cf583c7d7a27456b708ef',
+      repo: 'hexo-comments',
+      owner: 'jack-zheng',
+      admin: ['jack-zheng'],
+      id: 'ed0918a5aff4011259200f95e89b31e2',
+        language: '',
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>
