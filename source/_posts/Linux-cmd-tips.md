@@ -52,3 +52,9 @@ du -sh * | sort -hr
 # 实现方式是先 ps 一下拿到 head 打印出来，再 ps 一次拿到我们想要的结果
 ps | head -1; ps | grep java
 ```
+## 查看文件/夹大小
+
+```bash
+# du: disk usage
+du -sh *
+```
