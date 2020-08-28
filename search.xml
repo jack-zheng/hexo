@@ -478,7 +478,8 @@
 <h3 id="指定泛型返回值为某个类的子类"><a href="#指定泛型返回值为某个类的子类" class="headerlink" title="指定泛型返回值为某个类的子类"></a>指定泛型返回值为某个类的子类</h3><p>可以使用泛型方法</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> &lt;T extends Sup&gt;  <span class="function">T <span class="title">getSometing</span><span class="params">()</span> </span>&#123;&#125;;</span><br></pre></td></tr></table></figure>
 
-<h2 id="返回-Map-类型的泛型方法？"><a href="#返回-Map-类型的泛型方法？" class="headerlink" title="返回 Map 类型的泛型方法？"></a>返回 Map 类型的泛型方法？</h2><p>子类现有方法为 </p>
+<h2 id="返回-Map-类型的泛型方法？"><a href="#返回-Map-类型的泛型方法？" class="headerlink" title="返回 Map 类型的泛型方法？"></a>返回 Map 类型的泛型方法？</h2><p>这种用法称为 multi-level wildcards，参考 <a href="http://www.angelikalanger.com/GenericsFAQ/FAQSections/TypeArguments.html#FAQ101">这篇</a> 文章中的定义</p>
+<p>子类现有方法为 </p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> Map&lt;String, List&lt;Sub&gt;&gt; getResult() &#123;</span><br><span class="line">    <span class="keyword">new</span> HashMap&lt;String, List&lt;Sub&gt;&gt;();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>想要给他一个抽 interface 类似 <code>Map&lt;String, List&lt;? extends Sup&gt;&gt; getResult();</code> 但是会编译错误，需要怎么写？</p>
@@ -975,6 +976,45 @@
       </categories>
       <tags>
         <tag>git</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hexo 博客添加 sitemap</title>
+    <url>/hexo/2019/11/22/Hexo%20%E5%8D%9A%E5%AE%A2%E6%B7%BB%E5%8A%A0%20sitemap/</url>
+    <content><![CDATA[<p>为博客添加 sitemap 并将博客添加至搜索引擎</p>
+<h2 id="Google-Search-Console"><a href="#Google-Search-Console" class="headerlink" title="Google Search Console"></a>Google Search Console</h2><p>到博客根目录下运行 command 安装插件</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install hexo-generator-sitemap --save</span><br></pre></td></tr></table></figure>
+
+<p>在根目录下的 _config.yml 中添加 sitemap 配置</p>
+<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Config sitemap to enable SEO</span></span><br><span class="line"><span class="attr">sitemap:</span></span><br><span class="line">  <span class="attr">path:</span> <span class="string">sitemap.xml</span></span><br></pre></td></tr></table></figure>
+
+<p>重新生成文件，启动 server</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo g</span><br><span class="line">hexo s</span><br></pre></td></tr></table></figure>
+
+<p>访问 url/sitemap.xml 可以看到新生成的 sitemap xml 文件</p>
+<p>访问 <a href="https://search.google.com/search-console/about">Google Search Console</a> 注册你的页面。<br>如果你的博客挂在 github 上，选右边的那个，输入你的 github 博客地址，比如我的是 <code>https://jack-zheng.github.io/hexo</code><br><img src="seo01.jpg" alt="资源类型"></p>
+<p>结下来是验证所有权, 选择 HTML 标记会简单一点。点击他，你会得到一串码。复制它然后到 themes/next/_config.yml 中，找到 <code>google_site_verification:</code> 将值写在后面</p>
+<p><img src="seo02.png" alt="所有权验证"></p>
+<p>添加完后，将你的博客部署，在次访问是查看页面源码，你会发现头部多了一段 meta 数据</p>
+<p><img src="seo_meta.png" alt="文件头"></p>
+<p>然后点击 Verify 按钮，验证成功</p>
+<p>![所有权验证]](seo03.png)</p>
+<p>点击 <code>站点地图</code> 在 1 处填写你的 sitemap 地址。添加完成后，他会显示在 2 处</p>
+<p><img src="seo04.png" alt="添加站点"></p>
+<p>等一段时间后，google 就会将你的博客抓去出来了， 通过在搜索框中输入 <code>site:https://jack-zheng.github.io/</code> 可以看到结果，我是在第二天看的，不是很清楚精确需要等多久</p>
+<p><img src="seo05.png" alt="Google Search 结果"></p>
+<h2 id="博客添加图片引用"><a href="#博客添加图片引用" class="headerlink" title="博客添加图片引用"></a>博客添加图片引用</h2><ul>
+<li><a href="https://hexo.io/zh-cn/docs/asset-folders.html">官方文档</a></li>
+</ul>
+<p>由于我的博客是挂载在 subdirectory 下面的，在 source 下面创建 images 的方案不生效，也没有找到对应的解决办法，我还以为可以在 _config.yml 里面配置来着，残念 ┑(￣Д ￣)┍</p>
+<p>最后采用了 post_asset_folder 的配置，这个配置默认就有的，默认关闭，把他设置成 true 打开，之后每次创建新 post 的时候，会在 _posts 下面新建文件夹，将你要上传的图片放在里面，在 post 正文中使用 <code>![Google Search 结果](seo05.png)</code> 引用即可</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># folder structure sample</span></span><br><span class="line"><span class="built_in">source</span></span><br><span class="line">├── _posts</span><br><span class="line">│   ├── git-commands.md</span><br><span class="line">│   ├── hexo-comments.md</span><br><span class="line">│   ├── hexo-search-seo</span><br><span class="line">│   │   ├── seo01.jpg</span><br><span class="line">│   │   ├── ...</span><br><span class="line">│   │   └── seo05.png</span><br><span class="line">│   ├── hexo-search-seo.md</span><br><span class="line">│   ├── ...</span><br><span class="line">│   └── setup-hexo-tag-category.md</span><br><span class="line">├── categories</span><br><span class="line">│   └── index.md</span><br><span class="line">└── tags</span><br><span class="line">    └── index.md</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>博客</category>
+      </categories>
+      <tags>
+        <tag>hexo</tag>
       </tags>
   </entry>
   <entry>
@@ -2519,45 +2559,6 @@
       </categories>
       <tags>
         <tag>java</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Hexo 博客添加 sitemap</title>
-    <url>/hexo/2019/11/22/Hexo%20%E5%8D%9A%E5%AE%A2%E6%B7%BB%E5%8A%A0%20sitemap/</url>
-    <content><![CDATA[<p>为博客添加 sitemap 并将博客添加至搜索引擎</p>
-<h2 id="Google-Search-Console"><a href="#Google-Search-Console" class="headerlink" title="Google Search Console"></a>Google Search Console</h2><p>到博客根目录下运行 command 安装插件</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install hexo-generator-sitemap --save</span><br></pre></td></tr></table></figure>
-
-<p>在根目录下的 _config.yml 中添加 sitemap 配置</p>
-<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Config sitemap to enable SEO</span></span><br><span class="line"><span class="attr">sitemap:</span></span><br><span class="line">  <span class="attr">path:</span> <span class="string">sitemap.xml</span></span><br></pre></td></tr></table></figure>
-
-<p>重新生成文件，启动 server</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo g</span><br><span class="line">hexo s</span><br></pre></td></tr></table></figure>
-
-<p>访问 url/sitemap.xml 可以看到新生成的 sitemap xml 文件</p>
-<p>访问 <a href="https://search.google.com/search-console/about">Google Search Console</a> 注册你的页面。<br>如果你的博客挂在 github 上，选右边的那个，输入你的 github 博客地址，比如我的是 <code>https://jack-zheng.github.io/hexo</code><br><img src="seo01.jpg" alt="资源类型"></p>
-<p>结下来是验证所有权, 选择 HTML 标记会简单一点。点击他，你会得到一串码。复制它然后到 themes/next/_config.yml 中，找到 <code>google_site_verification:</code> 将值写在后面</p>
-<p><img src="seo02.png" alt="所有权验证"></p>
-<p>添加完后，将你的博客部署，在次访问是查看页面源码，你会发现头部多了一段 meta 数据</p>
-<p><img src="seo_meta.png" alt="文件头"></p>
-<p>然后点击 Verify 按钮，验证成功</p>
-<p>![所有权验证]](seo03.png)</p>
-<p>点击 <code>站点地图</code> 在 1 处填写你的 sitemap 地址。添加完成后，他会显示在 2 处</p>
-<p><img src="seo04.png" alt="添加站点"></p>
-<p>等一段时间后，google 就会将你的博客抓去出来了， 通过在搜索框中输入 <code>site:https://jack-zheng.github.io/</code> 可以看到结果，我是在第二天看的，不是很清楚精确需要等多久</p>
-<p><img src="seo05.png" alt="Google Search 结果"></p>
-<h2 id="博客添加图片引用"><a href="#博客添加图片引用" class="headerlink" title="博客添加图片引用"></a>博客添加图片引用</h2><ul>
-<li><a href="https://hexo.io/zh-cn/docs/asset-folders.html">官方文档</a></li>
-</ul>
-<p>由于我的博客是挂载在 subdirectory 下面的，在 source 下面创建 images 的方案不生效，也没有找到对应的解决办法，我还以为可以在 _config.yml 里面配置来着，残念 ┑(￣Д ￣)┍</p>
-<p>最后采用了 post_asset_folder 的配置，这个配置默认就有的，默认关闭，把他设置成 true 打开，之后每次创建新 post 的时候，会在 _posts 下面新建文件夹，将你要上传的图片放在里面，在 post 正文中使用 <code>![Google Search 结果](seo05.png)</code> 引用即可</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># folder structure sample</span></span><br><span class="line"><span class="built_in">source</span></span><br><span class="line">├── _posts</span><br><span class="line">│   ├── git-commands.md</span><br><span class="line">│   ├── hexo-comments.md</span><br><span class="line">│   ├── hexo-search-seo</span><br><span class="line">│   │   ├── seo01.jpg</span><br><span class="line">│   │   ├── ...</span><br><span class="line">│   │   └── seo05.png</span><br><span class="line">│   ├── hexo-search-seo.md</span><br><span class="line">│   ├── ...</span><br><span class="line">│   └── setup-hexo-tag-category.md</span><br><span class="line">├── categories</span><br><span class="line">│   └── index.md</span><br><span class="line">└── tags</span><br><span class="line">    └── index.md</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>博客</category>
-      </categories>
-      <tags>
-        <tag>hexo</tag>
       </tags>
   </entry>
   <entry>
