@@ -71,6 +71,8 @@ public void <T extends Sup>  T getSometing() {};
 
 ## 返回 Map 类型的泛型方法？
 
+这种用法称为 multi-level wildcards，参考 [这篇](http://www.angelikalanger.com/GenericsFAQ/FAQSections/TypeArguments.html#FAQ101) 文章中的定义
+
 子类现有方法为 
 
 ```java
