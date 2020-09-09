@@ -12,12 +12,18 @@ tags:
 
 > 可以负责任的告诉大家，ASM只不过是通过 “Visitor” 模式将 “.class” 类文件的内容从头到尾扫描一遍。因此如果你抱着任何更苛刻的要求最后都将失望而归。
 
-实验内容：准备一个 HelloWorld.class 可以打印出 'Hello World' 字样。通过 ASM 框架使他在答应之前，之后都输出一些 debug 信息，调用时可以使用反射简化实验。
-
 实验平台信息：
     MacOS + IDEA + ASM Bytecode Outline 插件
 
-## 具体实现
+## 输出 Class 方法
+
+准备测试用 class，通过 ASM 输出 class 中的方法名称
+
+
+
+## 修改方法
+
+实验内容：准备一个 HelloWorld.class 可以打印出 'Hello World' 字样。通过 ASM 框架使他在答应之前，之后都输出一些 debug 信息，调用时可以使用反射简化实验。
 
 HelloWorld.java 文件内容
 
