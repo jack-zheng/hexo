@@ -60,3 +60,59 @@ public void setUserDao(UserDao userDao) {
 Spring 是一种实现控制反转的 IoC 容器，常见的有两种对象控制方式，XML 和 注解。XML 配置 Bean, 定义和实现是分离的。注解方式则把两者结合在了一起，从而达到零配置。
 
 [Spring Framework 官方文档](https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#beans-factory-metadata)
+
+## IoC创建对象的方式
+
+1. 默认使用无参构造创建对象
+2. 通过 constructor-arg 标签实现带参构造器功能
+
+在 xml 加载完后，配置的对象就已经被创建了
+
+## Spring 配置说明
+
+1. alias 别名，和 bean 的 name 属性重复，而且 name 更灵活
+2. bean 对象生成配置
+3. import 合并多个 xml 配置文件
+
+## DI - 依赖注入
+
+1. 构造器注入
+2. Set方式注入 - 即依赖注入
+3. 其他注入
+
+依赖： bean 对象的创建依赖容器
+注入： bean 对象的所有属性由容器来注入
+
+## P/C命名空间注入
+
+在 xml 中导入约束即可使用
+
+```xml
+xmlns:p="http://www.springframework.org/schema/p"
+ xmlns:c="http://www.springframework.org/schema/c"
+```
+
+P 可以扩展属性注入，一个 tag 解决，不用嵌套xml了
+
+C 可以扩展构造器
+
+## Bean 的 作用域(scope)
+
+1. singleton - 默认域
+2. prototype - 每次取 bean 都会产生新对象
+
+```xml
+<bean id="accountService" class="com.something.DefaultAccountService" scope="singleton"/>
+<bean id="accountService" class="com.something.DefaultAccountService" scope="prototype"/>
+```
+
+## Bean 的自动装配
+
+* 自动装配是 Spring 满足 bean 依赖的一种方式
+* Spring 在上下文中自动寻找，并自动给 bean 装配属性
+
+Spring 三种装配方式：
+
+1. xml
+2. 注解
+3. 隐式的自动装配 bean
