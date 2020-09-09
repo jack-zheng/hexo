@@ -264,3 +264,32 @@ Successfully rebased and updated refs/heads/testrebase2.
 ```
 
 ## 怎么避免 branch 上出现很多 merge 的 commit, 强迫症福音 2.0
+
+TODO
+
+## Git SS 加速
+
+修改 .gitconfig 文件，添加配置如下
+
+```gitconfig
+# config your `~/.gitconfig` file
+[http]
+proxy = socks5://127.0.0.1:1080
+sslVerify = false
+
+[https]
+proxy = socks5://127.0.0.1:1080
+```
+
+或者在终端输入
+
+```bash
+# or you can config it by typing terminal
+git config --global http.proxy socks5://127.0.0.1:1080
+git config --global https.proxy socks5://127.0.0.1:1080
+git config --global http.sslVerify false
+
+# turn off proxy, 开启后 git commit 会受影响
+git config --global --unset http.proxy
+git config --global --unset https.proxy
+```
