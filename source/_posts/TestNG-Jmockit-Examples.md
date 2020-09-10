@@ -1,5 +1,5 @@
 ---
-title: 'TestNG, Jmockit 使用案例'
+title: TestNG Jmockit 使用案例
 date: 2020-07-07 14:15:56
 categories:
 - 编程
