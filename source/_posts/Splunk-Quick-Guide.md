@@ -1,6 +1,6 @@
 ---
-title: Splunk API 使用记录
-date: 2020-07-14 17:34:02
+title: Splunk 快速入门
+date: 2020-09-10 15:43:42
 categories:
 - 小工具
 tags:
@@ -74,13 +74,13 @@ search event | eval env=case(like(host, "pc%"), "prod", like(host, "sc%"), "prov
 
 参考 [官方文档](https://dev.splunk.com/enterprise/docs/python/sdk-python/examplespython/commandline) 下载依赖，在本地配置 `.splunkrc` 文件写入连接信息方便调用。第一次用的时候密码配错了，还以为内网不可用，需要用 vlab，再测试的时候发现了这个问题。总的来说很可以。
 
-Steps:
+Steps:
 
 1. clone git 开源项目 [Splunk SDK Python](https://github.com/splunk/splunk-sdk-python)
 2. 用户目录下创建 `.splunkrc` 文件
 3. cd 到 `splunk-sdk-python/examples` folder 下，运行命令 `python search.py "search * | head 10" --earliest_time="2011-08-10T17:15:00.000-07:00" --rf="desc" --output_mode=json` 可以看到对应时间戳下的前 10 条记录
 
-.splunkrc 文件模板
+`.splunkrc` 文件模板
 
 ```config
 # Splunk host (default: localhost)
@@ -96,7 +96,6 @@ scheme=https
 # Your version of Splunk (default: 5.0)
 version=7.1.2
 ```
-   
 
 ## 三个小例子快速入门
 

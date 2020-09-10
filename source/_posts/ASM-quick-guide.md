@@ -2,10 +2,10 @@
 title: ASM quick guide
 date: 2020-09-07 15:29:05
 categories:
--编程
+- 编程
 tags:
--java
--asm
+- java
+- asm
 ---
 
 通过本次实验对 ASM 这个字节码框架有一个基本的了解。实验必须是简单明了的，便于重复的。引用一段话很好的概括了 ASM 的功能
