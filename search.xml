@@ -1,6 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>ASM quick guide</title>
+    <url>/hexo/2020/09/07/ASM-quick-guide/</url>
+    <content><![CDATA[<p>通过本次实验对 ASM 这个字节码框架有一个基本的了解。实验必须是简单明了的，便于重复的。引用一段话很好的概括了 ASM 的功能</p>
+<blockquote>
+<p>可以负责任的告诉大家，ASM只不过是通过 “Visitor” 模式将 “.class” 类文件的内容从头到尾扫描一遍。因此如果你抱着任何更苛刻的要求最后都将失望而归。</p>
+</blockquote>
+<p>实验平台信息：<br>    MacOS + IDEA + ASM Bytecode Outline 插件</p>
+<h2 id="输出-Class-方法"><a href="#输出-Class-方法" class="headerlink" title="输出 Class 方法"></a>输出 Class 方法</h2><p>准备测试用 class，通过 ASM 输出 class 中的方法名称</p>
+<h2 id="修改方法"><a href="#修改方法" class="headerlink" title="修改方法"></a>修改方法</h2><p>实验内容：准备一个 HelloWorld.class 可以打印出 ‘Hello World’ 字样。通过 ASM 框架使他在答应之前，之后都输出一些 debug 信息，调用时可以使用反射简化实验。</p>
+<p>HelloWorld.java 文件内容</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloWorld</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sayHello</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Hello World...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>测试用例，通过反射拿到测试方法并调用查看输出。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.lang.reflect.Method;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">main</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Class cls = Class.forName(<span class="string">&quot;sorra.tracesonar.main.aopsample.HelloWorld&quot;</span>);</span><br><span class="line">        </span><br><span class="line">        Method sayHello = cls.getDeclaredMethod(<span class="string">&quot;sayHello&quot;</span>);</span><br><span class="line">        sayHello.invoke(cls.newInstance());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// run and get output:</span></span><br><span class="line"><span class="comment">// Hello World...</span></span><br></pre></td></tr></table></figure>
+
+<p>我们想通过 ASM 修改拿到的样板输出为 ‘Test start \n Hello World… \n Test end’，对应的 java code:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Expected</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sayHello</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Test start&quot;</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;Hello World...&quot;</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;Test end&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>选中文件，右键 -&gt; Show Bytecode Outline 选中 ASMifield tab 可以看到转化后的代码</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> asm.sorra.tracesonar.main.aopsample;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.objectweb.asm.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExpectedDump</span> <span class="keyword">implements</span> <span class="title">Opcodes</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">byte</span>[] dump() <span class="keyword">throws</span> Exception &#123;</span><br><span class="line"></span><br><span class="line">        ClassWriter cw = <span class="keyword">new</span> ClassWriter(<span class="number">0</span>);</span><br><span class="line">        FieldVisitor fv;</span><br><span class="line">        MethodVisitor mv;</span><br><span class="line">        AnnotationVisitor av0;</span><br><span class="line"></span><br><span class="line">        cw.visit(<span class="number">52</span>, ACC_PUBLIC + ACC_SUPER, <span class="string">&quot;sorra/tracesonar/main/aopsample/Expected&quot;</span>, <span class="keyword">null</span>, <span class="string">&quot;java/lang/Object&quot;</span>, <span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line">        cw.visitSource(<span class="string">&quot;Expected.java&quot;</span>, <span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line">        &#123;</span><br><span class="line">            mv = cw.visitMethod(ACC_PUBLIC, <span class="string">&quot;&lt;init&gt;&quot;</span>, <span class="string">&quot;()V&quot;</span>, <span class="keyword">null</span>, <span class="keyword">null</span>);</span><br><span class="line">            mv.visitCode();</span><br><span class="line">            Label l0 = <span class="keyword">new</span> Label();</span><br><span class="line">            mv.visitLabel(l0);</span><br><span class="line">            mv.visitLineNumber(<span class="number">3</span>, l0);</span><br><span class="line">            mv.visitVarInsn(ALOAD, <span class="number">0</span>);</span><br><span class="line">            mv.visitMethodInsn(INVOKESPECIAL, <span class="string">&quot;java/lang/Object&quot;</span>, <span class="string">&quot;&lt;init&gt;&quot;</span>, <span class="string">&quot;()V&quot;</span>, <span class="keyword">false</span>);</span><br><span class="line">            mv.visitInsn(RETURN);</span><br><span class="line">            Label l1 = <span class="keyword">new</span> Label();</span><br><span class="line">            mv.visitLabel(l1);</span><br><span class="line">            mv.visitLocalVariable(<span class="string">&quot;this&quot;</span>, <span class="string">&quot;Lsorra/tracesonar/main/aopsample/Expected;&quot;</span>, <span class="keyword">null</span>, l0, l1, <span class="number">0</span>);</span><br><span class="line">            mv.visitMaxs(<span class="number">1</span>, <span class="number">1</span>);</span><br><span class="line">            mv.visitEnd();</span><br><span class="line">        &#125;</span><br><span class="line">        &#123;</span><br><span class="line">            mv = cw.visitMethod(ACC_PUBLIC, <span class="string">&quot;sayHello&quot;</span>, <span class="string">&quot;()V&quot;</span>, <span class="keyword">null</span>, <span class="keyword">null</span>);</span><br><span class="line">            mv.visitCode();</span><br><span class="line">            Label l0 = <span class="keyword">new</span> Label();</span><br><span class="line">            mv.visitLabel(l0);</span><br><span class="line">            mv.visitLineNumber(<span class="number">5</span>, l0);</span><br><span class="line">            mv.visitFieldInsn(GETSTATIC, <span class="string">&quot;java/lang/System&quot;</span>, <span class="string">&quot;out&quot;</span>, <span class="string">&quot;Ljava/io/PrintStream;&quot;</span>);</span><br><span class="line">            mv.visitLdcInsn(<span class="string">&quot;Test start&quot;</span>);</span><br><span class="line">            mv.visitMethodInsn(INVOKEVIRTUAL, <span class="string">&quot;java/io/PrintStream&quot;</span>, <span class="string">&quot;println&quot;</span>, <span class="string">&quot;(Ljava/lang/String;)V&quot;</span>, <span class="keyword">false</span>);</span><br><span class="line">            Label l1 = <span class="keyword">new</span> Label();</span><br><span class="line">            mv.visitLabel(l1);</span><br><span class="line">            mv.visitLineNumber(<span class="number">6</span>, l1);</span><br><span class="line">            mv.visitFieldInsn(GETSTATIC, <span class="string">&quot;java/lang/System&quot;</span>, <span class="string">&quot;out&quot;</span>, <span class="string">&quot;Ljava/io/PrintStream;&quot;</span>);</span><br><span class="line">            mv.visitLdcInsn(<span class="string">&quot;Hello World...&quot;</span>);</span><br><span class="line">            mv.visitMethodInsn(INVOKEVIRTUAL, <span class="string">&quot;java/io/PrintStream&quot;</span>, <span class="string">&quot;println&quot;</span>, <span class="string">&quot;(Ljava/lang/String;)V&quot;</span>, <span class="keyword">false</span>);</span><br><span class="line">            Label l2 = <span class="keyword">new</span> Label();</span><br><span class="line">            mv.visitLabel(l2);</span><br><span class="line">            mv.visitLineNumber(<span class="number">7</span>, l2);</span><br><span class="line">            mv.visitFieldInsn(GETSTATIC, <span class="string">&quot;java/lang/System&quot;</span>, <span class="string">&quot;out&quot;</span>, <span class="string">&quot;Ljava/io/PrintStream;&quot;</span>);</span><br><span class="line">            mv.visitLdcInsn(<span class="string">&quot;Test end&quot;</span>);</span><br><span class="line">            mv.visitMethodInsn(INVOKEVIRTUAL, <span class="string">&quot;java/io/PrintStream&quot;</span>, <span class="string">&quot;println&quot;</span>, <span class="string">&quot;(Ljava/lang/String;)V&quot;</span>, <span class="keyword">false</span>);</span><br><span class="line">            Label l3 = <span class="keyword">new</span> Label();</span><br><span class="line">            mv.visitLabel(l3);</span><br><span class="line">            mv.visitLineNumber(<span class="number">8</span>, l3);</span><br><span class="line">            mv.visitInsn(RETURN);</span><br><span class="line">            Label l4 = <span class="keyword">new</span> Label();</span><br><span class="line">            mv.visitLabel(l4);</span><br><span class="line">            mv.visitLocalVariable(<span class="string">&quot;this&quot;</span>, <span class="string">&quot;Lsorra/tracesonar/main/aopsample/Expected;&quot;</span>, <span class="keyword">null</span>, l0, l4, <span class="number">0</span>);</span><br><span class="line">            mv.visitMaxs(<span class="number">2</span>, <span class="number">1</span>);</span><br><span class="line">            mv.visitEnd();</span><br><span class="line">        &#125;</span><br><span class="line">        cw.visitEnd();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> cw.toByteArray();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中类似如下的代码使一些行号和变量的处理，可以删掉不要，不影响就过</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Label l0 = <span class="keyword">new</span> Label();</span><br><span class="line">mv.visitLabel(l0);</span><br><span class="line">mv.visitLineNumber(<span class="number">3</span>, l0);</span><br><span class="line">...</span><br><span class="line">Label l4 = <span class="keyword">new</span> Label();</span><br><span class="line">mv.visitLabel(l4);</span><br><span class="line">mv.visitLocalVariable(<span class="string">&quot;this&quot;</span>, <span class="string">&quot;Lsorra/tracesonar/main/aopsample/Expected;&quot;</span>, <span class="keyword">null</span>, l0, l4, <span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+
+<p>将自动生成的文件里的冗余语句删掉，加一个 main 方法，生成文件并存放到根目录下</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExpectedDump</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">byte</span>[] dump() <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">        ...</span><br><span class="line">        <span class="keyword">return</span> cw.toByteArray();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">byte</span>[] updated = dump();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> (FileOutputStream fos = <span class="keyword">new</span> FileOutputStream(<span class="string">&quot;Expected.class&quot;</span>)) &#123;</span><br><span class="line">            fos.write(updated);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(<span class="string">&quot;Write success...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行后找到目标文件，在 IDEA 里面浏览一个，编辑器会自动给出反编译结果，可以发现，在目标语句前后已经加上了我们要的 ‘Test Start/End’ 的 debug 语句了。</p>
+]]></content>
+      <categories>
+        <category>编程</category>
+      </categories>
+      <tags>
+        <tag>java</tag>
+        <tag>asm</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Apache, Tomcat 和 Nginx 之间的关系</title>
     <url>/hexo/2020/07/03/Apache-Tomcat-%E5%92%8C-Nginx-%E4%B9%8B%E9%97%B4%E7%9A%84%E5%85%B3%E7%B3%BB/</url>
     <content><![CDATA[<p>想要解决的问题：</p>
@@ -1299,6 +1337,9 @@
 
 <p>root -&gt; themes -&gt; next -&gt; _config.yml</p>
 <figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="attr">local_search:</span></span><br><span class="line">  <span class="attr">enable:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="Issues"><a href="#Issues" class="headerlink" title="Issues"></a>Issues</h2><p>某一天突然发现部分 Post 不能被 search 出来了，排查了好久，发现是 Splunk 之后一个都失效了。继续排查，是这片文章中有个 ‘Steps:’ 的节点，在编辑器里面查看是没什么问题的，但是贴到其他工具，比如 idea 或者 browser 里面时，他会带一个 [BS] 的前缀。太神奇了。。。所以之前一直没发现。</p>
+<p>在 VSCode 里面看结构还是 <code>&lt;p&gt;Steps&lt;/p&gt;</code> 但是用 linux cat 时就变成 <code>&lt;pSteps:&lt;/p&gt;</code> 所以后面的 search 解析就出问题了。</p>
 ]]></content>
       <categories>
         <category>博客</category>
@@ -2095,6 +2136,27 @@
       </tags>
   </entry>
   <entry>
+    <title>搜索小技巧</title>
+    <url>/hexo/2020/06/14/Search-Tips/</url>
+    <content><![CDATA[<p>搜索引擎使用小技巧</p>
+<ol>
+<li><code>-</code> + 关键词：排除不想看到的关键词</li>
+<li>“关键词加”：锁定关键词</li>
+<li>site:域名 + 关键词， 在指定网站内搜索</li>
+<li>filetype:文件格式 + 关键词</li>
+<li>intitile: + 关键词，指定标题搜素</li>
+<li>intext/allintext: + 关键词,两种指定范围搜索</li>
+<li>以上技巧叠加使用</li>
+</ol>
+]]></content>
+      <categories>
+        <category>生活</category>
+      </categories>
+      <tags>
+        <tag>搜索</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>安装 shadowsocks client</title>
     <url>/hexo/2019/12/02/Shadowsocks-Client-Installation/</url>
     <content><![CDATA[<p>安装 shadowsocks 本地客户端记录</p>
@@ -2143,8 +2205,8 @@
       </tags>
   </entry>
   <entry>
-    <title>Splunk API 使用记录</title>
-    <url>/hexo/2020/07/14/Splunk-Tips/</url>
+    <title>Splunk 快速入门</title>
+    <url>/hexo/2020/09/10/Splunk-Quick-Guide/</url>
     <content><![CDATA[<h2 id="常用-Query"><a href="#常用-Query" class="headerlink" title="常用 Query"></a>常用 Query</h2><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="comment">-- event 出现的次数</span></span><br><span class="line">search=index | stats sum(linecount) as Total</span><br><span class="line"><span class="comment">-- or</span></span><br><span class="line">search=index | stats count as Total</span><br></pre></td></tr></table></figure>
 
 <h3 id="查询-event-的日均量"><a href="#查询-event-的日均量" class="headerlink" title="查询 event 的日均量"></a>查询 event 的日均量</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">eventtype=<span class="string">&quot;searchAccountLocked&quot;</span> | timechart span=1d count | stats avg(count)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在此基础上，计算 7 天的平均值</span></span><br><span class="line">eventtype=<span class="string">&quot;searchAccountLocked&quot;</span> | timechart span=1d count | stats avg(count) as avgc ｜ <span class="built_in">eval</span> n=exact(1 * avgc)</span><br></pre></td></tr></table></figure>
@@ -2166,15 +2228,14 @@
 
 <h2 id="Splunk-SDK"><a href="#Splunk-SDK" class="headerlink" title="Splunk SDK"></a>Splunk SDK</h2><p>尝试了 python 版本的 SDK，香！</p>
 <p>参考 <a href="https://dev.splunk.com/enterprise/docs/python/sdk-python/examplespython/commandline">官方文档</a> 下载依赖，在本地配置 <code>.splunkrc</code> 文件写入连接信息方便调用。第一次用的时候密码配错了，还以为内网不可用，需要用 vlab，再测试的时候发现了这个问题。总的来说很可以。</p>
-<p>Steps:</p>
+<p>Steps:</p>
 <ol>
 <li>clone git 开源项目 <a href="https://github.com/splunk/splunk-sdk-python">Splunk SDK Python</a></li>
 <li>用户目录下创建 <code>.splunkrc</code> 文件</li>
 <li>cd 到 <code>splunk-sdk-python/examples</code> folder 下，运行命令 <code>python search.py &quot;search * | head 10&quot; --earliest_time=&quot;2011-08-10T17:15:00.000-07:00&quot; --rf=&quot;desc&quot; --output_mode=json</code> 可以看到对应时间戳下的前 10 条记录</li>
 </ol>
-<p>.splunkrc 文件模板</p>
+<p><code>.splunkrc</code> 文件模板</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># Splunk host (default: localhost)</span><br><span class="line">host&#x3D;xxx.xxx.xxx</span><br><span class="line"># Splunk admin port (default: 8089)</span><br><span class="line">port&#x3D;8089</span><br><span class="line"># Splunk username</span><br><span class="line">username&#x3D;jack</span><br><span class="line"># Splunk password</span><br><span class="line">password&#x3D;mypwd</span><br><span class="line"># Access scheme (default: https)</span><br><span class="line">scheme&#x3D;https</span><br><span class="line"># Your version of Splunk (default: 5.0)</span><br><span class="line">version&#x3D;7.1.2</span><br></pre></td></tr></table></figure>
-
 
 <h2 id="三个小例子快速入门"><a href="#三个小例子快速入门" class="headerlink" title="三个小例子快速入门"></a>三个小例子快速入门</h2><h3 id="搜索-event-并通过饼图展示"><a href="#搜索-event-并通过饼图展示" class="headerlink" title="搜索 event 并通过饼图展示"></a>搜索 event 并通过饼图展示</h3><ol>
 <li>输入时间节点和关键词：<code>MessageBox topic=com.successfactors.usermanagement.event.UserChangeEvent | stats count by servername</code></li>
@@ -2289,8 +2350,8 @@
       </tags>
   </entry>
   <entry>
-    <title>TestNG, Jmockit 使用案例</title>
-    <url>/hexo/2020/07/07/TestNG-Jmockit-%E4%BD%BF%E7%94%A8%E6%A1%88%E4%BE%8B/</url>
+    <title>TestNG Jmockit 使用案例</title>
+    <url>/hexo/2020/07/07/TestNG-Jmockit-Examples/</url>
     <content><![CDATA[<p>记录一下工作中常用到的 TestNG, Jmockit 使用案例</p>
 <h2 id="DataProvider"><a href="#DataProvider" class="headerlink" title="DataProvider"></a>DataProvider</h2><h3 id="单个参数"><a href="#单个参数" class="headerlink" title="单个参数"></a>单个参数</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@DataProvider(name = &quot;singleParam&quot;)</span></span><br><span class="line"><span class="keyword">public</span> Object[][] singleParam() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Object[][]&#123;</span><br><span class="line">            &#123;<span class="string">&quot;Jerry&quot;</span>&#125;,</span><br><span class="line">            &#123;<span class="string">&quot;Tom&quot;</span>&#125;,</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Test(dataProvider = &quot;singleParam&quot;)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">single_data</span><span class="params">(String username)</span> </span>&#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;Get username: &quot;</span> + username);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -2775,27 +2836,6 @@
       </categories>
       <tags>
         <tag>common</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>搜索小技巧</title>
-    <url>/hexo/2020/06/14/%E6%90%9C%E7%B4%A2%E5%B0%8F%E6%8A%80%E5%B7%A7/</url>
-    <content><![CDATA[<p>搜索引擎使用小技巧</p>
-<ol>
-<li><code>-</code> + 关键词：排除不想看到的关键词</li>
-<li>“关键词加”：锁定关键词</li>
-<li>site:域名 + 关键词， 在指定网站内搜索</li>
-<li>filetype:文件格式 + 关键词</li>
-<li>intitile: + 关键词，指定标题搜素</li>
-<li>intext/allintext: + 关键词,两种指定范围搜索</li>
-<li>以上技巧叠加使用</li>
-</ol>
-]]></content>
-      <categories>
-        <category>生活</category>
-      </categories>
-      <tags>
-        <tag>索索</tag>
       </tags>
   </entry>
   <entry>
