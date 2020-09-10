@@ -116,3 +116,85 @@ Spring 三种装配方式：
 1. xml
 2. 注解
 3. 隐式的自动装配 bean
+
+## 使用注解开发
+
+Spring4 之后，要使用注解需要保证 AOP 包已经导入。XML 也需要添加特殊的约束 `<context:annotation-config/>`
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        https://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!-- 设置扫描路径 -->
+    <context:component-scan base-package="com.jzheng.pojo"/>
+    <context:annotation-config/>
+
+</beans>
+```
+
+1. bean - @Component
+2. 属性 - @Value
+3. 衍生的注解 - @Repository - for dao/@Service - for service/@Controller - for controller 作用都是将对象注入到容器
+4. 自动装配
+   1. @Autowired 通过类型，名字装配。如果不能自动装配属性，可以通过 @Qualifier(value="xxx)
+   2. @Nullable，允许为空
+   3. @Resource，通过名字，类型装配
+5. 作用域 - @Scope
+6. 小结: XML 更加万能，使用任何场合；注解只能在自己的class 里使用。
+
+推荐做法：XML 用来管理 Bean，注解只用来注入属性
+
+## 使用 Java 的方式配置 Spring
+
+JavaConfig 式 Spring 一个子项目， Spring4 之后成为核心项目。通过 @Configuration 注解来实现，可以代替 xml。也有像 Import 这样的东西，可以包含其他配置类。
+
+## 代理模式
+
+Spring 必问题 - SpringAOP 和 SpringMVC
+
+代理模式分类
+
+* 静态代理
+* 动态代理
+
+### 静态代理
+
+角色分析
+
+* 抽象角色：一般是接口或抽象类
+* 真实角色：被代理的角色
+* 代理角色：代理真实角色，代理后做一些操作
+* 客户：访问代理对象的人
+
+优点：
+
+* 使真实对象操作更纯粹，不用去关注公共业务
+* 公共业务交给代理，业务分工
+* 公共业务扩展方便
+
+缺点： 一个真实角色产生一个代理角色，代码量翻倍
+
+### 动态代理
+
+* 动态代理和静态代理角色一样
+* 动态代理的代理类使动态生成，不是直接写好的
+* 动态代理分两大类：基于接口的动态代理/基于类的动态代理
+  * 接口 - JDK动态代理
+  * 类 - cglib
+  * java字节码 - javasist
+
+两个类： Proxy / InvocationHandler
+
+Proxy: 在 handler 中被调用，产生代理的实例
+
+InvocationHandler: 自定义调用过程，返回执行结果
+
+优点：静态的有点 + 一个动态代理类代理的使一个接口，一般对应一类业务
+
+## AOP - 横向扩展功能
