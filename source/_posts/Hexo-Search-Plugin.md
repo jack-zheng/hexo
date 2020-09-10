@@ -30,4 +30,4 @@ local_search:
 
 某一天突然发现部分 Post 不能被 search 出来了，排查了好久，发现是 Splunk 之后一个都失效了。继续排查，是这片文章中有个 'Steps:' 的节点，在编辑器里面查看是没什么问题的，但是贴到其他工具，比如 idea 或者 browser 里面时，他会带一个 [BS] 的前缀。太神奇了。。。所以之前一直没发现。
 
-在 VSCode 里面看结构还是 `<p>Steps</p>` 但是用 linux cat 时就变成 `<pSteps:</p>` 所以后面的 search 解析就出问题了。
+在 VSCode 里面看结构还是 `<p>Steps</p>` 但是用 linux cat 时就变成 `<pSteps:</p>` 所以后面的 search 解析就出问题了。查了下 BS 代表的是退格键 0x008, 也解释了为什么 xml p 标签会少一个尖括号了 ╮(￣▽￣"")╭
