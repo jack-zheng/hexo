@@ -39,3 +39,7 @@ default-storage-engine=INNODB
 # 默认使用“mysql_native_password”插件认证
 default_authentication_plugin=mysql_native_password
 ```
+
+## Issues
+
+Windows 运行 `mysqld --initialize-insecure --user=mysql` 配置时报错 `由于找不到vcruntime140_1.dll,无法继续执行代码` 可以去 [官网](https://cn.dll-files.com/vcruntime140_1.dll.html) 下载 dll 文件放到 `C:\Windows\System32` 下即可
