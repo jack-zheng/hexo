@@ -198,3 +198,104 @@ InvocationHandler: 自定义调用过程，返回执行结果
 优点：静态的有点 + 一个动态代理类代理的使一个接口，一般对应一类业务
 
 ## AOP - 横向扩展功能
+
+### 配置实现01
+
+目标业务点：pointcut, 需要额外添加的附属动作：adviser(MethodBeforeAdvice/AfterReturningAdvice)
+
+然后添加配置文件
+
+```xml
+<bean id="userService" class="com.jzheng.service.UserServiceImpl"/>
+<bean id="log" class="com.jzheng.log.Log"/>
+<bean id="afterLog" class="com.jzheng.log.AfterLog"/>
+
+<!--config AOP -->
+<aop:config>
+    <!-- point cut -->
+    <aop:pointcut id="pointcut" expression="execution(* com.jzheng.service.UserServiceImpl.*(..))"/>
+    <!-- 执行环绕增强 -->
+    <aop:advisor advice-ref="log" pointcut-ref="pointcut"/>
+    <aop:advisor advice-ref="afterLog" pointcut-ref="pointcut"/>
+</aop:config>
+```
+
+### 配置实现02
+
+也可以用自定义类，使用更简单，但是功能比之前的弱，不能操作 Method 之类的属性
+
+```java
+public class DiyPointCut {
+    public void before() {
+        System.out.println("----------> before method");
+    }
+
+    public void after() {
+        System.out.println("-----------> after method");
+    }
+}
+```
+
+```xml
+<bean id="diy" class="com.jzheng.diy.DiyPointCut"/>
+<aop:config>
+    <!-- 自定义切面 ref 要引用的类-->
+    <aop:aspect ref="diy">
+        <!-- 切入点 -->
+        <aop:pointcut id="point" expression="execution(* com.jzheng.service.UserServiceImpl.*(..))"/>
+        <!-- 通知 -->
+        <aop:before method="before" pointcut-ref="point"/>
+        <aop:after method="after" pointcut-ref="point"/>
+    </aop:aspect>
+</aop:config>
+```
+
+### 注解实现
+
+类添加 Aspect 注解， 在方法上添加注解， 方法注解中可以指定切点。执行顺序：环绕前 -> 方法前 -> 方法 -> 环绕后 -> 方法后
+
+```java
+@Aspect
+public class AnnotationPointCut {
+    @Before("execution(* com.jzheng.service.UserServiceImpl.*(..))")
+    public void before() {
+        System.out.println("-------------> before [Anno type]");
+    }
+
+    @After("execution(* com.jzheng.service.UserServiceImpl.*(..))")
+    public void after() {
+        System.out.println("-------------> after [Anno type]");
+    }
+
+    @Around("execution(* com.jzheng.service.UserServiceImpl.*(..))")
+    public void around(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
+        System.out.println("-------------> around before [Anno type]");
+        System.out.println("Signature: " + proceedingJoinPoint.getSignature());
+        Object proceed = proceedingJoinPoint.proceed();
+        System.out.println("-------------> around after [Anno type]");
+    }
+}
+```
+
+```xml
+<!-- 方式3， 注解方式 -->
+<bean id="annotationPointCut" class="com.jzheng.diy.AnnotationPointCut"/>
+<!-- 开启注解支持 -->
+<aop:aspectj-autoproxy/>
+```
+
+## 整合 Mybatis
+
+1. 导入包
+   1. junit
+   2. mybatis
+   3. mysql数据库
+   4. spring相关的jar
+   5. aop织入
+   6. mybatis-spring [new]
+2. 编写配置文件
+3. 测试
+
+## Mybatis
+
+学到第 23 课，跳出去先把 Mybatis 看完再回来。。。。
