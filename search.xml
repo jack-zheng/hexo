@@ -1709,6 +1709,29 @@
       </tags>
   </entry>
   <entry>
+    <title>Mysql Installation</title>
+    <url>/hexo/2020/09/16/Mysql-Installation/</url>
+    <content><![CDATA[<h2 id="Windows-版本安装"><a href="#Windows-版本安装" class="headerlink" title="Windows 版本安装"></a>Windows 版本安装</h2><ol>
+<li>下载安装包 <a href="https://dev.mysql.com/downloads/mysql/">官方地址</a> 下载比较小的，不到测试套件的版本即可</li>
+<li>C 盘下新建 Mysql 文件夹，将下载的压缩包解压</li>
+<li>进去解压文件夹下，新建一个 my.ini 配置文件并添加配置</li>
+<li>将对应的 bin 路径添加到系统的 path 中去，做法和添加 JAVA_HOME 一样</li>
+<li>管理员模式打开终端，输入命令 <code>mysqld --initialize-insecure --user=mysql</code> 初始化，并且用户密码为空</li>
+<li>输入 <code>mysqld -install</code> 安装数据库，终端出现 <code>Service successfully installed</code> 表示安装成功</li>
+<li><code>net start mysql</code> 启动服务器</li>
+<li>输入 <code>mysql -u root -p</code> 不用输入密码直接回车, 出现mysql&gt;表示配置完成</li>
+<li>输入 <code>alter user user() identified by &quot;your-password&quot;;</code> 修改 root 用户密码</li>
+<li>输入 <code>net stop mysql</code> 关闭数据库</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[mysqld]</span><br><span class="line"># 设置3306端口</span><br><span class="line">port&#x3D;3306</span><br><span class="line"># 设置mysql的安装目录</span><br><span class="line">basedir&#x3D;C:\Mysql\mysql-8.0.21-winx64</span><br><span class="line"># 设置mysql数据库的数据的存放目录</span><br><span class="line">datadir&#x3D;C:\Mysql\mysql-8.0.21-winx64\data</span><br><span class="line"># 允许最大连接数</span><br><span class="line">max_connections&#x3D;200</span><br><span class="line"># 允许连接失败的次数。这是为了防止有人从该主机试图攻击数据库系统</span><br><span class="line">max_connect_errors&#x3D;10</span><br><span class="line"># 服务端使用的字符集默认为UTF8</span><br><span class="line">character-set-server&#x3D;utf8</span><br><span class="line"># 创建新表时将使用的默认存储引擎</span><br><span class="line">default-storage-engine&#x3D;INNODB</span><br><span class="line"># 默认使用“mysql_native_password”插件认证</span><br><span class="line">default_authentication_plugin&#x3D;mysql_native_password</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>配置</category>
+      </categories>
+      <tags>
+        <tag>mysql</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>新系统初始化设置</title>
     <url>/hexo/2020/08/03/New-OS-Setup/</url>
     <content><![CDATA[<p>记录一下新系统常用配置和软件安装</p>
@@ -2392,7 +2415,35 @@
 <p>Proxy: 在 handler 中被调用，产生代理的实例</p>
 <p>InvocationHandler: 自定义调用过程，返回执行结果</p>
 <p>优点：静态的有点 + 一个动态代理类代理的使一个接口，一般对应一类业务</p>
-<h2 id="AOP-横向扩展功能"><a href="#AOP-横向扩展功能" class="headerlink" title="AOP - 横向扩展功能"></a>AOP - 横向扩展功能</h2>]]></content>
+<h2 id="AOP-横向扩展功能"><a href="#AOP-横向扩展功能" class="headerlink" title="AOP - 横向扩展功能"></a>AOP - 横向扩展功能</h2><h3 id="配置实现01"><a href="#配置实现01" class="headerlink" title="配置实现01"></a>配置实现01</h3><p>目标业务点：pointcut, 需要额外添加的附属动作：adviser(MethodBeforeAdvice/AfterReturningAdvice)</p>
+<p>然后添加配置文件</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;userService&quot;</span> <span class="attr">class</span>=<span class="string">&quot;com.jzheng.service.UserServiceImpl&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;log&quot;</span> <span class="attr">class</span>=<span class="string">&quot;com.jzheng.log.Log&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;afterLog&quot;</span> <span class="attr">class</span>=<span class="string">&quot;com.jzheng.log.AfterLog&quot;</span>/&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!--config AOP --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">aop:config</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- point cut --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">aop:pointcut</span> <span class="attr">id</span>=<span class="string">&quot;pointcut&quot;</span> <span class="attr">expression</span>=<span class="string">&quot;execution(* com.jzheng.service.UserServiceImpl.*(..))&quot;</span>/&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 执行环绕增强 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">aop:advisor</span> <span class="attr">advice-ref</span>=<span class="string">&quot;log&quot;</span> <span class="attr">pointcut-ref</span>=<span class="string">&quot;pointcut&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">aop:advisor</span> <span class="attr">advice-ref</span>=<span class="string">&quot;afterLog&quot;</span> <span class="attr">pointcut-ref</span>=<span class="string">&quot;pointcut&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">aop:config</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="配置实现02"><a href="#配置实现02" class="headerlink" title="配置实现02"></a>配置实现02</h3><p>也可以用自定义类，使用更简单，但是功能比之前的弱，不能操作 Method 之类的属性</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DiyPointCut</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">before</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;----------&gt; before method&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">after</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;-----------&gt; after method&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;diy&quot;</span> <span class="attr">class</span>=<span class="string">&quot;com.jzheng.diy.DiyPointCut&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">aop:config</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 自定义切面 ref 要引用的类--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">aop:aspect</span> <span class="attr">ref</span>=<span class="string">&quot;diy&quot;</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!-- 切入点 --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">aop:pointcut</span> <span class="attr">id</span>=<span class="string">&quot;point&quot;</span> <span class="attr">expression</span>=<span class="string">&quot;execution(* com.jzheng.service.UserServiceImpl.*(..))&quot;</span>/&gt;</span></span><br><span class="line">        <span class="comment">&lt;!-- 通知 --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">aop:before</span> <span class="attr">method</span>=<span class="string">&quot;before&quot;</span> <span class="attr">pointcut-ref</span>=<span class="string">&quot;point&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">aop:after</span> <span class="attr">method</span>=<span class="string">&quot;after&quot;</span> <span class="attr">pointcut-ref</span>=<span class="string">&quot;point&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">aop:aspect</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">aop:config</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="注解实现"><a href="#注解实现" class="headerlink" title="注解实现"></a>注解实现</h3><p>类添加 Aspect 注解， 在方法上添加注解， 方法注解中可以指定切点。执行顺序：环绕前 -&gt; 方法前 -&gt; 方法 -&gt; 环绕后 -&gt; 方法后</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Aspect</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AnnotationPointCut</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Before(&quot;execution(* com.jzheng.service.UserServiceImpl.*(..))&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">before</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;-------------&gt; before [Anno type]&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@After(&quot;execution(* com.jzheng.service.UserServiceImpl.*(..))&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">after</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;-------------&gt; after [Anno type]&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Around(&quot;execution(* com.jzheng.service.UserServiceImpl.*(..))&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">around</span><span class="params">(ProceedingJoinPoint proceedingJoinPoint)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;-------------&gt; around before [Anno type]&quot;</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;Signature: &quot;</span> + proceedingJoinPoint.getSignature());</span><br><span class="line">        Object proceed = proceedingJoinPoint.proceed();</span><br><span class="line">        System.out.println(<span class="string">&quot;-------------&gt; around after [Anno type]&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 方式3， 注解方式 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;annotationPointCut&quot;</span> <span class="attr">class</span>=<span class="string">&quot;com.jzheng.diy.AnnotationPointCut&quot;</span>/&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- 开启注解支持 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">aop:aspectj-autoproxy</span>/&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="整合-Mybatis"><a href="#整合-Mybatis" class="headerlink" title="整合 Mybatis"></a>整合 Mybatis</h2><ol>
+<li>导入包<ol>
+<li>junit</li>
+<li>mybatis</li>
+<li>mysql数据库</li>
+<li>spring相关的jar</li>
+<li>aop织入</li>
+<li>mybatis-spring [new]</li>
+</ol>
+</li>
+<li>编写配置文件</li>
+<li>测试</li>
+</ol>
+<h2 id="Mybatis"><a href="#Mybatis" class="headerlink" title="Mybatis"></a>Mybatis</h2><p>学到第 23 课，跳出去先把 Mybatis 看完再回来。。。。</p>
+]]></content>
       <categories>
         <category>编程</category>
       </categories>
@@ -2606,6 +2657,20 @@
       <tags>
         <tag>vscode</tag>
         <tag>WSL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Window 关闭防火墙</title>
+    <url>/hexo/2020/09/11/Window-Disable-Defender/</url>
+    <content><![CDATA[<p>下载一些破解软件的时候，windows 会自动将他们查杀可以通过：</p>
+<p>开始 -&gt; 搜索’病毒和威胁防护’ -&gt; 点击 ‘病毒和威胁防护’设置下的 管理设置 -&gt; 关闭 实时防护 </p>
+<p>将保护暂时关掉，等你破解完后，再开启</p>
+]]></content>
+      <categories>
+        <category>配置</category>
+      </categories>
+      <tags>
+        <tag>windows</tag>
       </tags>
   </entry>
   <entry>

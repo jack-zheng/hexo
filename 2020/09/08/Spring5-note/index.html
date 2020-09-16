@@ -59,7 +59,7 @@
 <meta property="og:description" content="B 站狂神 Spring5 教程笔记 Spring 基本概念七大组成  AOP ORM Web DAO Context Web MVC Core   Spring Boot 快速开发脚手架 快速开发单个微服务 约定大于配置   Spring Cloud 基于 SpringBoot 实现的    弊端：发展太久，违背原来的理念。配置繁琐，人称 ‘配置地狱’ IoC 理论推导 （Inversion o">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2020-09-08T13:28:47.000Z">
-<meta property="article:modified_time" content="2020-09-10T15:59:30.194Z">
+<meta property="article:modified_time" content="2020-09-16T13:41:18.265Z">
 <meta property="article:author" content="Jack Zheng">
 <meta property="article:tag" content="java">
 <meta property="article:tag" content="spring">
@@ -240,7 +240,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-09-10 23:59:30" itemprop="dateModified" datetime="2020-09-10T23:59:30+08:00">2020-09-10</time>
+                <time title="修改时间：2020-09-16 21:41:18" itemprop="dateModified" datetime="2020-09-16T21:41:18+08:00">2020-09-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -267,14 +267,14 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>2.9k</span>
+              <span>5.6k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>3 分钟</span>
+              <span>5 分钟</span>
             </span>
 
         </div>
@@ -413,7 +413,35 @@
 <p>Proxy: 在 handler 中被调用，产生代理的实例</p>
 <p>InvocationHandler: 自定义调用过程，返回执行结果</p>
 <p>优点：静态的有点 + 一个动态代理类代理的使一个接口，一般对应一类业务</p>
-<h2 id="AOP-横向扩展功能"><a href="#AOP-横向扩展功能" class="headerlink" title="AOP - 横向扩展功能"></a>AOP - 横向扩展功能</h2>
+<h2 id="AOP-横向扩展功能"><a href="#AOP-横向扩展功能" class="headerlink" title="AOP - 横向扩展功能"></a>AOP - 横向扩展功能</h2><h3 id="配置实现01"><a href="#配置实现01" class="headerlink" title="配置实现01"></a>配置实现01</h3><p>目标业务点：pointcut, 需要额外添加的附属动作：adviser(MethodBeforeAdvice/AfterReturningAdvice)</p>
+<p>然后添加配置文件</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;userService&quot;</span> <span class="attr">class</span>=<span class="string">&quot;com.jzheng.service.UserServiceImpl&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;log&quot;</span> <span class="attr">class</span>=<span class="string">&quot;com.jzheng.log.Log&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;afterLog&quot;</span> <span class="attr">class</span>=<span class="string">&quot;com.jzheng.log.AfterLog&quot;</span>/&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!--config AOP --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">aop:config</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- point cut --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">aop:pointcut</span> <span class="attr">id</span>=<span class="string">&quot;pointcut&quot;</span> <span class="attr">expression</span>=<span class="string">&quot;execution(* com.jzheng.service.UserServiceImpl.*(..))&quot;</span>/&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 执行环绕增强 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">aop:advisor</span> <span class="attr">advice-ref</span>=<span class="string">&quot;log&quot;</span> <span class="attr">pointcut-ref</span>=<span class="string">&quot;pointcut&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">aop:advisor</span> <span class="attr">advice-ref</span>=<span class="string">&quot;afterLog&quot;</span> <span class="attr">pointcut-ref</span>=<span class="string">&quot;pointcut&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">aop:config</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="配置实现02"><a href="#配置实现02" class="headerlink" title="配置实现02"></a>配置实现02</h3><p>也可以用自定义类，使用更简单，但是功能比之前的弱，不能操作 Method 之类的属性</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DiyPointCut</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">before</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;----------&gt; before method&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">after</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;-----------&gt; after method&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;diy&quot;</span> <span class="attr">class</span>=<span class="string">&quot;com.jzheng.diy.DiyPointCut&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">aop:config</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 自定义切面 ref 要引用的类--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">aop:aspect</span> <span class="attr">ref</span>=<span class="string">&quot;diy&quot;</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!-- 切入点 --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">aop:pointcut</span> <span class="attr">id</span>=<span class="string">&quot;point&quot;</span> <span class="attr">expression</span>=<span class="string">&quot;execution(* com.jzheng.service.UserServiceImpl.*(..))&quot;</span>/&gt;</span></span><br><span class="line">        <span class="comment">&lt;!-- 通知 --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">aop:before</span> <span class="attr">method</span>=<span class="string">&quot;before&quot;</span> <span class="attr">pointcut-ref</span>=<span class="string">&quot;point&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">aop:after</span> <span class="attr">method</span>=<span class="string">&quot;after&quot;</span> <span class="attr">pointcut-ref</span>=<span class="string">&quot;point&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">aop:aspect</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">aop:config</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="注解实现"><a href="#注解实现" class="headerlink" title="注解实现"></a>注解实现</h3><p>类添加 Aspect 注解， 在方法上添加注解， 方法注解中可以指定切点。执行顺序：环绕前 -&gt; 方法前 -&gt; 方法 -&gt; 环绕后 -&gt; 方法后</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Aspect</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AnnotationPointCut</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Before(&quot;execution(* com.jzheng.service.UserServiceImpl.*(..))&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">before</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;-------------&gt; before [Anno type]&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@After(&quot;execution(* com.jzheng.service.UserServiceImpl.*(..))&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">after</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;-------------&gt; after [Anno type]&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Around(&quot;execution(* com.jzheng.service.UserServiceImpl.*(..))&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">around</span><span class="params">(ProceedingJoinPoint proceedingJoinPoint)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;-------------&gt; around before [Anno type]&quot;</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;Signature: &quot;</span> + proceedingJoinPoint.getSignature());</span><br><span class="line">        Object proceed = proceedingJoinPoint.proceed();</span><br><span class="line">        System.out.println(<span class="string">&quot;-------------&gt; around after [Anno type]&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 方式3， 注解方式 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;annotationPointCut&quot;</span> <span class="attr">class</span>=<span class="string">&quot;com.jzheng.diy.AnnotationPointCut&quot;</span>/&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- 开启注解支持 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">aop:aspectj-autoproxy</span>/&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="整合-Mybatis"><a href="#整合-Mybatis" class="headerlink" title="整合 Mybatis"></a>整合 Mybatis</h2><ol>
+<li>导入包<ol>
+<li>junit</li>
+<li>mybatis</li>
+<li>mysql数据库</li>
+<li>spring相关的jar</li>
+<li>aop织入</li>
+<li>mybatis-spring [new]</li>
+</ol>
+</li>
+<li>编写配置文件</li>
+<li>测试</li>
+</ol>
+<h2 id="Mybatis"><a href="#Mybatis" class="headerlink" title="Mybatis"></a>Mybatis</h2><p>学到第 23 课，跳出去先把 Mybatis 看完再回来。。。。</p>
+
     </div>
 
     
@@ -497,7 +525,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring-%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="nav-number">1.</span> <span class="nav-text">Spring 基本概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IoC-%E7%90%86%E8%AE%BA%E6%8E%A8%E5%AF%BC-%EF%BC%88Inversion-of-Control%EF%BC%89"><span class="nav-number">2.</span> <span class="nav-text">IoC 理论推导 （Inversion of Control）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IoC-%E7%9A%84%E6%9C%AC%E8%B4%A8"><span class="nav-number">3.</span> <span class="nav-text">IoC 的本质</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IoC%E5%88%9B%E5%BB%BA%E5%AF%B9%E8%B1%A1%E7%9A%84%E6%96%B9%E5%BC%8F"><span class="nav-number">4.</span> <span class="nav-text">IoC创建对象的方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring-%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E"><span class="nav-number">5.</span> <span class="nav-text">Spring 配置说明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DI-%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5"><span class="nav-number">6.</span> <span class="nav-text">DI - 依赖注入</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#P-C%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4%E6%B3%A8%E5%85%A5"><span class="nav-number">7.</span> <span class="nav-text">P&#x2F;C命名空间注入</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Bean-%E7%9A%84-%E4%BD%9C%E7%94%A8%E5%9F%9F-scope"><span class="nav-number">8.</span> <span class="nav-text">Bean 的 作用域(scope)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Bean-%E7%9A%84%E8%87%AA%E5%8A%A8%E8%A3%85%E9%85%8D"><span class="nav-number">9.</span> <span class="nav-text">Bean 的自动装配</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E6%B3%A8%E8%A7%A3%E5%BC%80%E5%8F%91"><span class="nav-number">10.</span> <span class="nav-text">使用注解开发</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8-Java-%E7%9A%84%E6%96%B9%E5%BC%8F%E9%85%8D%E7%BD%AE-Spring"><span class="nav-number">11.</span> <span class="nav-text">使用 Java 的方式配置 Spring</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%A3%E7%90%86%E6%A8%A1%E5%BC%8F"><span class="nav-number">12.</span> <span class="nav-text">代理模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86"><span class="nav-number">12.1.</span> <span class="nav-text">静态代理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86"><span class="nav-number">12.2.</span> <span class="nav-text">动态代理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AOP-%E6%A8%AA%E5%90%91%E6%89%A9%E5%B1%95%E5%8A%9F%E8%83%BD"><span class="nav-number">13.</span> <span class="nav-text">AOP - 横向扩展功能</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring-%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="nav-number">1.</span> <span class="nav-text">Spring 基本概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IoC-%E7%90%86%E8%AE%BA%E6%8E%A8%E5%AF%BC-%EF%BC%88Inversion-of-Control%EF%BC%89"><span class="nav-number">2.</span> <span class="nav-text">IoC 理论推导 （Inversion of Control）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IoC-%E7%9A%84%E6%9C%AC%E8%B4%A8"><span class="nav-number">3.</span> <span class="nav-text">IoC 的本质</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IoC%E5%88%9B%E5%BB%BA%E5%AF%B9%E8%B1%A1%E7%9A%84%E6%96%B9%E5%BC%8F"><span class="nav-number">4.</span> <span class="nav-text">IoC创建对象的方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring-%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E"><span class="nav-number">5.</span> <span class="nav-text">Spring 配置说明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DI-%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5"><span class="nav-number">6.</span> <span class="nav-text">DI - 依赖注入</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#P-C%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4%E6%B3%A8%E5%85%A5"><span class="nav-number">7.</span> <span class="nav-text">P&#x2F;C命名空间注入</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Bean-%E7%9A%84-%E4%BD%9C%E7%94%A8%E5%9F%9F-scope"><span class="nav-number">8.</span> <span class="nav-text">Bean 的 作用域(scope)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Bean-%E7%9A%84%E8%87%AA%E5%8A%A8%E8%A3%85%E9%85%8D"><span class="nav-number">9.</span> <span class="nav-text">Bean 的自动装配</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E6%B3%A8%E8%A7%A3%E5%BC%80%E5%8F%91"><span class="nav-number">10.</span> <span class="nav-text">使用注解开发</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8-Java-%E7%9A%84%E6%96%B9%E5%BC%8F%E9%85%8D%E7%BD%AE-Spring"><span class="nav-number">11.</span> <span class="nav-text">使用 Java 的方式配置 Spring</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%A3%E7%90%86%E6%A8%A1%E5%BC%8F"><span class="nav-number">12.</span> <span class="nav-text">代理模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86"><span class="nav-number">12.1.</span> <span class="nav-text">静态代理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86"><span class="nav-number">12.2.</span> <span class="nav-text">动态代理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AOP-%E6%A8%AA%E5%90%91%E6%89%A9%E5%B1%95%E5%8A%9F%E8%83%BD"><span class="nav-number">13.</span> <span class="nav-text">AOP - 横向扩展功能</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE%E5%AE%9E%E7%8E%B001"><span class="nav-number">13.1.</span> <span class="nav-text">配置实现01</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE%E5%AE%9E%E7%8E%B002"><span class="nav-number">13.2.</span> <span class="nav-text">配置实现02</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B3%A8%E8%A7%A3%E5%AE%9E%E7%8E%B0"><span class="nav-number">13.3.</span> <span class="nav-text">注解实现</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B4%E5%90%88-Mybatis"><span class="nav-number">14.</span> <span class="nav-text">整合 Mybatis</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Mybatis"><span class="nav-number">15.</span> <span class="nav-text">Mybatis</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -513,7 +541,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">68</span>
+          <span class="site-state-item-count">70</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -526,7 +554,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">69</span>
+        <span class="site-state-item-count">71</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -560,12 +588,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">126k</span>
+    <span title="站点总字数">129k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:54</span>
+    <span title="站点阅读时长">1:58</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
