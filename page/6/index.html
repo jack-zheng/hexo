@@ -206,6 +206,107 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/01/06/NoClassDefFoundError%20%E8%AE%B0%E5%BD%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2020/01/06/NoClassDefFoundError%20%E8%AE%B0%E5%BD%95/" class="post-title-link" itemprop="url">NoClassDefFoundError 记录</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-01-06 10:37:39" itemprop="dateCreated datePublished" datetime="2020-01-06T10:37:39+08:00">2020-01-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-24 00:31:31" itemprop="dateModified" datetime="2020-09-24T00:31:31+08:00">2020-09-24</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
+                    <span itemprop="name">编程</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>写 UT 的时候遇到一个 NoClassDefFoundError, 以前没碰到过，记一笔</p>
+<h3 id="Root-Cause"><a href="#Root-Cause" class="headerlink" title="Root Cause"></a>Root Cause</h3><p>编译时能找到 class 但是运行时对应的类找不到了，听上去可能不点矛盾</p>
+<h3 id="与-ClassNotFoundException-的区别"><a href="#与-ClassNotFoundException-的区别" class="headerlink" title="与 ClassNotFoundException 的区别"></a>与 ClassNotFoundException 的区别</h3><p>ClassNotFoundException 的场景更多的是我们给出 class name, 然后 JVM 根据名字去 load 的时候找不到就会跑抛出这个异常</p>
+<p>NoClassDefFoundError 则是在编译期，JVM 是能找到对应的类的，但是等运行期时找不到了</p>
+<h3 id="怎么修复"><a href="#怎么修复" class="headerlink" title="怎么修复"></a>怎么修复</h3><ol>
+<li>检测 Classpath 是不是缺少你需要的 jar 包，缺少就加一下。我本地就是这个问题，测试的 dependency 中没有类的引用，挂了</li>
+<li>检查 error exception stack, 看看是不是类初始化时 static 部分出错了</li>
+</ol>
+<h3 id="打印-Classpath-调试"><a href="#打印-Classpath-调试" class="headerlink" title="打印 Classpath 调试"></a>打印 Classpath 调试</h3><p>通过打印 classpath 输出当前运行环境是否缺少需要的 jar 包。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.net.URL;</span><br><span class="line"><span class="keyword">import</span> java.net.URLClassLoader;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PrintClassPath</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ClassLoader cl = ClassLoader.getSystemClassLoader();</span><br><span class="line"></span><br><span class="line">        URL[] urls = ((URLClassLoader)cl).getURLs();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span>(URL url: urls)&#123;</span><br><span class="line">            System.out.println(url.getFile());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Output:</span></span><br><span class="line"><span class="comment">// /Library/Java/JavaVirtualMachines/jdk1.8.0_144.jdk/Contents/Home/jre/lib/charsets.jar</span></span><br><span class="line"><span class="comment">// /Library/Java/JavaVirtualMachines/jdk1.8.0_144.jdk/Contents/Home/jre/lib/deploy.jar</span></span><br><span class="line"><span class="comment">// /Library/Java/JavaVirtualMachines/jdk1.8.0_144.jdk/Contents/Home/jre/lib/ext/cldrdata.jar</span></span><br><span class="line"><span class="comment">// ...</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Refer"><a href="#Refer" class="headerlink" title="Refer"></a>Refer</h3><p><a target="_blank" rel="noopener" href="https://javarevisited.blogspot.com/2011/06/noclassdeffounderror-exception-in.html">很全面的一个 NoClassDefFoundError 异常分析博文</a></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/01/03/%E5%88%9B%E5%BB%BA%20Date%20%E5%AF%B9%E8%B1%A1/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +338,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-09-17 00:16:46" itemprop="dateModified" datetime="2020-09-17T00:16:46+08:00">2020-09-17</time>
+                <time title="修改时间：2020-09-24 00:31:31" itemprop="dateModified" datetime="2020-09-24T00:31:31+08:00">2020-09-24</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -338,7 +439,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-09-17 00:16:46" itemprop="dateModified" datetime="2020-09-17T00:16:46+08:00">2020-09-17</time>
+                <time title="修改时间：2020-09-24 00:31:31" itemprop="dateModified" datetime="2020-09-24T00:31:31+08:00">2020-09-24</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -478,7 +579,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-09-17 00:16:46" itemprop="dateModified" datetime="2020-09-17T00:16:46+08:00">2020-09-17</time>
+                <time title="修改时间：2020-09-24 00:31:31" itemprop="dateModified" datetime="2020-09-24T00:31:31+08:00">2020-09-24</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -582,7 +683,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-09-17 00:16:46" itemprop="dateModified" datetime="2020-09-17T00:16:46+08:00">2020-09-17</time>
+                <time title="修改时间：2020-09-24 00:31:31" itemprop="dateModified" datetime="2020-09-24T00:31:31+08:00">2020-09-24</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -697,7 +798,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-09-17 00:16:46" itemprop="dateModified" datetime="2020-09-17T00:16:46+08:00">2020-09-17</time>
+                <time title="修改时间：2020-09-24 00:31:31" itemprop="dateModified" datetime="2020-09-24T00:31:31+08:00">2020-09-24</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -813,7 +914,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-09-17 00:16:46" itemprop="dateModified" datetime="2020-09-17T00:16:46+08:00">2020-09-17</time>
+                <time title="修改时间：2020-09-24 00:31:31" itemprop="dateModified" datetime="2020-09-24T00:31:31+08:00">2020-09-24</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -916,7 +1017,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-09-17 00:16:46" itemprop="dateModified" datetime="2020-09-17T00:16:46+08:00">2020-09-17</time>
+                <time title="修改时间：2020-09-24 00:31:31" itemprop="dateModified" datetime="2020-09-24T00:31:31+08:00">2020-09-24</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1017,7 +1118,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-09-17 00:16:46" itemprop="dateModified" datetime="2020-09-17T00:16:46+08:00">2020-09-17</time>
+                <time title="修改时间：2020-09-24 00:31:31" itemprop="dateModified" datetime="2020-09-24T00:31:31+08:00">2020-09-24</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1123,7 +1224,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-09-17 00:16:46" itemprop="dateModified" datetime="2020-09-17T00:16:46+08:00">2020-09-17</time>
+                <time title="修改时间：2020-09-24 00:31:31" itemprop="dateModified" datetime="2020-09-24T00:31:31+08:00">2020-09-24</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1187,137 +1288,11 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2019/12/02/Shadowsocks-Client-Installation/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2019/12/02/Shadowsocks-Client-Installation/" class="post-title-link" itemprop="url">安装 shadowsocks client</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2019-12-02 22:00:21" itemprop="dateCreated datePublished" datetime="2019-12-02T22:00:21+08:00">2019-12-02</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-09-17 00:16:46" itemprop="dateModified" datetime="2020-09-17T00:16:46+08:00">2020-09-17</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E9%85%8D%E7%BD%AE/" itemprop="url" rel="index">
-                    <span itemprop="name">配置</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>4k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>4 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>安装 shadowsocks 本地客户端记录</p>
-<h2 id="安装步骤"><a href="#安装步骤" class="headerlink" title="安装步骤"></a>安装步骤</h2><p>查看是否已经安装 python 和 pip, 这里用的是 python3</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">python3 -v</span><br><span class="line">pip3 -v</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果没有安装运行</span></span><br><span class="line">sudo apt-get install python3</span><br><span class="line">sudo apt-get install python3-pip</span><br></pre></td></tr></table></figure>
-
-<p>配置 douban 源加速</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 跳转到 $HOME 目录下</span></span><br><span class="line"><span class="built_in">cd</span></span><br><span class="line"><span class="comment"># 创建 .pip 目录</span></span><br><span class="line">mkdir .pip</span><br><span class="line"><span class="comment"># 创建 config 文件</span></span><br><span class="line">vim pip.conf</span><br><span class="line"><span class="comment"># 将如下内容写进 config 文件，保存退出</span></span><br><span class="line">[global]</span><br><span class="line">timeout = 60</span><br><span class="line">index-url = http://pypi.douban.com/simple</span><br><span class="line">trusted-host = pypi.douban.com</span><br></pre></td></tr></table></figure>
-
-<p>安装 python shadowsocks 包</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sudo pip3 install shadowsocks</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果嫌 sudo 累赘，也可以用</span></span><br><span class="line">pip3 install --user shadowsocks</span><br></pre></td></tr></table></figure>
-
-<p>安装完毕，配置本地 client 端，创建文件 <code>ssclient.json</code>（名字可以自选，不一定要这个），写入内容</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line"><span class="string">&quot;server&quot;</span>:<span class="string">&quot;xxx.xxx.xxx.xxx&quot;</span>,</span><br><span class="line"><span class="string">&quot;server_port&quot;</span>:8989,</span><br><span class="line"><span class="string">&quot;local_address&quot;</span>: <span class="string">&quot;127.0.0.1&quot;</span>,</span><br><span class="line"><span class="string">&quot;local_port&quot;</span>:1080,</span><br><span class="line"><span class="string">&quot;password&quot;</span>:<span class="string">&quot;xxxx&quot;</span>,</span><br><span class="line"><span class="string">&quot;timeout&quot;</span>:300,</span><br><span class="line"><span class="string">&quot;method&quot;</span>:<span class="string">&quot;aes-256-cfb&quot;</span>,</span><br><span class="line"><span class="string">&quot;fast_open&quot;</span>: <span class="literal">false</span>,</span><br><span class="line"><span class="string">&quot;workers&quot;</span>: 1</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>端口信息根据实际情况修改，完毕后运行 <code>sslocal -c /path/to/ssclient.json</code>，报错</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">jack@DESKTOP-9TGTFK1:~/ss$ sslocal  -c ssclient.json</span><br><span class="line">INFO: loading config from shadowsocks.json</span><br><span class="line">2019-12-02 21:02:09 INFO     loading libcrypto from libcrypto.so.1.1</span><br><span class="line">Traceback (most recent call last):</span><br><span class="line">  File <span class="string">&quot;/usr/local/bin/sslocal&quot;</span>, line 11, <span class="keyword">in</span> &lt;module&gt;</span><br><span class="line">    load_entry_point(<span class="string">&#x27;shadowsocks==2.8.2&#x27;</span>, <span class="string">&#x27;console_scripts&#x27;</span>, <span class="string">&#x27;sslocal&#x27;</span>)()</span><br><span class="line">  File <span class="string">&quot;/usr/local/lib/python3.6/dist-packages/shadowsocks/local.py&quot;</span>, line 39, <span class="keyword">in</span> main</span><br><span class="line">    config = shell.get_config(True)</span><br><span class="line">  File <span class="string">&quot;/usr/local/lib/python3.6/dist-packages/shadowsocks/shell.py&quot;</span>, line 262, <span class="keyword">in</span> get_config</span><br><span class="line">    check_config(config, is_local)</span><br><span class="line">  File <span class="string">&quot;/usr/local/lib/python3.6/dist-packages/shadowsocks/shell.py&quot;</span>, line 124, <span class="keyword">in</span> check_config</span><br><span class="line">    encrypt.try_cipher(config[<span class="string">&#x27;password&#x27;</span>], config[<span class="string">&#x27;method&#x27;</span>])</span><br><span class="line">  File <span class="string">&quot;/usr/local/lib/python3.6/dist-packages/shadowsocks/encrypt.py&quot;</span>, line 44, <span class="keyword">in</span> try_cipher</span><br><span class="line">    Encryptor(key, method)</span><br><span class="line">  File <span class="string">&quot;/usr/local/lib/python3.6/dist-packages/shadowsocks/encrypt.py&quot;</span>, line 83, <span class="keyword">in</span> __init__</span><br><span class="line">    random_string(self._method_info[1]))</span><br><span class="line">  File <span class="string">&quot;/usr/local/lib/python3.6/dist-packages/shadowsocks/encrypt.py&quot;</span>, line 109, <span class="keyword">in</span> get_cipher</span><br><span class="line">    <span class="built_in">return</span> m[2](method, key, iv, op)</span><br><span class="line">  File <span class="string">&quot;/usr/local/lib/python3.6/dist-packages/shadowsocks/crypto/openssl.py&quot;</span>, line 76, <span class="keyword">in</span> __init__</span><br><span class="line">    load_openssl()</span><br><span class="line">  File <span class="string">&quot;/usr/local/lib/python3.6/dist-packages/shadowsocks/crypto/openssl.py&quot;</span>, line 52, <span class="keyword">in</span> load_openssl</span><br><span class="line">    libcrypto.EVP_CIPHER_CTX_cleanup.argtypes = (c_void_p,)</span><br><span class="line">  File <span class="string">&quot;/usr/lib/python3.6/ctypes/__init__.py&quot;</span>, line 361, <span class="keyword">in</span> __getattr__</span><br><span class="line">    func = self.__getitem__(name)</span><br><span class="line">  File <span class="string">&quot;/usr/lib/python3.6/ctypes/__init__.py&quot;</span>, line 366, <span class="keyword">in</span> __getitem__</span><br><span class="line">    func = self._FuncPtr((name_or_ordinal, self))</span><br><span class="line">AttributeError: /usr/lib/x86_64-linux-gnu/libcrypto.so.1.1: undefined symbol: EVP_CIPHER_CTX_cleanup</span><br><span class="line">jack@DESKTOP-9TGTFK1:~/ss$</span><br></pre></td></tr></table></figure>
-
-<p>这是因为在openssl 1.1.0中废弃了 EVP_CIPHER_CTX_cleanup() 函数而引入了 EVE_CIPHER_CTX_reset() 函数，具体可以查看<a target="_blank" rel="noopener" href="https://www.openssl.org/docs/man1.1.0/man3/EVP_CIPHER_CTX_reset.html">官方文档</a>, 修复如下</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在错误日志中找到 openssl.py 文件路径, 通过 vim 修改</span></span><br><span class="line">sudo vim /usr/<span class="built_in">local</span>/lib/python3.6/dist-packages/shadowsocks/crypto/openssl.py</span><br><span class="line"><span class="comment"># 替换关键自</span></span><br><span class="line">:%s/cleanup/reset/</span><br><span class="line"><span class="comment"># 保存推出</span></span><br><span class="line">:x</span><br></pre></td></tr></table></figure>
-
-<p>再运行 sslocal，成功</p>
-<ul>
-<li>MacOS 升级到 10.15 Catalina 之后就跑不起来了</li>
-</ul>
-<p>据说是应为升级之后，一些包比如 openssl, dyid 什么的不兼容了导致的，重新安装一下就行了</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">brew update &amp;&amp; brew upgrade</span><br><span class="line"></span><br><span class="line">brew uninstall --ignore-dependencies openssl; brew install https://github.com/tebelorg/Tump/releases/download/v1.0.0/openssl.rb</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果 pip install 不好使了，可以试试重装一下</span></span><br><span class="line">brew reinstall python</span><br></pre></td></tr></table></figure>
-
-<p>然后在 <code>.zshrc</code> 里面添加配置 <code>export DYLD_LIBRARY_PATH=/usr/local/opt/openssl/lib:$DYLD_LIBRARY_PATH</code></p>
-<h3 id="终端-Git-下载加速"><a href="#终端-Git-下载加速" class="headerlink" title="终端 Git 下载加速"></a>终端 Git 下载加速</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"># config your &#96;~&#x2F;.gitconfig&#96; file</span><br><span class="line">[http]</span><br><span class="line">proxy &#x3D; socks5:&#x2F;&#x2F;127.0.0.1:1080</span><br><span class="line">sslVerify &#x3D; false</span><br><span class="line"></span><br><span class="line">[https]</span><br><span class="line">proxy &#x3D; socks5:&#x2F;&#x2F;127.0.0.1:1080</span><br><span class="line">  </span><br><span class="line"># or you can config it by typing terminal</span><br><span class="line">git config --global http.proxy socks5:&#x2F;&#x2F;127.0.0.1:1080</span><br><span class="line">git config --global https.proxy socks5:&#x2F;&#x2F;127.0.0.1:1080</span><br><span class="line">git config --global http.sslVerify false</span><br><span class="line"></span><br><span class="line"># turn off proxy, 开启后 git commit 会受影响</span><br><span class="line">git config --global --unset http.proxy</span><br><span class="line">git config --global --unset https.proxy</span><br></pre></td></tr></table></figure>
-
-<p>慢的话肯定是vps不给力，之前用 Vultr 的时候也是龟速，用了 google cloud, 芜湖，起飞！！！</p>
-<h2 id="MacOS-安装-SS-客户端"><a href="#MacOS-安装-SS-客户端" class="headerlink" title="MacOS 安装 SS 客户端"></a>MacOS 安装 SS 客户端</h2><p>Git 上有一个客户端，用了下还挺香的 <a target="_blank" rel="noopener" href="https://github.com/shadowsocks/ShadowsocksX-NG">ShadowsocksX-NG</a>。README 上有下载地址，直接下载后，解压将安装文件拖至 Application 文件夹下就行了。</p>
-<p>配置注意点：</p>
-<ol>
-<li>Servers -&gt; Server Preference 添加自己的 SS 节点</li>
-<li>Preferences 里面可以看到 proxy 设置，需要注意的是它为 Socks5 和 HTTP 设置了不同端口，Sock5 是 1086，HTTP 是 1087</li>
-<li>安装了这个应用之后貌似就不需要单独配置终端 proxy 了， 可以通用，或者使用 global mode</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/hexo/page/5/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/hexo/">1</a><span class="space">&hellip;</span><a class="page-number" href="/hexo/page/5/">5</a><span class="page-number current">6</span><a class="page-number" href="/hexo/page/7/">7</a><a class="extend next" rel="next" href="/hexo/page/7/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <a class="extend prev" rel="prev" href="/hexo/page/5/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/hexo/">1</a><span class="space">&hellip;</span><a class="page-number" href="/hexo/page/5/">5</a><span class="page-number current">6</span><a class="page-number" href="/hexo/page/7/">7</a><a class="page-number" href="/hexo/page/8/">8</a><a class="extend next" rel="next" href="/hexo/page/7/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1363,7 +1338,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-count">71</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1376,7 +1351,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">71</span>
+        <span class="site-state-item-count">72</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1410,12 +1385,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">129k</span>
+    <span title="站点总字数">135k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:58</span>
+    <span title="站点阅读时长">2:02</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
