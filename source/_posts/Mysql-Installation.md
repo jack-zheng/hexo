@@ -1,5 +1,5 @@
 ---
-title: Mysql Installation
+title: Mysql 安装教程
 date: 2020-09-16 21:29:43
 categories:
 - 配置

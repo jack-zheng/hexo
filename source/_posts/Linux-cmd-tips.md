@@ -1,5 +1,5 @@
 ---
-title: Linux cmd 小贴士
+title: Linux 命令小贴士
 date: 2020-07-08 18:49:48
 categories:
 - 配置
@@ -57,4 +57,28 @@ ps | head -1; ps | grep java
 ```bash
 # du: disk usage
 du -sh *
+```
+
+## 链接 SFTP
+
+建立联接
+
+```shell
+$ sfpt username@1.1.1.1 # 回车输入密码
+```
+
+获取文件下载到指定路径
+
+```shell
+sftp> get /export/sftp/test.csv /Users/my/Downloads
+Fetching /export/sftp/test.csv to /Users/my/Downloads/test.csv
+/export/sftp/test.csv            100%  133     0.3KB/s   00:00
+```
+
+上传本地文件到服务器指定路径
+
+```shell
+sftp> put /Users/my/Downloads/re-produce.gif /export/sftp
+Uploading /Users/my/Downloads/re-produce.gif to /export/sftp/re-produce.gif
+/Users/my/Downloads/re-produce.gif            100%  257KB  86.6KB/s   00:02
 ```

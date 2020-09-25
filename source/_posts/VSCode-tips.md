@@ -38,3 +38,4 @@ Preference -> settings, 搜索关键字 editor.copyWithSyntaxHighlighting 然后
 * Markdown All in One: 他的 format 功能简直太赞了！
 * VSCode Icons: 为目录树上中的文件添加类型图标
 * Bracket Pair Colorizer: 括号色彩标识
+* rainbow csv: CSV 文件色彩标识

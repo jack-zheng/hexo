@@ -10,6 +10,8 @@ tags:
 
 GoF 定义: Allows for one or more operation to be applied to a set of objects at runtime, decoupling the operations from the object structure. 
 
+访问者模式讲的是表示一个作用于某对象结构中的各元素的操作。它使你可以在不改变各元素的类的前提下定义作用域这些元素的新操作。
+
 行为模式之一，目的是将**行为**和**对象**分开。
 
 缺点：**每增**加一种支持的 object，你就必须在 visitor 及其实现类中添加新的方法支持这个改动。

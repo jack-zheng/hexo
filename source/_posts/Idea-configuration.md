@@ -43,7 +43,7 @@ File -> project setting -> SDKs -> 右边有个 Sourcepath -> 导航到 JDK 文�
 
 ### 复制代码段的时候，取消格式复制
 
-cmd+shift+A 打开搜索框，输入关键字 'copy as rich text by default', 关闭对应的开关
+cmd+shift+A 打开搜索框，输入关键字 'copy as rich text', 关闭对应的开关
 
 ### IDEA中显示空格
 
