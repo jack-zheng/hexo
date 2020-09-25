@@ -128,6 +128,9 @@ valuable there.
 
 ## Iterm2
 
+* 最大化窗口：CMD + Ctrl + F
+* Item2 最大化终端：CMD + Enter
+
 可以通过下载 [官方 zip](https://www.iterm2.com/downloads.html) 包离线安装，也可以通过 brew 安装 `brew cask install iterm2`。brew 会比较慢
 
 修改提示符 
