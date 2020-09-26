@@ -387,3 +387,342 @@ cacheEnabled, lazyLoadingEnabled, logImpl
 ResultMap 的设计思想是，对于简单的语句根本不需要配置显示的结果集映射，对于复杂的语句只需要描述他们的关系就行了。
 
 上面的方案还可以将 id, name 的描述简化掉，框架会帮你处理，只保留不一致的即可
+
+## 日志
+
+### 日志工厂 logImpl
+
+数据库操作异常排错
+
+* SLF4J [Y]
+* LOG4J 
+* LOG4J2 [Y]
+* JDK_LOGGING
+* COMMONS_LOGGING
+* STDOUT_LOGGING [Y]
+* NO_LOGGING
+
+STDOUT_LOGGING sample:
+
+```xml
+<settings>
+    <setting name="logImpl" value="STDOUT_LOGGING"/>
+</settings>
+```
+
+```txt
+Opening JDBC Connection
+Created connection 477376212.
+Setting autocommit to false on JDBC Connection [com.mysql.jdbc.JDBC4Connection@1c742ed4]
+==>  Preparing: select * from mybatis.user where id = ?; 
+==> Parameters: 1(Integer)
+<==    Columns: id, name, pwd
+<==        Row: 1, jack, 123
+<==      Total: 1
+User{id=1, name='jack', password='123'}
+Resetting autocommit to true on JDBC Connection [com.mysql.jdbc.JDBC4Connection@1c742ed4]
+Closing JDBC Connection [com.mysql.jdbc.JDBC4Connection@1c742ed4]
+Returned connection 477376212 to pool.
+```
+
+### Log4j
+
+1. 导包
+2. 添加 log4j.properties
+3. 添加配置到核心配置文件
+
+## 分页
+
+减少数据的处理量
+
+### 使用 limit 分页
+
+```sql
+select * from table limit startIndex, size;
+```
+
+### RowBounds
+
+稍作了解
+
+## 注解开发
+
+面向接口编程：
+
+* 接口定义和实现分离
+* 反应设计人员对系统的抽象理解
+
+接口有两类：一类是对一个个体的抽象，可以对应为一个抽象个体，另一类是对一个个体的某一方面抽象，即形成一个抽象面
+
+个体可能有多个抽象面，抽象提与抽象面是有区别的
+
+1. 在接口方法上添加注解
+2. 在核心配置文件中添加配置
+
+```java
+public interface UserMapper {
+    @Select("select * from user")
+    List<User> getUsers();
+}
+```
+
+```xml
+<mappers>
+    <mapper class="com.jzheng.dao.UserMapper"/>
+</mappers>
+```
+
+反射 + 动态代理
+
+## Mybatis 执行流程解析
+
+1. Resources 获取加载全局配置文件
+2. 实例化 SqlSessionFactoryBuilder 构造器
+3. 解析配置文件流 XMLConfigBulder
+4. Configuration 所有的配置信息
+5. SqlSessionFactory 实例化
+6. Transaction 事务管理器
+7. 创建 executor 执行器
+8. 创建 SQLSession
+9. 实现 CRUD
+10. 查看是否成功
+
+## 注解 CRUD
+
+工具类自动提交事务可以通过 Utils 类中，指定参数实现
+
+```java
+public static SqlSession getSqlSession() {
+    return sqlSessionFactory.openSession(true);
+}
+```
+
+实现
+
+```java
+public interface UserMapper {
+
+    @Select("select * from user")
+    List<User> getUsers();
+
+    // 方法存在多个参数，所有参数前面必须加上 @Param
+    @Select("select * from user where id=#{id}")
+    User getUserById(@Param("id") int id);
+
+    @Insert("insert into user (id, name, pwd) values (#{id}, #{name}, #{password})")
+    int addUser(User user);
+
+    @Update("update user set name=#{name}, pwd=#{password} where id=#{id}")
+    int updateUser(User user);
+
+    @Delete("delete from user where id=#{id}")
+    int deleteUser(@Param("id") int id);
+}
+```
+
+关于 @Param 注解
+
+* 基本类型 + String 类型需要加
+* 引用类型不需要
+* 如果只有一个基本类型，可以不加，但还是建议加上
+* Sql 中引用的属性名和 Param 中的名字保持一致
+
+'#' 前缀可以防注入，'$' 不行
+
+## Lombok
+
+感觉可以起飞，稍微有点缺点，自行斟酌
+
+1. 安装 Idea 插件
+2. 导入 jar 包
+3. 实体类加注解
+
+支持的方法
+
+* @Getter and @Setter
+* @FieldNameConstants
+* @ToString
+* @EqualsAndHashCode
+* @AllArgsConstructor, @RequiredArgsConstructor and @NoArgsConstructor
+* @Log, @Log4j, @Log4j2, @Slf4j, @XSlf4j, @CommonsLog, @JBossLog, @Flogger, @CustomLog
+* @Data - 无参构造，getter/settter, toString, equals
+* @Builder
+* @SuperBuilder
+* @Singular
+* @Delegate
+* @Value
+* @Accessors
+* @Wither
+* @With
+* @SneakyThrows
+* @val
+* @var
+* experimental @var
+* @UtilityClass
+* Lombok config system
+* Code inspections
+* Refactoring actions (lombok and delombok)
+
+## 多对一
+
+多对一 - 关联 - association
+
+一对多 - 集合 - collection
+
+创建测试表
+
+```sql
+CREATE TABLE `teacher` (
+                           `id` INT(10) NOT NULL,
+                           `name` VARCHAR(30) DEFAULT NULL,
+                           PRIMARY KEY (`id`)
+) ENGINE=INNODB DEFAULT CHARSET=utf8;
+
+INSERT INTO teacher(`id`, `name`) VALUES (1, '秦老师');
+
+CREATE TABLE `student` (
+                           `id` INT(10) NOT NULL,
+                           `name` VARCHAR(30) DEFAULT NULL,
+                           `tid` INT(10) DEFAULT NULL,
+                           PRIMARY KEY (`id`),
+                           KEY `fktid` (`tid`),
+                           CONSTRAINT `fktid` FOREIGN KEY (`tid`) REFERENCES `teacher` (`id`)
+) ENGINE=INNODB DEFAULT CHARSET=utf8;
+
+INSERT INTO `student` (`id`, `name`, `tid`) VALUES ('1', '小明', '1');
+INSERT INTO `student` (`id`, `name`, `tid`) VALUES ('2', '小红', '1');
+INSERT INTO `student` (`id`, `name`, `tid`) VALUES ('3', '小张', '1');
+INSERT INTO `student` (`id`, `name`, `tid`) VALUES ('4', '小李', '1');
+INSERT INTO `student` (`id`, `name`, `tid`) VALUES ('5', '小王', '1');
+```
+
+测试环境搭建
+
+1. 导入 lombok
+2. 新建 teacher/student 实体类
+3. 创建 mapper 接口
+4. 创建 mapper xml 文件
+5. 核心配置类注册接口或 xml
+6. 测试查询
+
+按照查询嵌套处理
+
+```xml
+<!-- 
+    1. 查询所有学生信息
+    2. 根据查询出来的tid 属性寻找对应的老师
+    效果上类似子查询
+ -->
+<select id="getStudent" resultMap="StudentTeacher">
+    select * from student;
+</select>
+<resultMap id="StudentTeacher" type="Student">
+    <!-- obj use association, collection use collection -->
+    <association property="teacher" column="tid" javaType="Teacher" select="getTeacher"/>
+</resultMap>
+
+<select id="getTeacher" resultType="Teacher">
+    select * from teacher where id=#{id}
+</select>
+```
+
+按照结果嵌套处理
+
+```xml
+<select id="getStudent2" resultMap="StudentTeacher2">
+    select s.id sid, s.name sname, t.name tname from student s, teacher t
+    where s.tid = tid;
+</select>
+
+<resultMap id="StudentTeacher2" type="Student">
+    <result property="id" column="sid"/>
+    <result property="name" column="sname"/>
+    <association property="teacher" javaType="Teacher">
+            <result property="name" column="tname"/>
+    </association>
+</resultMap>
+```
+
+对应 SQL 的子查询和联表查询
+
+## 一对多
+
+一个老师对应多个学生
+
+实体类
+
+```java
+@Data
+public class Teacher {
+    private int id;
+    private String name;
+
+    private List<Student> students;
+}
+
+@Data
+public class Student {
+    private int id;
+    private String name;
+    private int tid;
+}
+```
+
+按照结果嵌套处理
+
+```xml
+<select id="getTeachers" resultType="Teacher">
+    select * from teacher;
+</select>
+
+<select id="getTeacher" resultMap="TeacherStudent">
+    select s.id sid, s.name sname, t.name tname, t.id tid from student s, teacher t
+    where s.tid = t.id and t.id=#{tid};
+</select>
+
+<resultMap id="TeacherStudent" type="Teacher">
+    <result property="id" column="tid"/>
+    <result property="name" column="tname"/>
+    <collection property="students" ofType="Student">
+        <result property="id" column="sid"/>
+        <result property="name" column="sname"/>
+        <result property="tid" column="tid"/>
+    </collection>
+</resultMap>
+```
+
+按照查询嵌套处理
+
+```xml
+<select id="getTeacher2" resultMap="TeacherStudent2">
+    select * from mybatis.teacher where id=#{tid};
+</select>
+<resultMap id="TeacherStudent2" type="Teacher">
+    <collection property="students" javaType="ArrayList" ofType="Student" select="getStudentByTeacherId" column="id"/>
+</resultMap>
+
+<select id="getStudentByTeacherId" resultType="Student">
+    select * from mybatis.student where tid = #{tid};
+</select>
+```
+
+小结：
+
+* 关联 - 一对多 - associate
+* 集合 - 多对一 - collection
+* javaType & ofType
+  * javaType 指定实体类中的属性
+  * ofType 指定映射到集合中的 pojo 类型，泛型中的约束类型
+
+注意点：
+
+* 保证SQL可读性，尽量通俗易懂
+* 注意一对多和多对一属性名和字段的问题
+* 排错时善用 log
+
+面试高频
+
+* Mysql 引擎
+* InnoDB 底层原理
+* 索引
+* 索引优化

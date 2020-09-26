@@ -43,3 +43,18 @@ default_authentication_plugin=mysql_native_password
 ## Issues
 
 Windows 运行 `mysqld --initialize-insecure --user=mysql` 配置时报错 `由于找不到vcruntime140_1.dll,无法继续执行代码` 可以去 [官网](https://cn.dll-files.com/vcruntime140_1.dll.html) 下载 dll 文件放到 `C:\Windows\System32` 下即可
+
+Idea 链接 mysql 后报错 `Server returns invalid timezone. Go to 'Advanced' tab and set 'serverTimezone' property manually`，可以通过设置 mysql 时区解决
+
+1. cmd -> mysql -uroot -p 登录 DB
+2. `show variables like'%time_zone';` 查看时区， Value 为 SYSTEM 则表示没有设置过
+3. `set global time_zone = '+8:00';` 修改时区为东八区
+4. 重试链接，问题解决
+
+这只是临时方案，重启 DB 后时区会重置，可以去 my.ini 配置文件中添加配置
+
+```config
+[mysqld]
+# 设置默认时区
+default-time_zone='+8:00'
+```
