@@ -726,3 +726,207 @@ public class Student {
 * InnoDB 底层原理
 * 索引
 * 索引优化
+
+## 动态 SQL
+
+根据不同的条件生成不同的 SQL 语句
+
+* if
+* choose (when, otherwise)
+* trim (where, set)
+* foreach
+
+### 搭建环境
+
+```sql
+CREATE TABLE `blog`(
+`id` VARCHAR(50) NOT NULL COMMENT '博客id',
+`title` VARCHAR(100) NOT NULL COMMENT '博客标题',
+`author` VARCHAR(30) NOT NULL COMMENT '博客作者',
+`create_time` DATETIME NOT NULL COMMENT '创建时间',
+`views` INT(30) NOT NULL COMMENT '浏览量'
+)ENGINE=INNODB DEFAULT CHARSET=utf8
+```
+
+创建工程
+
+1. 导包
+2. 编写配置
+3. 编写实体类
+4. 编写 mapper + 测试
+
+```java
+@Data
+public class Blog {
+    private String id;
+    private String title;
+    private String author;
+    private Date createTime;
+    private int views;
+}
+```
+
+if
+
+```xml
+<select id="queryBlogIf" parameterType="map" resultType="blog">
+    select * from mybatis.blog where 1=1
+    <if test="title != null">
+        and title=#{title}
+    </if>
+    <if test="author != null">
+        and author=#{author}
+    </if>
+</select>
+```
+
+choose (when, otherwise)
+
+```xml
+<select id="queryBlogChoose" parameterType="map" resultType="blog">
+    select * from mybatis.blog
+    <where>
+        <choose>
+            <when test="title != null">
+                title = #{title}
+            </when>
+            <when test="author != null">
+                and author = #{author}
+            </when>
+            <otherwise>
+                and views = #{views}
+            </otherwise>
+        </choose>
+    </where>
+</select>
+```
+
+trim (where, set)
+
+```xml
+<select id="queryBlogIf" parameterType="map" resultType="blog">
+    select * from mybatis.blog
+    <where>
+        <if test="title != null">
+            and title=#{title}
+        </if>
+        <if test="author != null">
+            and author=#{author}
+        </if>    
+    </where>
+</select>
+
+<update id="updateBlog" parameterType="map">
+        update  mybatis.blog
+        <set>
+            <if test="title != null">
+                title=#{title},
+            </if>
+            <if test="author!=null">
+                author = #{author}
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+```
+
+foreach
+
+```xml
+<select id="queryBlogs" parameterType="map" resultType="blog">
+    select * from mybatis.blog
+    <where>
+        <foreach collection="ids" item="id" open="and (" close=")" separator="or">
+            id=#{id}
+        </foreach>
+    </where>
+</select>
+```
+
+所谓的动态 SQL，本质还是 SQL 语句，只是我们可以在 SQL 层面去执行一个逻辑代码
+
+## SQL片段
+
+1. 将公共部分抽取出来
+2. 通过 include 标签引用
+
+```xml
+<sql id="if-title-author">
+    <if test="title != null">
+        and title=#{title}
+    </if>
+    <if test="author != null">
+        and author=#{author}
+    </if>
+</sql>
+
+<select id="queryBlogIf" parameterType="map" resultType="blog">
+    select * from mybatis.blog
+    <where>
+        <include refid="if-title-author"></include>
+    </where>
+</select>
+```
+
+* 最好基于单表来定义 SQL 片段
+* 不要存在 where 标签
+
+## Cache 缓存 - project 09
+
+查询 -> 连接数据库，耗资源
+
+缓存：一次查询的结果，给他暂存在一个可以直接去到的地方(内存)，再次查询的时候直接走内存
+
+### 一级缓存
+
+一级缓存默认开启，且不能关闭，只在一次 SqlSession 中有用
+
+1. 开启日志
+2. 测试一次 session 中查询两次相同结果
+3. 查看日志输出
+
+缓存失效的几种情况：
+
+1. 查询不同的东西
+2. 增删改可能会改变原来的数据，所以必定要刷新缓存
+3. 查询不同的 mapper.xml
+4. 手动清理缓存
+
+### 二级缓存
+
+1. 开启全局缓存 cacheEnabled -> true
+2. 在 mapper.xml 中加入 <cache/> 标签
+
+* 一级缓存作用域太低了，所以诞生了二级缓存
+* 基于 namespace 级别的缓存，一个命名空间对应一个二级缓存
+* 工作机制
+  * 一个会话查询一条数据，数据被存放在一级缓存中
+  * 当前会话关闭，对应的一级缓存就没了，一级缓存中的数据会被保存到二级缓存中
+  * 新会话查询信息，会从二级缓存中获取内容
+  * 不同 mapper 查出的数据会放在自己对应的缓存中
+
+默认的 <cache/> 需要 pojo 类实现序列化接口不然会报错 ` Cause: java.io.NotSerializableException: com.jzheng.pojo.User`
+
+小结：
+
+* 只要开启二级缓存，在同一个 Mapper 下就有效
+* 素有的数据都会先放在一级缓存中
+* 只有当会话提交或者关闭，才会提交到二级缓存中
+
+## 缓存原理
+
+1. 先看二级缓存中有没有
+2. 再看一级缓存中有没有
+3. 最后才查DB
+
+## 自定义缓存 ehcache
+
+一种广泛使用的开源 Java 分布式缓存，主要面向通用缓存
+
+使用：
+
+1. 导包
+2. config 中配置 type
+
+不过这中功能现在都用 redis 代替了
+
