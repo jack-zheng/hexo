@@ -8,11 +8,22 @@ tags:
 - mybatis
 ---
 
-* [视频教程](https://www.bilibili.com/video/BV1NE411Q7Nx)
+MyBatis 是一款优秀的持久层框架，它支持自定义 SQL、存储过程以及高级映射。MyBatis 免除了几乎所有的 JDBC 代码以及设置参数和获取结果集的工作。MyBatis 可以通过简单的 XML 或注解来配置和映射原始类型、接口和 Java POJO（Plain Old Java Objects，普通老式 Java 对象）为数据库中的记录。
 
-## 搭建环境
+解释成白话：这是一个操作数据库的框架，就是把操作简化了，你之前用 JDBC 时的那些配置什么还是少不了只不过用起来更好使罢了。比如使用数据库你得配联接吧，得配驱动把，得写 SQL 把，mybatis 也需要你做这个，只不过人家帮你把这些事情总结出了一个套路，你用这个套路就可以少很多冗余代码，但是也增加了你自己学习这个框架的成本，少了自由度。当然就大部分人的编程水平，肯定是收益大于损失的 ╮(￣▽￣"")╭
+
+* [视频教程](https://www.bilibili.com/video/BV1NE411Q7Nx)
+* [练习项目地址](https://github.com/jack-zheng/mybatis-note)
+
+## 搭建环境 mybatis-01-setup
+
+创建测试表
 
 ```SQL
+-- 创建测试数据库
+CREATE DATABASE mybatis;
+USE mybatis;
+
 -- 创建测试表
 CREATE TABLE user (
 id INT(20) NOT NULL PRIMARY KEY,
@@ -25,10 +36,10 @@ INSERT INTO user (id, name, pwd) VALUES
 (1, 'jack', '123'), (2, 'jack02', '123');
 ```
 
-新建项目
+新建测试项目
 
 1. 新建 maven 项目
-2. 删除 src 目录
+2. 删除 src 目录，通过 module 的方式管理，条理更清楚
 3. 配置依赖
 
 ```xml
@@ -38,15 +49,21 @@ INSERT INTO user (id, name, pwd) VALUES
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- 父工程 -->
     <groupId>com.jzheng</groupId>
-    <artifactId>mybatis-study</artifactId>
+    <artifactId>mybatis-note</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <modules>
-        <module>mybatis-01</module>
+        <module>mybatis-01-setup</module>
     </modules>
 
+    <!-- java 8 compiler 配置，和下面的 build plugin 配合使用 -->
+    <properties>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+    </properties>
+
+    <!-- mybatis 基础包，包括 DB 驱动，连接，测试的 jar 包 -->
     <dependencies>
         <dependency>
             <groupId>mysql</groupId>
@@ -54,14 +71,12 @@ INSERT INTO user (id, name, pwd) VALUES
             <version>5.1.46</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.mybatis/mybatis -->
         <dependency>
             <groupId>org.mybatis</groupId>
             <artifactId>mybatis</artifactId>
             <version>3.5.2</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/junit/junit -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -70,6 +85,37 @@ INSERT INTO user (id, name, pwd) VALUES
         </dependency>
 
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+        <!-- 在 build 的时候将工程中的配置文件也一并 copy 到编译文件中，即 target 文件夹下 -->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>**/*.properties</include>
+                    <include>**/*.xml</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/java</directory>
+                <includes>
+                    <include>**/*.properties</include>
+                    <include>**/*.xml</include>
+                </includes>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+    </build>
 
 </project>
 ```
@@ -80,7 +126,7 @@ INSERT INTO user (id, name, pwd) VALUES
 
 连接后点击扳手图标可以拿到 url 信息
 
-mybatis 配置文件
+mybatis 核心配置文件，这个文件中配置 DB 连接，驱动等信息，算是 mybatis 的入口配置文件了。
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" ?>
@@ -94,12 +140,16 @@ mybatis 配置文件
             <transactionManager type="JDBC"/>
             <dataSource type="POOLED">
                 <property name="driver" value="com.mysql.jdbc.Driver"/>
-                <property name="url" value="jdbc:mysql://localhost:3306/mybatis?useSSL=true&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTime=UTC"/>
+                <property name="url" value="jdbc:mysql://localhost:3306/mybatis?useSSL=false&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTime=UTC"/>
                 <property name="username" value="root"/>
                 <property name="password" value="root"/>
             </dataSource>
         </environment>
     </environments>
+
+    <mappers>
+        <mapper resource="com/jzheng/mapper/UserMapper.xml"/>
+    </mappers>
 </configuration>
 ```
 
@@ -126,9 +176,33 @@ public class MybatisUtils {
 }
 ```
 
-生成实体类 Pojo
+生成实体类 pojo
+
+```java
+public class User {
+    private int id;
+    private String name;
+    private String pwd;
+
+    // ...
+    // 省略构造函数和 getter/setter
+}
+```
 
 定义 Dao 接口
+
+```java
+public interface UserMapper {
+    // CURD user
+    int addUser(User user);
+    int deleteUser(int id);
+    int updateUser(User user);
+    User getUserById(int id);
+
+    // First sample
+    List<User> getUsers();
+}
+```
 
 配置 Mapper xml
 
@@ -137,15 +211,98 @@ public class MybatisUtils {
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<!-- 绑定 dao/mapper 接口 -->
-<mapper namespace="com.jzheng.dao.UserDao">
-    <select id="getUserList" resultType="com.jzheng.pojo.User">
-        select * from mybaties.user;
+<mapper namespace="com.jzheng.mapper.UserMapper">
+    <insert id="addUser" parameterType="com.jzheng.pojo.User">
+        insert into mybatis.user (id, name, pwd) values (#{id}, #{name}, #{pwd})
+    </insert>
+
+    <delete id="deleteUser">
+        delete from mybatis.user where id=#{id};
+    </delete>
+
+    <update id="updateUser" parameterType="com.jzheng.pojo.User">
+        update mybatis.user set name=#{name}, pwd=#{pwd} where id=#{id};
+    </update>
+
+    <select id="getUserById" resultType="com.jzheng.pojo.User">
+        select * from mybatis.user where id=#{id};
+    </select>
+
+    <!-- 查询所有用户 -->
+    <select id="getUsers" resultType="com.jzheng.pojo.User">
+        select * from mybatis.user;
     </select>
 </mapper>
 ```
 
 编写测试类
+
+```java
+public class UserMapperTest {
+    @Test
+    public void test_official_sample() throws IOException {
+        String resource = "mybatis-config.xml";
+        InputStream inputStream = Resources.getResourceAsStream(resource);
+        SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+        SqlSession session = sqlSessionFactory.openSession();
+        UserMapper mapper = session.getMapper(UserMapper.class);
+        List<User> users = mapper.getUsers();
+        for (User user : users) {
+            System.out.println(user);
+        }
+        session.close();
+    }
+
+    @Test
+    public void test_util() {
+        SqlSession sqlSession = MybatisUtils.getSqlSession();
+        List<User> users = sqlSession.getMapper(UserMapper.class).getUsers();
+        for (User user : users) {
+            System.out.println(user);
+        }
+        sqlSession.close();
+    }
+
+    @Test
+    public void test_add() {
+        SqlSession sqlSession = MybatisUtils.getSqlSession();
+        User user = new User(5, "t0928", "pwd");
+
+        int ret = sqlSession.getMapper(UserMapper.class).addUser(user);
+        System.out.println(ret);
+        sqlSession.commit();
+        sqlSession.close();
+    }
+
+    @Test
+    public void test_delete() {
+        SqlSession sqlSession = MybatisUtils.getSqlSession();
+
+        int ret = sqlSession.getMapper(UserMapper.class).deleteUser(5);
+        System.out.println(ret);
+        sqlSession.commit();
+        sqlSession.close();
+    }
+
+    @Test
+    public void test_update() {
+        SqlSession sqlSession = MybatisUtils.getSqlSession();
+        User user = new User(2, "change", "pwdchange");
+        int ret = sqlSession.getMapper(UserMapper.class).updateUser(user);
+        System.out.println(ret);
+        sqlSession.commit();
+        sqlSession.close();
+    }
+
+    @Test
+    public void test_getUserById() {
+        SqlSession sqlSession = MybatisUtils.getSqlSession();
+        User ret = sqlSession.getMapper(UserMapper.class).getUserById(1);
+        System.out.println(ret);
+        sqlSession.close();
+    }
+}
+```
 
 常见错误
 
@@ -189,51 +346,48 @@ java.security.cert.CertPathValidatorException: Path does not chain with any of t
 
 ```
 
-## CRUD
+**[Attention]:**
 
-### mapper
+1. 当进行增删改操作时需调用 commit 方法将修改提交才能生效
+2. namespace 中的包名要和 Dao/mapper 保持一致
 
-namespace 中的包名要和 Dao/mapper 保持一致
+### 万能 map
 
-### select/insert/update/delete
+如果实体类的属性过多，可以考虑使用 map 传递参数, 这是一种可定制性很高的用法
 
-选择，查询语句
+```java
+// Mapper interface
+User getUserByMap(Map map);
+```
 
-* id: 对应 namespace 中的方法名
-* resultType: sql 执行的返回值
-* parameterType: 参数类型
+```xml
+<!-- 通过 map 查询 -->
+<select id="getUserByMap" parameterType="map" resultType="com.jzheng.pojo.User">
+    select * from mybatis.user where id=#{id};
+</select>
+```
 
-1. 编写接口
-2. 配置 mapper
-3. 测试
+测试用例
 
-怎删改需要提交事务
-
-```code
-int addUser(User user);
-
-<insert id="addUser" parameterType="com.jzheng.pojo.User">
-    insert into mybatis.user (id, name , pwd) values (#{id}, #{name}, #{pwd});
-</insert>
-
+```java
 @Test
-public void addUser() {
+public void test_getUserByMap() {
     SqlSession sqlSession = MybatisUtils.getSqlSession();
 
-    // 方式一：getMapper
-    UserMapper userDao = sqlSession.getMapper(UserMapper.class);
-    System.out.println(userDao.addUser(new User(4, "haha", "123123")));
-
-    sqlSession.commit();
+    Map<String, Object> map = new HashMap<>();
+    map.put("id", 1);
+    User ret = sqlSession.getMapper(UserMapper.class).getUserByMap(map);
+    System.out.println(ret);
     sqlSession.close();
 }
 ```
 
-## 万能 map
+### 疑问记录
 
-如果实体类的属性过多，可以考虑使用 map 传递参数
-
-## 模糊查询
+1. 项目中我即使把 pojo 的构造函数和 getter/setter 都注视掉了，值还是被塞进去了，和 spring 不一样，他是怎么实现的？
+2. 核心配置文件中的 mapper setting，resource tag 不支持匹配符？类似 `com/jzheng/mapper/*.xml` 并不能生效
+3. mapper.xml 中 resultType 怎么简写，每次都全路径很费事
+4. mybatis 中是不支持方法重载的
 
 ## 配置解析
 
