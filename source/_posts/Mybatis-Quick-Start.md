@@ -14,8 +14,11 @@ MyBatis 是一款优秀的持久层框架，它支持自定义 SQL、存储过�
 
 * [视频教程](https://www.bilibili.com/video/BV1NE411Q7Nx)
 * [练习项目地址](https://github.com/jack-zheng/mybatis-note)
+* 练习版本：mybatis 3.5.5
 
 ## 搭建环境 mybatis-01-setup
+
+对照官方文档的入门篇
 
 创建测试表
 
@@ -382,6 +385,35 @@ public void test_getUserByMap() {
 }
 ```
 
+### 分页功能 limit
+
+通过 map 来实现分页功能
+
+```sql
+select * from table limit startIndex, size;
+```
+
+```java
+// Limit query
+List<User> getUsersWithLimit(Map map);
+```
+
+```xml
+<!-- 分页 -->
+<select id="getUsersWithLimit" parameterType="map" resultType="com.jzheng.pojo.User">
+    select * from mybatis.user limit #{startIndex}, #{pageSize};
+</select>
+```
+
+### 常用变量的作用域
+
+**SqlSessionFactoryBuilder:** 一用完就可以丢了，局部变量
+
+**SqlSessionFactory:** 应用起了就要应该存在，所以应用作用域(Application)最合适。而且只需要一份，使用单列或者静态单列模式
+
+**SqlSession:** 线程不安全，不能共享。最佳作用域是请求或方法层。响应结束后，一定要关闭，所以最佳时间是把它放到 finally 代码块中，或者用自动关闭资源的 try block。
+
+
 ### 疑问记录
 
 1. 项目中我即使把 pojo 的构造函数和 getter/setter 都注视掉了，值还是被塞进去了，和 spring 不一样，他是怎么实现的？
@@ -389,7 +421,25 @@ public void test_getUserByMap() {
 3. mapper.xml 中 resultType 怎么简写，每次都全路径很费事
 4. mybatis 中是不支持方法重载的
 
-## 配置解析
+### 疑问解答
+
+1. mybatis 会通过 DefaultResultSetHandler 处理结果集，applyAutomaticMappings 就是进行映射的地方，这个方法下面会通过反射对 field 进行赋值，并没有调用 set 方法，别和 spring 搞混了。
+2. TBD
+3. 参见 配置 -> typeAlias
+
+## Lombok 偷懒神器
+
+Lombok 可以省去你很多冗余代码，在测试项目的时候很好用。是否使用看个人，但是就个人小项目来说我还是很愿意使用的。
+
+1. Idea 安装 lombok 插件
+2. 安装依赖的 jar 包
+3. 在 pojo 类中添加注解使用
+
+调试技巧：在 pojo 上添加注解后，你可以在 idea 的 Structure tab 里看到新生产的方法
+
+## 配置解析 mybatis-02-configuration
+
+对应 配置 章节
 
 核心配置文件：mybatis-config.xml
 
@@ -410,48 +460,107 @@ mappers（映射器）
 
 ### environments 环境变量
 
-可以配置多套环境，但使用时只能选择一种
+尽管可以配置多个环境，但每个 SqlSessionFactory 实例**只能选择一种**环境。如果想连接两个数据库就需要创建两个 SqlSessionFactory 实例。
 
-默认事务管理器 JDBC，默认 dataSource - Pooled
+**事务管理器(transactionManager)**有 JDBC 和 MANAGED 两种，默认使用 JDBC，另一种几乎很少用，权作了解。
+
+**数据源(dataSource)**用来配置数据库连接对象的资源，有 [UNPOOLED|POOLED|JNDI] 三种。JNDI 是为了支持 EJB 应用，现在应该已经过时了。
+
+DB Pool 的常见实现方式：jdbc，c3p0, dbcp
 
 ### properties 属性
 
 引用配置文件，可以和 `.properties` 文件交互
+
+文件目录如下：
+
+```txt
+resources
+├── db.properties
+└── mybatis-config.xml
+```
 
 db.properties
 
 ```properties
 driver=com.mysql.jdbc.Driver
 url=jdbc:mysql://localhost:3306/mybatis?useSSL=false&useUnicode=true&characterEncoding=UTF-8&serverTime=UTC
-username=root
-password=root
 ```
 
-也可以和 xml 混合使用，如果属性有重名，优先使用外部 properties 中的属性
+mybatis-config 配置如下
 
-### Alias 别名
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <properties resource="db.properties">
+        <property name="uname" value="root"/>
+        <!-- priority rank: parameter > properties file > property tab -->
+        <property name="url" value="tmp_url"/>
+    </properties>
+    <environments default="development">
+        <environment id="development">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="${driver}"/>
+                <property name="url" value="${url}"/>
+                <property name="username" value="${uname}"/>
+                <property name="password" value="12345678"/>
+            </dataSource>
+        </environment>
+    </environments>
+    <mappers>
+        <mapper resource="com/jzheng/mapper/UserMapper.xml"/>
+    </mappers>
+</configuration>
+```
+
+xml 中的 properties tag + resource 属性可以将配置文件加载进来。另外还有一种属性配置方式是直接在构建 session factory 或者 factory builder 的时候通过参数的形式传入。
+
+```java
+sqlSessionFactoryBuilder.build(reader, props);
+// ... or ...
+new SqlSessionFactoryBuilder.build(reader, environment, props);
+```
+
+三种属性添加方式优先级：parameter > properties 文件 > property 标签
+
+### typeAlias 类型别名
 
 设置短的名字，减少类完全限定名的冗余
 
 ```xml
-<!-- 给实体类起别名 -->
 <typeAliases>
     <typeAlias type="com.jzheng.pojo.User" alias="User"/>
 </typeAliases>
 
-<!-- 或者包别名，使用时直接用 bean name, 推荐首字母小写 -->
 <typeAliases>
     <package name="com.jzheng.pojo"/>
 </typeAliases>
 ```
-
 也可以在实体类上添加 Alias 注解
+
+```java
+@Alias("user")
+public class User {}
+```
+
+三种添加别名的方式 typeAliases+typeAlias, typeAliases+package 和 类名+@Alias。想要使用缩写必须在配置文件中加上 typeAliases 的 tag 直接在类上使用注解是不会生效的。
+
+typeAliases 使用时，是忽略大小写的，官方提倡使用首字母小写的命名方式。一旦类傻上加了注解，则**严格**匹配类注解
 
 ### setting 设置
 
-cacheEnabled, lazyLoadingEnabled, logImpl
+比较常用的设置为：
 
-## mapper 映射器
+* cacheEnabled：开启缓存配置
+* logImpl：开启日志配置
+
+### mapper 映射器
+
+映射器用来告诉 mybatis 到哪里去找到映射文件
 
 方式一：资源文件
 
@@ -483,48 +592,32 @@ cacheEnabled, lazyLoadingEnabled, logImpl
 
 缺陷也是要在同一路径下
 
-## 生命周期
-
-生命周期和作用域是至关重要的，因为错误的使用会导致非常严重的并发问题
-
-**SqlSessionFactoryBuilder**
-
-* 一旦创建了 SqlSessionFactory 就不在需要他了
-* 局部变量
-
-**SqlSessionFactory**
-
-* 说白了就是可以看作数据库连接池
-* 一旦创建就一直存在，没有理由丢弃它或者重新创建一个新的
-* 因此 SqlSessionFactory 最佳作用域应为 应用作用域
-* 最简单的是使用单例模式或静态单例模式
-
-**SqlSession**
-
-* 链接到连接池的一个请求
-* 不能被共享
-* 最佳作用域是请求或方法作用域
-* 用完之后需要赶紧关闭，否则资源被占用
-
 ![Factory_Session关系图](SessionFactory_Session.PNG)
 
-每个 Mapper 代表一个具体的业务
+每个 Mapper 代表一个具体的业务，比如 UserMapper。
 
-## 解决属性名和字段名字不一样的问题
+### 解决属性名和字段名字不一样的问题
 
 将 User 的 pwd 改为 password, 和 DB 产生歧义
 
-解决方案
+```java
+@Data
+public class User {
+    private int id;
+    private String name;
+    private String password;
+}
+```
 
-1. 起别名
+解决方案01, 在 Sql 中使用 as 关键字重新指定 column name 为 property name(pwd as password)。
 
 ```xml
 <select id="getUserById" parameterType="int" resultType="user">
-    select id,name,pwd from mybatis.user where id = #{id};
+    select id, name, pwd as password from mybatis.user where id = #{id};
 </select>
 ```
 
-2. resultMap, 结果集映射
+解决方案02, 使用 resultMap 映射结果集
 
 ```xml
 <resultMap id="UserMap" type="User">
@@ -542,11 +635,13 @@ ResultMap 的设计思想是，对于简单的语句根本不需要配置显示�
 
 上面的方案还可以将 id, name 的描述简化掉，框架会帮你处理，只保留不一致的即可
 
-## 日志
+### 疑问记录
 
-### 日志工厂 logImpl
+1. 在测试属性和数据库名字不一样的案例的时候发现，就算不一样，但是如果有构造函数的话，还是会被赋值，但是顺序会被强制指定，如果我构造为 User(id,password) 则 User 的 name 会被赋值成 pwd, 应该和底层实现有关系
 
-数据库操作异常排错
+## 日志 mybatis-03-logging
+
+支持的 log framework 类型
 
 * SLF4J [Y]
 * LOG4J 
@@ -556,7 +651,7 @@ ResultMap 的设计思想是，对于简单的语句根本不需要配置显示�
 * STDOUT_LOGGING [Y]
 * NO_LOGGING
 
-STDOUT_LOGGING sample:
+STDOUT_LOGGING 是自带的 log 包，直接 enable 就能使用，使能后可以在 log 中看到运行的 SQL。
 
 ```xml
 <settings>
@@ -579,32 +674,57 @@ Closing JDBC Connection [com.mysql.jdbc.JDBC4Connection@1c742ed4]
 Returned connection 477376212 to pool.
 ```
 
-### Log4j
+### 开启 log4j 支持
+
+log4j 是一个比较常用的日志框架，有很多功能，比如定制格式，指定存到文件等
 
 1. 导包
 2. 添加 log4j.properties
 3. 添加配置到核心配置文件
 
-## 分页
+```properties
+# 全局日志配置
+log4j.rootLogger=DEBUG,console,file
 
-减少数据的处理量
+#控制台输出的相关设置
+log4j.appender.console = org.apache.log4j.ConsoleAppender
+log4j.appender.console.Target = System.out
+log4j.appender.console.Threshold=DEBUG
+log4j.appender.console.layout = org.apache.log4j.PatternLayout
+log4j.appender.console.layout.ConversionPattern=[%c]-%m%n
 
-### 使用 limit 分页
+#文件输出的相关设置
+log4j.appender.file = org.apache.log4j.RollingFileAppender
+log4j.appender.file.File=./log/mybatis-03-logging.log
+log4j.appender.file.MaxFileSize=10mb
+log4j.appender.file.Threshold=DEBUG
+log4j.appender.file.layout=org.apache.log4j.PatternLayout
+log4j.appender.file.layout.ConversionPattern=[%p][%d{yy-MM-dd}][%c]%m%n
 
-```sql
-select * from table limit startIndex, size;
+#日志输出级别
+log4j.logger.org.mybatis=DEBUG
+log4j.logger.java.sql=DEBUG
+log4j.logger.java.sql.Statement=DEBUG
+log4j.logger.java.sql.ResultSet=DEBUG
+log4j.logger.java.sql.PreparedStatement=DEBUG
 ```
 
-### RowBounds
+使能配置
 
-稍作了解
+```xml
+<settings>
+    <setting name="logImpl" value="LOG4J"/>
+</settings>
+```
 
-## 注解开发
+## 基于注解开发
+
+基于注解开发，在应对简单的需求时还是很高效的，但是不能处理复杂的 SQL。
 
 面向接口编程：
 
 * 接口定义和实现分离
-* 反应设计人员对系统的抽象理解
+* 反映出设计人员对系统的抽象理解
 
 接口有两类：一类是对一个个体的抽象，可以对应为一个抽象个体，另一类是对一个个体的某一方面抽象，即形成一个抽象面
 
@@ -626,24 +746,19 @@ public interface UserMapper {
 </mappers>
 ```
 
-反射 + 动态代理
+PS: 注解和 xml 中对同一个接口只能有一种实现，如果重复实现，会抛异常
 
-## Mybatis 执行流程解析
+```bash
+Caused by: java.lang.IllegalArgumentException: Mapped Statements collection already contains value for com.jzheng.mapper.UserMapper.getUserById. please check com/jzheng/mapper/UserMapper.xml and com/jzheng/mapper/UserMapper.java (best guess)
+```
 
-1. Resources 获取加载全局配置文件
-2. 实例化 SqlSessionFactoryBuilder 构造器
-3. 解析配置文件流 XMLConfigBulder
-4. Configuration 所有的配置信息
-5. SqlSessionFactory 实例化
-6. Transaction 事务管理器
-7. 创建 executor 执行器
-8. 创建 SQLSession
-9. 实现 CRUD
-10. 查看是否成功
+注解模式的实现**机制**：反射 + 动态代理
 
-## 注解 CRUD
+注解和配置文件是可以共存的，只要命名相同，并且实现方法没有冲突就行。
 
-工具类自动提交事务可以通过 Utils 类中，指定参数实现
+### 注解版 CRUD
+
+工具类自动提交事务可以通过 Utils 类中，指定参数实现。注解版的 CRUD 基本上和 xml 版本的一样，只不过在注解版中，他的参数类型通过 @Param 指定。
 
 ```java
 public static SqlSession getSqlSession() {
@@ -683,39 +798,18 @@ public interface UserMapper {
 
 '#' 前缀可以防注入，'$' 不行
 
-## Lombok
+## Mybatis 执行流程解析
 
-感觉可以起飞，稍微有点缺点，自行斟酌
-
-1. 安装 Idea 插件
-2. 导入 jar 包
-3. 实体类加注解
-
-支持的方法
-
-* @Getter and @Setter
-* @FieldNameConstants
-* @ToString
-* @EqualsAndHashCode
-* @AllArgsConstructor, @RequiredArgsConstructor and @NoArgsConstructor
-* @Log, @Log4j, @Log4j2, @Slf4j, @XSlf4j, @CommonsLog, @JBossLog, @Flogger, @CustomLog
-* @Data - 无参构造，getter/settter, toString, equals
-* @Builder
-* @SuperBuilder
-* @Singular
-* @Delegate
-* @Value
-* @Accessors
-* @Wither
-* @With
-* @SneakyThrows
-* @val
-* @var
-* experimental @var
-* @UtilityClass
-* Lombok config system
-* Code inspections
-* Refactoring actions (lombok and delombok)
+1. Resources 获取加载全局配置文件
+2. 实例化 SqlSessionFactoryBuilder 构造器
+3. 解析配置文件流 XMLConfigBulder
+4. Configuration 所有的配置信息
+5. SqlSessionFactory 实例化
+6. Transaction 事务管理器
+7. 创建 executor 执行器
+8. 创建 SQLSession
+9. 实现 CRUD
+10. 查看是否成功
 
 ## 多对一
 
