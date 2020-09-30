@@ -778,6 +778,7 @@ public interface UserMapper {
     @Select("select * from user where id=#{id}")
     User getUserById(@Param("id") int id);
 
+    // 当参数是对象时，直接传入即可，保证属性名一致
     @Insert("insert into user (id, name, pwd) values (#{id}, #{name}, #{password})")
     int addUser(User user);
 
@@ -811,7 +812,7 @@ public interface UserMapper {
 9. 实现 CRUD
 10. 查看是否成功
 
-## 多对一
+## 高级结果映射
 
 多对一 - 关联 - association
 
@@ -846,24 +847,42 @@ INSERT INTO `student` (`id`, `name`, `tid`) VALUES ('5', '小王', '1');
 
 测试环境搭建
 
-1. 导入 lombok
+1. 新建表，准备测试数据
 2. 新建 teacher/student 实体类
 3. 创建 mapper 接口
 4. 创建 mapper xml 文件
 5. 核心配置类注册接口或 xml
 6. 测试查询
 
-按照查询嵌套处理
+### 多对一 mybatis-05-resultmap
+
+在这里采用多个学生对应一个老师的情况作为案例，为了更好的面向对象 Student pojo 需要做一些修改，我们把 teach id 用对象来代替
+
+```java
+@Data
+public class Student {
+    private int id;
+    private String name;
+    private Teacher teacher;
+}
+```
+
+我们想要实现的效果其实就是子查询 `SELECT st.id, st.name, te.name as tname from student st, teacher te where st.tid = te.id;`
+
+关键点：使用 **association** tag 作为连接键
+
+#### 按照查询嵌套处理
+
+1. 直接写查询所有学生信息的语句，结果集自定义
+2. 根据自定义的结果集，将 teacher 对象和 tid 绑定
+3. 定义根据 tid 查询 teacher 的语句
+4. Mybatis 会自动将查询到的 teacher 对象整合到学生的查询结果中
 
 ```xml
-<!-- 
-    1. 查询所有学生信息
-    2. 根据查询出来的tid 属性寻找对应的老师
-    效果上类似子查询
- -->
 <select id="getStudent" resultMap="StudentTeacher">
     select * from student;
 </select>
+
 <resultMap id="StudentTeacher" type="Student">
     <!-- obj use association, collection use collection -->
     <association property="teacher" column="tid" javaType="Teacher" select="getTeacher"/>
@@ -874,7 +893,9 @@ INSERT INTO `student` (`id`, `name`, `tid`) VALUES ('5', '小王', '1');
 </select>
 ```
 
-按照结果嵌套处理
+#### 按照结果嵌套处理
+
+这种方法的查询更加直接，和上面给出的 SQL 基本一致，就是 association 部分的匹配看着有点懵，大概是 mybatis 底层都会根据 column name 做匹配的，但是这里查询的时候 teacher 的 name 字段重命名为 tname 了所以要显示的重新匹配一下。
 
 ```xml
 <select id="getStudent2" resultMap="StudentTeacher2">
@@ -893,9 +914,11 @@ INSERT INTO `student` (`id`, `name`, `tid`) VALUES ('5', '小王', '1');
 
 对应 SQL 的子查询和联表查询
 
-## 一对多
+### 一对多  mybatis-05-resultmap02
 
-一个老师对应多个学生
+一个老师对应多个学生为案例, 代码和思路和上面的多对一其实没什么区别，就是关键字变了一下。。。
+
+关键字：**collection** tag
 
 实体类
 
@@ -919,10 +942,6 @@ public class Student {
 按照结果嵌套处理
 
 ```xml
-<select id="getTeachers" resultType="Teacher">
-    select * from teacher;
-</select>
-
 <select id="getTeacher" resultMap="TeacherStudent">
     select s.id sid, s.name sname, t.name tname, t.id tid from student s, teacher t
     where s.tid = t.id and t.id=#{tid};
@@ -942,19 +961,19 @@ public class Student {
 按照查询嵌套处理
 
 ```xml
-<select id="getTeacher2" resultMap="TeacherStudent2">
-    select * from mybatis.teacher where id=#{tid};
+<select id="getTeachers" resultMap="TeacherStudent">
+    select * from mybatis.teacher;
 </select>
-<resultMap id="TeacherStudent2" type="Teacher">
-    <collection property="students" javaType="ArrayList" ofType="Student" select="getStudentByTeacherId" column="id"/>
+<resultMap id="TeacherStudent" type="Teacher">
+    <collection property="students" ofType="Student" column="id" javaType="ArrayList" select="getStudents"/>
 </resultMap>
 
-<select id="getStudentByTeacherId" resultType="Student">
-    select * from mybatis.student where tid = #{tid};
+<select id="getStudents" resultType="Student">
+    select * from mybatis.student where tid=#{id}
 </select>
 ```
 
-小结：
+### 小结：
 
 * 关联 - 一对多 - associate
 * 集合 - 多对一 - collection
@@ -975,7 +994,7 @@ public class Student {
 * 索引
 * 索引优化
 
-## 动态 SQL
+## 动态 SQL mybatis-06-dynamic-sql
 
 根据不同的条件生成不同的 SQL 语句
 
@@ -996,8 +1015,6 @@ CREATE TABLE `blog`(
 )ENGINE=INNODB DEFAULT CHARSET=utf8
 ```
 
-创建工程
-
 1. 导包
 2. 编写配置
 3. 编写实体类
@@ -1014,7 +1031,7 @@ public class Blog {
 }
 ```
 
-if
+### if
 
 ```xml
 <select id="queryBlogIf" parameterType="map" resultType="blog">
@@ -1028,7 +1045,7 @@ if
 </select>
 ```
 
-choose (when, otherwise)
+### choose (when, otherwise), 这种判断语句更贴近 java 中的 switch-case，在 if 中，所有符合 test 判断的条件都会被添加进去，但是在 choose 中，他只会从众多条件中选择一种
 
 ```xml
 <select id="queryBlogChoose" parameterType="map" resultType="blog">
@@ -1049,7 +1066,9 @@ choose (when, otherwise)
 </select>
 ```
 
-trim (where, set)
+trim (where, set), where 可以对 xml 中定义的 and + where 冗余情况进行判断，只在需要的时候才添加这个关键字，同理 set 会处理 set + ，的情况
+
+PS: 添加 set 标签的时候 `,` 是一定要加的，多余的 `,` 框架会帮你去掉，少了可不行。
 
 ```xml
 <select id="queryBlogIf" parameterType="map" resultType="blog">
@@ -1078,7 +1097,7 @@ trim (where, set)
     </update>
 ```
 
-foreach
+### foreach 可以用来处理类似 `SELECT * from blog where id in ("1", "2", "3");` 的 SQL
 
 ```xml
 <select id="queryBlogs" parameterType="map" resultType="blog">
@@ -1093,7 +1112,7 @@ foreach
 
 所谓的动态 SQL，本质还是 SQL 语句，只是我们可以在 SQL 层面去执行一个逻辑代码
 
-## SQL片段
+### SQL片段
 
 1. 将公共部分抽取出来
 2. 通过 include 标签引用
@@ -1119,11 +1138,11 @@ foreach
 * 最好基于单表来定义 SQL 片段
 * 不要存在 where 标签
 
-## Cache 缓存 - project 09
+## Cache 缓存 - mybatis-07-cache
 
-查询 -> 连接数据库，耗资源
+在 DB 操作中连接数据库是非常消耗资源的，所以有了缓存机制来减少重复的查询操作消耗
 
-缓存：一次查询的结果，给他暂存在一个可以直接去到的地方(内存)，再次查询的时候直接走内存
+缓存：一次查询的结果，给他暂存在内存中，再次查询的时候直接走取结果
 
 ### 一级缓存
 
@@ -1140,10 +1159,91 @@ foreach
 3. 查询不同的 mapper.xml
 4. 手动清理缓存
 
+#### 测试 p1
+
+```java
+@Test
+public void getUsers() {
+    SqlSession session = MybatisUtils.getSqlSession();
+    System.out.println("-----> query user1 the first time <-----");
+    session.getMapper(UserMapper.class).getUserById(1);
+    System.out.println("-----> query user1 the second time <-----");
+    session.getMapper(UserMapper.class).getUserById(1);
+    System.out.println("-----> query user2 the second time <-----");
+    session.getMapper(UserMapper.class).getUserById(2);
+
+    session.close();
+}
+```
+
+输出 log
+
+```txt
+-----> query user1 the first time <-----
+Opening JDBC Connection
+Created connection 1866875501.
+Setting autocommit to false on JDBC Connection [com.mysql.jdbc.JDBC4Connection@6f46426d]
+==>  Preparing: select * from mybatis.user where id=?; 
+==> Parameters: 1(Integer)
+<==    Columns: id, name, pwd
+<==        Row: 1, jack, 123
+<==      Total: 1
+-----> query user1 the second time <-----
+-----> query user2 the second time <-----
+==>  Preparing: select * from mybatis.user where id=?; 
+==> Parameters: 2(Integer)
+<==    Columns: id, name, pwd
+<==        Row: 2, change, pwdchange
+<==      Total: 1
+Resetting autocommit to true on JDBC Connection [com.mysql.jdbc.JDBC4Connection@6f46426d]
+Closing JDBC Connection [com.mysql.jdbc.JDBC4Connection@6f46426d]
+Returned connection 1866875501 to pool.
+```
+
+user1 在第一次 query 的时候有访问 DB，第二次则直接从内存拿，在同一个 session 中访问 user2 也会从 DB 拿
+
+#### 测试 p4
+
+```java
+@Test
+public void getUsers() {
+    SqlSession session = MybatisUtils.getSqlSession();
+    System.out.println("-----> query user1 the first time <-----");
+    session.getMapper(UserMapper.class).getUserById(1);
+    session.clearCache(); // 手动清 cache !!!
+    System.out.println("-----> query user1 the second time <-----");
+    session.getMapper(UserMapper.class).getUserById(1);
+    session.close();
+}
+```
+
+输出 log
+
+```txt
+-----> query user1 the first time <-----
+Opening JDBC Connection
+Created connection 1936722816.
+Setting autocommit to false on JDBC Connection [com.mysql.jdbc.JDBC4Connection@73700b80]
+==>  Preparing: select * from mybatis.user where id=?; 
+==> Parameters: 1(Integer)
+<==    Columns: id, name, pwd
+<==        Row: 1, jack, 123
+<==      Total: 1
+-----> query user1 the second time <-----
+==>  Preparing: select * from mybatis.user where id=?; 
+==> Parameters: 1(Integer)
+<==    Columns: id, name, pwd
+<==        Row: 1, jack, 123
+<==      Total: 1
+```
+添加了清理 cache 的语句后，第二次访问同一个 user 也会从 DB 拿
+
 ### 二级缓存
 
 1. 开启全局缓存 cacheEnabled -> true
 2. 在 mapper.xml 中加入 <cache/> 标签
+
+为了支持 <cache/> 标签需要 pojo 类实现序列化接口不然会报错 ` Cause: java.io.NotSerializableException: com.jzheng.pojo.User`
 
 * 一级缓存作用域太低了，所以诞生了二级缓存
 * 基于 namespace 级别的缓存，一个命名空间对应一个二级缓存
@@ -1153,12 +1253,74 @@ foreach
   * 新会话查询信息，会从二级缓存中获取内容
   * 不同 mapper 查出的数据会放在自己对应的缓存中
 
-默认的 <cache/> 需要 pojo 类实现序列化接口不然会报错 ` Cause: java.io.NotSerializableException: com.jzheng.pojo.User`
+#### 测试用例
+
+```java
+@Test
+public void getUsers_diff_session() {
+    SqlSession session1 = MybatisUtils.getSqlSession();
+    System.out.println("-----> query user1 the first time <-----");
+    session1.getMapper(UserMapper.class).getUserById(1);
+    session1.close();
+
+    SqlSession session2 = MybatisUtils.getSqlSession();
+    System.out.println("-----> query user1 the second time <-----");
+    session2.getMapper(UserMapper.class).getUserById(1);
+    session2.close();
+}
+```
+
+当 mapper 中没有添加 <cache/> 标签时，输出如下，两个 session 查询同一个 user 的时候都进行了 DB 访问
+
+```txt
+-----> query user1 the first time <-----
+Opening JDBC Connection
+Created connection 1936722816.
+Setting autocommit to false on JDBC Connection [com.mysql.jdbc.JDBC4Connection@73700b80]
+==>  Preparing: select * from mybatis.user where id=?; 
+==> Parameters: 1(Integer)
+<==    Columns: id, name, pwd
+<==        Row: 1, jack, 123
+<==      Total: 1
+Resetting autocommit to true on JDBC Connection [com.mysql.jdbc.JDBC4Connection@73700b80]
+Closing JDBC Connection [com.mysql.jdbc.JDBC4Connection@73700b80]
+Returned connection 1936722816 to pool.
+-----> query user1 the second time <-----
+Opening JDBC Connection
+Checked out connection 1936722816 from pool.
+Setting autocommit to false on JDBC Connection [com.mysql.jdbc.JDBC4Connection@73700b80]
+==>  Preparing: select * from mybatis.user where id=?; 
+==> Parameters: 1(Integer)
+<==    Columns: id, name, pwd
+<==        Row: 1, jack, 123
+<==      Total: 1
+Resetting autocommit to true on JDBC Connection [com.mysql.jdbc.JDBC4Connection@73700b80]
+```
+
+当 mapper 中添加 <cache/> 标签时，输出如下，第二次查询 user 时是从 cache 中查找的
+
+```txt
+-----> query user1 the first time <-----
+Cache Hit Ratio [com.jzheng.mapper.UserMapper]: 0.0
+Opening JDBC Connection
+Created connection 379645464.
+Setting autocommit to false on JDBC Connection [com.mysql.jdbc.JDBC4Connection@16a0ee18]
+==>  Preparing: select * from mybatis.user where id=?; 
+==> Parameters: 1(Integer)
+<==    Columns: id, name, pwd
+<==        Row: 1, jack, 123
+<==      Total: 1
+Resetting autocommit to true on JDBC Connection [com.mysql.jdbc.JDBC4Connection@16a0ee18]
+Closing JDBC Connection [com.mysql.jdbc.JDBC4Connection@16a0ee18]
+Returned connection 379645464 to pool.
+-----> query user1 the second time <-----
+Cache Hit Ratio [com.jzheng.mapper.UserMapper]: 0.5
+```
 
 小结：
 
 * 只要开启二级缓存，在同一个 Mapper 下就有效
-* 素有的数据都会先放在一级缓存中
+* 所有的数据都会先放在一级缓存中
 * 只有当会话提交或者关闭，才会提交到二级缓存中
 
 ## 缓存原理
@@ -1176,5 +1338,5 @@ foreach
 1. 导包
 2. config 中配置 type
 
-不过这中功能现在都用 redis 代替了
+不过这样的功能现在都用类似 redis 的工具代替了，应该不是主流用法了
 
