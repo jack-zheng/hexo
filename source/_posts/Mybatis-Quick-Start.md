@@ -592,7 +592,6 @@ typeAliases 使用时，是忽略大小写的，官方提倡使用首字母小�
 
 缺陷也是要在同一路径下
 
-![Factory_Session关系图](SessionFactory_Session.PNG)
 {% asset_img SessionFactory_Session.PNG Factory_Session 关系图 %}
 
 每个 Mapper 代表一个具体的业务，比如 UserMapper。
