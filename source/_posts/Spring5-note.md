@@ -152,7 +152,7 @@ Spring4 之后，要使用注解需要保证 AOP 包已经导入。XML 也需要
 
 ## 使用 Java 的方式配置 Spring
 
-JavaConfig 式 Spring 一个子项目， Spring4 之后成为核心项目。通过 @Configuration 注解来实现，可以代替 xml。也有像 Import 这样的东西，可以包含其他配置类。
+JavaConfig 是 Spring 一个子项目， Spring4 之后成为核心项目。通过 @Configuration 注解来实现，可以代替 xml。也有像 Import 这样的东西，可以包含其他配置类。
 
 ## 代理模式
 

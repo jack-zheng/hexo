@@ -16,6 +16,98 @@ MyBatis 是一款优秀的持久层框架，它支持自定义 SQL、存储过�
 * [练习项目地址](https://github.com/jack-zheng/mybatis-note)
 * 练习版本：mybatis 3.5.5
 
+## 原型 JDBC 操作数据库
+
+1. 导入 mysql 包
+2. 编写实体类
+3. 编写驱动类
+4. 编写 Dao 类
+5. 测试
+
+```java
+@Data
+public class User {
+    private int id;
+    private String name;
+    private String pwd;
+}
+```
+
+```java
+public class DBUtils {
+
+    private static final String URL = "jdbc:mysql://localhost:3306/mybatis";
+    private static final String NAME = "root";
+    private static final String PASSWORD = "12345678";
+
+    private static Connection conn = null;
+
+    static {
+        //1.加载驱动程序
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        //2.获得数据库的连接
+        try {
+            conn = DriverManager.getConnection(URL, NAME, PASSWORD);
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    public static Connection getConnection() {
+        return conn;
+    }
+
+    public static void main(String[] args) throws Exception {
+        //3.通过数据库的连接操作数据库，实现增删改查
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery("select id, name, pwd from user");//选择import java.sql.ResultSet;
+        while (rs.next()) {//如果对象中有数据，就会循环打印出来
+            System.out.println("Result: [" + rs.getInt("id") + ", " + rs.getString("name") + ", " + rs.getString("pwd") + "]");
+        }
+    }
+}
+```
+
+```java
+public class UserDao {
+
+    List<User> getUsers() throws SQLException {
+        List<User> users = new ArrayList<>();
+        Connection connection = DBUtils.getConnection();
+        Statement statement = connection.createStatement();
+        ResultSet rs = statement.executeQuery("select id, name, pwd from user");
+
+        while (rs.next()) {
+            User tmp = new User();
+            tmp.setId(rs.getInt("id"));
+            tmp.setName(rs.getString("name"));
+            tmp.setPwd(rs.getString("pwd"));
+            users.add(tmp);
+        }
+        return users;
+    }
+}
+```
+
+```java
+public class UserDaoTest {
+    public static void main(String[] args) throws SQLException {
+        UserDao dao = new UserDao();
+        List<User> users = dao.getUsers();
+        for (User user : users) {
+            System.out.println(user);
+        }
+    }
+}
+```
+
+mybatis 为我们做的只不过是把上面的这些步骤简化了，通过配置文件管理连接信息，通过 factory， SqlSession 等来管理 SQL 执行等。按照这样的思路去理解记忆应该会更加有效率。
+
 ## 搭建环境 mybatis-01-setup
 
 对照官方文档的入门篇
