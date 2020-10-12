@@ -183,6 +183,54 @@
       </tags>
   </entry>
   <entry>
+    <title>深入理解 mybatis</title>
+    <url>/hexo/2020/10/12/Dive-into-mybatis/</url>
+    <content><![CDATA[<p>通过阅读 mybatis 源码，尝试深入理解其设计理念和实现方式。学习思路，通过对比 mybatis 代码结构和传统的 JDBC 实现来理解。说白了 mybatis 只是把传统的实现做了封装，避免了很多冗余代码。</p>
+<p>JDBC 流程和 mybatis 的对应比较：</p>
+<table>
+<thead>
+<tr>
+<th align="left">JDBC</th>
+<th align="right">Mybatis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">加载驱动, 获取连接 ｜ mybatis-config.xml</td>
+<td align="right"></td>
+</tr>
+<tr>
+<td align="left">执行 SQL ｜ SqlSessionFactory, SqlSession</td>
+<td align="right"></td>
+</tr>
+<tr>
+<td align="left">组装结果 ｜ MappedStatement</td>
+<td align="right"></td>
+</tr>
+</tbody></table>
+<h2 id="配置加载"><a href="#配置加载" class="headerlink" title="配置加载"></a>配置加载</h2><p>在 JDBC 实现中，我们通过类似如下代码得到连接信息</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DBUtils</span></span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String URL=<span class="string">&quot;jdbc:mysql://localhost:3306/mybatis&quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String NAME=<span class="string">&quot;root&quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String PASSWORD=<span class="string">&quot;root&quot;</span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">       </span><br><span class="line">    <span class="comment">//1.加载驱动程序</span></span><br><span class="line">    Class.forName(<span class="string">&quot;com.mysql.jdbc.Driver&quot;</span>);</span><br><span class="line">    <span class="comment">//2.获得数据库的连接</span></span><br><span class="line">    Connection conn = DriverManager.getConnection(URL, NAME, PASSWORD);</span><br><span class="line">    <span class="comment">// other actions...</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在 mybatis 中，这些信息都是写在核心配置文件 xml 中的。样板如下</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">configuration</span></span></span><br><span class="line"><span class="meta">        <span class="meta-keyword">PUBLIC</span> <span class="meta-string">&quot;-//mybatis.org//DTD Config 3.0//EN&quot;</span></span></span><br><span class="line"><span class="meta">        <span class="meta-string">&quot;http://mybatis.org/dtd/mybatis-3-config.dtd&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">environments</span> <span class="attr">default</span>=<span class="string">&quot;development&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">environment</span> <span class="attr">id</span>=<span class="string">&quot;development&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">transactionManager</span> <span class="attr">type</span>=<span class="string">&quot;JDBC&quot;</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">dataSource</span> <span class="attr">type</span>=<span class="string">&quot;POOLED&quot;</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;driver&quot;</span> <span class="attr">value</span>=<span class="string">&quot;com.mysql.jdbc.Driver&quot;</span>/&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;url&quot;</span> <span class="attr">value</span>=<span class="string">&quot;jdbc:mysql://localhost:3306/mybatis?...&quot;</span>/&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;username&quot;</span> <span class="attr">value</span>=<span class="string">&quot;root&quot;</span>/&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;password&quot;</span> <span class="attr">value</span>=<span class="string">&quot;12345678&quot;</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">dataSource</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">environment</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">environments</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">mappers</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">mapper</span> <span class="attr">resource</span>=<span class="string">&quot;com/jzheng/mapper/UserMapper.xml&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">mappers</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>加载相关的代码</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">String resource = <span class="string">&quot;mybatis-config.xml&quot;</span>;</span><br><span class="line"><span class="comment">// 获取文件流</span></span><br><span class="line">InputStream inputStream = Resources.getResourceAsStream(resource); </span><br><span class="line"><span class="comment">// 构建工厂</span></span><br><span class="line">SqlSessionFactory sqlSessionFactory = <span class="keyword">new</span> SqlSessionFactoryBuilder().build(inputStream);</span><br></pre></td></tr></table></figure>
+
+<p>想要了解的点：</p>
+<ol>
+<li>mybatis 是如何解析 xml 的 - 写一篇 Builder pattern 的文章，解析的时候重度使用这种模式</li>
+<li>在解析的时候都塞了一些什么东西</li>
+</ol>
+]]></content>
+      <categories>
+        <category>编程</category>
+      </categories>
+      <tags>
+        <tag>java</tag>
+        <tag>mybatis</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Effective Java Item 34 能用枚举就别用 int 常量</title>
     <url>/hexo/2020/06/05/Effective-Java-Item-34-%E8%83%BD%E7%94%A8%E6%9E%9A%E4%B8%BE%E5%B0%B1%E5%88%AB%E7%94%A8-int-%E5%B8%B8%E9%87%8F/</url>
     <content><![CDATA[<p>本节要点：</p>
@@ -2442,7 +2490,7 @@
 <li>小结: XML 更加万能，使用任何场合；注解只能在自己的class 里使用。</li>
 </ol>
 <p>推荐做法：XML 用来管理 Bean，注解只用来注入属性</p>
-<h2 id="使用-Java-的方式配置-Spring"><a href="#使用-Java-的方式配置-Spring" class="headerlink" title="使用 Java 的方式配置 Spring"></a>使用 Java 的方式配置 Spring</h2><p>JavaConfig 式 Spring 一个子项目， Spring4 之后成为核心项目。通过 @Configuration 注解来实现，可以代替 xml。也有像 Import 这样的东西，可以包含其他配置类。</p>
+<h2 id="使用-Java-的方式配置-Spring"><a href="#使用-Java-的方式配置-Spring" class="headerlink" title="使用 Java 的方式配置 Spring"></a>使用 Java 的方式配置 Spring</h2><p>JavaConfig 是 Spring 一个子项目， Spring4 之后成为核心项目。通过 @Configuration 注解来实现，可以代替 xml。也有像 Import 这样的东西，可以包含其他配置类。</p>
 <h2 id="代理模式"><a href="#代理模式" class="headerlink" title="代理模式"></a>代理模式</h2><p>Spring 必问题 - SpringAOP 和 SpringMVC</p>
 <p>代理模式分类</p>
 <ul>
@@ -2632,6 +2680,52 @@
       </categories>
       <tags>
         <tag>java</tag>
+        <tag>设计模式</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>代理模式</title>
+    <url>/hexo/2020/10/12/The-proxy-pattern/</url>
+    <content><![CDATA[<p>记录一下代理模式的学习路径。代理模式常用的两种形式：静态代理，动态代理。其中，动态代理在两个国民级框架 mybatis 和 spring 中都有用到。</p>
+<p>代理模式的定义：为其他对象提供一种代理以控制对这个对象的访问。在某些情况下，一个对象不适合或者不能直接引用另一个对象，而代理对象可以在客户端和目标对象之间起到中介的作用。</p>
+<p>通过代理模式我们可以：</p>
+<ol>
+<li>隐藏委托类的具体实现</li>
+<li>客户和委托类解偶，在不改变委托类的情况下添加额外功能</li>
+</ol>
+<p>插入类图 Here…</p>
+<p>这里我们举一个生活中常见的例子，外卖小哥。在这个情境下，外卖小哥就是我们的代理。帮我们执行买餐这个动作。同时作为扩展，它还可以帮我们买烟买水，倒垃圾等。。。虽然我不提倡这种做法，只用于举例，无伤大雅。</p>
+<h2 id="静态代理"><a href="#静态代理" class="headerlink" title="静态代理"></a>静态代理</h2><p>公共接口，用来点单</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Order</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">order</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>客户实现，这个类代表叫外卖的人</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Customer</span> <span class="keyword">implements</span> <span class="title">Order</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">order</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Order and pay money...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>外卖小哥类</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DeliveryGuy</span> <span class="keyword">implements</span> <span class="title">Order</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Customer customer;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DeliveryGuy</span><span class="params">(Customer customer)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.customer = customer;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">order</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        customer.order();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>客户端调用</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Customer customer = <span class="keyword">new</span> Customer();</span><br><span class="line">        Order order = <span class="keyword">new</span> DeliveryGuy(customer);</span><br><span class="line">        order.order();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>优点：</p>
+<ol>
+<li>简单直接</li>
+<li>解偶</li>
+<li>代理类扩展业务方便</li>
+</ol>
+<p>缺点：</p>
+<p>每个业务都需要一个代理类，冗余代码很多</p>
+<h2 id="动态代理"><a href="#动态代理" class="headerlink" title="动态代理"></a>动态代理</h2><p>常见的有两种方式：JDK 原生动态代理和 CGLib 动态代理，这里只介绍第一种。</p>
+<p>JDK 根据代理模式的特性，制定了一套规范，参照他的规范，可以在很方便的在运行时产生代理类代码，而不需要在编译器写源码，更方便，当然代价就是增加了学习成本，代码不像之前那么一目了然了。实现时主要依赖两个 reflect 下的原生类 Proxy 和 InvocationHandler。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LogHandler</span> <span class="keyword">implements</span> <span class="title">InvocationHandler</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Object target;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">LogHandler</span><span class="params">(Object target)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.target = target;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">invoke</span><span class="params">(Object proxy, Method method, Object[] args)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">        before();</span><br><span class="line">        Object obj = method.invoke(target, args);</span><br><span class="line">        after();</span><br><span class="line">        <span class="keyword">return</span> obj;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">before</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;buy something...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">after</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;take out the trash...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        LogHandler logHandler = <span class="keyword">new</span> LogHandler(<span class="keyword">new</span> Customer());</span><br><span class="line">        Order order = (Order) (Proxy.newProxyInstance(Order.class.getClassLoader(), <span class="keyword">new</span> Class[] &#123;Order.class&#125;, logHandler));</span><br><span class="line">        order.order();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>LogHandler 的实现中 invok 的是要要特别注意一下，method.invoke 的参数是<strong>target</strong>。我一开始直接把 proxy 但参数传入了，排查了好久 （；￣ェ￣）</p>
+<p>中的来说没什么难度，最花时间的部分是熟悉这种使用方式，第一次理解起来可能花点时间。</p>
+]]></content>
+      <categories>
+        <category>编程</category>
+      </categories>
+      <tags>
         <tag>设计模式</tag>
       </tags>
   </entry>
@@ -3185,6 +3279,22 @@
 <li><a href="https://github.com/jack-zheng/mybatis-note">练习项目地址</a></li>
 <li>练习版本：mybatis 3.5.5</li>
 </ul>
+<h2 id="原型-JDBC-操作数据库"><a href="#原型-JDBC-操作数据库" class="headerlink" title="原型 JDBC 操作数据库"></a>原型 JDBC 操作数据库</h2><ol>
+<li>导入 mysql 包</li>
+<li>编写实体类</li>
+<li>编写驱动类</li>
+<li>编写 Dao 类</li>
+<li>测试</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">User</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> id;</span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line">    <span class="keyword">private</span> String pwd;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DBUtils</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String URL = <span class="string">&quot;jdbc:mysql://localhost:3306/mybatis&quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String NAME = <span class="string">&quot;root&quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String PASSWORD = <span class="string">&quot;12345678&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Connection conn = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> &#123;</span><br><span class="line">        <span class="comment">//1.加载驱动程序</span></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            Class.forName(<span class="string">&quot;com.mysql.jdbc.Driver&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (ClassNotFoundException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//2.获得数据库的连接</span></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            conn = DriverManager.getConnection(URL, NAME, PASSWORD);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (SQLException throwables) &#123;</span><br><span class="line">            throwables.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Connection <span class="title">getConnection</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> conn;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="comment">//3.通过数据库的连接操作数据库，实现增删改查</span></span><br><span class="line">        Statement stmt = conn.createStatement();</span><br><span class="line">        ResultSet rs = stmt.executeQuery(<span class="string">&quot;select id, name, pwd from user&quot;</span>);<span class="comment">//选择import java.sql.ResultSet;</span></span><br><span class="line">        <span class="keyword">while</span> (rs.next()) &#123;<span class="comment">//如果对象中有数据，就会循环打印出来</span></span><br><span class="line">            System.out.println(<span class="string">&quot;Result: [&quot;</span> + rs.getInt(<span class="string">&quot;id&quot;</span>) + <span class="string">&quot;, &quot;</span> + rs.getString(<span class="string">&quot;name&quot;</span>) + <span class="string">&quot;, &quot;</span> + rs.getString(<span class="string">&quot;pwd&quot;</span>) + <span class="string">&quot;]&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserDao</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function">List&lt;User&gt; <span class="title">getUsers</span><span class="params">()</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">        List&lt;User&gt; users = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        Connection connection = DBUtils.getConnection();</span><br><span class="line">        Statement statement = connection.createStatement();</span><br><span class="line">        ResultSet rs = statement.executeQuery(<span class="string">&quot;select id, name, pwd from user&quot;</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (rs.next()) &#123;</span><br><span class="line">            User tmp = <span class="keyword">new</span> User();</span><br><span class="line">            tmp.setId(rs.getInt(<span class="string">&quot;id&quot;</span>));</span><br><span class="line">            tmp.setName(rs.getString(<span class="string">&quot;name&quot;</span>));</span><br><span class="line">            tmp.setPwd(rs.getString(<span class="string">&quot;pwd&quot;</span>));</span><br><span class="line">            users.add(tmp);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> users;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserDaoTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">        UserDao dao = <span class="keyword">new</span> UserDao();</span><br><span class="line">        List&lt;User&gt; users = dao.getUsers();</span><br><span class="line">        <span class="keyword">for</span> (User user : users) &#123;</span><br><span class="line">            System.out.println(user);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>mybatis 为我们做的只不过是把上面的这些步骤简化了，通过配置文件管理连接信息，通过 factory， SqlSession 等来管理 SQL 执行等。按照这样的思路去理解记忆应该会更加有效率。</p>
 <h2 id="搭建环境-mybatis-01-setup"><a href="#搭建环境-mybatis-01-setup" class="headerlink" title="搭建环境 mybatis-01-setup"></a>搭建环境 mybatis-01-setup</h2><p>对照官方文档的入门篇</p>
 <p>创建测试表</p>
 <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="comment">-- 创建测试数据库</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">DATABASE</span> mybatis;</span><br><span class="line"><span class="keyword">USE</span> mybatis;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 创建测试表</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="keyword">user</span> (</span><br><span class="line"><span class="keyword">id</span> <span class="built_in">INT</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> PRIMARY <span class="keyword">KEY</span>,</span><br><span class="line"><span class="keyword">name</span> <span class="built_in">VARCHAR</span>(<span class="number">30</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span>,</span><br><span class="line">pwd <span class="built_in">VARCHAR</span>(<span class="number">30</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span></span><br><span class="line">)<span class="keyword">ENGINE</span>=<span class="keyword">INNODB</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 插入数据</span></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="keyword">user</span> (<span class="keyword">id</span>, <span class="keyword">name</span>, pwd) <span class="keyword">VALUES</span> </span><br><span class="line">(<span class="number">1</span>, <span class="string">&#x27;jack&#x27;</span>, <span class="string">&#x27;123&#x27;</span>), (<span class="number">2</span>, <span class="string">&#x27;jack02&#x27;</span>, <span class="string">&#x27;123&#x27;</span>);</span><br></pre></td></tr></table></figure>
