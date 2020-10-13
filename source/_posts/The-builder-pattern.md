@@ -266,7 +266,6 @@ public void test_builder() {
 // Computer{cpu='I7', ram='Kingston 8G', usbCount=3, keyboard='Logic', display='ThinkVision'}
 ```
 
-
 ## 参考文档
 
 * [逼乎](https://zhuanlan.zhihu.com/p/58093669)
