@@ -117,7 +117,7 @@ public class Computer {
 
 ## 传统方式
 
-此处应该有 UML 图
+{% asset_img builder_pattern.png builder_pattern UML %}
 
 涉及到的角色：
 
@@ -265,6 +265,10 @@ public void test_builder() {
 // Computer{cpu='I5', ram='Sansong 4G', usbCount=2, keyboard='Mac Keyboard', display='Mac Display'}
 // Computer{cpu='I7', ram='Kingston 8G', usbCount=3, keyboard='Logic', display='ThinkVision'}
 ```
+
+## 建造者模式在 StringBuilder 中的应用
+
+TODO
 
 ## 参考文档
 
