@@ -206,6 +206,159 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/10/14/SpringMVC-quick-start/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2020/10/14/SpringMVC-quick-start/" class="post-title-link" itemprop="url">SpringMVC 快速入门</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-10-14 21:17:02 / 修改时间：23:51:46" itemprop="dateCreated datePublished" datetime="2020-10-14T21:17:02+08:00">2020-10-14</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
+                    <span itemprop="name">编程</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1aE41167Tu?p=3">B 站狂神 SpringMVC 教程笔记</a></p>
+<h2 id="01-Servlet-review"><a href="#01-Servlet-review" class="headerlink" title="01 Servlet review"></a>01 Servlet review</h2><h3 id="准备工作-提前本地安装-Tomcat"><a href="#准备工作-提前本地安装-Tomcat" class="headerlink" title="准备工作 提前本地安装 Tomcat"></a>准备工作 提前本地安装 Tomcat</h3><ol>
+<li>访问<a target="_blank" rel="noopener" href="https://tomcat.apache.org/download-90.cgi">官网</a>下载安装包</li>
+<li>点击 Binary Distributions 下的 <code>32-bit/64-bit Windows Service Installer (pgp, sha512)</code> 下载 exe 可执行文件</li>
+<li>点击，傻瓜式安装</li>
+<li>点击提示框，启动 访问 <code>http://localhost:8080/</code> 看到页面则安装成功</li>
+</ol>
+<p>配置环境变量：通过上面的傻瓜式安装，Tomcat 默认安装在 <code>C:\Program Files\Apache Software Foundation\Tomcat 9.0</code> 这个路径下</p>
+<p>我的电脑 -&gt; 属性 -&gt; 高级系统设置 -&gt; 高级 -&gt; 环境变量, 在系统变量中添加：</p>
+<table>
+<thead>
+<tr>
+<th align="left">变量名</th>
+<th align="left">值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">TOMCAT_HOME</td>
+<td align="left">C:\Program Files\Apache Software Foundation\Tomcat 9.0</td>
+</tr>
+<tr>
+<td align="left">CATALINA_HOME</td>
+<td align="left">C:\Program Files\Apache Software Foundation\Tomcat 9.0</td>
+</tr>
+</tbody></table>
+<p>修改变量Path, 在原来的值后面添加 <code>;%TOMCAT_HOME%\bin;%CATALINA_HOME%\lib</code></p>
+<h3 id="子项目创建"><a href="#子项目创建" class="headerlink" title="子项目创建"></a>子项目创建</h3><p>正常步骤建项目，创建 maven 子 module，然后 module 上邮件选中 Add Framework Support -&gt; Web Application 来创建 web app 会比较省事。可以看到在目录中新增了名为 web 的文件夹</p>
+<p>在 src 下新建一个测试用 servlet 文件</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloServlet</span> <span class="keyword">extends</span> <span class="title">HttpServlet</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">doGet</span><span class="params">(HttpServletRequest req, HttpServletResponse resp)</span> <span class="keyword">throws</span> ServletException, IOException </span>&#123;</span><br><span class="line">        <span class="comment">// 1. 获取前端参数</span></span><br><span class="line">        String method = req.getParameter(<span class="string">&quot;method&quot;</span>);</span><br><span class="line">        <span class="keyword">if</span> (method.equals(<span class="string">&quot;add&quot;</span>)) &#123;</span><br><span class="line">            req.getSession().setAttribute(<span class="string">&quot;msg&quot;</span>, <span class="string">&quot;execute Add...&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (method.equals(<span class="string">&quot;delete&quot;</span>)) &#123;</span><br><span class="line">            req.getSession().setAttribute(<span class="string">&quot;msg&quot;</span>, <span class="string">&quot;execute Delete...&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 2. 调用业务层</span></span><br><span class="line">        <span class="comment">// 3. 试图转发或重定向</span></span><br><span class="line">        req.getRequestDispatcher(<span class="string">&quot;/WEB-INF/jsp/test.jsp&quot;</span>).forward(req,resp);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">doPost</span><span class="params">(HttpServletRequest req, HttpServletResponse resp)</span> <span class="keyword">throws</span> ServletException, IOException </span>&#123;</span><br><span class="line">        doGet(req, resp);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>web -&gt; WEB-INF 下新建 jsp 文件夹，创建 test.jsp</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&lt;%@ page contentType=<span class="string">&quot;text/html;charset=UTF-8&quot;</span> language=<span class="string">&quot;java&quot;</span> %&gt;</span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">    &lt;title&gt;Title&lt;/title&gt;</span><br><span class="line">&lt;/head&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line"></span><br><span class="line">$&#123;msg&#125;</span><br><span class="line"></span><br><span class="line">&lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+
+<p>修改 WEB-INF 下的 web.xml 配置路由</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">web-app</span> <span class="attr">xmlns</span>=<span class="string">&quot;http://xmlns.jcp.org/xml/ns/javaee&quot;</span></span></span><br><span class="line"><span class="tag">         <span class="attr">xmlns:xsi</span>=<span class="string">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span></span></span><br><span class="line"><span class="tag">         <span class="attr">xsi:schemaLocation</span>=<span class="string">&quot;http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd&quot;</span></span></span><br><span class="line"><span class="tag">         <span class="attr">version</span>=<span class="string">&quot;4.0&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">servlet</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">servlet-name</span>&gt;</span>hello<span class="tag">&lt;/<span class="name">servlet-name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">servlet-class</span>&gt;</span>com.jzheng.servlet.HelloServlet<span class="tag">&lt;/<span class="name">servlet-class</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">servlet</span>&gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="tag">&lt;<span class="name">servlet-mapping</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">servlet-name</span>&gt;</span>hello<span class="tag">&lt;/<span class="name">servlet-name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">url-pattern</span>&gt;</span>/hello<span class="tag">&lt;/<span class="name">url-pattern</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">servlet-mapping</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">web-app</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>工具栏 -&gt; edit configuration -&gt; 点击 + 号，选中 Tomcat 配置本地 tomcat， 点击 fix -&gt; 启动服务器。访问 <code>http://localhost:8080/springmvn_01_servlet_war_exploded/hello?method=add</code> 可以看 msg 显示在页面上。</p>
+<p>PS：应该是哪里配置有问题，视频上面直接访问 <code>http://localhost:8080/hello?method=add</code> 即可，回头看一下前面的 JavaWeb 项目应该就知道了，暂时没什么关系，无伤大雅</p>
+<h2 id="SpringMVC-start"><a href="#SpringMVC-start" class="headerlink" title="SpringMVC start"></a>SpringMVC start</h2><p>PS: 在官方文档页面，修改 current 为其他版本可以访问老版本的文档,例如 <code>https://docs.spring.io/spring-framework/docs/4.3.24.RELEASE/spring-framework-reference/</code></p>
+<p>PPS: 这个可以在 Tomcat 配置页面的 Deployment tab 下，将 Application context 内容直接改为 <code>/</code> 即可</p>
+<p>特点：</p>
+<ol>
+<li><p>轻量</p>
+</li>
+<li><p>基于响应</p>
+</li>
+<li><p>兼容 Spring</p>
+</li>
+<li><p>约定优于配置</p>
+</li>
+<li><p>功能强大</p>
+</li>
+<li><p>简介灵活</p>
+</li>
+<li><p>用的人多</p>
+</li>
+<li><p>创建子项目，配置为 web app</p>
+</li>
+<li><p>Porject Structure -&gt; Artifacts，选中项目 -&gt; WEB-INF 下新建 lib 包手动把包导进去（idea 的bug）-&gt; 点击 + 号 -&gt; Library files 全选</p>
+</li>
+<li><p>resource 下新建 xml 文件，选择 Spring config 类型，可以自带配置信息</p>
+</li>
+<li><p>配置 WEB-INF 下的 web.xml</p>
+</li>
+<li><p>创建 Controller 添加业务逻辑</p>
+</li>
+<li><p>配置启动 Tomcat，访问 URL 看结果</p>
+</li>
+</ol>
+<p>这部分主要是为了讲解 SpringMVC 的原理，真实环境都用注解开发，会方便很多。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/10/13/UML-object-relationship/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +390,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-10-14 18:54:26" itemprop="dateModified" datetime="2020-10-14T18:54:26+08:00">2020-10-14</time>
+                <time title="修改时间：2020-10-14 23:51:46" itemprop="dateModified" datetime="2020-10-14T23:51:46+08:00">2020-10-14</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -348,7 +501,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-10-14 18:54:26" itemprop="dateModified" datetime="2020-10-14T18:54:26+08:00">2020-10-14</time>
+                <time title="修改时间：2020-10-14 23:51:46" itemprop="dateModified" datetime="2020-10-14T23:51:46+08:00">2020-10-14</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -474,7 +627,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-10-14 18:54:26" itemprop="dateModified" datetime="2020-10-14T18:54:26+08:00">2020-10-14</time>
+                <time title="修改时间：2020-10-14 23:51:46" itemprop="dateModified" datetime="2020-10-14T23:51:46+08:00">2020-10-14</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -599,7 +752,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-10-14 18:54:26" itemprop="dateModified" datetime="2020-10-14T18:54:26+08:00">2020-10-14</time>
+                <time title="修改时间：2020-10-14 23:51:46" itemprop="dateModified" datetime="2020-10-14T23:51:46+08:00">2020-10-14</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -723,7 +876,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-10-14 18:54:26" itemprop="dateModified" datetime="2020-10-14T18:54:26+08:00">2020-10-14</time>
+                <time title="修改时间：2020-10-14 23:51:46" itemprop="dateModified" datetime="2020-10-14T23:51:46+08:00">2020-10-14</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -819,7 +972,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-10-14 18:54:26" itemprop="dateModified" datetime="2020-10-14T18:54:26+08:00">2020-10-14</time>
+                <time title="修改时间：2020-10-14 23:51:46" itemprop="dateModified" datetime="2020-10-14T23:51:46+08:00">2020-10-14</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1317,7 +1470,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-10-14 18:54:26" itemprop="dateModified" datetime="2020-10-14T18:54:26+08:00">2020-10-14</time>
+                <time title="修改时间：2020-10-14 23:51:46" itemprop="dateModified" datetime="2020-10-14T23:51:46+08:00">2020-10-14</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1448,7 +1601,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-10-14 18:54:26" itemprop="dateModified" datetime="2020-10-14T18:54:26+08:00">2020-10-14</time>
+                <time title="修改时间：2020-10-14 23:51:46" itemprop="dateModified" datetime="2020-10-14T23:51:46+08:00">2020-10-14</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1540,7 +1693,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-10-14 18:54:26" itemprop="dateModified" datetime="2020-10-14T18:54:26+08:00">2020-10-14</time>
+                <time title="修改时间：2020-10-14 23:51:46" itemprop="dateModified" datetime="2020-10-14T23:51:46+08:00">2020-10-14</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1641,112 +1794,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/09/09/The-Visitor-Pattern/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2020/09/09/The-Visitor-Pattern/" class="post-title-link" itemprop="url">访问者模式</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-09-09 15:37:59" itemprop="dateCreated datePublished" datetime="2020-09-09T15:37:59+08:00">2020-09-09</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-10-14 18:54:26" itemprop="dateModified" datetime="2020-10-14T18:54:26+08:00">2020-10-14</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
-                    <span itemprop="name">编程</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>5.1k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>5 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>GoF 定义: Allows for one or more operation to be applied to a set of objects at runtime, decoupling the operations from the object structure. </p>
-<p>访问者模式讲的是表示一个作用于某对象结构中的各元素的操作。它使你可以在不改变各元素的类的前提下定义作用域这些元素的新操作。</p>
-<p>行为模式之一，目的是将<strong>行为</strong>和<strong>对象</strong>分开。</p>
-<p>缺点：<strong>每增</strong>加一种支持的 object，你就必须在 visitor 及其实现类中添加新的方法支持这个改动。</p>
-<h2 id="描述"><a href="#描述" class="headerlink" title="描述"></a>描述</h2><p>被访问者就是上文中的 object，他持有数据，我们想把他和数据运算分离，保持起独立性</p>
-<p>访问者代表着 operations，通过它可以实现数据运算</p>
-<h2 id="UML"><a href="#UML" class="headerlink" title="UML"></a>UML</h2><p>TODO</p>
-<h2 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h2><h3 id="From-DZone"><a href="#From-DZone" class="headerlink" title="From DZone"></a>From DZone</h3><ul>
-<li><a target="_blank" rel="noopener" href="https://dzone.com/articles/design-patterns-visitor">DZone - Visitor Pattern</a></li>
-</ul>
-<p>抽象一个邮寄业务，计算购物车中所有的物件总的邮费。每样物件都有自己的属性，比如价格，重量之类的。我们将邮费计算的规则单独封装在 Visitor 中，在物件类中通过调用 accept 实现计算。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 代表 object 的接口</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Visitable</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">accept</span><span class="params">(Visitor visitor)</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 实现 accept 的实例</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Book</span> <span class="keyword">implements</span> <span class="title">Visitable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">double</span> price = <span class="number">8.0</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">double</span> weight = <span class="number">3.2</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">accept</span><span class="params">(Visitor visitor)</span> </span>&#123;</span><br><span class="line">        visitor.visit(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">getPrice</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> price;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">getWeight</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> weight;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// visitor 接口</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Visitor</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">visit</span><span class="params">(Book book)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">visit</span><span class="params">(Shoes shoes)</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// visitor 实例</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PostageVisitor</span> <span class="keyword">implements</span> <span class="title">Visitor</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">double</span> totalPostageForCart;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visit</span><span class="params">(Book book)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// rule to calculate book postage cost</span></span><br><span class="line">        <span class="comment">// if price over 10, free postage.</span></span><br><span class="line">        <span class="keyword">if</span>(book.getPrice() &lt; <span class="number">10.0</span>) &#123;</span><br><span class="line">            totalPostageForCart += book.getWeight() * <span class="number">2</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visit</span><span class="params">(Shoes shoes)</span> </span>&#123; <span class="comment">//TODO &#125;</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">getTotalPostageForCart</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.totalPostageForCart;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 客户端调用</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Book book = <span class="keyword">new</span> Book();</span><br><span class="line">        Shoes shoes = <span class="keyword">new</span> Shoes();</span><br><span class="line">        PostageVisitor postageVisitor = <span class="keyword">new</span> PostageVisitor();</span><br><span class="line"></span><br><span class="line">        book.accept(postageVisitor);</span><br><span class="line">        shoes.accept(postageVisitor);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;Total cost: &quot;</span> + postageVisitor.getTotalPostageForCart());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="From-Refactoring-Guru"><a href="#From-Refactoring-Guru" class="headerlink" title="From Refactoring Guru"></a>From Refactoring Guru</h3><ul>
-<li><a target="_blank" rel="noopener" href="https://refactoringguru.cn/design-patterns/visitor/java/example">重构大师</a></li>
-</ul>
-<p>根据定义的图形打印信息到 XML 文件中，这个例子本质上和前一个没什么区别，但是他提供了组合类型的 object 支持，并且输出 xml, 还有 format 都让我眼前一亮。反正感觉很赞！</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 定义持有 accept 的接口</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Shape</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">move</span><span class="params">(<span class="keyword">int</span> x, <span class="keyword">int</span> y)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">draw</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">String <span class="title">accept</span><span class="params">(Visitor visitor)</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义接口实现</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Dot</span> <span class="keyword">implements</span> <span class="title">Shape</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> id;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> x;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> y;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Dot</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Dot</span><span class="params">(<span class="keyword">int</span> id, <span class="keyword">int</span> x, <span class="keyword">int</span> y)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.id = id;</span><br><span class="line">        <span class="keyword">this</span>.x = x;</span><br><span class="line">        <span class="keyword">this</span>.y = y;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">move</span><span class="params">(<span class="keyword">int</span> x, <span class="keyword">int</span> y)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// move shape</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">draw</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// draw shape</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">accept</span><span class="params">(Visitor visitor)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> visitor.visitDot(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// getter + setter</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义组合类型的实现</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CompoundShape</span> <span class="keyword">implements</span> <span class="title">Shape</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> id;</span><br><span class="line">    <span class="keyword">public</span> List&lt;Shape&gt; children = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">CompoundShape</span><span class="params">(<span class="keyword">int</span> id)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.id = id;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">move</span><span class="params">(<span class="keyword">int</span> x, <span class="keyword">int</span> y)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// move shape</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">draw</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// draw shape</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getId</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> id;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">accept</span><span class="params">(Visitor visitor)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> visitor.visitCompoundGraphic(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">add</span><span class="params">(Shape shape)</span> </span>&#123;</span><br><span class="line">        children.add(shape);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义 visitor 接口</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Visitor</span> </span>&#123;</span><br><span class="line">    <span class="function">String <span class="title">visitDot</span><span class="params">(Dot dot)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">String <span class="title">visitCircle</span><span class="params">(Circle circle)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">String <span class="title">visitRectangle</span><span class="params">(Rectangle rectangle)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">String <span class="title">visitCompoundGraphic</span><span class="params">(CompoundShape cg)</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// visitor 实现</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">XMLExportVisitor</span> <span class="keyword">implements</span> <span class="title">Visitor</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">export</span><span class="params">(Shape... args)</span> </span>&#123;</span><br><span class="line">        StringBuilder sb = <span class="keyword">new</span> StringBuilder();</span><br><span class="line">        sb.append(<span class="string">&quot;&lt;?xml version=\&quot;1.0\&quot; encoding=\&quot;utf-8\&quot;?&gt;&quot;</span> + <span class="string">&quot;\n&quot;</span>);</span><br><span class="line">        <span class="keyword">for</span> (Shape shape : args) &#123;</span><br><span class="line">            sb.append(shape.accept(<span class="keyword">this</span>)).append(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> sb.toString();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">visitDot</span><span class="params">(Dot d)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;&lt;dot&gt;&quot;</span> + <span class="string">&quot;\n&quot;</span> +</span><br><span class="line">                <span class="string">&quot;    &lt;id&gt;&quot;</span> + d.getId() + <span class="string">&quot;&lt;/id&gt;&quot;</span> + <span class="string">&quot;\n&quot;</span> +</span><br><span class="line">                <span class="string">&quot;    &lt;x&gt;&quot;</span> + d.getX() + <span class="string">&quot;&lt;/x&gt;&quot;</span> + <span class="string">&quot;\n&quot;</span> +</span><br><span class="line">                <span class="string">&quot;    &lt;y&gt;&quot;</span> + d.getY() + <span class="string">&quot;&lt;/y&gt;&quot;</span> + <span class="string">&quot;\n&quot;</span> +</span><br><span class="line">                <span class="string">&quot;&lt;/dot&gt;&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">visitCompoundGraphic</span><span class="params">(CompoundShape cg)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;&lt;compound_graphic&gt;&quot;</span> + <span class="string">&quot;\n&quot;</span> +</span><br><span class="line">                <span class="string">&quot;   &lt;id&gt;&quot;</span> + cg.getId() + <span class="string">&quot;&lt;/id&gt;&quot;</span> + <span class="string">&quot;\n&quot;</span> +</span><br><span class="line">                _visitCompoundGraphic(cg) +</span><br><span class="line">                <span class="string">&quot;&lt;/compound_graphic&gt;&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> String <span class="title">_visitCompoundGraphic</span><span class="params">(CompoundShape cg)</span> </span>&#123;</span><br><span class="line">        StringBuilder sb = <span class="keyword">new</span> StringBuilder();</span><br><span class="line">        <span class="keyword">for</span> (Shape shape : cg.children) &#123;</span><br><span class="line">            String obj = shape.accept(<span class="keyword">this</span>);</span><br><span class="line">            <span class="comment">// Proper indentation for sub-objects.</span></span><br><span class="line">            obj = <span class="string">&quot;    &quot;</span> + obj.replace(<span class="string">&quot;\n&quot;</span>, <span class="string">&quot;\n    &quot;</span>) + <span class="string">&quot;\n&quot;</span>;</span><br><span class="line">            sb.append(obj);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> sb.toString();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 客户端调用</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Dot dot = <span class="keyword">new</span> Dot(<span class="number">1</span>, <span class="number">10</span>, <span class="number">55</span>);</span><br><span class="line">        Circle circle = <span class="keyword">new</span> Circle(<span class="number">2</span>, <span class="number">23</span>, <span class="number">15</span>, <span class="number">10</span>);</span><br><span class="line">        Rectangle rectangle = <span class="keyword">new</span> Rectangle(<span class="number">3</span>, <span class="number">10</span>, <span class="number">17</span>, <span class="number">20</span>, <span class="number">30</span>);</span><br><span class="line"></span><br><span class="line">        CompoundShape compoundShape = <span class="keyword">new</span> CompoundShape(<span class="number">4</span>);</span><br><span class="line">        compoundShape.add(dot);</span><br><span class="line">        compoundShape.add(circle);</span><br><span class="line">        compoundShape.add(rectangle);</span><br><span class="line"></span><br><span class="line">        CompoundShape c = <span class="keyword">new</span> CompoundShape(<span class="number">5</span>);</span><br><span class="line">        c.add(dot);</span><br><span class="line">        compoundShape.add(c);</span><br><span class="line"></span><br><span class="line">        export(circle, compoundShape);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">export</span><span class="params">(Shape... shapes)</span> </span>&#123;</span><br><span class="line">        XMLExportVisitor exportVisitor = <span class="keyword">new</span> XMLExportVisitor();</span><br><span class="line">        System.out.println(exportVisitor.export(shapes));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1797,7 +1844,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">75</span>
+          <span class="site-state-item-count">76</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1844,12 +1891,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">181k</span>
+    <span title="站点总字数">184k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">2:45</span>
+    <span title="站点阅读时长">2:47</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>

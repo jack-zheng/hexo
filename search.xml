@@ -139,34 +139,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Chrome 插件记事</title>
-    <url>/hexo/2020/07/22/Chrome-%E6%8F%92%E4%BB%B6%E8%AE%B0%E4%BA%8B/</url>
-    <content><![CDATA[<p>公司日常维护过程中，同事自己写的一个 Chrome 小插件很精巧，符合我小而美的审美，很适合处理某些需求，特此记录一下 Chrome 插件的小知识和一个阅读源码的收获</p>
-<h2 id="插件目录结构"><a href="#插件目录结构" class="headerlink" title="插件目录结构"></a>插件目录结构</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">Root</span><br><span class="line">├── README.md</span><br><span class="line">├── background.js &lt;- 定义一些 js 脚本</span><br><span class="line">├── content.js</span><br><span class="line">├── doc</span><br><span class="line">│   └── images</span><br><span class="line">│       ├── extend_all.png</span><br><span class="line">│       ├── extend_status.png</span><br><span class="line">│       ├── extension_icon.png</span><br><span class="line">│       ├── extension_loaded.png</span><br><span class="line">│       └── load_unpacked_extension.png</span><br><span class="line">├── icon.png &lt;- icon 定义</span><br><span class="line">├── images</span><br><span class="line">│   ├── icon128.png</span><br><span class="line">│   ├── icon16.png</span><br><span class="line">│   └── icon48.png</span><br><span class="line">├── jquery-3.0.0.min.js</span><br><span class="line">├── manifest.json &lt;- 定义了 extension 的基本信息，权限等，可以概览整个应用</span><br><span class="line">├── options.html &lt;- 为客户提供可选项</span><br><span class="line">├── options.js</span><br><span class="line">├── popup.html &lt;- 点击弹出页面，用于交互</span><br><span class="line">├── popup.js</span><br><span class="line">├── style.css</span><br><span class="line">└── test.js</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><a href="https://developer.chrome.com/extensions/getstarted">Chrome Extension Official</a> 官方文档好又多</li>
-</ul>
-<h2 id="JS-的一些知识点"><a href="#JS-的一些知识点" class="headerlink" title="JS 的一些知识点"></a>JS 的一些知识点</h2><ul>
-<li>.aspx 页面，是基于微软 .Net 开发的站点</li>
-<li>html 页面中可以直接在 onclick 里面写 logic，简直是随心所欲</li>
-<li>通过 ajax 可以实现表单提交</li>
-</ul>
-<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!-- click 中设置 confirm 内容 --&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;button&quot;</span> <span class="attr">name</span>=<span class="string">&quot;ctl00$ContentPlaceHolder$GridViewLive$ctl02$Deletion&quot;</span> <span class="attr">value</span>=<span class="string">&quot;Delete&quot;</span> <span class="attr">onclick</span>=<span class="string">&quot;if (!confirm(<span class="symbol">&amp;#39;</span>Are you sure you want to delete the company?<span class="symbol">&amp;#39;</span>)) return false; console.log(&#x27;Click Confirmed&#x27;)&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">$.ajax(&#123;</span><br><span class="line">  type: <span class="string">&quot;POST&quot;</span>,</span><br><span class="line">  url: url,</span><br><span class="line">  data: data,</span><br><span class="line">  success: success,</span><br><span class="line">  dataType: dataType</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 简写形式</span></span><br><span class="line">$.post( <span class="string">&quot;ajax/test.html&quot;</span>, <span class="function"><span class="keyword">function</span>(<span class="params"> data </span>) </span>&#123;</span><br><span class="line">  $( <span class="string">&quot;.result&quot;</span> ).html( data );</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// form.serialize() 可以方便的实现数据提取</span></span><br><span class="line">$.post( <span class="string">&quot;test.php&quot;</span>, $( <span class="string">&quot;#testform&quot;</span> ).serialize() );</span><br><span class="line"></span><br><span class="line"><span class="comment">// 如果想要成功提示，还可以</span></span><br><span class="line">$.post(url, $(<span class="string">&quot;#ctl00&quot;</span>).serialize()).done(</span><br><span class="line">    <span class="function"><span class="keyword">function</span>(<span class="params"> data </span>) </span>&#123;</span><br><span class="line">    alert( <span class="string">&quot;extends success&quot;</span> );</span><br><span class="line">    &#125;</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
-
-<h2 id="调试脚本"><a href="#调试脚本" class="headerlink" title="调试脚本"></a>调试脚本</h2><p>由于这次只是查看代码，而且验证一些函数的功能，调试还是挺顺利的，直接通过 Chrome console 就完成了，各种变量自动装载完成，美滋滋儿。</p>
-]]></content>
-      <categories>
-        <category>小工具</category>
-      </categories>
-      <tags>
-        <tag>Chrome</tag>
-        <tag>插件</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>编译好的 Java 类可以绕过类型检测？</title>
     <url>/hexo/2020/08/07/Compiled-Java-Class-Can-Bypass-Type-Check/</url>
     <content><![CDATA[<p>问题记录：</p>
@@ -1080,6 +1052,34 @@
       </categories>
       <tags>
         <tag>git</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Chrome 插件记事</title>
+    <url>/hexo/2020/07/22/Chrome-%E6%8F%92%E4%BB%B6%E8%AE%B0%E4%BA%8B/</url>
+    <content><![CDATA[<p>公司日常维护过程中，同事自己写的一个 Chrome 小插件很精巧，符合我小而美的审美，很适合处理某些需求，特此记录一下 Chrome 插件的小知识和一个阅读源码的收获</p>
+<h2 id="插件目录结构"><a href="#插件目录结构" class="headerlink" title="插件目录结构"></a>插件目录结构</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">Root</span><br><span class="line">├── README.md</span><br><span class="line">├── background.js &lt;- 定义一些 js 脚本</span><br><span class="line">├── content.js</span><br><span class="line">├── doc</span><br><span class="line">│   └── images</span><br><span class="line">│       ├── extend_all.png</span><br><span class="line">│       ├── extend_status.png</span><br><span class="line">│       ├── extension_icon.png</span><br><span class="line">│       ├── extension_loaded.png</span><br><span class="line">│       └── load_unpacked_extension.png</span><br><span class="line">├── icon.png &lt;- icon 定义</span><br><span class="line">├── images</span><br><span class="line">│   ├── icon128.png</span><br><span class="line">│   ├── icon16.png</span><br><span class="line">│   └── icon48.png</span><br><span class="line">├── jquery-3.0.0.min.js</span><br><span class="line">├── manifest.json &lt;- 定义了 extension 的基本信息，权限等，可以概览整个应用</span><br><span class="line">├── options.html &lt;- 为客户提供可选项</span><br><span class="line">├── options.js</span><br><span class="line">├── popup.html &lt;- 点击弹出页面，用于交互</span><br><span class="line">├── popup.js</span><br><span class="line">├── style.css</span><br><span class="line">└── test.js</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><a href="https://developer.chrome.com/extensions/getstarted">Chrome Extension Official</a> 官方文档好又多</li>
+</ul>
+<h2 id="JS-的一些知识点"><a href="#JS-的一些知识点" class="headerlink" title="JS 的一些知识点"></a>JS 的一些知识点</h2><ul>
+<li>.aspx 页面，是基于微软 .Net 开发的站点</li>
+<li>html 页面中可以直接在 onclick 里面写 logic，简直是随心所欲</li>
+<li>通过 ajax 可以实现表单提交</li>
+</ul>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!-- click 中设置 confirm 内容 --&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;button&quot;</span> <span class="attr">name</span>=<span class="string">&quot;ctl00$ContentPlaceHolder$GridViewLive$ctl02$Deletion&quot;</span> <span class="attr">value</span>=<span class="string">&quot;Delete&quot;</span> <span class="attr">onclick</span>=<span class="string">&quot;if (!confirm(<span class="symbol">&amp;#39;</span>Are you sure you want to delete the company?<span class="symbol">&amp;#39;</span>)) return false; console.log(&#x27;Click Confirmed&#x27;)&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">$.ajax(&#123;</span><br><span class="line">  type: <span class="string">&quot;POST&quot;</span>,</span><br><span class="line">  url: url,</span><br><span class="line">  data: data,</span><br><span class="line">  success: success,</span><br><span class="line">  dataType: dataType</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 简写形式</span></span><br><span class="line">$.post( <span class="string">&quot;ajax/test.html&quot;</span>, <span class="function"><span class="keyword">function</span>(<span class="params"> data </span>) </span>&#123;</span><br><span class="line">  $( <span class="string">&quot;.result&quot;</span> ).html( data );</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// form.serialize() 可以方便的实现数据提取</span></span><br><span class="line">$.post( <span class="string">&quot;test.php&quot;</span>, $( <span class="string">&quot;#testform&quot;</span> ).serialize() );</span><br><span class="line"></span><br><span class="line"><span class="comment">// 如果想要成功提示，还可以</span></span><br><span class="line">$.post(url, $(<span class="string">&quot;#ctl00&quot;</span>).serialize()).done(</span><br><span class="line">    <span class="function"><span class="keyword">function</span>(<span class="params"> data </span>) </span>&#123;</span><br><span class="line">    alert( <span class="string">&quot;extends success&quot;</span> );</span><br><span class="line">    &#125;</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<h2 id="调试脚本"><a href="#调试脚本" class="headerlink" title="调试脚本"></a>调试脚本</h2><p>由于这次只是查看代码，而且验证一些函数的功能，调试还是挺顺利的，直接通过 Chrome console 就完成了，各种变量自动装载完成，美滋滋儿。</p>
+]]></content>
+      <categories>
+        <category>小工具</category>
+      </categories>
+      <tags>
+        <tag>Chrome</tag>
+        <tag>插件</tag>
       </tags>
   </entry>
   <entry>
@@ -2612,6 +2612,88 @@
 <li>如果不在 spring 中配置声明式事务，我们就需要在代码中手动配置事务</li>
 <li>在项目的开发中十分重要，涉及到数据的一致性</li>
 </ol>
+]]></content>
+      <categories>
+        <category>编程</category>
+      </categories>
+      <tags>
+        <tag>java</tag>
+        <tag>spring</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>SpringMVC 快速入门</title>
+    <url>/hexo/2020/10/14/SpringMVC-quick-start/</url>
+    <content><![CDATA[<p><a href="https://www.bilibili.com/video/BV1aE41167Tu?p=3">B 站狂神 SpringMVC 教程笔记</a></p>
+<h2 id="01-Servlet-review"><a href="#01-Servlet-review" class="headerlink" title="01 Servlet review"></a>01 Servlet review</h2><h3 id="准备工作-提前本地安装-Tomcat"><a href="#准备工作-提前本地安装-Tomcat" class="headerlink" title="准备工作 提前本地安装 Tomcat"></a>准备工作 提前本地安装 Tomcat</h3><ol>
+<li>访问<a href="https://tomcat.apache.org/download-90.cgi">官网</a>下载安装包</li>
+<li>点击 Binary Distributions 下的 <code>32-bit/64-bit Windows Service Installer (pgp, sha512)</code> 下载 exe 可执行文件</li>
+<li>点击，傻瓜式安装</li>
+<li>点击提示框，启动 访问 <code>http://localhost:8080/</code> 看到页面则安装成功</li>
+</ol>
+<p>配置环境变量：通过上面的傻瓜式安装，Tomcat 默认安装在 <code>C:\Program Files\Apache Software Foundation\Tomcat 9.0</code> 这个路径下</p>
+<p>我的电脑 -&gt; 属性 -&gt; 高级系统设置 -&gt; 高级 -&gt; 环境变量, 在系统变量中添加：</p>
+<table>
+<thead>
+<tr>
+<th align="left">变量名</th>
+<th align="left">值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">TOMCAT_HOME</td>
+<td align="left">C:\Program Files\Apache Software Foundation\Tomcat 9.0</td>
+</tr>
+<tr>
+<td align="left">CATALINA_HOME</td>
+<td align="left">C:\Program Files\Apache Software Foundation\Tomcat 9.0</td>
+</tr>
+</tbody></table>
+<p>修改变量Path, 在原来的值后面添加 <code>;%TOMCAT_HOME%\bin;%CATALINA_HOME%\lib</code></p>
+<h3 id="子项目创建"><a href="#子项目创建" class="headerlink" title="子项目创建"></a>子项目创建</h3><p>正常步骤建项目，创建 maven 子 module，然后 module 上邮件选中 Add Framework Support -&gt; Web Application 来创建 web app 会比较省事。可以看到在目录中新增了名为 web 的文件夹</p>
+<p>在 src 下新建一个测试用 servlet 文件</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloServlet</span> <span class="keyword">extends</span> <span class="title">HttpServlet</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">doGet</span><span class="params">(HttpServletRequest req, HttpServletResponse resp)</span> <span class="keyword">throws</span> ServletException, IOException </span>&#123;</span><br><span class="line">        <span class="comment">// 1. 获取前端参数</span></span><br><span class="line">        String method = req.getParameter(<span class="string">&quot;method&quot;</span>);</span><br><span class="line">        <span class="keyword">if</span> (method.equals(<span class="string">&quot;add&quot;</span>)) &#123;</span><br><span class="line">            req.getSession().setAttribute(<span class="string">&quot;msg&quot;</span>, <span class="string">&quot;execute Add...&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (method.equals(<span class="string">&quot;delete&quot;</span>)) &#123;</span><br><span class="line">            req.getSession().setAttribute(<span class="string">&quot;msg&quot;</span>, <span class="string">&quot;execute Delete...&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 2. 调用业务层</span></span><br><span class="line">        <span class="comment">// 3. 试图转发或重定向</span></span><br><span class="line">        req.getRequestDispatcher(<span class="string">&quot;/WEB-INF/jsp/test.jsp&quot;</span>).forward(req,resp);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">doPost</span><span class="params">(HttpServletRequest req, HttpServletResponse resp)</span> <span class="keyword">throws</span> ServletException, IOException </span>&#123;</span><br><span class="line">        doGet(req, resp);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>web -&gt; WEB-INF 下新建 jsp 文件夹，创建 test.jsp</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line">&lt;%@ page contentType=<span class="string">&quot;text/html;charset=UTF-8&quot;</span> language=<span class="string">&quot;java&quot;</span> %&gt;</span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">    &lt;title&gt;Title&lt;/title&gt;</span><br><span class="line">&lt;/head&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line"></span><br><span class="line">$&#123;msg&#125;</span><br><span class="line"></span><br><span class="line">&lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+
+<p>修改 WEB-INF 下的 web.xml 配置路由</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">web-app</span> <span class="attr">xmlns</span>=<span class="string">&quot;http://xmlns.jcp.org/xml/ns/javaee&quot;</span></span></span><br><span class="line"><span class="tag">         <span class="attr">xmlns:xsi</span>=<span class="string">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span></span></span><br><span class="line"><span class="tag">         <span class="attr">xsi:schemaLocation</span>=<span class="string">&quot;http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd&quot;</span></span></span><br><span class="line"><span class="tag">         <span class="attr">version</span>=<span class="string">&quot;4.0&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">servlet</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">servlet-name</span>&gt;</span>hello<span class="tag">&lt;/<span class="name">servlet-name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">servlet-class</span>&gt;</span>com.jzheng.servlet.HelloServlet<span class="tag">&lt;/<span class="name">servlet-class</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">servlet</span>&gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="tag">&lt;<span class="name">servlet-mapping</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">servlet-name</span>&gt;</span>hello<span class="tag">&lt;/<span class="name">servlet-name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">url-pattern</span>&gt;</span>/hello<span class="tag">&lt;/<span class="name">url-pattern</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">servlet-mapping</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">web-app</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>工具栏 -&gt; edit configuration -&gt; 点击 + 号，选中 Tomcat 配置本地 tomcat， 点击 fix -&gt; 启动服务器。访问 <code>http://localhost:8080/springmvn_01_servlet_war_exploded/hello?method=add</code> 可以看 msg 显示在页面上。</p>
+<p>PS：应该是哪里配置有问题，视频上面直接访问 <code>http://localhost:8080/hello?method=add</code> 即可，回头看一下前面的 JavaWeb 项目应该就知道了，暂时没什么关系，无伤大雅</p>
+<h2 id="SpringMVC-start"><a href="#SpringMVC-start" class="headerlink" title="SpringMVC start"></a>SpringMVC start</h2><p>PS: 在官方文档页面，修改 current 为其他版本可以访问老版本的文档,例如 <code>https://docs.spring.io/spring-framework/docs/4.3.24.RELEASE/spring-framework-reference/</code></p>
+<p>PPS: 这个可以在 Tomcat 配置页面的 Deployment tab 下，将 Application context 内容直接改为 <code>/</code> 即可</p>
+<p>特点：</p>
+<ol>
+<li><p>轻量</p>
+</li>
+<li><p>基于响应</p>
+</li>
+<li><p>兼容 Spring</p>
+</li>
+<li><p>约定优于配置</p>
+</li>
+<li><p>功能强大</p>
+</li>
+<li><p>简介灵活</p>
+</li>
+<li><p>用的人多</p>
+</li>
+<li><p>创建子项目，配置为 web app</p>
+</li>
+<li><p>Porject Structure -&gt; Artifacts，选中项目 -&gt; WEB-INF 下新建 lib 包手动把包导进去（idea 的bug）-&gt; 点击 + 号 -&gt; Library files 全选</p>
+</li>
+<li><p>resource 下新建 xml 文件，选择 Spring config 类型，可以自带配置信息</p>
+</li>
+<li><p>配置 WEB-INF 下的 web.xml</p>
+</li>
+<li><p>创建 Controller 添加业务逻辑</p>
+</li>
+<li><p>配置启动 Tomcat，访问 URL 看结果</p>
+</li>
+</ol>
+<p>这部分主要是为了讲解 SpringMVC 的原理，真实环境都用注解开发，会方便很多。</p>
 ]]></content>
       <categories>
         <category>编程</category>
