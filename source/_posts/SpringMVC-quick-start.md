@@ -1,0 +1,127 @@
+---
+title: SpringMVC 快速入门
+date: 2020-10-14 21:17:02
+categories:
+- 编程
+tags:
+- java
+- spring
+---
+
+[B 站狂神 SpringMVC 教程笔记](https://www.bilibili.com/video/BV1aE41167Tu?p=3)
+
+## 01 Servlet review
+
+### 准备工作 提前本地安装 Tomcat
+
+1. 访问[官网](https://tomcat.apache.org/download-90.cgi)下载安装包
+2. 点击 Binary Distributions 下的 `32-bit/64-bit Windows Service Installer (pgp, sha512)` 下载 exe 可执行文件
+3. 点击，傻瓜式安装
+4. 点击提示框，启动 访问 `http://localhost:8080/` 看到页面则安装成功
+
+配置环境变量：通过上面的傻瓜式安装，Tomcat 默认安装在 `C:\Program Files\Apache Software Foundation\Tomcat 9.0` 这个路径下
+
+我的电脑 -> 属性 -> 高级系统设置 -> 高级 -> 环境变量, 在系统变量中添加：
+
+| 变量名        | 值                                                     |
+| :------------ | :----------------------------------------------------- |
+| TOMCAT_HOME   | C:\Program Files\Apache Software Foundation\Tomcat 9.0 |
+| CATALINA_HOME | C:\Program Files\Apache Software Foundation\Tomcat 9.0 |
+
+修改变量Path, 在原来的值后面添加 `;%TOMCAT_HOME%\bin;%CATALINA_HOME%\lib`
+
+### 子项目创建
+
+正常步骤建项目，创建 maven 子 module，然后 module 上邮件选中 Add Framework Support -> Web Application 来创建 web app 会比较省事。可以看到在目录中新增了名为 web 的文件夹
+
+在 src 下新建一个测试用 servlet 文件
+
+```java
+public class HelloServlet extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // 1. 获取前端参数
+        String method = req.getParameter("method");
+        if (method.equals("add")) {
+            req.getSession().setAttribute("msg", "execute Add...");
+        }
+
+        if (method.equals("delete")) {
+            req.getSession().setAttribute("msg", "execute Delete...");
+        }
+        // 2. 调用业务层
+        // 3. 试图转发或重定向
+        req.getRequestDispatcher("/WEB-INF/jsp/test.jsp").forward(req,resp);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        doGet(req, resp);
+    }
+}
+```
+
+web -> WEB-INF 下新建 jsp 文件夹，创建 test.jsp
+
+```jsp
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>Title</title>
+</head>
+<body>
+
+${msg}
+
+</body>
+</html>
+```
+
+修改 WEB-INF 下的 web.xml 配置路由
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
+         version="4.0">
+    <servlet>
+        <servlet-name>hello</servlet-name>
+        <servlet-class>com.jzheng.servlet.HelloServlet</servlet-class>
+    </servlet>
+    
+    <servlet-mapping>
+        <servlet-name>hello</servlet-name>
+        <url-pattern>/hello</url-pattern>
+    </servlet-mapping>
+</web-app>
+```
+
+工具栏 -> edit configuration -> 点击 + 号，选中 Tomcat 配置本地 tomcat， 点击 fix -> 启动服务器。访问 `http://localhost:8080/springmvn_01_servlet_war_exploded/hello?method=add` 可以看 msg 显示在页面上。
+
+PS：应该是哪里配置有问题，视频上面直接访问 `http://localhost:8080/hello?method=add` 即可，回头看一下前面的 JavaWeb 项目应该就知道了，暂时没什么关系，无伤大雅
+
+## SpringMVC start
+
+PS: 在官方文档页面，修改 current 为其他版本可以访问老版本的文档,例如 `https://docs.spring.io/spring-framework/docs/4.3.24.RELEASE/spring-framework-reference/`
+
+PPS: 这个可以在 Tomcat 配置页面的 Deployment tab 下，将 Application context 内容直接改为 `/` 即可
+
+特点：
+
+1. 轻量
+2. 基于响应
+3. 兼容 Spring
+4. 约定优于配置
+5. 功能强大
+6. 简介灵活
+7. 用的人多
+
+1. 创建子项目，配置为 web app
+2. Porject Structure -> Artifacts，选中项目 -> WEB-INF 下新建 lib 包手动把包导进去（idea 的bug）-> 点击 + 号 -> Library files 全选
+3. resource 下新建 xml 文件，选择 Spring config 类型，可以自带配置信息
+4. 配置 WEB-INF 下的 web.xml
+5. 创建 Controller 添加业务逻辑
+6. 配置启动 Tomcat，访问 URL 看结果
+
+这部分主要是为了讲解 SpringMVC 的原理，真实环境都用注解开发，会方便很多。
