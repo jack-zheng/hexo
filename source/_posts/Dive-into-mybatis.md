@@ -12,11 +12,11 @@ tags:
 
 JDBC 流程和 mybatis 的对应比较：
 
-| JDBC                                      | Mybatis |
-| :---------------------------------------- | ------: |
-| 加载驱动, 获取连接 ｜ mybatis-config.xml  |
-| 执行 SQL ｜ SqlSessionFactory, SqlSession |
-| 组装结果 ｜ MappedStatement               |
+| JDBC               | Mybatis                       |
+| :----------------- | :---------------------------- |
+| 加载驱动, 获取连接 | mybatis-config.xml            |
+| 执行 SQL           | SqlSessionFactory, SqlSession |
+| 组装结果           | MappedStatement               |
 
 ## 配置加载
 
