@@ -1,5 +1,5 @@
 ---
-title: ASM quick guide
+title: ASM 快速入门
 date: 2020-09-07 15:29:05
 categories:
 - 编程
@@ -8,7 +8,7 @@ tags:
 - asm
 ---
 
-通过本次实验对 ASM 这个字节码框架有一个基本的了解。实验必须是简单明了的，便于重复的。引用一段话很好的概括了 ASM 的功能
+通过本次实验对 ASM 这个字节码框架有一个基本的了解。实验必须是简单明了，方便重现的。引用一段话很好的概括了 ASM 的功能
 
 > 可以负责任的告诉大家，ASM只不过是通过 “Visitor” 模式将 “.class” 类文件的内容从头到尾扫描一遍。因此如果你抱着任何更苛刻的要求最后都将失望而归。
 
@@ -19,13 +19,152 @@ tags:
 
 准备测试用 class，通过 ASM 输出 class 中的方法名称
 
+```java
 
+public interface MyInterface01 {}
+
+public interface MyInterface02 {}
+
+public class SayHello implements MyInterface01, MyInterface02 {
+    public void say() {
+        String name = "Jack";
+        System.out.println("Hello" + name);
+    }
+}
+```
+
+右键准备的测试文件，选中 'Show bytecode outline' 选项，点击 Bytecode tab, 查看内容可以看到字节码如下
+
+```bytecode
+// class version 52.0 (52)
+// access flags 0x21
+public class sorra/tracesonar/mytest/SayHello implements sorra/tracesonar/mytest/MyInterface01 sorra/tracesonar/mytest/MyInterface02  {
+
+  // compiled from: SayHello.java
+
+  // access flags 0x1
+  public <init>()V
+   L0
+    LINENUMBER 3 L0
+    ALOAD 0
+    INVOKESPECIAL java/lang/Object.<init> ()V
+    RETURN
+   L1
+    LOCALVARIABLE this Lsorra/tracesonar/mytest/SayHello; L0 L1 0
+    MAXSTACK = 1
+    MAXLOCALS = 1
+
+  // access flags 0x1
+  public say()V
+   L0
+    LINENUMBER 5 L0
+    LDC "Jack"
+    ASTORE 1
+   L1
+    LINENUMBER 6 L1
+    GETSTATIC java/lang/System.out : Ljava/io/PrintStream;
+    NEW java/lang/StringBuilder
+    DUP
+    INVOKESPECIAL java/lang/StringBuilder.<init> ()V
+    LDC "Hello"
+    INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
+    ALOAD 1
+    INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
+    INVOKEVIRTUAL java/lang/StringBuilder.toString ()Ljava/lang/String;
+    INVOKEVIRTUAL java/io/PrintStream.println (Ljava/lang/String;)V
+   L2
+    LINENUMBER 7 L2
+    RETURN
+   L3
+    LOCALVARIABLE this Lsorra/tracesonar/mytest/SayHello; L0 L3 0
+    LOCALVARIABLE name Ljava/lang/String; L1 L3 1
+    MAXSTACK = 3
+    MAXLOCALS = 2
+}
+```
+
+测试用例
+
+```java
+public class ASMTest {
+    public static void main(String[] args) throws IOException {
+        System.out.println("--- START ---");
+        ClassReader cr = new ClassReader(SayHello.class.getName());
+        cr.accept(new DemoClassVisitor(), 0);
+        System.out.println("--- END ---");
+    }
+}
+
+class DemoClassVisitor extends ClassVisitor {
+    public DemoClassVisitor() {
+        super(Opcodes.ASM5);
+    }
+
+    // Called when access file header, so it will called only once for each class
+    @Override
+    public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+        super.visit(version, access, name, signature, superName, interfaces);
+        System.out.println("invoke visit method, params: " + version + ", " + access + ", " + name + ", " + signature + ", " + superName + ", " + Arrays.toString(interfaces));
+    }
+
+    // Called when access method
+    @Override
+    public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+        System.out.println("at Method " + name);
+        //
+        MethodVisitor superMV = super.visitMethod(access, name, desc, signature, exceptions);
+        return new DemoMethodVisitor(superMV, name);
+    }
+}
+
+class DemoMethodVisitor extends MethodVisitor {
+    private String methodName;
+    public DemoMethodVisitor(MethodVisitor mv, String methodName) {
+        super(Opcodes.ASM5, mv);
+        this.methodName = methodName;
+    }
+    public void visitCode() {
+        System.out.println("at Method ‘" + methodName + "’ Begin...");
+        super.visitCode();
+    }
+
+    @Override
+    public void visitLocalVariable(String name, String desc, String signature, Label start, Label end, int index) {
+        super.visitLocalVariable(name, desc, signature, start, end, index);
+        System.out.println("Params in visitLocalVariable: " + name + ", " + desc + ", " + signature + ", " + start + ", " + end + ", " + index);
+    }
+
+    public void visitEnd() {
+        System.out.println("at Method ‘" + methodName + "’End.");
+        super.visitEnd();
+    }
+}
+```
+
+终端输出
+
+```txt
+--- START ---
+invoke visit method, params: 52, 33, sorra/tracesonar/mytest/SayHello, null, java/lang/Object, [sorra/tracesonar/mytest/MyInterface01, sorra/tracesonar/mytest/MyInterface02]
+at Method <init>
+at Method ‘<init>’ Begin...
+Params in visitLocalVariable: this, Lsorra/tracesonar/mytest/SayHello;, null, L662441761, L1618212626, 0
+at Method ‘<init>’End.
+at Method say
+at Method ‘say’ Begin...
+Params in visitLocalVariable: this, Lsorra/tracesonar/mytest/SayHello;, null, L1129670968, L1023714065, 0
+Params in visitLocalVariable: name, Ljava/lang/String;, null, L2051450519, L1023714065, 1
+at Method ‘say’End.
+--- END ---
+```
+
+想要理解 ASM 运行方式，需要结合前面的 bytecode 内容。比如 `visitLocalVariable` 方法其实就是将 bytecode 里面对应的 LOCALVARIABLE 信息打印出来。 
 
 ## 修改方法
 
-实验内容：准备一个 HelloWorld.class 可以打印出 'Hello World' 字样。通过 ASM 框架使他在答应之前，之后都输出一些 debug 信息，调用时可以使用反射简化实验。
+实验内容：准备一个 HelloWorld.class 可以打印出 'Hello World' 字样。通过 ASM 框架使他在打印之前和之后都输出一些 debug 信息，调用时可以使用反射简化实验。
 
-HelloWorld.java 文件内容
+测试用 class
 
 ```java
 public class HelloWorld {
@@ -53,7 +192,7 @@ public class main {
 // Hello World...
 ```
 
-我们想通过 ASM 修改拿到的样板输出为 'Test start \n Hello World... \n Test end'，对应的 java code:
+预期目标：通过 ASM 修改目标 class 使得输出为 'Test start \n Hello World... \n Test end'，对应的 java code:
 
 ```java
 public class Expected {
@@ -65,7 +204,7 @@ public class Expected {
 }
 ```
 
-选中文件，右键 -> Show Bytecode Outline 选中 ASMifield tab 可以看到转化后的代码
+选中 java 文件，右键 -> Show Bytecode Outline 选中 ASMifield tab 可以看到转化后的代码
 
 ```java
 package asm.sorra.tracesonar.main.aopsample;
@@ -140,7 +279,7 @@ public class ExpectedDump implements Opcodes {
 }
 ```
 
-其中类似如下的代码使一些行号和变量的处理，可以删掉不要，不影响就过
+其中类似如下的代码使一些行号和变量的处理，可以删掉不要，不影响结果
 
 ```java
 Label l0 = new Label();
@@ -172,4 +311,4 @@ public class ExpectedDump {
 }
 ```
 
-运行后找到目标文件，在 IDEA 里面浏览一个，编辑器会自动给出反编译结果，可以发现，在目标语句前后已经加上了我们要的 'Test Start/End' 的 debug 语句了。
+运行该 Java 文件，可以看到 project 的根目录下有生成一个名为 'Expected.class' 的文件，在 IDEA 里面浏览它，编辑器会自动给出反编译结果，可以发现，在目标语句前后已经加上了我们要的 'Test Start/End' 的 debug 语句了。
