@@ -139,6 +139,34 @@
       </tags>
   </entry>
   <entry>
+    <title>Chrome 插件记事</title>
+    <url>/hexo/2020/07/22/Chrome-%E6%8F%92%E4%BB%B6%E8%AE%B0%E4%BA%8B/</url>
+    <content><![CDATA[<p>公司日常维护过程中，同事自己写的一个 Chrome 小插件很精巧，符合我小而美的审美，很适合处理某些需求，特此记录一下 Chrome 插件的小知识和一个阅读源码的收获</p>
+<h2 id="插件目录结构"><a href="#插件目录结构" class="headerlink" title="插件目录结构"></a>插件目录结构</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">Root</span><br><span class="line">├── README.md</span><br><span class="line">├── background.js &lt;- 定义一些 js 脚本</span><br><span class="line">├── content.js</span><br><span class="line">├── doc</span><br><span class="line">│   └── images</span><br><span class="line">│       ├── extend_all.png</span><br><span class="line">│       ├── extend_status.png</span><br><span class="line">│       ├── extension_icon.png</span><br><span class="line">│       ├── extension_loaded.png</span><br><span class="line">│       └── load_unpacked_extension.png</span><br><span class="line">├── icon.png &lt;- icon 定义</span><br><span class="line">├── images</span><br><span class="line">│   ├── icon128.png</span><br><span class="line">│   ├── icon16.png</span><br><span class="line">│   └── icon48.png</span><br><span class="line">├── jquery-3.0.0.min.js</span><br><span class="line">├── manifest.json &lt;- 定义了 extension 的基本信息，权限等，可以概览整个应用</span><br><span class="line">├── options.html &lt;- 为客户提供可选项</span><br><span class="line">├── options.js</span><br><span class="line">├── popup.html &lt;- 点击弹出页面，用于交互</span><br><span class="line">├── popup.js</span><br><span class="line">├── style.css</span><br><span class="line">└── test.js</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><a href="https://developer.chrome.com/extensions/getstarted">Chrome Extension Official</a> 官方文档好又多</li>
+</ul>
+<h2 id="JS-的一些知识点"><a href="#JS-的一些知识点" class="headerlink" title="JS 的一些知识点"></a>JS 的一些知识点</h2><ul>
+<li>.aspx 页面，是基于微软 .Net 开发的站点</li>
+<li>html 页面中可以直接在 onclick 里面写 logic，简直是随心所欲</li>
+<li>通过 ajax 可以实现表单提交</li>
+</ul>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!-- click 中设置 confirm 内容 --&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;button&quot;</span> <span class="attr">name</span>=<span class="string">&quot;ctl00$ContentPlaceHolder$GridViewLive$ctl02$Deletion&quot;</span> <span class="attr">value</span>=<span class="string">&quot;Delete&quot;</span> <span class="attr">onclick</span>=<span class="string">&quot;if (!confirm(<span class="symbol">&amp;#39;</span>Are you sure you want to delete the company?<span class="symbol">&amp;#39;</span>)) return false; console.log(&#x27;Click Confirmed&#x27;)&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">$.ajax(&#123;</span><br><span class="line">  type: <span class="string">&quot;POST&quot;</span>,</span><br><span class="line">  url: url,</span><br><span class="line">  data: data,</span><br><span class="line">  success: success,</span><br><span class="line">  dataType: dataType</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 简写形式</span></span><br><span class="line">$.post( <span class="string">&quot;ajax/test.html&quot;</span>, <span class="function"><span class="keyword">function</span>(<span class="params"> data </span>) </span>&#123;</span><br><span class="line">  $( <span class="string">&quot;.result&quot;</span> ).html( data );</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// form.serialize() 可以方便的实现数据提取</span></span><br><span class="line">$.post( <span class="string">&quot;test.php&quot;</span>, $( <span class="string">&quot;#testform&quot;</span> ).serialize() );</span><br><span class="line"></span><br><span class="line"><span class="comment">// 如果想要成功提示，还可以</span></span><br><span class="line">$.post(url, $(<span class="string">&quot;#ctl00&quot;</span>).serialize()).done(</span><br><span class="line">    <span class="function"><span class="keyword">function</span>(<span class="params"> data </span>) </span>&#123;</span><br><span class="line">    alert( <span class="string">&quot;extends success&quot;</span> );</span><br><span class="line">    &#125;</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<h2 id="调试脚本"><a href="#调试脚本" class="headerlink" title="调试脚本"></a>调试脚本</h2><p>由于这次只是查看代码，而且验证一些函数的功能，调试还是挺顺利的，直接通过 Chrome console 就完成了，各种变量自动装载完成，美滋滋儿。</p>
+]]></content>
+      <categories>
+        <category>小工具</category>
+      </categories>
+      <tags>
+        <tag>Chrome</tag>
+        <tag>插件</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>编译好的 Java 类可以绕过类型检测？</title>
     <url>/hexo/2020/08/07/Compiled-Java-Class-Can-Bypass-Type-Check/</url>
     <content><![CDATA[<p>问题记录：</p>
@@ -1052,34 +1080,6 @@
       </categories>
       <tags>
         <tag>git</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Chrome 插件记事</title>
-    <url>/hexo/2020/07/22/Chrome-%E6%8F%92%E4%BB%B6%E8%AE%B0%E4%BA%8B/</url>
-    <content><![CDATA[<p>公司日常维护过程中，同事自己写的一个 Chrome 小插件很精巧，符合我小而美的审美，很适合处理某些需求，特此记录一下 Chrome 插件的小知识和一个阅读源码的收获</p>
-<h2 id="插件目录结构"><a href="#插件目录结构" class="headerlink" title="插件目录结构"></a>插件目录结构</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">Root</span><br><span class="line">├── README.md</span><br><span class="line">├── background.js &lt;- 定义一些 js 脚本</span><br><span class="line">├── content.js</span><br><span class="line">├── doc</span><br><span class="line">│   └── images</span><br><span class="line">│       ├── extend_all.png</span><br><span class="line">│       ├── extend_status.png</span><br><span class="line">│       ├── extension_icon.png</span><br><span class="line">│       ├── extension_loaded.png</span><br><span class="line">│       └── load_unpacked_extension.png</span><br><span class="line">├── icon.png &lt;- icon 定义</span><br><span class="line">├── images</span><br><span class="line">│   ├── icon128.png</span><br><span class="line">│   ├── icon16.png</span><br><span class="line">│   └── icon48.png</span><br><span class="line">├── jquery-3.0.0.min.js</span><br><span class="line">├── manifest.json &lt;- 定义了 extension 的基本信息，权限等，可以概览整个应用</span><br><span class="line">├── options.html &lt;- 为客户提供可选项</span><br><span class="line">├── options.js</span><br><span class="line">├── popup.html &lt;- 点击弹出页面，用于交互</span><br><span class="line">├── popup.js</span><br><span class="line">├── style.css</span><br><span class="line">└── test.js</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><a href="https://developer.chrome.com/extensions/getstarted">Chrome Extension Official</a> 官方文档好又多</li>
-</ul>
-<h2 id="JS-的一些知识点"><a href="#JS-的一些知识点" class="headerlink" title="JS 的一些知识点"></a>JS 的一些知识点</h2><ul>
-<li>.aspx 页面，是基于微软 .Net 开发的站点</li>
-<li>html 页面中可以直接在 onclick 里面写 logic，简直是随心所欲</li>
-<li>通过 ajax 可以实现表单提交</li>
-</ul>
-<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!-- click 中设置 confirm 内容 --&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;button&quot;</span> <span class="attr">name</span>=<span class="string">&quot;ctl00$ContentPlaceHolder$GridViewLive$ctl02$Deletion&quot;</span> <span class="attr">value</span>=<span class="string">&quot;Delete&quot;</span> <span class="attr">onclick</span>=<span class="string">&quot;if (!confirm(<span class="symbol">&amp;#39;</span>Are you sure you want to delete the company?<span class="symbol">&amp;#39;</span>)) return false; console.log(&#x27;Click Confirmed&#x27;)&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">$.ajax(&#123;</span><br><span class="line">  type: <span class="string">&quot;POST&quot;</span>,</span><br><span class="line">  url: url,</span><br><span class="line">  data: data,</span><br><span class="line">  success: success,</span><br><span class="line">  dataType: dataType</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 简写形式</span></span><br><span class="line">$.post( <span class="string">&quot;ajax/test.html&quot;</span>, <span class="function"><span class="keyword">function</span>(<span class="params"> data </span>) </span>&#123;</span><br><span class="line">  $( <span class="string">&quot;.result&quot;</span> ).html( data );</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// form.serialize() 可以方便的实现数据提取</span></span><br><span class="line">$.post( <span class="string">&quot;test.php&quot;</span>, $( <span class="string">&quot;#testform&quot;</span> ).serialize() );</span><br><span class="line"></span><br><span class="line"><span class="comment">// 如果想要成功提示，还可以</span></span><br><span class="line">$.post(url, $(<span class="string">&quot;#ctl00&quot;</span>).serialize()).done(</span><br><span class="line">    <span class="function"><span class="keyword">function</span>(<span class="params"> data </span>) </span>&#123;</span><br><span class="line">    alert( <span class="string">&quot;extends success&quot;</span> );</span><br><span class="line">    &#125;</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
-
-<h2 id="调试脚本"><a href="#调试脚本" class="headerlink" title="调试脚本"></a>调试脚本</h2><p>由于这次只是查看代码，而且验证一些函数的功能，调试还是挺顺利的，直接通过 Chrome console 就完成了，各种变量自动装载完成，美滋滋儿。</p>
-]]></content>
-      <categories>
-        <category>小工具</category>
-      </categories>
-      <tags>
-        <tag>Chrome</tag>
-        <tag>插件</tag>
       </tags>
   </entry>
   <entry>
@@ -2694,6 +2694,23 @@
 </li>
 </ol>
 <p>这部分主要是为了讲解 SpringMVC 的原理，真实环境都用注解开发，会方便很多。</p>
+<h2 id="SpringMVC-注解版"><a href="#SpringMVC-注解版" class="headerlink" title="SpringMVC 注解版"></a>SpringMVC 注解版</h2><ol>
+<li>创建工程转化为 web app</li>
+<li>在 web 创建 jsp 目录，配置 web.xml 配置内容和之前完全一样</li>
+<li>配置 springmvc-config.xml, 指定注解扫描路径，handler 和视图解析器</li>
+<li>创建 controller 添加注解</li>
+</ol>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">beans</span> <span class="attr">xmlns</span>=<span class="string">&quot;http://www.springframework.org/schema/beans&quot;</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:xsi</span>=<span class="string">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:context</span>=<span class="string">&quot;http://www.springframework.org/schema/context&quot;</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:mvc</span>=<span class="string">&quot;http://www.springframework.org/schema/mvc&quot;</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xsi:schemaLocation</span>=<span class="string">&quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/mvc https://www.springframework.org/schema/mvc/spring-mvc.xsd&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- 自动扫包，让指定包下的注解生效，IOC 容器统一管理 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">context:component-scan</span> <span class="attr">base-package</span>=<span class="string">&quot;com.jzheng.controller&quot;</span>/&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- 让 spring MVC 不处理静态资源（.css .js .html...） --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">mvc:default-servlet-handler</span>/&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- 代替 HandlerMapping 和 HandlerAdapter--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">mvc:annotation-driven</span>/&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- 视图解析器: 模板引擎 Thymeleaf, Freemaker 等 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">&quot;org.springframework.web.servlet.view.InternalResourceViewResolver&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;prefix&quot;</span> <span class="attr">value</span>=<span class="string">&quot;/WEB-INF/jsp/&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;suffix&quot;</span> <span class="attr">value</span>=<span class="string">&quot;.jsp&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Controller</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 指定 URL</span></span><br><span class="line">    <span class="meta">@RequestMapping(&quot;/hello&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">hello</span><span class="params">(Model model)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 封装数据</span></span><br><span class="line">        model.addAttribute(<span class="string">&quot;msg&quot;</span>, <span class="string">&quot;Hello, SpringMVC&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;hello&quot;</span>; <span class="comment">// 被视图解析器处理</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="04-回顾"><a href="#04-回顾" class="headerlink" title="04 回顾"></a>04 回顾</h2><p>回顾了两种添加 Controller 的方法，还有 RequestMapping 添加在 class 和 method 上的区别</p>
+<h3 id="Restful-风格"><a href="#Restful-风格" class="headerlink" title="Restful 风格"></a>Restful 风格</h3><ul>
+<li>@PathVariable 配置变量</li>
+<li>@RequestMapping(value = “/add/{a}/{b}”, method = RequestMethod.POST) 配置请求方式</li>
+<li>@GetMapping(value = “/add/{a}/{b}”) 请求方式简写</li>
+</ul>
+<h3 id="专发和重定向"><a href="#专发和重定向" class="headerlink" title="专发和重定向"></a>专发和重定向</h3><p>forward，redirect</p>
 ]]></content>
       <categories>
         <category>编程</category>
