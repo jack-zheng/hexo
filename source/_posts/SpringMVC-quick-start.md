@@ -125,3 +125,63 @@ PPS: 这个可以在 Tomcat 配置页面的 Deployment tab 下，将 Application
 6. 配置启动 Tomcat，访问 URL 看结果
 
 这部分主要是为了讲解 SpringMVC 的原理，真实环境都用注解开发，会方便很多。
+
+## SpringMVC 注解版
+
+1. 创建工程转化为 web app
+2. 在 web 创建 jsp 目录，配置 web.xml 配置内容和之前完全一样
+3. 配置 springmvc-config.xml, 指定注解扫描路径，handler 和视图解析器
+4. 创建 controller 添加注解
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/mvc https://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+    <!-- 自动扫包，让指定包下的注解生效，IOC 容器统一管理 -->
+    <context:component-scan base-package="com.jzheng.controller"/>
+
+    <!-- 让 spring MVC 不处理静态资源（.css .js .html...） -->
+    <mvc:default-servlet-handler/>
+
+    <!-- 代替 HandlerMapping 和 HandlerAdapter-->
+    <mvc:annotation-driven/>
+
+    <!-- 视图解析器: 模板引擎 Thymeleaf, Freemaker 等 -->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/jsp/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+</beans>
+```
+
+```java
+@Controller
+public class HelloController {
+
+    // 指定 URL
+    @RequestMapping("/hello")
+    public String hello(Model model) {
+        // 封装数据
+        model.addAttribute("msg", "Hello, SpringMVC");
+        return "hello"; // 被视图解析器处理
+    }
+}
+```
+
+## 04 回顾
+
+回顾了两种添加 Controller 的方法，还有 RequestMapping 添加在 class 和 method 上的区别
+
+### Restful 风格
+
+* @PathVariable 配置变量
+* @RequestMapping(value = "/add/{a}/{b}", method = RequestMethod.POST) 配置请求方式
+* @GetMapping(value = "/add/{a}/{b}") 请求方式简写
+
+### 专发和重定向
+
+forward，redirect
