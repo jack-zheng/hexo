@@ -58,7 +58,7 @@ public class Computer {
 
 Java 简化版方案：
 
-1. 在对象内部创建一个静态的 Builder
+1. 在对象内部创建一个 public 的内部静态类 Builder
 2. 复制一份对象的属性到 Builder 中
 3. Builder 提供 set 方法
 4. 在对象内部添加一个私有的构造函数，参数为 Builder

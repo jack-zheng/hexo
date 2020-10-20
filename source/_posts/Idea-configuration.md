@@ -67,6 +67,10 @@ Navigate -> Type Hierarchy 或者 Ctrl + H
 1. Setting->Inspections->Serialization issues->Serializable class without ’serialVersionUID’ 
 1. 选上以后，在你的class中：Alt+Enter就会提示自动创建serialVersionUID了。
 
+### 设置终端 log size
+
+默认终端数量有限，稍微多点就把前面的给冲掉了，可以设置 Preferences > Editor > General > Console, 勾选 Override console cycle buffer size (1024 KB)，并把值调大就行
+
 ## 插件
 
 * 查看字节码：安装 jclasslib，重启。选中文件，选择导航栏上的 view -> Show byte code with jclasslib 选项即可
