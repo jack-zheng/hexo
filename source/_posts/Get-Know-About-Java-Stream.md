@@ -1,11 +1,10 @@
 ---
-title: Stream 类概览
+title: Java 拾遗之 Stream 类
 date: 2020-06-07 16:45:29
 categories:
 - 编程
 tags:
-- java
-- effective java
+- 拾遗
 - 枚举和注解
 - stream
 ---

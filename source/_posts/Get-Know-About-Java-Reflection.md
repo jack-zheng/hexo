@@ -1,12 +1,11 @@
 ---
-title: 初识 Java 反射
+title: Java 拾遗之 反射
 date: 2020-07-31 17:35:17
 categories:
 - 编程
 tags:
-- java
+- 拾遗
 - 反射
-- reflection
 ---
 
 记录一些 Java 反射基础知识

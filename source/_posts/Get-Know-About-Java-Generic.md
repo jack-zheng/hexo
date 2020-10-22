@@ -1,10 +1,10 @@
 ---
-title: Java 泛型知识整理
+title: Java 拾遗之 泛型
 date: 2020-08-07 17:36:37
 categories:
 - 编程
 tags:
-- java
+- 拾遗
 - 泛型
 ---
 
