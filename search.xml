@@ -531,7 +531,10 @@
 
 <p>Builder 模式出了比较冗长之外没有其他坏处，而且扩展性好。</p>
 <h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><ul>
-<li>使用 final 修饰属性有什么好处</li>
+<li>使用 final 修饰属性有什么好处?<ul>
+<li>可以保证对应的变量只被赋值一次，并且 final 修饰的变量必须得赋值</li>
+</ul>
+</li>
 </ul>
 <p>PS: 外部类可以访问内部类的私有变量，这个我之前倒是没有想到的</p>
 ]]></content>
@@ -597,7 +600,7 @@
       </tags>
   </entry>
   <entry>
-    <title>Java 泛型知识整理</title>
+    <title>Java 拾遗之 泛型</title>
     <url>/hexo/2020/08/07/Get-Know-About-Java-Generic/</url>
     <content><![CDATA[<p>记录一下泛型的定义，历史，使用案例等。素材只要来源于 On Java 8, Thinking in Java 和 Effective Java。</p>
 <h2 id="历史"><a href="#历史" class="headerlink" title="历史"></a>历史</h2><p>1.5 版本引入，主要动机是支持 Collection 类</p>
@@ -645,12 +648,12 @@
         <category>编程</category>
       </categories>
       <tags>
-        <tag>java</tag>
+        <tag>拾遗</tag>
         <tag>泛型</tag>
       </tags>
   </entry>
   <entry>
-    <title>初识 Java 反射</title>
+    <title>Java 拾遗之 反射</title>
     <url>/hexo/2020/07/31/Get-Know-About-Java-Reflection/</url>
     <content><![CDATA[<p>记录一些 Java 反射基础知识</p>
 <h2 id="准备测试-Bean"><a href="#准备测试-Bean" class="headerlink" title="准备测试 Bean"></a>准备测试 Bean</h2><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> reflectiontest.bean;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestUser</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> String name;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">int</span> age;</span><br><span class="line">  <span class="keyword">public</span>  String gender;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Getter and Setter</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -662,13 +665,12 @@
         <category>编程</category>
       </categories>
       <tags>
-        <tag>java</tag>
+        <tag>拾遗</tag>
         <tag>反射</tag>
-        <tag>reflection</tag>
       </tags>
   </entry>
   <entry>
-    <title>Stream 类概览</title>
+    <title>Java 拾遗之 Stream 类</title>
     <url>/hexo/2020/06/07/Get-Know-About-Java-Stream/</url>
     <content><![CDATA[<p>概要：</p>
 <ul>
@@ -1020,10 +1022,34 @@
         <category>编程</category>
       </categories>
       <tags>
-        <tag>java</tag>
-        <tag>effective java</tag>
         <tag>枚举和注解</tag>
+        <tag>拾遗</tag>
         <tag>stream</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java 拾遗之 final 关键字</title>
+    <url>/hexo/2020/10/22/Get-know-about-java-final/</url>
+    <content><![CDATA[<p>从定义上来说 final 表达的是只能赋值一次，赋之后不能改变的意思。下面介绍几种常见使用形式。</p>
+<h2 id="final-attr"><a href="#final-attr" class="headerlink" title="final + attr"></a>final + attr</h2><p>这种形式即实体类有 final 变量</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String name;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Test</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = <span class="string">&quot;default&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Test</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// public Test(int i) &#123;&#125; -- compile fail</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>由于 name 由 final 修饰，所以要求每个构造函数都要有 name 的初始化，或者声明时直接赋值。不然不就等于允许在运行时改变 name 值了</p>
+<h2 id="statuc-final-attr"><a href="#statuc-final-attr" class="headerlink" title="statuc + final + attr"></a>statuc + final + attr</h2><p>这种形式常见于 class 属性，声明时就得赋值，static block 都不好使</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Test2</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String name = <span class="string">&quot;Jack&quot;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="final-method"><a href="#final-method" class="headerlink" title="final + method"></a>final + method</h2><blockquote>
+<p><code>final</code> is used with a Java method to mark that the method can’t be overridden (for object scope) or hidden (for static). This allows the original developer to create functionality that cannot be changed by subclasses, and that is all the guarantee it provides.</p>
+<p>方法不能被重写，防止继承之后方法语意发生变化</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Test3</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">printT3</span> <span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;printT3...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Sub3</span> <span class="keyword">extends</span> <span class="title">Test3</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span> <span class="comment">// compile error, can&#x27;t override final method</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">printT3</span> <span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;sub3...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>编程</category>
+      </categories>
+      <tags>
+        <tag>拾遗</tag>
+        <tag>泛型</tag>
       </tags>
   </entry>
   <entry>
@@ -1762,6 +1788,87 @@
         <tag>java</tag>
         <tag>函数式</tag>
         <tag>lambda</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java 操作符优先级</title>
+    <url>/hexo/2020/10/22/Java-operator-precedence/</url>
+    <content><![CDATA[<p>记录一下工作终于到的操作符优先级的问题，总体的逻辑是：从左到右依次计算</p>
+<p><a href="https://docs.oracle.com/javase/tutorial/java/nutsandbolts/operators.html">Java Operator Precedence</a></p>
+<table>
+<thead>
+<tr>
+<th align="center">Operators</th>
+<th align="center">Precedence</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">postfix</td>
+<td align="center">expr++ expr–</td>
+</tr>
+<tr>
+<td align="center">unary</td>
+<td align="center">++expr –expr +expr -expr ~ !</td>
+</tr>
+<tr>
+<td align="center">multiplicative</td>
+<td align="center">* / %</td>
+</tr>
+<tr>
+<td align="center">additive</td>
+<td align="center">+ -</td>
+</tr>
+<tr>
+<td align="center">shift</td>
+<td align="center">&lt;&lt; &gt;&gt; &gt;&gt;&gt;</td>
+</tr>
+<tr>
+<td align="center">relational</td>
+<td align="center">&lt; &gt; &lt;= &gt;= instanceof</td>
+</tr>
+<tr>
+<td align="center">equality</td>
+<td align="center">== !=</td>
+</tr>
+<tr>
+<td align="center">bitwise AND</td>
+<td align="center">&amp;</td>
+</tr>
+<tr>
+<td align="center">bitwise exclusive OR</td>
+<td align="center">^</td>
+</tr>
+<tr>
+<td align="center">bitwise inclusive OR</td>
+<td align="center">|</td>
+</tr>
+<tr>
+<td align="center">logical AND</td>
+<td align="center">&amp;&amp;</td>
+</tr>
+<tr>
+<td align="center">logical OR</td>
+<td align="center">||</td>
+</tr>
+<tr>
+<td align="center">ternary</td>
+<td align="center">? :</td>
+</tr>
+<tr>
+<td align="center">assignment</td>
+<td align="center">= += -= *= /= %= &amp;= ^= | = &lt;&lt;= &gt;&gt;= &gt;&gt;&gt;=</td>
+</tr>
+</tbody></table>
+<h2 id="逻辑与-和-逻辑非"><a href="#逻辑与-和-逻辑非" class="headerlink" title="逻辑与 和 逻辑非"></a>逻辑与 和 逻辑非</h2><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> (<span class="keyword">null</span> != params &amp;&amp; params.isFeatureExist(FeatureEnum.FEATURE_01) &amp;&amp; !(ElementTypeEnum.ADDRESS.equals(Element.getElementTypeEnum()) || ElementTypeEnum.BUSINESS_ADDRESS.equals(Element.getElementTypeEnum())) &amp;&amp; !ElementTypeEnum.PERSON_GLOBAL_INFO.getElementId().equals(Element.getId()))</span><br></pre></td></tr></table></figure>
+
+<p>从左到右依次判断就完事儿啦。。。感觉上面表格中的 逻辑与 &gt; 逻辑非 的表示还混淆了我的判断（；￣ェ￣）</p>
+]]></content>
+      <categories>
+        <category>编程</category>
+      </categories>
+      <tags>
+        <tag>java</tag>
+        <tag>优先级</tag>
       </tags>
   </entry>
   <entry>
