@@ -185,3 +185,145 @@ public class HelloController {
 ### 专发和重定向
 
 forward，redirect
+
+### 接受前端参数
+
+简单类型传递
+
+```java
+public String test(@RequestParam("username") String name, Model model) {}
+```
+
+复杂类型
+
+```java
+ // http://localhost:8080/t2?username=jack&id=jjjj&age=3
+// 终端能打印出对象
+@GetMapping("/t2")
+public String complexType(User user) {
+    System.out.println(user);
+    return "test";
+}
+```
+
+### 乱码
+
+web 文件夹下添加测试用的 jsp
+
+```jsp
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>Title</title>
+</head>
+<body>
+
+<form action="/e/t1" method="post">
+    <input type="text" name="name">
+    <input type="submit">
+</form>
+
+</body>
+</html>
+```
+
+创建测试 controller
+
+```java
+@Controller
+public class EncodingController {
+
+    @PostMapping("/e/t1")
+    public String test1(String name, Model model) {
+        System.out.println("output: " + name);
+        model.addAttribute("msg", name);
+        return "test";
+    }
+}
+```
+
+访问 `localhost:8080/form.jsp` 输入中文，可以看到输出乱码。
+
+解决方案：过滤器
+
+#### 自建过滤器
+
+新建 filter 文件夹，添加过滤器
+
+```java
+public class EncodingFilter implements Filter {
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+
+    }
+
+    @Override
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+        servletRequest.setCharacterEncoding("utf-8");
+        servletResponse.setCharacterEncoding("utf-8");
+
+        filterChain.doFilter(servletRequest, servletResponse);
+    }
+
+    @Override
+    public void destroy() {
+
+    }
+}
+```
+
+`web.xml` 下配置过滤器
+
+```xml
+<filter>
+    <filter-name>encoding</filter-name>
+    <filter-class>com.jzheng.filter.EncodingFilter</filter-class>
+</filter>
+<filter-mapping>
+    <filter-name>encoding</filter-name>
+    <url-pattern>/*</url-pattern>
+</filter-mapping>
+```
+
+#### 框架自带过滤器
+
+```xml
+<!-- 框架自带的过滤器 -->
+<filter>
+    <filter-name>build_in_encoding_filter</filter-name>
+    <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+    <init-param>
+        <param-name>encoding</param-name>
+        <param-value>utf-8</param-value>
+    </init-param>
+</filter>
+<filter-mapping>
+    <filter-name>build_in_encoding_filter</filter-name>
+    <url-pattern>/*</url-pattern>
+</filter-mapping>
+```
+
+### Json
+
+简单介绍一下 js 对象和字符串的转化
+
+```js
+<script type="text/javascript">
+    var user = {
+        name: "jack",
+        age: 3,
+        gender: "男"
+    };
+
+
+    console.log(user);
+
+    // js 对象转化为 json 对象
+    var json  = JSON.stringify(user);
+    console.log(json);
+
+    // json 对象转化为 JavaScript 对象
+    var obj = JSON.parse(json);
+    console.log(obj);
+</script>
+```
