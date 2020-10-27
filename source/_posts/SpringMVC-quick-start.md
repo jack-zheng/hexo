@@ -327,3 +327,89 @@ public class EncodingFilter implements Filter {
     console.log(obj);
 </script>
 ```
+
+### jackson
+
+1. 引入 jackson-databind 包
+2. 创建测试类 User
+
+```java
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class User {
+    private String name;
+    private int age;
+    private String gender;
+}
+```
+
+```java
+// UserController
+@Controller
+public class UserController {
+
+    @RequestMapping(value="/j1", produces="application/json;charset=utf-8")
+    @ResponseBody // 不走视图解析器，直接返回字符串
+    public String json1() throws JsonProcessingException {
+        // jackson - ObjectMapper
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        // 创建一个对象
+        User user = new User("杰克", 1, "man");
+
+        String ret = objectMapper.writeValueAsString(user);
+        return ret;
+    }
+}
+
+// user.toString() 返回 User(name=Jack01, age=1, gender=man)
+// 访问 /j1 输出：{"name":"Jack01","age":1,"gender":"man"}
+```
+
+结果中包含中文会乱码，这时可以配置 RequestMapping 注解也可以配置 springmvc 配置文件
+
+```xml
+<!--
+    beans 头里面确认包含
+    http://www.springframework.org/schema/mvc
+    http://www.springframework.org/schema/mvc/spring-mvc.xsd
+    不然会抛错：通配符的匹配很全面, 但无法找到元素 'mvc:annotation-driven' 的声明
+-->
+<!-- Jackson 乱码问题 -->
+<mvc:annotation-driven>
+    <mvc:message-converters>
+        <bean class="org.springframework.http.converter.StringHttpMessageConverter">
+            <constructor-arg value="UTF-8"/>
+        </bean>
+        <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+            <property name="objectMapper">
+                <bean class="org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean">
+                    <property name="failOnEmptyBeans" value="false"/>
+                </bean>
+            </property>
+        </bean>
+    </mvc:message-converters>
+</mvc:annotation-driven>
+```
+
+## SSM 整合
+
+```sql
+-- 建表
+CREATE DATABASE ssmbuild;
+USE ssmbuild;
+
+CREATE TABLE `books`(
+`bookID` INT NOT NULL AUTO_INCREMENT COMMENT '书id',
+`bookName` VARCHAR(100) NOT NULL COMMENT '书名',
+`bookCounts` INT NOT NULL COMMENT '数量',
+`detail` VARCHAR(200) NOT NULL COMMENT '描述',
+KEY `bookID`(`bookID`)
+)ENGINE=INNODB DEFAULT CHARSET=utf8;
+
+INSERT INTO `books`(`bookID`,`bookName`,`bookCounts`,`detail`)VALUES
+(1,'Java',1,'从入门到放弃'),
+(2,'MySQL',10,'从删库到跑路'),
+(3,'Linux',5,'从进门到进牢');
+```
