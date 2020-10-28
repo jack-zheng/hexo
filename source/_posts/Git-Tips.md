@@ -30,6 +30,12 @@ git reset --hard origin/master
 git reset HEAD~1
 ```
 
+## 将 remote 会滚到上个 commit
+
+StackOverflow 上都说 用 reset hard -- commit 来做，实践了一下并不好用，不能创建 PR。。。不知道是不是公司的版本有定制过，最后使用 `git checkout commit .` 完成了重制。
+
+但是这里有个缺陷 checkout 并不能检测出新建的文件，所以还是有一些手工操作的，不知道有没有更好的办法
+
 ## 将本地的单个文件还原成 master 版本
 
 ```bash

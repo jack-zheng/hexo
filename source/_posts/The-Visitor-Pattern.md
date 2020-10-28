@@ -8,9 +8,9 @@ tags:
 - 设计模式
 ---
 
-GoF 定义: Allows for one or more operation to be applied to a set of objects at runtime, decoupling the operations from the object structure. 
+> GoF 定义: Allows for one or more operation to be applied to a set of objects at runtime, decoupling the operations from the object structure. 
 
-访问者模式讲的是表示一个作用于某对象结构中的各元素的操作。它使你可以在不改变各元素的类的前提下定义作用域这些元素的新操作。
+访问者模式讲的是表示一个作用于某对象结构中的各元素的操作。它使你可以在不改变各元素的类的前提下定义作用于这些元素的新操作。
 
 行为模式之一，目的是将**行为**和**对象**分开。
 
@@ -18,7 +18,7 @@ GoF 定义: Allows for one or more operation to be applied to a set of objects a
 
 ## 描述
 
-被访问者就是上文中的 object，他持有数据，我们想把他和数据运算分离，保持起独立性
+被访问者就是上文中的 object，他持有数据，我们想把他和数据运算分离，保持其独立性
 
 访问者代表着 operations，通过它可以实现数据运算
 
