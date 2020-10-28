@@ -32,9 +32,13 @@ git reset HEAD~1
 
 ## 将 remote 会滚到上个 commit
 
-StackOverflow 上都说 用 reset hard -- commit 来做，实践了一下并不好用，不能创建 PR。。。不知道是不是公司的版本有定制过，最后使用 `git checkout commit .` 完成了重制。
+`git revert -m 1 commit_hash` 将对应的 commit 改动会滚， 很棒！
 
-但是这里有个缺陷 checkout 并不能检测出新建的文件，所以还是有一些手工操作的，不知道有没有更好的办法
+## reset VS revert
+
+reset 会将历史记录也一并会滚，这样就会导致记录缺失。不是很好，但是在自己 local branch 做了改动想还原的这种 scenario 还是和合适的
+
+revert 会在原有的基础上将对应的 commit 改动重置并添加新的历史记录，路径更完成
 
 ## 将本地的单个文件还原成 master 版本
 
