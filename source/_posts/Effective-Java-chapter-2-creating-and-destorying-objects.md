@@ -301,3 +301,11 @@ PS: 外部类可以访问内部类的私有变量，这个我之前倒是没有�
 
 * `Builder<T extends Builder<T>>` 语法
   * 这种语法叫做 递归类型参数(recursive type parameter), 是泛型的一种，指代泛型参数必须是自己的子类，不理解可以先记着
+
+* `protected abstract T self();` 为什么不直接返回 `this`?
+  * 亲自写一下就会发现，builder 本身是个抽象类，所以是没有 `this` 这个指代的
+
+* 父类的构造器是 `protected` 的，不然子类无法继承, 同理 `toppings` 也应该是 protected 的，不然子类根本就访问不了 (´Д` )
+
+
+  
