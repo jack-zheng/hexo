@@ -1081,6 +1081,8 @@
 
 <h2 id="移除本地的-commit"><a href="#移除本地的-commit" class="headerlink" title="移除本地的 commit"></a>移除本地的 commit</h2><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">git reset HEAD~1</span><br></pre></td></tr></table></figure>
 
+<h2 id="将-remote-会滚到上个-commit"><a href="#将-remote-会滚到上个-commit" class="headerlink" title="将 remote 会滚到上个 commit"></a>将 remote 会滚到上个 commit</h2><p>StackOverflow 上都说 用 reset hard – commit 来做，实践了一下并不好用，不能创建 PR。。。不知道是不是公司的版本有定制过，最后使用 <code>git checkout commit .</code> 完成了重制。</p>
+<p>但是这里有个缺陷 checkout 并不能检测出新建的文件，所以还是有一些手工操作的，不知道有没有更好的办法</p>
 <h2 id="将本地的单个文件还原成-master-版本"><a href="#将本地的单个文件还原成-master-版本" class="headerlink" title="将本地的单个文件还原成 master 版本"></a>将本地的单个文件还原成 master 版本</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git checkout origin/master -- /path/to/file</span><br></pre></td></tr></table></figure>
 
 <h2 id="将-git-add-commit-合并到一个命令中"><a href="#将-git-add-commit-合并到一个命令中" class="headerlink" title="将 git add, commit 合并到一个命令中"></a>将 git add, commit 合并到一个命令中</h2><blockquote>
@@ -2964,11 +2966,13 @@
   <entry>
     <title>访问者模式</title>
     <url>/hexo/2020/09/09/The-Visitor-Pattern/</url>
-    <content><![CDATA[<p>GoF 定义: Allows for one or more operation to be applied to a set of objects at runtime, decoupling the operations from the object structure. </p>
-<p>访问者模式讲的是表示一个作用于某对象结构中的各元素的操作。它使你可以在不改变各元素的类的前提下定义作用域这些元素的新操作。</p>
+    <content><![CDATA[<blockquote>
+<p>GoF 定义: Allows for one or more operation to be applied to a set of objects at runtime, decoupling the operations from the object structure. </p>
+</blockquote>
+<p>访问者模式讲的是表示一个作用于某对象结构中的各元素的操作。它使你可以在不改变各元素的类的前提下定义作用于这些元素的新操作。</p>
 <p>行为模式之一，目的是将<strong>行为</strong>和<strong>对象</strong>分开。</p>
 <p>缺点：<strong>每增</strong>加一种支持的 object，你就必须在 visitor 及其实现类中添加新的方法支持这个改动。</p>
-<h2 id="描述"><a href="#描述" class="headerlink" title="描述"></a>描述</h2><p>被访问者就是上文中的 object，他持有数据，我们想把他和数据运算分离，保持起独立性</p>
+<h2 id="描述"><a href="#描述" class="headerlink" title="描述"></a>描述</h2><p>被访问者就是上文中的 object，他持有数据，我们想把他和数据运算分离，保持其独立性</p>
 <p>访问者代表着 operations，通过它可以实现数据运算</p>
 <h2 id="UML"><a href="#UML" class="headerlink" title="UML"></a>UML</h2><p>TODO</p>
 <h2 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h2><h3 id="From-DZone"><a href="#From-DZone" class="headerlink" title="From DZone"></a>From DZone</h3><ul>
@@ -3504,6 +3508,33 @@
       </tags>
   </entry>
   <entry>
+    <title>原码，反码和补码</title>
+    <url>/hexo/2019/12/07/%E5%8E%9F%E7%A0%81%EF%BC%8C%E5%8F%8D%E7%A0%81%E5%92%8C%E8%A1%A5%E7%A0%81/</url>
+    <content><![CDATA[<p>本篇简要介绍一下计算机存储中原码，反码，补码的一些基本知识，给出一些我自己的概括，不严谨，想了解更多参考我给的链接</p>
+<h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>二进制数表示带符号值时，最高位位符号位，0表示正数，1表示负数，以四位二进制数来说明</p>
+<p>原码：人能直接读出来的数，比如 1 二进制表示为 0001，-1 二进制 1001<br>反码：正数反码等于原码，负数反码符号为不变，其他各位取反 -1 反码 1110<br>补码：正数补码等于原码，负数补码等于反码 +1， -1 补码 1111</p>
+<p>这样设计的原因是为了简化计算机计算，计算机这个东西，他虽然快，但是论复杂逻辑思考，真的弱得一匹 ┑(￣Д ￣)┍</p>
+<h2 id="尝试复述一下设计原理"><a href="#尝试复述一下设计原理" class="headerlink" title="尝试复述一下设计原理"></a>尝试复述一下设计原理</h2><p>人的思路：1 - 1 = 1 + (-1) = 0，但是这个套路机器不懂啊，从它开来 1 + (-1) = 0001 + 1001 = -2。 为了弥补这个 gap, 人们就搞出了反码这个东西，这样机器计算的时候 1 + (-1) = 0001 + 1110 = 1111[反] = 1000[原] = -0。计算结果为题解决了，但随之带来了新的问题，出现了 0 和 -0 两个重复的数。所以人们又做了一次改进，搞出了补码这个东西，从此机器码中 1 + (-1) = 0001[补] + 1111[补] = 1,0000 = 0000, 因为是四位计算，最高位溢出不计算了，完美解决问题 ↖(^ω^)↗</p>
+<p>原来多出来 -0 用来表示四位最大的负数 -64。这个数是没有原码和反码的。</p>
+<h2 id="注意点"><a href="#注意点" class="headerlink" title="注意点"></a>注意点</h2><ul>
+<li>反码和取反是两个东西</li>
+<li>取反和非很像，但是有区别，取反是0/1计算，非是逻辑运算</li>
+<li>最大的那个负数没有原码和反码</li>
+</ul>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<li><a href="https://www.cnblogs.com/zhangziqiu/archive/2011/03/30/ComputerCode.html">CSDN-原码, 反码, 补码 详解</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>科普</category>
+      </categories>
+      <tags>
+        <tag>原码</tag>
+        <tag>反码</tag>
+        <tag>补码</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>各种常用小工具</title>
     <url>/hexo/2020/05/16/%E5%90%84%E7%A7%8D%E5%B8%B8%E7%94%A8%E5%B0%8F%E5%B7%A5%E5%85%B7/</url>
     <content><![CDATA[<p>常用小工具记录</p>
@@ -3628,33 +3659,6 @@
       </categories>
       <tags>
         <tag>解释</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>原码，反码和补码</title>
-    <url>/hexo/2019/12/07/%E5%8E%9F%E7%A0%81%EF%BC%8C%E5%8F%8D%E7%A0%81%E5%92%8C%E8%A1%A5%E7%A0%81/</url>
-    <content><![CDATA[<p>本篇简要介绍一下计算机存储中原码，反码，补码的一些基本知识，给出一些我自己的概括，不严谨，想了解更多参考我给的链接</p>
-<h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>二进制数表示带符号值时，最高位位符号位，0表示正数，1表示负数，以四位二进制数来说明</p>
-<p>原码：人能直接读出来的数，比如 1 二进制表示为 0001，-1 二进制 1001<br>反码：正数反码等于原码，负数反码符号为不变，其他各位取反 -1 反码 1110<br>补码：正数补码等于原码，负数补码等于反码 +1， -1 补码 1111</p>
-<p>这样设计的原因是为了简化计算机计算，计算机这个东西，他虽然快，但是论复杂逻辑思考，真的弱得一匹 ┑(￣Д ￣)┍</p>
-<h2 id="尝试复述一下设计原理"><a href="#尝试复述一下设计原理" class="headerlink" title="尝试复述一下设计原理"></a>尝试复述一下设计原理</h2><p>人的思路：1 - 1 = 1 + (-1) = 0，但是这个套路机器不懂啊，从它开来 1 + (-1) = 0001 + 1001 = -2。 为了弥补这个 gap, 人们就搞出了反码这个东西，这样机器计算的时候 1 + (-1) = 0001 + 1110 = 1111[反] = 1000[原] = -0。计算结果为题解决了，但随之带来了新的问题，出现了 0 和 -0 两个重复的数。所以人们又做了一次改进，搞出了补码这个东西，从此机器码中 1 + (-1) = 0001[补] + 1111[补] = 1,0000 = 0000, 因为是四位计算，最高位溢出不计算了，完美解决问题 ↖(^ω^)↗</p>
-<p>原来多出来 -0 用来表示四位最大的负数 -64。这个数是没有原码和反码的。</p>
-<h2 id="注意点"><a href="#注意点" class="headerlink" title="注意点"></a>注意点</h2><ul>
-<li>反码和取反是两个东西</li>
-<li>取反和非很像，但是有区别，取反是0/1计算，非是逻辑运算</li>
-<li>最大的那个负数没有原码和反码</li>
-</ul>
-<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
-<li><a href="https://www.cnblogs.com/zhangziqiu/archive/2011/03/30/ComputerCode.html">CSDN-原码, 反码, 补码 详解</a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>科普</category>
-      </categories>
-      <tags>
-        <tag>原码</tag>
-        <tag>反码</tag>
-        <tag>补码</tag>
       </tags>
   </entry>
   <entry>
