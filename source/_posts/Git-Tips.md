@@ -34,11 +34,17 @@ git reset HEAD~1
 
 `git revert -m 1 commit_hash` 将对应的 commit 改动会滚， 很棒！
 
+PS: `-m 1` 会使用默认的 comment 信息，如果你想自定义 comment 内容，可以将这个参数去掉
+
 ## reset VS revert
 
-reset 会将历史记录也一并会滚，这样就会导致记录缺失。不是很好，但是在自己 local branch 做了改动想还原的这种 scenario 还是和合适的
+reset 历史记录后退，revert 前进
+
+reset 会将历史记录也一并会滚，这样就会导致记录缺失。不是很好，但是在自己 local branch 做了改动想还原的这种 scenario 还是和合适的。还有 `reset --hard commit_hash + git push --force` 也可以重置代码，但是会修改历史记录，操作比较危险
 
 revert 会在原有的基础上将对应的 commit 改动重置并添加新的历史记录，路径更完成
+
+这个 [文章](https://juejin.im/post/6844903614767448072) 比较两者的区别，写的挺清楚的
 
 ## 将本地的单个文件还原成 master 版本
 
