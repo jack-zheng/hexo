@@ -24,7 +24,7 @@ tags:
 
 ## UML
 
-TODO
+{% asset_img visitor_pattern.png visitor_pattern UML %}
 
 ## 实例
 
