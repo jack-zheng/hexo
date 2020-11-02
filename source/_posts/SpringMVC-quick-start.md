@@ -413,3 +413,9 @@ INSERT INTO `books`(`bookID`,`bookName`,`bookCounts`,`detail`)VALUES
 (2,'MySQL',10,'从删库到跑路'),
 (3,'Linux',5,'从进门到进牢');
 ```
+
+#### Issues
+
+启动报错 `一个或多个筛选器启动失败。完整的详细信息将在相应的容器日志文件中找到`, 这个是适配 web support 的时候没有添加 lib 包导致的
+
+Tomcat 下的 catalina.properties 修改了配置 'tomcat.util.scan.StandardJarScanFilter.jarsToSkip=*.jar' 导致 jstl 解析出问题抛异常 `无法在web.xml或使用此应用程序部署的jar文件中解析绝对uri` 改回到默认配置，修复。花了2个小时排错，之前告诉我这个该法的人真想把它拖出去枪毙18遍！参考 [cnblog](https://www.cnblogs.com/tioxy/p/13291574.html)
