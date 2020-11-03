@@ -131,7 +131,23 @@ INSERT INTO user (id, name, pwd) VALUES
 (1, 'jack', '123'), (2, 'jack02', '123');
 ```
 
-新建测试项目
+### 最简项目树
+
+```txt
+.
+├── java
+│   └── com
+│       └── jzheng
+│           ├── dao
+│           │   ├── UserMapper.java
+│           │   └── UserMapper.xml
+│           └── pojo
+│               └── User.java
+└── resources
+    └── mybatis-config.xml
+```
+
+### 新建测试项目
 
 1. 新建 maven 项目
 2. 删除 src 目录，通过 module 的方式管理，条理更清楚

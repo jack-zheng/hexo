@@ -31,6 +31,8 @@ tags:
 
 弊端：发展太久，违背原来的理念。配置繁琐，人称 '配置地狱'
 
+Spring 和 SpringMVC 的区别：都是容器，spring 用来管理 dao 和 service，springmvc 用来管理 controller
+
 ## IoC 理论推导 （Inversion of Control）
 
 原来的实现
@@ -42,9 +44,10 @@ tags:
 
 用户的需求可能影响到原来的代码，我们需要根据用户需求修改源代码（修改 UserDaoImpl 中的 Dao 生成）
 
-通过 set 方法主入后，实现被动接受对象，需求由外部决定。不在管理对象创建，专注于扩展业务。
+通过 set 方法注入后，实现被动接受对象，需求由外部决定。不在管理对象创建，专注于扩展业务。
 
 ```java
+// UserServiceImpl 中对 UserDao 的引用
 private UserDao userDao;
 
 // 利用 set 动态注入实现

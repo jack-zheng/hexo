@@ -154,7 +154,7 @@ git remote show origin
 
 情景描述：
 
-我自己又一个分之 A， 同时创建了另一个分之 B 并在上面做了改动，commit 为 c1。我对他的这个 commit 有依赖，又不想自己 CV 代码或者以后有 conflict 什么的，这时可以 checkout 到我自己的分支，然后 `git cherry pick c1` 来合并代码。他的代码 merge 之后我也不用解决冲突，美滋滋儿。
+我自己有一个分之 A， 同时创建了另一个分之 B 并在上面做了改动，commit 为 c1。我对他的这个 commit 有依赖，又不想自己 CV 代码或者以后有 conflict 什么的，这时可以 checkout 到我自己的分支，然后 `git cherry pick c1` 来合并代码。他的代码 merge 之后我也不用解决冲突，美滋滋儿。
 
 ## 使用 rebase 来合并自己分支的 commit 记录，强迫症福音
 
