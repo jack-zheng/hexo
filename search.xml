@@ -3045,6 +3045,55 @@
       </tags>
   </entry>
   <entry>
+    <title>Springboot note</title>
+    <url>/hexo/2020/11/05/Springboot-note/</url>
+    <content><![CDATA[<p>Springboot 学习笔记</p>
+<h2 id="HelloWorld-web-mode"><a href="#HelloWorld-web-mode" class="headerlink" title="HelloWorld web mode"></a>HelloWorld web mode</h2><ol>
+<li>访问 <a href="https://start.spring.io/">Initializr</a> 定制项目， dependencies 选 Spring Web 即可</li>
+<li>下载项目 jar 文件并解压，使用 Idea import，构建项目</li>
+<li>Springboot 的项目结构和 Springmvc 基本一样，在 HelloWorldApplication 同级目录下创建 controller 包并添加 controller 类</li>
+<li>Springboot 项目默认集成 tomcat，直接运行 application class 即可启动服务器</li>
+<li>该 tomcat 应该是优化过的，启动速度飞起，访问 <code>http://localhost:8080/hello</code> 可以看到返回 hello 字符串</li>
+<li>查看 idea 右边的 maven tab, 在 Lifecycle 下双击执行 package 打包项目 </li>
+<li>可以看到打包好的项目 <code>Building jar: ...\helloworld\target\helloworld-0.0.1-SNAPSHOT.jar</code></li>
+<li>到对应的路径下，cmd 窗口输入 <code>java -jar helloworld-0.0.1-SNAPSHOT.jar</code> 可以直接启动</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestController</span> </span>&#123;</span><br><span class="line">    <span class="meta">@GetMapping(&quot;/hello&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">hello</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;hello&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="HelloWorld-idea-mode"><a href="#HelloWorld-idea-mode" class="headerlink" title="HelloWorld idea mode"></a>HelloWorld idea mode</h2><ol>
+<li>Idea -&gt; file -&gt; new -&gt; project -&gt; Spring Initialzr</li>
+<li>填入必要信息，可以修改 package 简化路径</li>
+<li>其他步骤和上面的练习一样</li>
+</ol>
+<p>彩蛋：banner 替换，在 resources 下新建 banner.txt 文件，替换终端启动图标</p>
+<h2 id="自动配置原理初探"><a href="#自动配置原理初探" class="headerlink" title="自动配置原理初探"></a>自动配置原理初探</h2><ol>
+<li>核心依赖都在父工程中</li>
+<li>写入依赖时不需要指定版本，父类 pom 已经管理了</li>
+</ol>
+<p><strong>启动器</strong>, 即 Springboot 的启动场景</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>各种场景有对应的启动器，比如 <code>spring-boot-starter-web</code>, 开发时只需要找到对应的启动器即可</p>
+<p><strong>主程序</strong></p>
+<p>这部分需要 实操+完善 好几遍才行，流程有点长</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//@SpringBootApplication 标注这个类是一个 springboot 应用</span></span><br><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Hello02Application</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 启动应用</span></span><br><span class="line">        SpringApplication.run(Hello02Application.class, args);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>主要注解关系</p>
+<figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">@SpringBootApplication </span><br><span class="line">    @SpringBootConfiguration - springboot 配置</span><br><span class="line">        @Configuration - spring 配置类</span><br><span class="line">            @Component - 说明时一个 spring 组件</span><br><span class="line">    @EnableAutoConfiguration</span><br><span class="line">        @AutoConfigurationPackage</span><br><span class="line">            @Import(AutoConfigurationPackages.Registrar.class)</span><br></pre></td></tr></table></figure>
+
+<p>结论：Springboot 所有自动配置都是在启动的时候扫描并加载(spring.factories). 所有的自动配置配都在里面，但不一定生效。要判断条件是否成立，只有导入了对应的启动器(starter), 才会生效。</p>
+<p>spring-boot-autoconfiguration.jar 包含所有的配置</p>
+]]></content>
+      <categories>
+        <category>编程</category>
+      </categories>
+      <tags>
+        <tag>java</tag>
+        <tag>spring</tag>
+        <tag>springboot</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>TestNG Jmockit 使用案例</title>
     <url>/hexo/2020/07/07/TestNG-Jmockit-Examples/</url>
     <content><![CDATA[<p>记录一下工作中常用到的 TestNG, Jmockit 使用案例</p>
