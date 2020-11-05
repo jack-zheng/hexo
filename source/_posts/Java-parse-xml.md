@@ -33,9 +33,8 @@ tags:
 
 下面展示的例子都存在 mybatis 的 repo 的
 
-## TODO: 
+## TODO
 
-* 我们现在工程中用到的解析 xml 的方式看上去很像官方文档中说的 Filter 模式，稍后仔细阅读一下
 * add URL here
 * SAX 是怎么做到事件触发的，光想想找不到思路。。。得看看源码
 
@@ -354,3 +353,69 @@ public void test() throws ParserConfigurationException, SAXException, IOExceptio
 ## External DTD/XSD sample
 
 这部分我们可以等到以后看 spring 或者 mybatis 解析 xml 的时候看，直接是现成的例子， 他是通过 EntityResolver 指定的解析规则
+
+## XMLFilter 使用案例
+
+解析 XML 时如果需要过滤某些节点，可以使用该技术，优点：避免修改原有逻辑，使得逻辑更清晰，分层
+
+Scenario: 解析 Employee 只处理 deptid = 3 的节点
+
+```java
+public class FemaleFilter extends XMLFilterImpl {
+
+    public FemaleFilter (XMLReader parent)
+    {
+        super(parent);
+    }
+
+    @Override
+    public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
+        if ("employee".equals(qName) && atts.getValue("deptid").equals("3")) {
+            super.startElement(uri, localName, qName, atts);
+        }
+    }
+}
+
+public class FemaleHandler extends DefaultHandler {
+    @Override
+    public void startElement(String uri, String localName, String qName, Attributes attributes) {
+        if ("employee".equals(qName)) {
+            System.out.printf("QName: %s, id: %s, deptid: %s %n", qName, attributes.getValue("empid"), attributes.getValue("deptid"));
+        }
+    }
+}
+
+@Test
+public void test() throws SAXException, IOException {
+    String xml = "<?xml version=\"1.0\"?>\n" +
+            "<personnel>\n" +
+            "  <employee empid=\"332\" deptid=\"24\" shift=\"night\"\n" +
+            "         status=\"contact\">\n" +
+            "    JennyBerman\n" +
+            "  </employee>\n" +
+            "  <employee empid=\"994\" deptid=\"24\" shift=\"day\"\n" +
+            "         status=\"donotcontact\">\n" +
+            "    AndrewFule\n" +
+            "  </employee>\n" +
+            "  <employee empid=\"948\" deptid=\"3\" shift=\"night\"\n" +
+            "         status=\"contact\">\n" +
+            "    AnnaBangle\n" +
+            "  </employee>\n" +
+            "  <employee empid=\"1032\" deptid=\"3\" shift=\"day\"\n" +
+            "         status=\"contact\">\n" +
+            "    DavidBaines\n" +
+            "  </employee>\n" +
+            "</personnel>";
+
+    XMLReader reader = XMLReaderFactory.createXMLReader();
+    XMLFilter femaleFilter = new FemaleFilter(reader);
+    femaleFilter.setContentHandler(new FemaleHandler());
+    femaleFilter.parse(new InputSource(new StringReader(xml)));
+}
+
+// output:
+// QName: employee, id: 948, deptid: 3
+// QName: employee, id: 1032, deptid: 3
+```
+
+例子里面的示例比较简单，如果判断条件分散在好几个 node 里面，可能解析起来就不方便了，不过得具体问题具体分析
