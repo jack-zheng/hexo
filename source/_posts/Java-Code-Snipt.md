@@ -1,5 +1,5 @@
 ---
-title: Java Code Snipt
+title: Java 代码块记录
 date: 2020-08-10 15:19:26
 categories:
 - 编程
@@ -26,4 +26,23 @@ public class Tuple2<A, B> {
         return "(" + rep() + ")";
     }
 }
+```
+
+## lambda 实现 interface
+
+```java
+public class TestLambda {
+    private MyPrint print;
+
+    @Test
+    public void test() {
+        print = System.out::println;
+        print.print("jack");
+    }
+}
+
+interface MyPrint {
+    void print(String name);
+}
+// output: jack
 ```

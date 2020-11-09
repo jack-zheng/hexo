@@ -1,5 +1,5 @@
 ---
-title: Java ClassLoader getResources
+title: Java 通过 ClassLoader 获取 resources
 date: 2020-11-06 19:22:08
 categories:
 - 编程
