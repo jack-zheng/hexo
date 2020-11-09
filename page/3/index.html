@@ -237,7 +237,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-11-06 19:26:10" itemprop="dateModified" datetime="2020-11-06T19:26:10+08:00">2020-11-06</time>
+                <time title="修改时间：2020-11-09 14:26:10" itemprop="dateModified" datetime="2020-11-09T14:26:10+08:00">2020-11-09</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -257,14 +257,14 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>8.9k</span>
+              <span>12k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>8 分钟</span>
+              <span>11 分钟</span>
             </span>
 
         </div>
@@ -293,7 +293,17 @@
 <p>终端输出</p>
 <figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">--- START ---</span><br><span class="line">invoke visit method, params: 52, 33, sorra/tracesonar/mytest/SayHello, null, java/lang/Object, [sorra/tracesonar/mytest/MyInterface01, sorra/tracesonar/mytest/MyInterface02]</span><br><span class="line">at Method &lt;init&gt;</span><br><span class="line">at Method ‘&lt;init&gt;’ Begin...</span><br><span class="line">Params in visitLocalVariable: this, Lsorra/tracesonar/mytest/SayHello;, null, L662441761, L1618212626, 0</span><br><span class="line">at Method ‘&lt;init&gt;’End.</span><br><span class="line">at Method say</span><br><span class="line">at Method ‘say’ Begin...</span><br><span class="line">Params in visitLocalVariable: this, Lsorra/tracesonar/mytest/SayHello;, null, L1129670968, L1023714065, 0</span><br><span class="line">Params in visitLocalVariable: name, Ljava/lang/String;, null, L2051450519, L1023714065, 1</span><br><span class="line">at Method ‘say’End.</span><br><span class="line">--- END ---</span><br></pre></td></tr></table></figure>
 
-<p>想要理解 ASM 运行方式，需要结合前面的 bytecode 内容。比如 <code>visitLocalVariable</code> 方法其实就是将 bytecode 里面对应的 LOCALVARIABLE 信息打印出来。 </p>
+<p>想要理解 ASM 运行方式，需要结合前面的 bytecode 内容。比如 <code>visitLocalVariable</code> 方法其实就是将 bytecode 里面对应的 LOCALVARIABLE 信息打印出来。</p>
+<h2 id="MethodVisitor-的-visitMethodInsn-方法简单例子"><a href="#MethodVisitor-的-visitMethodInsn-方法简单例子" class="headerlink" title="MethodVisitor 的 visitMethodInsn 方法简单例子"></a>MethodVisitor 的 visitMethodInsn 方法简单例子</h2><p>根据查到的资料，该方法可以知道当前的方法调用了其他类的什么方法，设计用例如下: Class A 有 method a, Class B 有 method b, a 中包含对 b 的调用，使用 visitMethodInsn 解析 a 方法是应该可以拿到这层关系</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ClassA</span> </span>&#123;</span><br><span class="line">    ClassB b = <span class="keyword">new</span> ClassB();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">methodA</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        b.methodB();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ClassB</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">methodB</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Method B called...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>class A 的 bytecode 显示如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; class version 52.0 (52)</span><br><span class="line">&#x2F;&#x2F; access flags 0x21</span><br><span class="line">public class com&#x2F;jzheng&#x2F;asmtest&#x2F;ClassA &#123;</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; compiled from: ClassA.java</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; access flags 0x0</span><br><span class="line">  Lcom&#x2F;jzheng&#x2F;asmtest&#x2F;ClassB; b</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; access flags 0x1</span><br><span class="line">  public &lt;init&gt;()V</span><br><span class="line">   L0</span><br><span class="line">    LINENUMBER 3 L0</span><br><span class="line">    ALOAD 0</span><br><span class="line">    INVOKESPECIAL java&#x2F;lang&#x2F;Object.&lt;init&gt; ()V</span><br><span class="line">   L1</span><br><span class="line">    LINENUMBER 4 L1</span><br><span class="line">    ALOAD 0</span><br><span class="line">    NEW com&#x2F;jzheng&#x2F;asmtest&#x2F;ClassB</span><br><span class="line">    DUP</span><br><span class="line">    INVOKESPECIAL com&#x2F;jzheng&#x2F;asmtest&#x2F;ClassB.&lt;init&gt; ()V</span><br><span class="line">    PUTFIELD com&#x2F;jzheng&#x2F;asmtest&#x2F;ClassA.b : Lcom&#x2F;jzheng&#x2F;asmtest&#x2F;ClassB;</span><br><span class="line">    RETURN</span><br><span class="line">   L2</span><br><span class="line">    LOCALVARIABLE this Lcom&#x2F;jzheng&#x2F;asmtest&#x2F;ClassA; L0 L2 0</span><br><span class="line">    MAXSTACK &#x3D; 3</span><br><span class="line">    MAXLOCALS &#x3D; 1</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; access flags 0x1</span><br><span class="line">  public methodA()V</span><br><span class="line">   L0</span><br><span class="line">    LINENUMBER 7 L0</span><br><span class="line">    ALOAD 0</span><br><span class="line">    GETFIELD com&#x2F;jzheng&#x2F;asmtest&#x2F;ClassA.b : Lcom&#x2F;jzheng&#x2F;asmtest&#x2F;ClassB;</span><br><span class="line">    INVOKEVIRTUAL com&#x2F;jzheng&#x2F;asmtest&#x2F;ClassB.methodB ()V</span><br><span class="line">   L1</span><br><span class="line">    LINENUMBER 8 L1</span><br><span class="line">    RETURN</span><br><span class="line">   L2</span><br><span class="line">    LOCALVARIABLE this Lcom&#x2F;jzheng&#x2F;asmtest&#x2F;ClassA; L0 L2 0</span><br><span class="line">    MAXSTACK &#x3D; 1</span><br><span class="line">    MAXLOCALS &#x3D; 1</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到在 <code>methodA()V</code> block 里有对 ClassB 的方法调用说明 <code>INVOKEVIRTUAL com/jzheng/asmtest/ClassB.methodB ()V</code>，通过它我们可以知道当前方法对其他类方法的调用</p>
+<p>测试用例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ASMTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;--- START ---&quot;</span>);</span><br><span class="line">        ClassReader cr = <span class="keyword">new</span> ClassReader(ClassA.class.getName());</span><br><span class="line">        cr.accept(<span class="keyword">new</span> DemoClassVisitor(), <span class="number">0</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;--- END ---&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DemoClassVisitor</span> <span class="keyword">extends</span> <span class="title">ClassVisitor</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DemoClassVisitor</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(Opcodes.ASM5);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Called when access method</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> MethodVisitor <span class="title">visitMethod</span><span class="params">(<span class="keyword">int</span> access, String name, String desc, String signature, String[] exceptions)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;at Method &quot;</span> + name);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">super</span>.visitMethod(access, name, desc, signature, exceptions);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> MethodVisitor(Opcodes.ASM5) &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visitMethodInsn</span><span class="params">(<span class="keyword">int</span> opcode, String owner, String name, String desc, <span class="keyword">boolean</span> itf)</span> </span>&#123;</span><br><span class="line">                <span class="keyword">super</span>.visitMethodInsn(opcode, owner, name, desc, itf);</span><br><span class="line">                System.out.println(String.format(<span class="string">&quot;opcode: %s, owner: %s, name: %s, desc: %s, itf: %s&quot;</span>, opcode, owner, name, desc, itf));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// output:</span></span><br><span class="line"><span class="comment">// --- START ---</span></span><br><span class="line"><span class="comment">// at Method &lt;init&gt;</span></span><br><span class="line"><span class="comment">// opcode: 183, owner: java/lang/Object, name: &lt;init&gt;, desc: ()V, itf: false</span></span><br><span class="line"><span class="comment">// opcode: 183, owner: com/jzheng/asmtest/ClassB, name: &lt;init&gt;, desc: ()V, itf: false</span></span><br><span class="line"><span class="comment">// at Method methodA</span></span><br><span class="line"><span class="comment">// opcode: 182, owner: com/jzheng/asmtest/ClassB, name: methodB, desc: ()V, itf: false</span></span><br><span class="line"><span class="comment">// --- END ---</span></span><br></pre></td></tr></table></figure>
+
 <h2 id="修改方法"><a href="#修改方法" class="headerlink" title="修改方法"></a>修改方法</h2><p>实验内容：准备一个 HelloWorld.class 可以打印出 ‘Hello World’ 字样。通过 ASM 框架使他在打印之前和之后都输出一些 debug 信息，调用时可以使用反射简化实验。</p>
 <p>测试用 class</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloWorld</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sayHello</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Hello World...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -364,7 +374,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-11-06 19:26:10" itemprop="dateModified" datetime="2020-11-06T19:26:10+08:00">2020-11-06</time>
+                <time title="修改时间：2020-11-09 14:26:10" itemprop="dateModified" datetime="2020-11-09T14:26:10+08:00">2020-11-09</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -455,7 +465,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-11-06 19:26:10" itemprop="dateModified" datetime="2020-11-06T19:26:10+08:00">2020-11-06</time>
+                <time title="修改时间：2020-11-09 14:26:10" itemprop="dateModified" datetime="2020-11-09T14:26:10+08:00">2020-11-09</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -559,7 +569,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-11-06 19:26:10" itemprop="dateModified" datetime="2020-11-06T19:26:10+08:00">2020-11-06</time>
+                <time title="修改时间：2020-11-09 14:26:10" itemprop="dateModified" datetime="2020-11-09T14:26:10+08:00">2020-11-09</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -650,7 +660,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-11-06 19:26:10" itemprop="dateModified" datetime="2020-11-06T19:26:10+08:00">2020-11-06</time>
+                <time title="修改时间：2020-11-09 14:26:10" itemprop="dateModified" datetime="2020-11-09T14:26:10+08:00">2020-11-09</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -744,7 +754,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-11-06 19:26:10" itemprop="dateModified" datetime="2020-11-06T19:26:10+08:00">2020-11-06</time>
+                <time title="修改时间：2020-11-09 14:26:10" itemprop="dateModified" datetime="2020-11-09T14:26:10+08:00">2020-11-09</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -836,7 +846,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-11-06 19:26:10" itemprop="dateModified" datetime="2020-11-06T19:26:10+08:00">2020-11-06</time>
+                <time title="修改时间：2020-11-09 14:26:10" itemprop="dateModified" datetime="2020-11-09T14:26:10+08:00">2020-11-09</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -966,7 +976,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-11-06 19:26:10" itemprop="dateModified" datetime="2020-11-06T19:26:10+08:00">2020-11-06</time>
+                <time title="修改时间：2020-11-09 14:26:10" itemprop="dateModified" datetime="2020-11-09T14:26:10+08:00">2020-11-09</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1057,7 +1067,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-11-06 19:26:10" itemprop="dateModified" datetime="2020-11-06T19:26:10+08:00">2020-11-06</time>
+                <time title="修改时间：2020-11-09 14:26:10" itemprop="dateModified" datetime="2020-11-09T14:26:10+08:00">2020-11-09</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1149,7 +1159,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-11-06 19:26:10" itemprop="dateModified" datetime="2020-11-06T19:26:10+08:00">2020-11-06</time>
+                <time title="修改时间：2020-11-09 14:26:10" itemprop="dateModified" datetime="2020-11-09T14:26:10+08:00">2020-11-09</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1301,12 +1311,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">218k</span>
+    <span title="站点总字数">220k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">3:18</span>
+    <span title="站点阅读时长">3:20</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
