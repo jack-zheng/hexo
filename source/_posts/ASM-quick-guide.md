@@ -158,7 +158,119 @@ at Method ‘say’End.
 --- END ---
 ```
 
-想要理解 ASM 运行方式，需要结合前面的 bytecode 内容。比如 `visitLocalVariable` 方法其实就是将 bytecode 里面对应的 LOCALVARIABLE 信息打印出来。 
+想要理解 ASM 运行方式，需要结合前面的 bytecode 内容。比如 `visitLocalVariable` 方法其实就是将 bytecode 里面对应的 LOCALVARIABLE 信息打印出来。
+
+## MethodVisitor 的 visitMethodInsn 方法简单例子
+
+根据查到的资料，该方法可以知道当前的方法调用了其他类的什么方法，设计用例如下: Class A 有 method a, Class B 有 method b, a 中包含对 b 的调用，使用 visitMethodInsn 解析 a 方法是应该可以拿到这层关系
+
+```java
+public class ClassA {
+    ClassB b = new ClassB();
+
+    public void methodA() {
+        b.methodB();
+    }
+}
+
+public class ClassB {
+    public void methodB() {
+        System.out.println("Method B called...");
+    }
+}
+```
+
+class A 的 bytecode 显示如下
+
+```bytecode
+// class version 52.0 (52)
+// access flags 0x21
+public class com/jzheng/asmtest/ClassA {
+
+  // compiled from: ClassA.java
+
+  // access flags 0x0
+  Lcom/jzheng/asmtest/ClassB; b
+
+  // access flags 0x1
+  public <init>()V
+   L0
+    LINENUMBER 3 L0
+    ALOAD 0
+    INVOKESPECIAL java/lang/Object.<init> ()V
+   L1
+    LINENUMBER 4 L1
+    ALOAD 0
+    NEW com/jzheng/asmtest/ClassB
+    DUP
+    INVOKESPECIAL com/jzheng/asmtest/ClassB.<init> ()V
+    PUTFIELD com/jzheng/asmtest/ClassA.b : Lcom/jzheng/asmtest/ClassB;
+    RETURN
+   L2
+    LOCALVARIABLE this Lcom/jzheng/asmtest/ClassA; L0 L2 0
+    MAXSTACK = 3
+    MAXLOCALS = 1
+
+  // access flags 0x1
+  public methodA()V
+   L0
+    LINENUMBER 7 L0
+    ALOAD 0
+    GETFIELD com/jzheng/asmtest/ClassA.b : Lcom/jzheng/asmtest/ClassB;
+    INVOKEVIRTUAL com/jzheng/asmtest/ClassB.methodB ()V
+   L1
+    LINENUMBER 8 L1
+    RETURN
+   L2
+    LOCALVARIABLE this Lcom/jzheng/asmtest/ClassA; L0 L2 0
+    MAXSTACK = 1
+    MAXLOCALS = 1
+}
+```
+
+可以看到在 `methodA()V` block 里有对 ClassB 的方法调用说明 `INVOKEVIRTUAL com/jzheng/asmtest/ClassB.methodB ()V`，通过它我们可以知道当前方法对其他类方法的调用
+
+测试用例：
+
+```java
+public class ASMTest {
+    public static void main(String[] args) throws IOException {
+        System.out.println("--- START ---");
+        ClassReader cr = new ClassReader(ClassA.class.getName());
+        cr.accept(new DemoClassVisitor(), 0);
+        System.out.println("--- END ---");
+    }
+}
+
+class DemoClassVisitor extends ClassVisitor {
+    public DemoClassVisitor() {
+        super(Opcodes.ASM5);
+    }
+
+    // Called when access method
+    @Override
+    public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+        System.out.println("at Method " + name);
+
+        super.visitMethod(access, name, desc, signature, exceptions);
+        return new MethodVisitor(Opcodes.ASM5) {
+            @Override
+            public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
+                super.visitMethodInsn(opcode, owner, name, desc, itf);
+                System.out.println(String.format("opcode: %s, owner: %s, name: %s, desc: %s, itf: %s", opcode, owner, name, desc, itf));
+            }
+        };
+    }
+}
+// output:
+// --- START ---
+// at Method <init>
+// opcode: 183, owner: java/lang/Object, name: <init>, desc: ()V, itf: false
+// opcode: 183, owner: com/jzheng/asmtest/ClassB, name: <init>, desc: ()V, itf: false
+// at Method methodA
+// opcode: 182, owner: com/jzheng/asmtest/ClassB, name: methodB, desc: ()V, itf: false
+// --- END ---
+```
 
 ## 修改方法
 
