@@ -87,3 +87,135 @@ public class Hello02Application {
 结论：Springboot 所有自动配置都是在启动的时候扫描并加载(spring.factories). 所有的自动配置配都在里面，但不一定生效。要判断条件是否成立，只有导入了对应的启动器(starter), 才会生效。
 
 spring-boot-autoconfiguration.jar 包含所有的配置
+
+SpringApplication.run() 完了可以深入了解一下，不过，前面的自动装备更重要
+
+## YAML 给属性赋值
+
+yaml 格式：
+
+```yaml
+server:
+    port: 8081
+```
+
+可以直接给对象赋值
+
+### 基本赋值用法
+
+通过添加 @Value 实现
+
+```java
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+@Component
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Dog {
+    @Value("旺财")
+    private String name;
+    @Value("3")
+    private int age;
+}
+
+@SpringBootTest
+class DogTest {
+    @Autowired
+    private Dog dog;
+
+    @Test
+    public void test() {
+        System.out.println(dog);
+    }
+}
+
+// output: Dog(name=旺财, age=3)
+```
+
+### yaml 配置属性
+
+配置 pom 依赖
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-configuration-processor</artifactId>
+    <optional>true</optional>
+</dependency>
+```
+
+类添加 `@ConfigurationProperties` 注解
+
+```java
+@Component
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@ConfigurationProperties(prefix = "person")
+public class Person {
+    private String name;
+    private int age;
+    private boolean isHappy;
+    private Date birth;
+    private Map<String, Object> maps;
+    private List<Object> lists;
+    private Dog dog;
+}
+```
+
+添加 `application.yaml` 文件并设置属性
+
+```yaml
+person:
+  name: jack
+  age: 30
+  isHappy: true
+  birth: 2020/01/01
+  maps: {k1: v1, K2: v2}
+  lists: [1, 2, 3]
+  dog:
+    name: 旺财
+    age: 2
+```
+
+```java
+@SpringBootTest
+class PersonTest {
+    @Autowired
+    private Person person;
+
+    @Test
+    public void test() {
+        System.out.println(person);
+    }
+}
+// output: Person(name=jack, age=30, isHappy=false, birth=Wed Jan 01 00:00:00 CST 2020, maps={k1=v1, K2=v2}, lists=[1, 2, 3], dog=Dog(name=旺财, age=2))
+```
+
+PS: yaml 还支持各种随机占位符，一元表达式等，可扩展性要更强
+
+### 通过 properties 配置
+
+缺点：表示起来比较冗余
+
+```java
+@Component
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@PropertySource(value="classpath:application.properties")
+public class Person {
+    @Value("${name}")
+    private String name;
+    private int age;
+    private boolean isHappy;
+    private Date birth;
+    private Map<String, Object> maps;
+    private List<Object> lists;
+    private Dog dog;
+}
+```
+
+## JSR 303 校验
