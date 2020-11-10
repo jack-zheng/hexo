@@ -9,7 +9,7 @@ tags:
 - springboot
 ---
 
-Springboot 学习笔记
+Springboot 学习笔记，核心**自动配置**
 
 ## HelloWorld web mode
 
@@ -219,3 +219,96 @@ public class Person {
 ```
 
 ## JSR 303 校验
+
+spring 自带的验证注解，添加之后可以再给 bean 赋值的时候带上校验效果
+
+添加依赖
+
+```xml
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-validation</artifactId>
+</dependency>
+```
+
+数据配置
+
+```yaml
+mailbox:
+  email: 123
+```
+
+添加 `@Validated`, `@Email` 等注解
+```java
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
+
+import javax.validation.constraints.Email;
+
+@Component
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@ConfigurationProperties(prefix = "mailbox")
+@Validated
+public class MailBox {
+
+    @Email(message = "Email format is incorrect!!!")
+    private String email;
+}
+
+// 测试用例
+@SpringBootTest
+class MailBoxTest {
+    @Autowired
+    private MailBox box;
+
+    @Test
+    public void test() {
+        System.out.println(box);
+    }
+}
+// 抛异常：org.springframework.boot.context.properties.bind.validation.BindValidationException
+```
+
+## 默认配置文件优先级
+
+方式一：root/config > root/. > classpath:/config > classpath:/.
+
+方式二： 新建 `application-xx.properties`, 再 default 中的配置文件中通过 `spring.profile.active=xx` 指定激活的配置
+
+方式三：yaml + ---
+
+```yaml
+server:
+    port: 8081
+spring:
+    profiles:
+        active: dev
+
+---
+server:
+    port: 8082
+spring:
+    profiles: dev
+
+---
+server:
+    port: 8083
+spring:
+    profiles: test
+```
+
+## application.properties 中支持的属性源码中在哪里写的
+
+1. SpringBoot 启动会加载大量的配置类
+2. 我们看需要的功能有没有在 SpringBoot 默认写好的自动配置类当中
+3. 再看这个配置类中到底配置了哪些组件
+4. 给容器中自动皮欸之类添加组件的时候，会从 properties 类中获取某些属性
+
+xxxAutoConfiguration: 自动配置类，给容器添加组件
+
+xxxProperties：封装配置文件中相关属性
+
+debug=true 可以查看配置详情
