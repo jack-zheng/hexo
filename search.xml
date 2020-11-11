@@ -571,112 +571,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Equals in python</title>
-    <url>/hexo/2020/06/12/Equals-in-python/</url>
-    <content><![CDATA[<ul>
-<li><code>==</code> 和 <code>is</code> 的区别</li>
-<li>怎么使得 Object 使用 <code>==</code> 比较相等</li>
-<li>Set 集合中判断相等</li>
-</ul>
-<h2 id="Vs-is"><a href="#Vs-is" class="headerlink" title="== Vs is"></a>== Vs is</h2><p><code>==</code> 用来判断值相等，<code>is</code> 用来判断引用相等</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">a = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]</span><br><span class="line">b = a</span><br><span class="line"></span><br><span class="line">a == b <span class="comment"># true</span></span><br><span class="line">a <span class="keyword">is</span> b <span class="comment"># true</span></span><br><span class="line"></span><br><span class="line">b = a[:]</span><br><span class="line">a == b <span class="comment"># true</span></span><br><span class="line">a <span class="keyword">is</span> b <span class="comment"># false</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="怎么使得-Object-使用-比较相等"><a href="#怎么使得-Object-使用-比较相等" class="headerlink" title="怎么使得 Object 使用 == 比较相等"></a>怎么使得 Object 使用 <code>==</code> 比较相等</h2><p>你需要重写 class 的 <strong>eq</strong> 方法</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, id, name</span>):</span></span><br><span class="line">        self.id = id</span><br><span class="line">        self.name = name</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__eq__</span>(<span class="params">self, other</span>):</span></span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> isinstance(other, Person):</span><br><span class="line">            <span class="comment"># don&#x27;t attempt to compare against unrelated types</span></span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">NotImplemented</span></span><br><span class="line">        <span class="keyword">return</span> self.id == other.id</span><br><span class="line"></span><br><span class="line">p1 = Person(<span class="number">1</span>, <span class="string">&#x27;a&#x27;</span>)</span><br><span class="line">p2 = Person(<span class="number">2</span>, <span class="string">&#x27;b&#x27;</span>)</span><br><span class="line">p3 = Person(<span class="number">1</span>, <span class="string">&#x27;c&#x27;</span>)</span><br><span class="line"></span><br><span class="line">p1 == p2 <span class="comment"># false</span></span><br><span class="line">p1 == p3 <span class="comment"># true</span></span><br></pre></td></tr></table></figure>
-
-<p>Note: 重写 <strong>eq</strong> 将会使对象变为 unhashable，在存到 Set， Map 等集合中会有影响，你可以重写 <strong>hash</strong> 来定制</p>
-<h2 id="Set-集合中判断相等"><a href="#Set-集合中判断相等" class="headerlink" title="Set 集合中判断相等"></a>Set 集合中判断相等</h2><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, id, name</span>):</span></span><br><span class="line">        self.id = id</span><br><span class="line">        self.name = name</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__eq__</span>(<span class="params">self, other</span>):</span></span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> isinstance(other, Person):</span><br><span class="line">            <span class="comment"># don&#x27;t attempt to compare against unrelated types</span></span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">NotImplemented</span></span><br><span class="line">        <span class="keyword">return</span> self.id == other.id</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__hash__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="comment"># necessary for instances to behave sanely in dicts and sets.</span></span><br><span class="line">        <span class="keyword">return</span> hash(self.id)</span><br><span class="line"></span><br><span class="line">set([p1, p2, p3]) <span class="comment"># only  p1, p2 will be stored</span></span><br></pre></td></tr></table></figure>
-
-<p>set 中并没有使用新的 object 代替旧的的方法，所以如果想要更新的话只能 remove + add 了</p>
-]]></content>
-      <categories>
-        <category>编程</category>
-      </categories>
-      <tags>
-        <tag>python</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Get Know About Java Annotation</title>
-    <url>/hexo/2020/08/05/Get-Know-About-Java-Annotation/</url>
-    <content><![CDATA[<p>记录一下 Java 注解的学习过程</p>
-<h2 id="快速入门"><a href="#快速入门" class="headerlink" title="快速入门"></a>快速入门</h2><p>设计一个测试案例，创建一个名为 Marked 的注解类，该注解可以添加在 method 上用来表示方法是否被标记过。在测试用力中遍历被标记的类并打印信息</p>
-<p>测试类：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Person</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> age;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">boolean</span> isSelected;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Getter/Setter methods</span></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Marked</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Marked(value = true)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getAge</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> age;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>自己创建的注解类：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> Marked &#123;</span><br><span class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">value</span><span class="params">()</span> <span class="keyword">default</span> <span class="keyword">false</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>测试用例：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test_print_by_anno</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Method[] methods = Person.class.getDeclaredMethods();</span><br><span class="line">    <span class="keyword">for</span> (Method m : methods) &#123;</span><br><span class="line">        Marked myAnno = m.getAnnotation(Marked.class);</span><br><span class="line">        <span class="keyword">if</span> (myAnno != <span class="keyword">null</span>) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Method: &quot;</span> + m.getName() + <span class="string">&quot; has marked annotation.&quot;</span>);</span><br><span class="line">            System.out.println(<span class="string">&quot;Marked value: &quot;</span> + myAnno.value());</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Method: &quot;</span> + m.getName() + <span class="string">&quot; don&#x27;t has marked annotation.&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>终端打印：</p>
-<figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">Method: getName has marked annotation.</span><br><span class="line">Marked value: false</span><br><span class="line">Method: setName don&#x27;t has marked annotation.</span><br><span class="line">Method: getAge has marked annotation.</span><br><span class="line">Marked value: true</span><br><span class="line">Method: setAge don&#x27;t has marked annotation.</span><br><span class="line">Method: isSelected don&#x27;t has marked annotation.</span><br><span class="line">Method: setSelected don&#x27;t has marked annotation.</span><br></pre></td></tr></table></figure>
-
-<p>从这个例子可以看出来，Annotation 都是处理 class level 的问题的，和类延伸出来的实例基本没关系了</p>
-]]></content>
-      <categories>
-        <category>编程</category>
-      </categories>
-      <tags>
-        <tag>java</tag>
-        <tag>annotation</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Java 拾遗之 泛型</title>
-    <url>/hexo/2020/08/07/Get-Know-About-Java-Generic/</url>
-    <content><![CDATA[<p>记录一下泛型的定义，历史，使用案例等。素材只要来源于 On Java 8, Thinking in Java 和 Effective Java。</p>
-<h2 id="历史"><a href="#历史" class="headerlink" title="历史"></a>历史</h2><p>1.5 版本引入，主要动机是支持 Collection 类</p>
-<h2 id="泛型方法"><a href="#泛型方法" class="headerlink" title="泛型方法"></a>泛型方法</h2><p>把这一块放到最前面时为了避免理解上的误区，泛型方法和泛型类，泛型接口没有从属关系，就算时普通的 Utils 方法也可以声明泛型方法</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">GenericUtils</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function"><span class="keyword">void</span> <span class="title">printParam</span><span class="params">(T t)</span> </span>&#123;</span><br><span class="line">        System.out.println(t);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test_print</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    GenericUtils.printParam(<span class="string">&quot;Jack&quot;</span>);</span><br><span class="line">    GenericUtils.printParam(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Output:</span></span><br><span class="line"><span class="comment">// Jack</span></span><br><span class="line"><span class="comment">// 1</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="泛型类"><a href="#泛型类" class="headerlink" title="泛型类"></a>泛型类</h2><p>即在声明类时添加类型声明，最常见的如 Collection 系列下的 ArrayList</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ArrayList</span>&lt;<span class="title">E</span>&gt; <span class="keyword">extends</span> <span class="title">AbstractList</span>&lt;<span class="title">E</span>&gt; <span class="keyword">implements</span> <span class="title">List</span>&lt;<span class="title">E</span>&gt;, <span class="title">RandomAccess</span>, <span class="title">Cloneable</span>, <span class="title">java</span>.<span class="title">io</span>.<span class="title">Serializable</span> </span>&#123; ... &#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="泛型接口"><a href="#泛型接口" class="headerlink" title="泛型接口"></a>泛型接口</h2><p>泛型接口只是在接口定义的时候在接口名称后接上类型声明而已。使用 lang 包中自带的 <code>Supplier</code> 接口为例，接口在声明时指定类型，并在 get() 方法中指定返回类型。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 1.8 中引入的接口，充当工厂方法的角色</span></span><br><span class="line"><span class="meta">@FunctionalInterface</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Supplier</span>&lt;<span class="title">T</span>&gt; </span>&#123; <span class="function">T <span class="title">get</span><span class="params">()</span></span>; &#125;</span><br><span class="line"></span><br><span class="line">Supplier&lt;Integer&gt; integerSupplier = () -&gt; (<span class="keyword">new</span> Random()).nextInt();</span><br><span class="line">System.out.println(integerSupplier.get());</span><br></pre></td></tr></table></figure>
-
-<h2 id="使用案例"><a href="#使用案例" class="headerlink" title="使用案例"></a>使用案例</h2><p>记录一下工作生活中遇到的具体使用案例</p>
-<h3 id="指定泛型返回值为某个类的子类"><a href="#指定泛型返回值为某个类的子类" class="headerlink" title="指定泛型返回值为某个类的子类"></a>指定泛型返回值为某个类的子类</h3><p>可以使用泛型方法</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> &lt;T extends Sup&gt;  <span class="function">T <span class="title">getSometing</span><span class="params">()</span> </span>&#123;&#125;;</span><br></pre></td></tr></table></figure>
-
-<h2 id="返回-Map-类型的泛型方法？"><a href="#返回-Map-类型的泛型方法？" class="headerlink" title="返回 Map 类型的泛型方法？"></a>返回 Map 类型的泛型方法？</h2><p>这种用法称为 multi-level wildcards，参考 <a href="http://www.angelikalanger.com/GenericsFAQ/FAQSections/TypeArguments.html#FAQ101">这篇</a> 文章中的定义</p>
-<p>子类现有方法为 </p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> Map&lt;String, List&lt;Sub&gt;&gt; getResult() &#123;</span><br><span class="line">    <span class="keyword">new</span> HashMap&lt;String, List&lt;Sub&gt;&gt;();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>想要给他一个抽 interface 类似 <code>Map&lt;String, List&lt;? extends Sup&gt;&gt; getResult();</code> 但是会编译错误，需要怎么写？</p>
-<ul>
-<li><a href="https://stackoverflow.com/questions/22806202/java-nested-generic-type">Stack Overflow 精彩解答</a></li>
-</ul>
-<p>先说答案，可以使用 <code>Map&lt;String, ? extends List&lt;? extends Sup&gt;&gt; getResult();</code> 这样的语法来适配上面说的这种场景</p>
-<p>关于这个问题的几个点：</p>
-<ol>
-<li>List&lt;Sub&gt; 并不是 List&lt;Sup&gt; 的子类，想要表达子类的概念，Java 使用的是 <code>List&lt;? extends Sup&gt;</code> 这样的语法</li>
-<li><code>List&lt;List&lt;?&gt;&gt;</code> 适配所有的参数类型的 list</li>
-<li><code>List&lt;? extends List&lt;String&gt;&gt;</code> 适配任何 List 及其子类</li>
-<li>两者结合一下 <code>List&lt;? extends List&lt;?&gt;&gt;</code> 适配任何 list 及其子类，并且适配所有参数类型</li>
-</ol>
-<p>Code sample:</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Sup</span> </span>&#123; &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Sub</span> <span class="keyword">extends</span> <span class="title">Sup</span> </span>&#123; &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Father</span> </span>&#123; </span><br><span class="line">    Map&lt;String, ? extends List &lt;? extends Sup&gt;&gt; getNestMap(); </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Son</span> <span class="keyword">implements</span> <span class="title">Father</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> Map&lt;String, List&lt;Sub&gt;&gt; getNestMap() &#123;</span><br><span class="line">        Map&lt;String, List&lt;Sub&gt;&gt; map =  <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">        List&lt;Sub&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        list.add(<span class="keyword">new</span> Sub());</span><br><span class="line">        map.put(<span class="string">&quot;Jack&quot;</span>, list);</span><br><span class="line">        <span class="keyword">return</span> map;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>PS: List 前的 <code>? extends</code> 是不可少的，不然 Override 方法会编译错误，应为实现中是用 ArrayList 这个子类实现的，所以接口定义时语意上要有这个声明</p>
-<h2 id="工作中遇到的问题"><a href="#工作中遇到的问题" class="headerlink" title="工作中遇到的问题"></a>工作中遇到的问题</h2><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 下面两个方法有没有区别？</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">WildCardTest</span> </span>&#123;</span><br><span class="line">    &lt;T extends Sup&gt; <span class="function">List&lt;T&gt; <span class="title">getList01</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    List&lt;? extends Sup&gt; getList02();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>没有。。。看了一下这两个方法编译出来的字节码是完全一样的，除了行号。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; access flags 0x401</span><br><span class="line">&#x2F;&#x2F; signature &lt;T::Lcom&#x2F;playground&#x2F;genericsample&#x2F;Sup;&gt;()Ljava&#x2F;util&#x2F;List&lt;TT;&gt;;</span><br><span class="line">&#x2F;&#x2F; declaration: java.util.List&lt;T&gt; getList01&lt;T extends com.playground.genericsample.Sup&gt;()</span><br><span class="line">public abstract getList01()Ljava&#x2F;util&#x2F;List;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; access flags 0x401</span><br><span class="line">&#x2F;&#x2F; signature ()Ljava&#x2F;util&#x2F;List&lt;+Lcom&#x2F;playground&#x2F;genericsample&#x2F;Sup;&gt;;</span><br><span class="line">&#x2F;&#x2F; declaration: java.util.List&lt;? extends com.playground.genericsample.Sup&gt; getList02()</span><br><span class="line">public abstract getList02()Ljava&#x2F;util&#x2F;List;</span><br></pre></td></tr></table></figure>
-
-<p>但是这两种表达方式在实现的时候还是有区别的，用界限符(?)的这种，要求在集合类型前面也加上界限符。。。</p>
-]]></content>
-      <categories>
-        <category>编程</category>
-      </categories>
-      <tags>
-        <tag>拾遗</tag>
-        <tag>泛型</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Java 拾遗之 反射</title>
     <url>/hexo/2020/07/31/Get-Know-About-Java-Reflection/</url>
     <content><![CDATA[<p>记录一些 Java 反射基础知识</p>
@@ -2088,6 +1982,112 @@
       </tags>
   </entry>
   <entry>
+    <title>Equals in python</title>
+    <url>/hexo/2020/06/12/Equals-in-python/</url>
+    <content><![CDATA[<ul>
+<li><code>==</code> 和 <code>is</code> 的区别</li>
+<li>怎么使得 Object 使用 <code>==</code> 比较相等</li>
+<li>Set 集合中判断相等</li>
+</ul>
+<h2 id="Vs-is"><a href="#Vs-is" class="headerlink" title="== Vs is"></a>== Vs is</h2><p><code>==</code> 用来判断值相等，<code>is</code> 用来判断引用相等</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">a = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]</span><br><span class="line">b = a</span><br><span class="line"></span><br><span class="line">a == b <span class="comment"># true</span></span><br><span class="line">a <span class="keyword">is</span> b <span class="comment"># true</span></span><br><span class="line"></span><br><span class="line">b = a[:]</span><br><span class="line">a == b <span class="comment"># true</span></span><br><span class="line">a <span class="keyword">is</span> b <span class="comment"># false</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="怎么使得-Object-使用-比较相等"><a href="#怎么使得-Object-使用-比较相等" class="headerlink" title="怎么使得 Object 使用 == 比较相等"></a>怎么使得 Object 使用 <code>==</code> 比较相等</h2><p>你需要重写 class 的 <strong>eq</strong> 方法</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, id, name</span>):</span></span><br><span class="line">        self.id = id</span><br><span class="line">        self.name = name</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__eq__</span>(<span class="params">self, other</span>):</span></span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> isinstance(other, Person):</span><br><span class="line">            <span class="comment"># don&#x27;t attempt to compare against unrelated types</span></span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">NotImplemented</span></span><br><span class="line">        <span class="keyword">return</span> self.id == other.id</span><br><span class="line"></span><br><span class="line">p1 = Person(<span class="number">1</span>, <span class="string">&#x27;a&#x27;</span>)</span><br><span class="line">p2 = Person(<span class="number">2</span>, <span class="string">&#x27;b&#x27;</span>)</span><br><span class="line">p3 = Person(<span class="number">1</span>, <span class="string">&#x27;c&#x27;</span>)</span><br><span class="line"></span><br><span class="line">p1 == p2 <span class="comment"># false</span></span><br><span class="line">p1 == p3 <span class="comment"># true</span></span><br></pre></td></tr></table></figure>
+
+<p>Note: 重写 <strong>eq</strong> 将会使对象变为 unhashable，在存到 Set， Map 等集合中会有影响，你可以重写 <strong>hash</strong> 来定制</p>
+<h2 id="Set-集合中判断相等"><a href="#Set-集合中判断相等" class="headerlink" title="Set 集合中判断相等"></a>Set 集合中判断相等</h2><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, id, name</span>):</span></span><br><span class="line">        self.id = id</span><br><span class="line">        self.name = name</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__eq__</span>(<span class="params">self, other</span>):</span></span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> isinstance(other, Person):</span><br><span class="line">            <span class="comment"># don&#x27;t attempt to compare against unrelated types</span></span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">NotImplemented</span></span><br><span class="line">        <span class="keyword">return</span> self.id == other.id</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__hash__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="comment"># necessary for instances to behave sanely in dicts and sets.</span></span><br><span class="line">        <span class="keyword">return</span> hash(self.id)</span><br><span class="line"></span><br><span class="line">set([p1, p2, p3]) <span class="comment"># only  p1, p2 will be stored</span></span><br></pre></td></tr></table></figure>
+
+<p>set 中并没有使用新的 object 代替旧的的方法，所以如果想要更新的话只能 remove + add 了</p>
+]]></content>
+      <categories>
+        <category>编程</category>
+      </categories>
+      <tags>
+        <tag>python</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Get Know About Java Annotation</title>
+    <url>/hexo/2020/08/05/Get-Know-About-Java-Annotation/</url>
+    <content><![CDATA[<p>记录一下 Java 注解的学习过程</p>
+<h2 id="快速入门"><a href="#快速入门" class="headerlink" title="快速入门"></a>快速入门</h2><p>设计一个测试案例，创建一个名为 Marked 的注解类，该注解可以添加在 method 上用来表示方法是否被标记过。在测试用力中遍历被标记的类并打印信息</p>
+<p>测试类：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Person</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> age;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">boolean</span> isSelected;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Getter/Setter methods</span></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Marked</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Marked(value = true)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getAge</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> age;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>自己创建的注解类：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> Marked &#123;</span><br><span class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">value</span><span class="params">()</span> <span class="keyword">default</span> <span class="keyword">false</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>测试用例：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test_print_by_anno</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Method[] methods = Person.class.getDeclaredMethods();</span><br><span class="line">    <span class="keyword">for</span> (Method m : methods) &#123;</span><br><span class="line">        Marked myAnno = m.getAnnotation(Marked.class);</span><br><span class="line">        <span class="keyword">if</span> (myAnno != <span class="keyword">null</span>) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Method: &quot;</span> + m.getName() + <span class="string">&quot; has marked annotation.&quot;</span>);</span><br><span class="line">            System.out.println(<span class="string">&quot;Marked value: &quot;</span> + myAnno.value());</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Method: &quot;</span> + m.getName() + <span class="string">&quot; don&#x27;t has marked annotation.&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>终端打印：</p>
+<figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">Method: getName has marked annotation.</span><br><span class="line">Marked value: false</span><br><span class="line">Method: setName don&#x27;t has marked annotation.</span><br><span class="line">Method: getAge has marked annotation.</span><br><span class="line">Marked value: true</span><br><span class="line">Method: setAge don&#x27;t has marked annotation.</span><br><span class="line">Method: isSelected don&#x27;t has marked annotation.</span><br><span class="line">Method: setSelected don&#x27;t has marked annotation.</span><br></pre></td></tr></table></figure>
+
+<p>从这个例子可以看出来，Annotation 都是处理 class level 的问题的，和类延伸出来的实例基本没关系了</p>
+]]></content>
+      <categories>
+        <category>编程</category>
+      </categories>
+      <tags>
+        <tag>java</tag>
+        <tag>annotation</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java 拾遗之 泛型</title>
+    <url>/hexo/2020/08/07/Get-Know-About-Java-Generic/</url>
+    <content><![CDATA[<p>记录一下泛型的定义，历史，使用案例等。素材只要来源于 On Java 8, Thinking in Java 和 Effective Java。</p>
+<h2 id="历史"><a href="#历史" class="headerlink" title="历史"></a>历史</h2><p>1.5 版本引入，主要动机是支持 Collection 类</p>
+<h2 id="泛型方法"><a href="#泛型方法" class="headerlink" title="泛型方法"></a>泛型方法</h2><p>把这一块放到最前面时为了避免理解上的误区，泛型方法和泛型类，泛型接口没有从属关系，就算时普通的 Utils 方法也可以声明泛型方法</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">GenericUtils</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function"><span class="keyword">void</span> <span class="title">printParam</span><span class="params">(T t)</span> </span>&#123;</span><br><span class="line">        System.out.println(t);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test_print</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    GenericUtils.printParam(<span class="string">&quot;Jack&quot;</span>);</span><br><span class="line">    GenericUtils.printParam(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Output:</span></span><br><span class="line"><span class="comment">// Jack</span></span><br><span class="line"><span class="comment">// 1</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="泛型类"><a href="#泛型类" class="headerlink" title="泛型类"></a>泛型类</h2><p>即在声明类时添加类型声明，最常见的如 Collection 系列下的 ArrayList</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ArrayList</span>&lt;<span class="title">E</span>&gt; <span class="keyword">extends</span> <span class="title">AbstractList</span>&lt;<span class="title">E</span>&gt; <span class="keyword">implements</span> <span class="title">List</span>&lt;<span class="title">E</span>&gt;, <span class="title">RandomAccess</span>, <span class="title">Cloneable</span>, <span class="title">java</span>.<span class="title">io</span>.<span class="title">Serializable</span> </span>&#123; ... &#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="泛型接口"><a href="#泛型接口" class="headerlink" title="泛型接口"></a>泛型接口</h2><p>泛型接口只是在接口定义的时候在接口名称后接上类型声明而已。使用 lang 包中自带的 <code>Supplier</code> 接口为例，接口在声明时指定类型，并在 get() 方法中指定返回类型。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 1.8 中引入的接口，充当工厂方法的角色</span></span><br><span class="line"><span class="meta">@FunctionalInterface</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Supplier</span>&lt;<span class="title">T</span>&gt; </span>&#123; <span class="function">T <span class="title">get</span><span class="params">()</span></span>; &#125;</span><br><span class="line"></span><br><span class="line">Supplier&lt;Integer&gt; integerSupplier = () -&gt; (<span class="keyword">new</span> Random()).nextInt();</span><br><span class="line">System.out.println(integerSupplier.get());</span><br></pre></td></tr></table></figure>
+
+<h2 id="使用案例"><a href="#使用案例" class="headerlink" title="使用案例"></a>使用案例</h2><p>记录一下工作生活中遇到的具体使用案例</p>
+<h3 id="指定泛型返回值为某个类的子类"><a href="#指定泛型返回值为某个类的子类" class="headerlink" title="指定泛型返回值为某个类的子类"></a>指定泛型返回值为某个类的子类</h3><p>可以使用泛型方法</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> &lt;T extends Sup&gt;  <span class="function">T <span class="title">getSometing</span><span class="params">()</span> </span>&#123;&#125;;</span><br></pre></td></tr></table></figure>
+
+<h2 id="返回-Map-类型的泛型方法？"><a href="#返回-Map-类型的泛型方法？" class="headerlink" title="返回 Map 类型的泛型方法？"></a>返回 Map 类型的泛型方法？</h2><p>这种用法称为 multi-level wildcards，参考 <a href="http://www.angelikalanger.com/GenericsFAQ/FAQSections/TypeArguments.html#FAQ101">这篇</a> 文章中的定义</p>
+<p>子类现有方法为 </p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> Map&lt;String, List&lt;Sub&gt;&gt; getResult() &#123;</span><br><span class="line">    <span class="keyword">new</span> HashMap&lt;String, List&lt;Sub&gt;&gt;();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>想要给他一个抽 interface 类似 <code>Map&lt;String, List&lt;? extends Sup&gt;&gt; getResult();</code> 但是会编译错误，需要怎么写？</p>
+<ul>
+<li><a href="https://stackoverflow.com/questions/22806202/java-nested-generic-type">Stack Overflow 精彩解答</a></li>
+</ul>
+<p>先说答案，可以使用 <code>Map&lt;String, ? extends List&lt;? extends Sup&gt;&gt; getResult();</code> 这样的语法来适配上面说的这种场景</p>
+<p>关于这个问题的几个点：</p>
+<ol>
+<li>List&lt;Sub&gt; 并不是 List&lt;Sup&gt; 的子类，想要表达子类的概念，Java 使用的是 <code>List&lt;? extends Sup&gt;</code> 这样的语法</li>
+<li><code>List&lt;List&lt;?&gt;&gt;</code> 适配所有的参数类型的 list</li>
+<li><code>List&lt;? extends List&lt;String&gt;&gt;</code> 适配任何 List 及其子类</li>
+<li>两者结合一下 <code>List&lt;? extends List&lt;?&gt;&gt;</code> 适配任何 list 及其子类，并且适配所有参数类型</li>
+</ol>
+<p>Code sample:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Sup</span> </span>&#123; &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Sub</span> <span class="keyword">extends</span> <span class="title">Sup</span> </span>&#123; &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Father</span> </span>&#123; </span><br><span class="line">    Map&lt;String, ? extends List &lt;? extends Sup&gt;&gt; getNestMap(); </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Son</span> <span class="keyword">implements</span> <span class="title">Father</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> Map&lt;String, List&lt;Sub&gt;&gt; getNestMap() &#123;</span><br><span class="line">        Map&lt;String, List&lt;Sub&gt;&gt; map =  <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">        List&lt;Sub&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        list.add(<span class="keyword">new</span> Sub());</span><br><span class="line">        map.put(<span class="string">&quot;Jack&quot;</span>, list);</span><br><span class="line">        <span class="keyword">return</span> map;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>PS: List 前的 <code>? extends</code> 是不可少的，不然 Override 方法会编译错误，应为实现中是用 ArrayList 这个子类实现的，所以接口定义时语意上要有这个声明</p>
+<h2 id="工作中遇到的问题"><a href="#工作中遇到的问题" class="headerlink" title="工作中遇到的问题"></a>工作中遇到的问题</h2><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 下面两个方法有没有区别？</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">WildCardTest</span> </span>&#123;</span><br><span class="line">    &lt;T extends Sup&gt; <span class="function">List&lt;T&gt; <span class="title">getList01</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    List&lt;? extends Sup&gt; getList02();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>没有。。。看了一下这两个方法编译出来的字节码是完全一样的，除了行号。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; access flags 0x401</span><br><span class="line">&#x2F;&#x2F; signature &lt;T::Lcom&#x2F;playground&#x2F;genericsample&#x2F;Sup;&gt;()Ljava&#x2F;util&#x2F;List&lt;TT;&gt;;</span><br><span class="line">&#x2F;&#x2F; declaration: java.util.List&lt;T&gt; getList01&lt;T extends com.playground.genericsample.Sup&gt;()</span><br><span class="line">public abstract getList01()Ljava&#x2F;util&#x2F;List;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; access flags 0x401</span><br><span class="line">&#x2F;&#x2F; signature ()Ljava&#x2F;util&#x2F;List&lt;+Lcom&#x2F;playground&#x2F;genericsample&#x2F;Sup;&gt;;</span><br><span class="line">&#x2F;&#x2F; declaration: java.util.List&lt;? extends com.playground.genericsample.Sup&gt; getList02()</span><br><span class="line">public abstract getList02()Ljava&#x2F;util&#x2F;List;</span><br></pre></td></tr></table></figure>
+
+<p>但是这两种表达方式在实现的时候还是有区别的，用界限符(?)的这种，要求在集合类型前面也加上界限符。。。</p>
+]]></content>
+      <categories>
+        <category>编程</category>
+      </categories>
+      <tags>
+        <tag>拾遗</tag>
+        <tag>泛型</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Linux 命令小贴士</title>
     <url>/hexo/2020/07/08/Linux-cmd-tips/</url>
     <content><![CDATA[<p>常用 Linux command 备忘录</p>
@@ -3174,6 +3174,25 @@
 <p>xxxAutoConfiguration: 自动配置类，给容器添加组件</p>
 <p>xxxProperties：封装配置文件中相关属性</p>
 <p>debug=true 可以查看配置详情</p>
+<h2 id="静态资源加载原理"><a href="#静态资源加载原理" class="headerlink" title="静态资源加载原理"></a>静态资源加载原理</h2><p>分析一波 WebMvcAutoConfiuration.java<br>    -&gt; webjars， web 相关的包封装成 Java 模式，但是不建议这么做</p>
+<p>优先级： resources &gt; script &gt; public</p>
+<p>首页定制 getIndexHtml()</p>
+<p>template 文件夹下的内容需要使用模板引擎，添加 dependency + 注解</p>
+<h2 id="thymeleaf"><a href="#thymeleaf" class="headerlink" title="thymeleaf"></a>thymeleaf</h2><p>导入 starter</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;spring-boot-starter-thymeleaf&lt;/artifactId&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+
+<p>在 template 下新建页面文件 test.html，新建 controller 文件夹并创建 controller</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">&quot;en&quot;</span> <span class="attr">xmlns:th</span>=<span class="string">&quot;http://www.thymeleaf.org&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;UTF-8&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>Title<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">th:text</span>=<span class="string">&quot;$&#123;msg&#125;&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Controller</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestController</span> </span>&#123;</span><br><span class="line">    <span class="meta">@RequestMapping(&quot;/hello&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">test</span><span class="params">(Model model)</span> </span>&#123;</span><br><span class="line">        model.addAttribute(<span class="string">&quot;msg&quot;</span>, <span class="string">&quot;hello, springboot&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;test&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>启动服务，访问 localhost:8080/hello 可以看到新建的页面</p>
+<h2 id="MVC-配置原理"><a href="#MVC-配置原理" class="headerlink" title="MVC 配置原理"></a>MVC 配置原理</h2><p><a href="https://docs.spring.io/spring-boot/docs/2.1.6.RELEASE/reference/html/boot-features-developing-web-applications.html">https://docs.spring.io/spring-boot/docs/2.1.6.RELEASE/reference/html/boot-features-developing-web-applications.html</a></p>
+<p>自定义视图解析器 @Configuration + implement WebMvcConfigurer 接口</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 定制功能只需要鞋各组件，然后交给 springboot，他会帮我们自动装配</span></span><br><span class="line"><span class="comment">// dispatchservlet</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyMvcConfig</span> <span class="keyword">implements</span> <span class="title">WebMvcConfigurer</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ViewResolver 实现了视图解析器的接口类，我们可以把它看作是退解析器</span></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> ViewResolver <span class="title">myViewResolver</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> MyViewResolver();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">MyViewResolver</span> <span class="keyword">implements</span> <span class="title">ViewResolver</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> View <span class="title">resolveViewName</span><span class="params">(String viewName, Locale locale)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在 DispatcherServlet 的 doDispatch 方法打上断点，在 this 下的 viewResolver 变量中可以看到自定义的解析器</p>
+<p>@Configuration 修饰的类可以帮你扩展功能</p>
 ]]></content>
       <categories>
         <category>编程</category>
