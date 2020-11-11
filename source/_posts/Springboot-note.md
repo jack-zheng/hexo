@@ -312,3 +312,85 @@ xxxAutoConfiguration: 自动配置类，给容器添加组件
 xxxProperties：封装配置文件中相关属性
 
 debug=true 可以查看配置详情
+
+## 静态资源加载原理
+
+分析一波 WebMvcAutoConfiuration.java
+    -> webjars， web 相关的包封装成 Java 模式，但是不建议这么做
+
+优先级： resources > script > public
+
+首页定制 getIndexHtml()
+
+template 文件夹下的内容需要使用模板引擎，添加 dependency + 注解
+
+## thymeleaf
+
+导入 starter
+
+```java
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-thymeleaf</artifactId>
+</dependency>
+```
+
+在 template 下新建页面文件 test.html，新建 controller 文件夹并创建 controller
+
+```html
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div th:text="${msg}"></div>
+</body>
+</html>
+```
+
+```java
+@Controller
+public class TestController {
+    @RequestMapping("/hello")
+    public String test(Model model) {
+        model.addAttribute("msg", "hello, springboot");
+        return "test";
+    }
+}
+```
+
+启动服务，访问 localhost:8080/hello 可以看到新建的页面
+
+## MVC 配置原理
+
+https://docs.spring.io/spring-boot/docs/2.1.6.RELEASE/reference/html/boot-features-developing-web-applications.html
+
+自定义视图解析器 @Configuration + implement WebMvcConfigurer 接口
+
+```java
+// 定制功能只需要鞋各组件，然后交给 springboot，他会帮我们自动装配
+// dispatchservlet
+@Configuration
+public class MyMvcConfig implements WebMvcConfigurer {
+
+    // ViewResolver 实现了视图解析器的接口类，我们可以把它看作是退解析器
+    @Bean
+    public ViewResolver myViewResolver() {
+        return new MyViewResolver();
+    }
+
+    public static class MyViewResolver implements ViewResolver {
+
+        @Override
+        public View resolveViewName(String viewName, Locale locale) throws Exception {
+            return null;
+        }
+    }
+}
+```
+
+在 DispatcherServlet 的 doDispatch 方法打上断点，在 this 下的 viewResolver 变量中可以看到自定义的解析器
+
+@Configuration 修饰的类可以帮你扩展功能
