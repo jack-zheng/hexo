@@ -206,6 +206,251 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/09/10/Splunk-Quick-Guide/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2020/09/10/Splunk-Quick-Guide/" class="post-title-link" itemprop="url">Splunk 快速入门</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-09-10 15:43:42" itemprop="dateCreated datePublished" datetime="2020-09-10T15:43:42+08:00">2020-09-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-11-12 19:19:39" itemprop="dateModified" datetime="2020-11-12T19:19:39+08:00">2020-11-12</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E5%B0%8F%E5%B7%A5%E5%85%B7/" itemprop="url" rel="index">
+                    <span itemprop="name">小工具</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="常用-Query"><a href="#常用-Query" class="headerlink" title="常用 Query"></a>常用 Query</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- event 出现的次数</span></span><br><span class="line">search=index | stats sum(linecount) as Total</span><br><span class="line"><span class="comment">-- or</span></span><br><span class="line">search=index | stats count as Total</span><br></pre></td></tr></table></figure>
+
+<h3 id="查询-event-的日均量"><a href="#查询-event-的日均量" class="headerlink" title="查询 event 的日均量"></a>查询 event 的日均量</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">eventtype=<span class="string">&quot;searchAccountLocked&quot;</span> | timechart span=1d count | stats avg(count)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在此基础上，计算 7 天的平均值</span></span><br><span class="line">eventtype=<span class="string">&quot;searchAccountLocked&quot;</span> | timechart span=1d count | stats avg(count) as avgc ｜ <span class="built_in">eval</span> n=exact(1 * avgc)</span><br></pre></td></tr></table></figure>
+
+<h2 id="通过-Regex-匹配得到目标百分比"><a href="#通过-Regex-匹配得到目标百分比" class="headerlink" title="通过 Regex 匹配得到目标百分比"></a>通过 Regex 匹配得到目标百分比</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://community.splunk.com/t5/Splunk-Search/Get-percentage-of-matchin-to-all-events/td-p/39113">社区类似问题</a></li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 搜索全部 event, 通过 regex 匹配到目标，计算百分比</span></span><br><span class="line">UserChangeEvent MessageBox | stats count(<span class="built_in">eval</span>(match(field1, <span class="string">&quot;.*updatedFields\&quot;:\[&#123;\&quot;fieldName\&quot;:\&quot;jobCode\&quot;.*&quot;</span>))) as JCEvent count as total | <span class="built_in">eval</span> JC_pct=JCEvent/total*100</span><br><span class="line"></span><br><span class="line"><span class="comment"># 升级版，计算多个百分比情况</span></span><br><span class="line"><span class="comment"># EMP_PCT 内容是空的 event 在所有 jobcode event 中的占比，和 jobcode 在所有 event 中的占比</span></span><br><span class="line">UserChangeEvent MessageBox | stats count(<span class="built_in">eval</span>(match(field1, <span class="string">&quot;.*updatedFields\&quot;:\[&#123;\&quot;fieldName\&quot;:\&quot;jobCode\&quot;.*&quot;</span>))) as totalJCEvent count(<span class="built_in">eval</span>(match(field1, <span class="string">&quot;.*updatedFields\&quot;:\[&#123;\&quot;fieldName\&quot;:\&quot;jobCode\&quot;,\&quot;fieldType\&quot;:\&quot;java.lang.String\&quot;,\&quot;afterValue\&quot;:\&quot;\&quot;&#125;\].*&quot;</span>))) as emptyEvent count as total | <span class="built_in">eval</span> EMP_PCT=emptyEvent/totalJCEvent*100, JC_PCT=totalJCEvent/total*100</span><br></pre></td></tr></table></figure>
+
+<h2 id="取两位小数"><a href="#取两位小数" class="headerlink" title="取两位小数"></a>取两位小数</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">| 7xAVG=round((7*total/1), 2)</span><br></pre></td></tr></table></figure>
+
+<h2 id="通过正则创建新-field"><a href="#通过正则创建新-field" class="headerlink" title="通过正则创建新 field"></a>通过正则创建新 field</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 选出结果集，从输出信息中匹配 &#x27;Company: &#x27; 开头 &#x27;, total CommonField&#x27; 结尾的部分并命名为 cname 统计出现次数</span></span><br><span class="line"><span class="comment"># _raw 表示 record 内容</span></span><br><span class="line">search condition | rex field=_raw <span class="string">&quot;Company: (?&lt;cname&gt;.*), total CommonField&quot;</span> | stats count by cname</span><br></pre></td></tr></table></figure>
+
+<h2 id="stats-和-eval-的区别"><a href="#stats-和-eval-的区别" class="headerlink" title="stats 和 eval 的区别"></a>stats 和 eval 的区别</h2><p>stats 是对已经有的 field 的删选，而 eval 是通过已有的 field 计算出新的 field 加到结果集中进行删选，等价于新增 field</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 删选 event, 新建一个 field 名叫 is_prod, 当 host 匹配 pattern 时赋值 yes_prod</span></span><br><span class="line">search event | <span class="built_in">eval</span> is_prod=<span class="keyword">if</span>(like(host, <span class="string">&quot;pc%&quot;</span>), <span class="string">&quot;yes_prod&quot;</span>, <span class="string">&quot;not_prod&quot;</span>) | stats count by is_prod</span><br></pre></td></tr></table></figure>
+
+<p>其中 eval 还支持多种删选条件，可塑性好高</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 统计各环境的 event 数量并统计比例</span></span><br><span class="line">search event | <span class="built_in">eval</span> env=<span class="keyword">case</span>(like(host, <span class="string">&quot;pc%&quot;</span>), <span class="string">&quot;prod&quot;</span>, like(host, <span class="string">&quot;sc%&quot;</span>), <span class="string">&quot;prov&quot;</span>, like(host, <span class="string">&quot;*&quot;</span>), <span class="string">&quot;others&quot;</span>) | stats count by env</span><br></pre></td></tr></table></figure>
+
+<h2 id="Splunk-SDK"><a href="#Splunk-SDK" class="headerlink" title="Splunk SDK"></a>Splunk SDK</h2><p>尝试了 python 版本的 SDK，香！</p>
+<p>参考 <a target="_blank" rel="noopener" href="https://dev.splunk.com/enterprise/docs/python/sdk-python/examplespython/commandline">官方文档</a> 下载依赖，在本地配置 <code>.splunkrc</code> 文件写入连接信息方便调用。第一次用的时候密码配错了，还以为内网不可用，需要用 vlab，再测试的时候发现了这个问题。总的来说很可以。</p>
+<p>Steps:</p>
+<ol>
+<li>clone git 开源项目 <a target="_blank" rel="noopener" href="https://github.com/splunk/splunk-sdk-python">Splunk SDK Python</a></li>
+<li>用户目录下创建 <code>.splunkrc</code> 文件</li>
+<li>cd 到 <code>splunk-sdk-python/examples</code> folder 下，运行命令 <code>python search.py &quot;search * | head 10&quot; --earliest_time=&quot;2011-08-10T17:15:00.000-07:00&quot; --rf=&quot;desc&quot; --output_mode=json</code> 可以看到对应时间戳下的前 10 条记录</li>
+</ol>
+<p><code>.splunkrc</code> 文件模板</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># Splunk host (default: localhost)</span><br><span class="line">host&#x3D;xxx.xxx.xxx</span><br><span class="line"># Splunk admin port (default: 8089)</span><br><span class="line">port&#x3D;8089</span><br><span class="line"># Splunk username</span><br><span class="line">username&#x3D;jack</span><br><span class="line"># Splunk password</span><br><span class="line">password&#x3D;mypwd</span><br><span class="line"># Access scheme (default: https)</span><br><span class="line">scheme&#x3D;https</span><br><span class="line"># Your version of Splunk (default: 5.0)</span><br><span class="line">version&#x3D;7.1.2</span><br></pre></td></tr></table></figure>
+
+<h2 id="三个小例子快速入门"><a href="#三个小例子快速入门" class="headerlink" title="三个小例子快速入门"></a>三个小例子快速入门</h2><h3 id="搜索-event-并通过饼图展示"><a href="#搜索-event-并通过饼图展示" class="headerlink" title="搜索 event 并通过饼图展示"></a>搜索 event 并通过饼图展示</h3><ol>
+<li>输入时间节点和关键词：<code>MessageBox topic=com.successfactors.usermanagement.event.UserChangeEvent | stats count by servername</code></li>
+<li>选择可视化 tab</li>
+<li>选择饼图</li>
+</ol>
+<p><img src="pie.png" alt="饼图"></p>
+<h3 id="显示每天的-event-量"><a href="#显示每天的-event-量" class="headerlink" title="显示每天的 event 量"></a>显示每天的 event 量</h3><ol>
+<li>选择时间</li>
+<li>输入搜索条件: <code>MessageBox topic=com.successfactors.usermanagement.event.UserChangeEvent | timechart count span=1d</code></li>
+<li>选择图形</li>
+</ol>
+<p><img src="bar.png" alt="柱状图"></p>
+<h3 id="通过正则删选-event-并计算百分比"><a href="#通过正则删选-event-并计算百分比" class="headerlink" title="通过正则删选 event 并计算百分比"></a>通过正则删选 event 并计算百分比</h3><ol>
+<li>选择时间</li>
+<li>输入删选条件: <code>MessageBox topic=com.successfactors.usermanagement.event.UserChangeEvent | stats count as total count(eval(match(field1, &quot;companyId&quot;))) as containsCID | eval CID_PCT=round(containsCID/total*100, 2)</code></li>
+</ol>
+<p><img src="regex.png" alt="百分比表"></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/09/09/The-Visitor-Pattern/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2020/09/09/The-Visitor-Pattern/" class="post-title-link" itemprop="url">访问者模式</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-09-09 15:37:59" itemprop="dateCreated datePublished" datetime="2020-09-09T15:37:59+08:00">2020-09-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-11-12 19:19:39" itemprop="dateModified" datetime="2020-11-12T19:19:39+08:00">2020-11-12</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
+                    <span itemprop="name">编程</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p>GoF 定义: Allows for one or more operation to be applied to a set of objects at runtime, decoupling the operations from the object structure. </p>
+</blockquote>
+<p>访问者模式讲的是表示一个作用于某对象结构中的各元素的操作。它使你可以在不改变各元素的类的前提下定义作用于这些元素的新操作。</p>
+<p>行为模式之一，目的是将<strong>行为</strong>和<strong>对象</strong>分开。</p>
+<p>缺点：<strong>每增</strong>加一种支持的 object，你就必须在 visitor 及其实现类中添加新的方法支持这个改动。</p>
+<h2 id="描述"><a href="#描述" class="headerlink" title="描述"></a>描述</h2><p>被访问者就是上文中的 object，他持有数据，我们想把他和数据运算分离，保持其独立性</p>
+<p>访问者代表着 operations，通过它可以实现数据运算</p>
+<h2 id="UML"><a href="#UML" class="headerlink" title="UML"></a>UML</h2><img src="/hexo/2020/09/09/The-Visitor-Pattern/visitor_pattern.png" class="" title="visitor_pattern UML">
+
+<h2 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h2><h3 id="From-DZone"><a href="#From-DZone" class="headerlink" title="From DZone"></a>From DZone</h3><ul>
+<li><a target="_blank" rel="noopener" href="https://dzone.com/articles/design-patterns-visitor">DZone - Visitor Pattern</a></li>
+</ul>
+<p>抽象一个邮寄业务，计算购物车中所有的物件总的邮费。每样物件都有自己的属性，比如价格，重量之类的。我们将邮费计算的规则单独封装在 Visitor 中，在物件类中通过调用 accept 实现计算。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 代表 object 的接口</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Visitable</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">accept</span><span class="params">(Visitor visitor)</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 实现 accept 的实例</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Book</span> <span class="keyword">implements</span> <span class="title">Visitable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">double</span> price = <span class="number">8.0</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">double</span> weight = <span class="number">3.2</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">accept</span><span class="params">(Visitor visitor)</span> </span>&#123;</span><br><span class="line">        visitor.visit(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">getPrice</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> price;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">getWeight</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> weight;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// visitor 接口</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Visitor</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">visit</span><span class="params">(Book book)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">visit</span><span class="params">(Shoes shoes)</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// visitor 实例</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PostageVisitor</span> <span class="keyword">implements</span> <span class="title">Visitor</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">double</span> totalPostageForCart;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visit</span><span class="params">(Book book)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// rule to calculate book postage cost</span></span><br><span class="line">        <span class="comment">// if price over 10, free postage.</span></span><br><span class="line">        <span class="keyword">if</span>(book.getPrice() &lt; <span class="number">10.0</span>) &#123;</span><br><span class="line">            totalPostageForCart += book.getWeight() * <span class="number">2</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visit</span><span class="params">(Shoes shoes)</span> </span>&#123; <span class="comment">//TODO &#125;</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">getTotalPostageForCart</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.totalPostageForCart;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 客户端调用</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Book book = <span class="keyword">new</span> Book();</span><br><span class="line">        Shoes shoes = <span class="keyword">new</span> Shoes();</span><br><span class="line">        PostageVisitor postageVisitor = <span class="keyword">new</span> PostageVisitor();</span><br><span class="line"></span><br><span class="line">        book.accept(postageVisitor);</span><br><span class="line">        shoes.accept(postageVisitor);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;Total cost: &quot;</span> + postageVisitor.getTotalPostageForCart());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="From-Refactoring-Guru"><a href="#From-Refactoring-Guru" class="headerlink" title="From Refactoring Guru"></a>From Refactoring Guru</h3><ul>
+<li><a target="_blank" rel="noopener" href="https://refactoringguru.cn/design-patterns/visitor/java/example">重构大师</a></li>
+</ul>
+<p>根据定义的图形打印信息到 XML 文件中，这个例子本质上和前一个没什么区别，但是他提供了组合类型的 object 支持，并且输出 xml, 还有 format 都让我眼前一亮。反正感觉很赞！</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 定义持有 accept 的接口</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Shape</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">move</span><span class="params">(<span class="keyword">int</span> x, <span class="keyword">int</span> y)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">draw</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">String <span class="title">accept</span><span class="params">(Visitor visitor)</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义接口实现</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Dot</span> <span class="keyword">implements</span> <span class="title">Shape</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> id;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> x;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> y;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Dot</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Dot</span><span class="params">(<span class="keyword">int</span> id, <span class="keyword">int</span> x, <span class="keyword">int</span> y)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.id = id;</span><br><span class="line">        <span class="keyword">this</span>.x = x;</span><br><span class="line">        <span class="keyword">this</span>.y = y;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">move</span><span class="params">(<span class="keyword">int</span> x, <span class="keyword">int</span> y)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// move shape</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">draw</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// draw shape</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">accept</span><span class="params">(Visitor visitor)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> visitor.visitDot(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// getter + setter</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义组合类型的实现</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CompoundShape</span> <span class="keyword">implements</span> <span class="title">Shape</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> id;</span><br><span class="line">    <span class="keyword">public</span> List&lt;Shape&gt; children = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">CompoundShape</span><span class="params">(<span class="keyword">int</span> id)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.id = id;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">move</span><span class="params">(<span class="keyword">int</span> x, <span class="keyword">int</span> y)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// move shape</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">draw</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// draw shape</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getId</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> id;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">accept</span><span class="params">(Visitor visitor)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> visitor.visitCompoundGraphic(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">add</span><span class="params">(Shape shape)</span> </span>&#123;</span><br><span class="line">        children.add(shape);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义 visitor 接口</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Visitor</span> </span>&#123;</span><br><span class="line">    <span class="function">String <span class="title">visitDot</span><span class="params">(Dot dot)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">String <span class="title">visitCircle</span><span class="params">(Circle circle)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">String <span class="title">visitRectangle</span><span class="params">(Rectangle rectangle)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">String <span class="title">visitCompoundGraphic</span><span class="params">(CompoundShape cg)</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// visitor 实现</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">XMLExportVisitor</span> <span class="keyword">implements</span> <span class="title">Visitor</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">export</span><span class="params">(Shape... args)</span> </span>&#123;</span><br><span class="line">        StringBuilder sb = <span class="keyword">new</span> StringBuilder();</span><br><span class="line">        sb.append(<span class="string">&quot;&lt;?xml version=\&quot;1.0\&quot; encoding=\&quot;utf-8\&quot;?&gt;&quot;</span> + <span class="string">&quot;\n&quot;</span>);</span><br><span class="line">        <span class="keyword">for</span> (Shape shape : args) &#123;</span><br><span class="line">            sb.append(shape.accept(<span class="keyword">this</span>)).append(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> sb.toString();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">visitDot</span><span class="params">(Dot d)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;&lt;dot&gt;&quot;</span> + <span class="string">&quot;\n&quot;</span> +</span><br><span class="line">                <span class="string">&quot;    &lt;id&gt;&quot;</span> + d.getId() + <span class="string">&quot;&lt;/id&gt;&quot;</span> + <span class="string">&quot;\n&quot;</span> +</span><br><span class="line">                <span class="string">&quot;    &lt;x&gt;&quot;</span> + d.getX() + <span class="string">&quot;&lt;/x&gt;&quot;</span> + <span class="string">&quot;\n&quot;</span> +</span><br><span class="line">                <span class="string">&quot;    &lt;y&gt;&quot;</span> + d.getY() + <span class="string">&quot;&lt;/y&gt;&quot;</span> + <span class="string">&quot;\n&quot;</span> +</span><br><span class="line">                <span class="string">&quot;&lt;/dot&gt;&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">visitCompoundGraphic</span><span class="params">(CompoundShape cg)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;&lt;compound_graphic&gt;&quot;</span> + <span class="string">&quot;\n&quot;</span> +</span><br><span class="line">                <span class="string">&quot;   &lt;id&gt;&quot;</span> + cg.getId() + <span class="string">&quot;&lt;/id&gt;&quot;</span> + <span class="string">&quot;\n&quot;</span> +</span><br><span class="line">                _visitCompoundGraphic(cg) +</span><br><span class="line">                <span class="string">&quot;&lt;/compound_graphic&gt;&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> String <span class="title">_visitCompoundGraphic</span><span class="params">(CompoundShape cg)</span> </span>&#123;</span><br><span class="line">        StringBuilder sb = <span class="keyword">new</span> StringBuilder();</span><br><span class="line">        <span class="keyword">for</span> (Shape shape : cg.children) &#123;</span><br><span class="line">            String obj = shape.accept(<span class="keyword">this</span>);</span><br><span class="line">            <span class="comment">// Proper indentation for sub-objects.</span></span><br><span class="line">            obj = <span class="string">&quot;    &quot;</span> + obj.replace(<span class="string">&quot;\n&quot;</span>, <span class="string">&quot;\n    &quot;</span>) + <span class="string">&quot;\n&quot;</span>;</span><br><span class="line">            sb.append(obj);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> sb.toString();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 客户端调用</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Dot dot = <span class="keyword">new</span> Dot(<span class="number">1</span>, <span class="number">10</span>, <span class="number">55</span>);</span><br><span class="line">        Circle circle = <span class="keyword">new</span> Circle(<span class="number">2</span>, <span class="number">23</span>, <span class="number">15</span>, <span class="number">10</span>);</span><br><span class="line">        Rectangle rectangle = <span class="keyword">new</span> Rectangle(<span class="number">3</span>, <span class="number">10</span>, <span class="number">17</span>, <span class="number">20</span>, <span class="number">30</span>);</span><br><span class="line"></span><br><span class="line">        CompoundShape compoundShape = <span class="keyword">new</span> CompoundShape(<span class="number">4</span>);</span><br><span class="line">        compoundShape.add(dot);</span><br><span class="line">        compoundShape.add(circle);</span><br><span class="line">        compoundShape.add(rectangle);</span><br><span class="line"></span><br><span class="line">        CompoundShape c = <span class="keyword">new</span> CompoundShape(<span class="number">5</span>);</span><br><span class="line">        c.add(dot);</span><br><span class="line">        compoundShape.add(c);</span><br><span class="line"></span><br><span class="line">        export(circle, compoundShape);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">export</span><span class="params">(Shape... shapes)</span> </span>&#123;</span><br><span class="line">        XMLExportVisitor exportVisitor = <span class="keyword">new</span> XMLExportVisitor();</span><br><span class="line">        System.out.println(exportVisitor.export(shapes));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/09/08/Spring5-note/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +482,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-11-12 00:01:54" itemprop="dateModified" datetime="2020-11-12T00:01:54+08:00">2020-11-12</time>
+                <time title="修改时间：2020-11-12 19:19:39" itemprop="dateModified" datetime="2020-11-12T19:19:39+08:00">2020-11-12</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -529,7 +774,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-11-12 00:01:54" itemprop="dateModified" datetime="2020-11-12T00:01:54+08:00">2020-11-12</time>
+                <time title="修改时间：2020-11-12 19:19:39" itemprop="dateModified" datetime="2020-11-12T19:19:39+08:00">2020-11-12</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -549,14 +794,14 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>12k</span>
+              <span>17k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>11 分钟</span>
+              <span>16 分钟</span>
             </span>
 
         </div>
@@ -580,13 +825,13 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; class version 52.0 (52)</span><br><span class="line">&#x2F;&#x2F; access flags 0x21</span><br><span class="line">public class sorra&#x2F;tracesonar&#x2F;mytest&#x2F;SayHello implements sorra&#x2F;tracesonar&#x2F;mytest&#x2F;MyInterface01 sorra&#x2F;tracesonar&#x2F;mytest&#x2F;MyInterface02  &#123;</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; compiled from: SayHello.java</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; access flags 0x1</span><br><span class="line">  public &lt;init&gt;()V</span><br><span class="line">   L0</span><br><span class="line">    LINENUMBER 3 L0</span><br><span class="line">    ALOAD 0</span><br><span class="line">    INVOKESPECIAL java&#x2F;lang&#x2F;Object.&lt;init&gt; ()V</span><br><span class="line">    RETURN</span><br><span class="line">   L1</span><br><span class="line">    LOCALVARIABLE this Lsorra&#x2F;tracesonar&#x2F;mytest&#x2F;SayHello; L0 L1 0</span><br><span class="line">    MAXSTACK &#x3D; 1</span><br><span class="line">    MAXLOCALS &#x3D; 1</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; access flags 0x1</span><br><span class="line">  public say()V</span><br><span class="line">   L0</span><br><span class="line">    LINENUMBER 5 L0</span><br><span class="line">    LDC &quot;Jack&quot;</span><br><span class="line">    ASTORE 1</span><br><span class="line">   L1</span><br><span class="line">    LINENUMBER 6 L1</span><br><span class="line">    GETSTATIC java&#x2F;lang&#x2F;System.out : Ljava&#x2F;io&#x2F;PrintStream;</span><br><span class="line">    NEW java&#x2F;lang&#x2F;StringBuilder</span><br><span class="line">    DUP</span><br><span class="line">    INVOKESPECIAL java&#x2F;lang&#x2F;StringBuilder.&lt;init&gt; ()V</span><br><span class="line">    LDC &quot;Hello&quot;</span><br><span class="line">    INVOKEVIRTUAL java&#x2F;lang&#x2F;StringBuilder.append (Ljava&#x2F;lang&#x2F;String;)Ljava&#x2F;lang&#x2F;StringBuilder;</span><br><span class="line">    ALOAD 1</span><br><span class="line">    INVOKEVIRTUAL java&#x2F;lang&#x2F;StringBuilder.append (Ljava&#x2F;lang&#x2F;String;)Ljava&#x2F;lang&#x2F;StringBuilder;</span><br><span class="line">    INVOKEVIRTUAL java&#x2F;lang&#x2F;StringBuilder.toString ()Ljava&#x2F;lang&#x2F;String;</span><br><span class="line">    INVOKEVIRTUAL java&#x2F;io&#x2F;PrintStream.println (Ljava&#x2F;lang&#x2F;String;)V</span><br><span class="line">   L2</span><br><span class="line">    LINENUMBER 7 L2</span><br><span class="line">    RETURN</span><br><span class="line">   L3</span><br><span class="line">    LOCALVARIABLE this Lsorra&#x2F;tracesonar&#x2F;mytest&#x2F;SayHello; L0 L3 0</span><br><span class="line">    LOCALVARIABLE name Ljava&#x2F;lang&#x2F;String; L1 L3 1</span><br><span class="line">    MAXSTACK &#x3D; 3</span><br><span class="line">    MAXLOCALS &#x3D; 2</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>测试用例</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ASMTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;--- START ---&quot;</span>);</span><br><span class="line">        ClassReader cr = <span class="keyword">new</span> ClassReader(SayHello.class.getName());</span><br><span class="line">        cr.accept(<span class="keyword">new</span> DemoClassVisitor(), <span class="number">0</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;--- END ---&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DemoClassVisitor</span> <span class="keyword">extends</span> <span class="title">ClassVisitor</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DemoClassVisitor</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(Opcodes.ASM5);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Called when access file header, so it will called only once for each class</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visit</span><span class="params">(<span class="keyword">int</span> version, <span class="keyword">int</span> access, String name, String signature, String superName, String[] interfaces)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.visit(version, access, name, signature, superName, interfaces);</span><br><span class="line">        System.out.println(<span class="string">&quot;invoke visit method, params: &quot;</span> + version + <span class="string">&quot;, &quot;</span> + access + <span class="string">&quot;, &quot;</span> + name + <span class="string">&quot;, &quot;</span> + signature + <span class="string">&quot;, &quot;</span> + superName + <span class="string">&quot;, &quot;</span> + Arrays.toString(interfaces));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Called when access method</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> MethodVisitor <span class="title">visitMethod</span><span class="params">(<span class="keyword">int</span> access, String name, String desc, String signature, String[] exceptions)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;at Method &quot;</span> + name);</span><br><span class="line">        <span class="comment">//</span></span><br><span class="line">        MethodVisitor superMV = <span class="keyword">super</span>.visitMethod(access, name, desc, signature, exceptions);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> DemoMethodVisitor(superMV, name);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DemoMethodVisitor</span> <span class="keyword">extends</span> <span class="title">MethodVisitor</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> String methodName;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DemoMethodVisitor</span><span class="params">(MethodVisitor mv, String methodName)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(Opcodes.ASM5, mv);</span><br><span class="line">        <span class="keyword">this</span>.methodName = methodName;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visitCode</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;at Method ‘&quot;</span> + methodName + <span class="string">&quot;’ Begin...&quot;</span>);</span><br><span class="line">        <span class="keyword">super</span>.visitCode();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visitLocalVariable</span><span class="params">(String name, String desc, String signature, Label start, Label end, <span class="keyword">int</span> index)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.visitLocalVariable(name, desc, signature, start, end, index);</span><br><span class="line">        System.out.println(<span class="string">&quot;Params in visitLocalVariable: &quot;</span> + name + <span class="string">&quot;, &quot;</span> + desc + <span class="string">&quot;, &quot;</span> + signature + <span class="string">&quot;, &quot;</span> + start + <span class="string">&quot;, &quot;</span> + end + <span class="string">&quot;, &quot;</span> + index);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visitEnd</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;at Method ‘&quot;</span> + methodName + <span class="string">&quot;’End.&quot;</span>);</span><br><span class="line">        <span class="keyword">super</span>.visitEnd();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ASMTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;--- START ---&quot;</span>);</span><br><span class="line">        ClassReader cr = <span class="keyword">new</span> ClassReader(SayHello.class.getName());</span><br><span class="line">        cr.accept(<span class="keyword">new</span> DemoClassVisitor(), <span class="number">0</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;--- END ---&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DemoClassVisitor</span> <span class="keyword">extends</span> <span class="title">ClassVisitor</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DemoClassVisitor</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(Opcodes.ASM5);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Called when access file header, so it will called only once for each class</span></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">    * access: 方法的 modifier, 就是 public/private 的那些修饰词</span></span><br><span class="line"><span class="comment">    * name: class name</span></span><br><span class="line"><span class="comment">    * signature: 不是很确定，但是好像不重要</span></span><br><span class="line"><span class="comment">    * superName: 父类的名字，该例子中是 object</span></span><br><span class="line"><span class="comment">    * interfaces: 实现的接口</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visit</span><span class="params">(<span class="keyword">int</span> version, <span class="keyword">int</span> access, String name, String signature, String superName, String[] interfaces)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.visit(version, access, name, signature, superName, interfaces);</span><br><span class="line">        System.out.println(<span class="string">&quot;invoke visit method, params: &quot;</span> + version + <span class="string">&quot;, &quot;</span> + access + <span class="string">&quot;, &quot;</span> + name + <span class="string">&quot;, &quot;</span> + signature + <span class="string">&quot;, &quot;</span> + superName + <span class="string">&quot;, &quot;</span> + Arrays.toString(interfaces));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Called when access method</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> MethodVisitor <span class="title">visitMethod</span><span class="params">(<span class="keyword">int</span> access, String name, String desc, String signature, String[] exceptions)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;at Method &quot;</span> + name);</span><br><span class="line">        <span class="comment">//</span></span><br><span class="line">        MethodVisitor superMV = <span class="keyword">super</span>.visitMethod(access, name, desc, signature, exceptions);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> DemoMethodVisitor(superMV, name);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DemoMethodVisitor</span> <span class="keyword">extends</span> <span class="title">MethodVisitor</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> String methodName;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DemoMethodVisitor</span><span class="params">(MethodVisitor mv, String methodName)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(Opcodes.ASM5, mv);</span><br><span class="line">        <span class="keyword">this</span>.methodName = methodName;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visitCode</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;at Method ‘&quot;</span> + methodName + <span class="string">&quot;’ Begin...&quot;</span>);</span><br><span class="line">        <span class="keyword">super</span>.visitCode();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visitLocalVariable</span><span class="params">(String name, String desc, String signature, Label start, Label end, <span class="keyword">int</span> index)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.visitLocalVariable(name, desc, signature, start, end, index);</span><br><span class="line">        System.out.println(<span class="string">&quot;Params in visitLocalVariable: &quot;</span> + name + <span class="string">&quot;, &quot;</span> + desc + <span class="string">&quot;, &quot;</span> + signature + <span class="string">&quot;, &quot;</span> + start + <span class="string">&quot;, &quot;</span> + end + <span class="string">&quot;, &quot;</span> + index);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visitEnd</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;at Method ‘&quot;</span> + methodName + <span class="string">&quot;’End.&quot;</span>);</span><br><span class="line">        <span class="keyword">super</span>.visitEnd();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>终端输出</p>
 <figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">--- START ---</span><br><span class="line">invoke visit method, params: 52, 33, sorra/tracesonar/mytest/SayHello, null, java/lang/Object, [sorra/tracesonar/mytest/MyInterface01, sorra/tracesonar/mytest/MyInterface02]</span><br><span class="line">at Method &lt;init&gt;</span><br><span class="line">at Method ‘&lt;init&gt;’ Begin...</span><br><span class="line">Params in visitLocalVariable: this, Lsorra/tracesonar/mytest/SayHello;, null, L662441761, L1618212626, 0</span><br><span class="line">at Method ‘&lt;init&gt;’End.</span><br><span class="line">at Method say</span><br><span class="line">at Method ‘say’ Begin...</span><br><span class="line">Params in visitLocalVariable: this, Lsorra/tracesonar/mytest/SayHello;, null, L1129670968, L1023714065, 0</span><br><span class="line">Params in visitLocalVariable: name, Ljava/lang/String;, null, L2051450519, L1023714065, 1</span><br><span class="line">at Method ‘say’End.</span><br><span class="line">--- END ---</span><br></pre></td></tr></table></figure>
 
 <p>想要理解 ASM 运行方式，需要结合前面的 bytecode 内容。比如 <code>visitLocalVariable</code> 方法其实就是将 bytecode 里面对应的 LOCALVARIABLE 信息打印出来。</p>
-<h2 id="MethodVisitor-的-visitMethodInsn-方法简单例子"><a href="#MethodVisitor-的-visitMethodInsn-方法简单例子" class="headerlink" title="MethodVisitor 的 visitMethodInsn 方法简单例子"></a>MethodVisitor 的 visitMethodInsn 方法简单例子</h2><p>根据查到的资料，该方法可以知道当前的方法调用了其他类的什么方法，设计用例如下: Class A 有 method a, Class B 有 method b, a 中包含对 b 的调用，使用 visitMethodInsn 解析 a 方法是应该可以拿到这层关系</p>
+<h2 id="MethodVisitor-的-visitMethodInsn-方法简单例子"><a href="#MethodVisitor-的-visitMethodInsn-方法简单例子" class="headerlink" title="MethodVisitor 的 visitMethodInsn 方法简单例子"></a>MethodVisitor 的 visitMethodInsn 方法简单例子</h2><h3 id="基本使用"><a href="#基本使用" class="headerlink" title="基本使用"></a>基本使用</h3><p>根据查到的资料，该方法可以知道当前的方法调用了其他类的什么方法，设计用例如下: Class A 有 method a, Class B 有 method b, a 中包含对 b 的调用，使用 visitMethodInsn 解析 a 方法是应该可以拿到这层关系</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ClassA</span> </span>&#123;</span><br><span class="line">    ClassB b = <span class="keyword">new</span> ClassB();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">methodA</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        b.methodB();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ClassB</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">methodB</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Method B called...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>class A 的 bytecode 显示如下</p>
@@ -596,6 +841,16 @@
 <p>测试用例：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ASMTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;--- START ---&quot;</span>);</span><br><span class="line">        ClassReader cr = <span class="keyword">new</span> ClassReader(ClassA.class.getName());</span><br><span class="line">        cr.accept(<span class="keyword">new</span> DemoClassVisitor(), <span class="number">0</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;--- END ---&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DemoClassVisitor</span> <span class="keyword">extends</span> <span class="title">ClassVisitor</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DemoClassVisitor</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(Opcodes.ASM5);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Called when access method</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> MethodVisitor <span class="title">visitMethod</span><span class="params">(<span class="keyword">int</span> access, String name, String desc, String signature, String[] exceptions)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;at Method &quot;</span> + name);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">super</span>.visitMethod(access, name, desc, signature, exceptions);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> MethodVisitor(Opcodes.ASM5) &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visitMethodInsn</span><span class="params">(<span class="keyword">int</span> opcode, String owner, String name, String desc, <span class="keyword">boolean</span> itf)</span> </span>&#123;</span><br><span class="line">                <span class="keyword">super</span>.visitMethodInsn(opcode, owner, name, desc, itf);</span><br><span class="line">                System.out.println(String.format(<span class="string">&quot;opcode: %s, owner: %s, name: %s, desc: %s, itf: %s&quot;</span>, opcode, owner, name, desc, itf));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// output:</span></span><br><span class="line"><span class="comment">// --- START ---</span></span><br><span class="line"><span class="comment">// at Method &lt;init&gt;</span></span><br><span class="line"><span class="comment">// opcode: 183, owner: java/lang/Object, name: &lt;init&gt;, desc: ()V, itf: false</span></span><br><span class="line"><span class="comment">// opcode: 183, owner: com/jzheng/asmtest/ClassB, name: &lt;init&gt;, desc: ()V, itf: false</span></span><br><span class="line"><span class="comment">// at Method methodA</span></span><br><span class="line"><span class="comment">// opcode: 182, owner: com/jzheng/asmtest/ClassB, name: methodB, desc: ()V, itf: false</span></span><br><span class="line"><span class="comment">// --- END ---</span></span><br></pre></td></tr></table></figure>
 
+<h2 id="测试-itf-参数"><a href="#测试-itf-参数" class="headerlink" title="测试 itf 参数"></a>测试 itf 参数</h2><p>visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf)</p>
+<ul>
+<li>desc: 返回值类型描述</li>
+<li>itf 方法是否来自接口，如下面所示的例子，当子类实现接口，通过子类调用方法时，值为 false，当强转为接口时值为 true。 值的注意的是，继承的方法也是 false。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.objectweb.asm.ClassReader;</span><br><span class="line"><span class="keyword">import</span> org.objectweb.asm.ClassVisitor;</span><br><span class="line"><span class="keyword">import</span> org.objectweb.asm.MethodVisitor;</span><br><span class="line"><span class="keyword">import</span> org.objectweb.asm.Opcodes;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Scenario:</span></span><br><span class="line"><span class="comment"> * &lt;p&gt;</span></span><br><span class="line"><span class="comment"> * &#123;<span class="doctag">@link</span> org.objectweb.asm.MethodVisitor#visitMethodInsn(int, String, String, String, boolean)&#125;, 测试方法是继承自父类或者接口时该接口中的参数表现形式</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestVisitMethodInsn</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;--- START ---&quot;</span>);</span><br><span class="line">        ClassReader cr = <span class="keyword">new</span> ClassReader(Client.class.getName());</span><br><span class="line">        cr.accept(<span class="keyword">new</span> DemoClassVisitor(), <span class="number">0</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;--- END ---&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    Sub sub = <span class="keyword">new</span> Sub();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        sub.methodOfSuper();</span><br><span class="line">        sub.methodOfInterface();</span><br><span class="line">        ((Super)sub).methodOfSuper();</span><br><span class="line">        ((MyInterface)sub).methodOfInterface();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">Super</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">methodOfSuper</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">MyInterface</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">methodOfInterface</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Sub</span> <span class="keyword">extends</span> <span class="title">Super</span> <span class="keyword">implements</span> <span class="title">MyInterface</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">methodOfSuper</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">methodOfInterface</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DemoClassVisitor</span> <span class="keyword">extends</span> <span class="title">ClassVisitor</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DemoClassVisitor</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(Opcodes.ASM5);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Called when access method</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> MethodVisitor <span class="title">visitMethod</span><span class="params">(<span class="keyword">int</span> access, String name, String desc, String signature, String[] exceptions)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;In Method &quot;</span> + name);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">super</span>.visitMethod(access, name, desc, signature, exceptions);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> MethodVisitor(Opcodes.ASM5) &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visitMethodInsn</span><span class="params">(<span class="keyword">int</span> opcode, String owner, String name, String desc, <span class="keyword">boolean</span> itf)</span> </span>&#123;</span><br><span class="line">                <span class="keyword">super</span>.visitMethodInsn(opcode, owner, name, desc, itf);</span><br><span class="line">                System.out.println(String.format(<span class="string">&quot;opcode: %s, owner: %s, name: %s, desc: %s, itf: %s&quot;</span>, opcode, owner, name, desc, itf));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="visitInvokeDynamicInsn-用以检测-lambda-表达式"><a href="#visitInvokeDynamicInsn-用以检测-lambda-表达式" class="headerlink" title="visitInvokeDynamicInsn 用以检测 lambda 表达式"></a>visitInvokeDynamicInsn 用以检测 lambda 表达式</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Scenario:</span></span><br><span class="line"><span class="comment"> * &#123;<span class="doctag">@link</span> org.objectweb.asm.MethodVisitor#visitInvokeDynamicInsn(String, String, Handle, Object...)&#125;, 这个方法可以用来检测动态生成的方法，比如 lambada 表达式</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestVisitInvokeDynamicInsn</span> <span class="keyword">extends</span> <span class="title">ClassVisitor</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">TestVisitInvokeDynamicInsn</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(Opcodes.ASM5);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> MethodVisitor <span class="title">visitMethod</span><span class="params">(<span class="keyword">int</span> access, String name, String desc, String signature, String[] exceptions)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Parse Method: &quot;</span> + name);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">super</span>.visitMethod(access, name, desc, signature, exceptions);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> MethodVisitor(Opcodes.ASM5) &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visitInvokeDynamicInsn</span><span class="params">(String name, String desc, Handle bsm, Object... bsmArgs)</span> </span>&#123;</span><br><span class="line">                <span class="keyword">for</span> (Object sub : bsmArgs) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (sub <span class="keyword">instanceof</span> Handle) &#123;</span><br><span class="line">                        System.out.println(<span class="string">&quot;Handle info: &quot;</span> + sub);</span><br><span class="line">                        System.out.printf(<span class="string">&quot;name: %s, desc: %s, owner: %s, tag: %s%n&quot;</span>, ((Handle) sub).getName(), ((Handle) sub).getDesc(), ((Handle) sub).getOwner(), ((Handle) sub).getTag() );</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">super</span>.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);</span><br><span class="line">                System.out.printf(<span class="string">&quot;Output from [visitInvokeDynamicInsn]%nname: %s%n desc: %s%n bsm: %s%n bsmArgs: %s%n&quot;</span>, name, desc, bsm, Arrays.asList(bsmArgs));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;--- START ---&quot;</span>);</span><br><span class="line">        ClassReader cr = <span class="keyword">new</span> ClassReader(Client02.class.getName());</span><br><span class="line">        cr.accept(<span class="keyword">new</span> TestVisitInvokeDynamicInsn(), <span class="number">0</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;--- END ---&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Client02</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        String[] names = <span class="keyword">new</span> String[]&#123;<span class="string">&quot;A&quot;</span>, <span class="string">&quot;B&quot;</span>&#125;;</span><br><span class="line">        Arrays.stream(names).forEach(System.out::println);</span><br><span class="line"></span><br><span class="line">        BinaryOperator&lt;Long&gt; addLongs = Long::sum;</span><br><span class="line">        addLongs.apply(<span class="number">1L</span>,<span class="number">2L</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// --- START ---</span></span><br><span class="line"><span class="comment">// Parse Method: &lt;init&gt;</span></span><br><span class="line"><span class="comment">// Parse Method: test</span></span><br><span class="line"><span class="comment">// Handle info: java/io/PrintStream.println(Ljava/lang/String;)V (5)</span></span><br><span class="line"><span class="comment">// name: println, desc: (Ljava/lang/String;)V, owner: java/io/PrintStream, tag: 5</span></span><br><span class="line"><span class="comment">// Output from [visitInvokeDynamicInsn]</span></span><br><span class="line"><span class="comment">// name: accept</span></span><br><span class="line"><span class="comment">//  desc: (Ljava/io/PrintStream;)Ljava/util/function/Consumer;</span></span><br><span class="line"><span class="comment">//  bsm: java/lang/invoke/LambdaMetafactory.metafactory(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite; (6)</span></span><br><span class="line"><span class="comment">//  bsmArgs: [(Ljava/lang/Object;)V, java/io/PrintStream.println(Ljava/lang/String;)V (5), (Ljava/lang/String;)V]</span></span><br><span class="line"><span class="comment">// Handle info: java/lang/Long.sum(JJ)J (6)</span></span><br><span class="line"><span class="comment">// name: sum, desc: (JJ)J, owner: java/lang/Long, tag: 6</span></span><br><span class="line"><span class="comment">// Output from [visitInvokeDynamicInsn]</span></span><br><span class="line"><span class="comment">// name: apply</span></span><br><span class="line"><span class="comment">//  desc: ()Ljava/util/function/BinaryOperator;</span></span><br><span class="line"><span class="comment">//  bsm: java/lang/invoke/LambdaMetafactory.metafactory(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite; (6)</span></span><br><span class="line"><span class="comment">//  bsmArgs: [(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;, java/lang/Long.sum(JJ)J (6), (Ljava/lang/Long;Ljava/lang/Long;)Ljava/lang/Long;]</span></span><br><span class="line"><span class="comment">// --- END ---</span></span><br></pre></td></tr></table></figure>
+
+<p>注意参数列表中的 bsmArgs, 其中的 Handle 可能是你想要的， 列表中的 bsm 是一个固定值，看着像是 lambda 的指代</p>
 <h2 id="修改方法"><a href="#修改方法" class="headerlink" title="修改方法"></a>修改方法</h2><p>实验内容：准备一个 HelloWorld.class 可以打印出 ‘Hello World’ 字样。通过 ASM 框架使他在打印之前和之后都输出一些 debug 信息，调用时可以使用反射简化实验。</p>
 <p>测试用 class</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloWorld</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sayHello</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Hello World...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -666,7 +921,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-11-12 00:01:54" itemprop="dateModified" datetime="2020-11-12T00:01:54+08:00">2020-11-12</time>
+                <time title="修改时间：2020-11-12 19:19:39" itemprop="dateModified" datetime="2020-11-12T19:19:39+08:00">2020-11-12</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -757,7 +1012,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-11-12 00:01:54" itemprop="dateModified" datetime="2020-11-12T00:01:54+08:00">2020-11-12</time>
+                <time title="修改时间：2020-11-12 19:19:39" itemprop="dateModified" datetime="2020-11-12T19:19:39+08:00">2020-11-12</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -861,7 +1116,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-11-12 00:01:54" itemprop="dateModified" datetime="2020-11-12T00:01:54+08:00">2020-11-12</time>
+                <time title="修改时间：2020-11-12 19:19:39" itemprop="dateModified" datetime="2020-11-12T19:19:39+08:00">2020-11-12</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -952,7 +1207,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-11-12 00:01:54" itemprop="dateModified" datetime="2020-11-12T00:01:54+08:00">2020-11-12</time>
+                <time title="修改时间：2020-11-12 19:19:39" itemprop="dateModified" datetime="2020-11-12T19:19:39+08:00">2020-11-12</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1046,7 +1301,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-11-12 00:01:54" itemprop="dateModified" datetime="2020-11-12T00:01:54+08:00">2020-11-12</time>
+                <time title="修改时间：2020-11-12 19:19:39" itemprop="dateModified" datetime="2020-11-12T19:19:39+08:00">2020-11-12</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1139,7 +1394,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-11-12 00:01:54" itemprop="dateModified" datetime="2020-11-12T00:01:54+08:00">2020-11-12</time>
+                <time title="修改时间：2020-11-12 19:19:39" itemprop="dateModified" datetime="2020-11-12T19:19:39+08:00">2020-11-12</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1234,189 +1489,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/08/07/Same-Name-Same-Path-In-Java/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2020/08/07/Same-Name-Same-Path-In-Java/" class="post-title-link" itemprop="url">JVM 会如何处理同名同路径的类</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-08-07 11:36:11" itemprop="dateCreated datePublished" datetime="2020-08-07T11:36:11+08:00">2020-08-07</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-11-12 00:01:54" itemprop="dateModified" datetime="2020-11-12T00:01:54+08:00">2020-11-12</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
-                    <span itemprop="name">编程</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>49</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>问题记录：</p>
-<p>项目由多个 repo 组成，当这些 repo 中存在相同路径，相同名称的类时，JVM 会怎么处理？</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/08/07/Compiled-Java-Class-Can-Bypass-Type-Check/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2020/08/07/Compiled-Java-Class-Can-Bypass-Type-Check/" class="post-title-link" itemprop="url">编译好的 Java 类可以绕过类型检测？</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-08-07 10:52:45" itemprop="dateCreated datePublished" datetime="2020-08-07T10:52:45+08:00">2020-08-07</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-11-12 00:01:54" itemprop="dateModified" datetime="2020-11-12T00:01:54+08:00">2020-11-12</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
-                    <span itemprop="name">编程</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>296</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>问题记录：</p>
-<p>在做项目重构的时候遇到如下问题，repo1 下有 class A, 重构时我们在 repo1 中抽象出一个 interface FA 实现 A 的所有的方法，然后修改外部引用使 A 解偶。其中发现一个很有趣的现象，原先 repo2 使用 A 编译出来的 jar, 不做任何修改还是可以和 FA 源码进行编译，但是使用 repo2 的源码和 FA 源码进行编译会抛 mismatch 的 exception。猜测和 Java 编译规则有关系，难道是编译后的文件其实是一样的，所以原来的 jar 可以通用，但是源码的话和编译规则有冲突会挂。</p>
-<p>本地试了下，并不能重现，不清楚是重现的不对还是公司的项目有什么特殊的处理方式，有机会再看看把 ╮(￣▽￣””)╭</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1467,7 +1539,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">85</span>
+          <span class="site-state-item-count">87</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1480,7 +1552,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">79</span>
+        <span class="site-state-item-count">82</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1514,12 +1586,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">228k</span>
+    <span title="站点总字数">237k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">3:27</span>
+    <span title="站点阅读时长">3:36</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
