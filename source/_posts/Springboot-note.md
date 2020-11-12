@@ -434,3 +434,138 @@ public class MyMvcConfig implements WebMvcConfigurer {
 在 DispatcherServlet 的 doDispatch 方法打上断点，在 this 下的 viewResolver 变量中可以看到自定义的解析器
 
 @Configuration 修饰的类可以帮你扩展功能
+
+## 员工管理模块案例
+
+```java
+// config 下通过 WebMvcConfigurer 管理首页会更合适一点
+@Configuration
+public class MyMvcConfig implements WebMvcConfigurer {
+    @Override
+    public void addViewControllers(ViewControllerRegistry registry) {
+        registry.addViewController("/").setViewName("index");
+        registry.addViewController("/index.html").setViewName("index");
+    }
+}
+```
+
+关闭 thymeleaf cache
+
+```yaml
+spring:
+  thymeleaf:
+    cache: false
+```
+
+### i18n 国际化实现
+
+1. resource 下新建 i18n 文件夹，添加 properties（默认 login.properties + 语言支持版本 login_en_US.properties, login_zh_CN.properties）
+2. 自定义 LocaleResolver 做切换
+3. 自定义组件配置到 Spring 容器中 @Bean
+4. 用 #{} 替换模板
+
+源码中在 WebMvcAutoConfiguration 类中有配置 localeResolver 方法，通过这个引出自定义的类实现
+
+```html
+<a class="btn btn-sm" th:href="@{/index.html(l='zh_CN')}">中文</a>
+<a class="btn btn-sm" th:href="@{/index.html(l='en_US')}">English</a>
+```
+
+```java
+// 自定义 resolver
+public class MyLocaleResolver implements LocaleResolver {
+    //解析请求
+    @Override
+    public Locale resolveLocale(HttpServletRequest request) {
+
+        //获得请求中的语言参数
+        String language = request.getParameter("l");
+
+        Locale locale = Locale.getDefault(); //如果没有就使用默认的
+
+        //如果请求的连接携带了国际化的参数
+        if (!StringUtils.isEmpty(language)) {
+            //zh_CN
+            String[] split = language.split("_");
+            //国家，地区
+            locale = new Locale(split[0], split[1]);
+
+        }
+
+        return locale;
+    }
+
+    @Override
+    public void setLocale(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Locale locale) {
+
+    }
+}
+
+// 在自定义 config 类中通过 @Bean 注册
+public class MyMvcConfig implements WebMvcConfigurer {
+    // ...
+    @Bean
+    public LocaleResolver localeResolver() {
+        return new MyLocaleResolver();
+    }
+}
+```
+
+### 通过 session  + 拦截器实现强制登录
+
+LoginController 在登录成功的时候 set 一下 session
+
+```java
+@RequestMapping("/user/login")
+public String login(...Model model, HttpSession session) {
+
+    //具體的業務：
+    if ( !StringUtils.isEmpty(username) && "123456".equals(password)) {
+        session.setAttribute("loginUser", username);
+        return "redirect:/main.html" ;
+    }
+    //...
+}
+```
+
+定制拦截器实现 HandlerInterceptor 接口
+
+```java
+public class LoginHandlerInterceptor implements HandlerInterceptor {
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        Object loginUser = request.getSession().getAttribute("loginUser");
+        if (loginUser == null) {
+            request.setAttribute("msg", "Please login first...");
+            request.getRequestDispatcher("/index.html").forward(request, response);
+            return false;
+        }
+        return true;
+    }
+}
+```
+
+在 config 类中注册
+
+```java
+@Configuration
+public class MyMvcConfig implements WebMvcConfigurer {
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new LoginHandlerInterceptor())
+                .addPathPatterns("/**")
+                .excludePathPatterns("/index.html", "/", "/user/login", "/css/**", "/js/**", "/img/**");
+    }
+}
+```
+
+### thymeleaf 标签修改方式
+
+```html
+原来： <script type="text/javascript" src="asserts/js/jquery-3.2.1.slim.min.js" ></script>
+修改： <script type="text/javascript" th:src="@{/js/Chart.min.js}"></script>
+
+
+<link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+```
+
