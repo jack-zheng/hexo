@@ -1,11 +1,12 @@
 ---
-title: Java parse xml
+title: Java use SAX parse xml
 date: 2020-11-03 18:57:40
 categories:
 - 编程
 tags:
 - java
 - xml
+- sax
 ---
 
 简单记录一下 Java 解析 xml 的例子。

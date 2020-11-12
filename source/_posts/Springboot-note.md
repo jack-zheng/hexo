@@ -11,6 +11,8 @@ tags:
 
 Springboot 学习笔记，核心**自动配置**
 
+社区版的 Idea 少了一些配置，从网上下下来的 initializr 直接倒入的还一些配置可能失效，可以看文件前缀判断
+
 ## HelloWorld web mode
 
 1. 访问 [Initializr](https://start.spring.io/) 定制项目， dependencies 选 Spring Web 即可
@@ -39,6 +41,40 @@ public class TestController {
 3. 其他步骤和上面的练习一样
 
 彩蛋：banner 替换，在 resources 下新建 banner.txt 文件，替换终端启动图标
+
+## Autowired 替代方案
+
+方案一 可以通过把注解放到对应的 setter 方法上绕过
+
+```java
+InitBean initBean;
+
+@Autowired
+public void setInitBean(InitBean initBean) {
+    this.initBean = initBean;
+}
+```
+
+方案二 放入构造函数中自动识别
+
+```java
+public class InitTraceSourceEventListener implements ApplicationListener<ApplicationReadyEvent> {
+    InitBean bean;
+
+    public InitTraceSourceEventListener(InitBean bean) {
+        this.bean = bean;
+    }
+}
+```
+
+方案三 用 `@Resource` 代替
+
+```java
+@Resource
+InitBean bean;
+```
+
+或者最粗暴的: Settings -> Editor -> Code Style -> Inspections -> Spring Core -> Code -> Field injection warning 选项 disable 掉
 
 ## 自动配置原理初探
 
@@ -91,6 +127,10 @@ spring-boot-autoconfiguration.jar 包含所有的配置
 SpringApplication.run() 完了可以深入了解一下，不过，前面的自动装备更重要
 
 ## YAML 给属性赋值
+
+* yaml 和 properties 是可以共存的
+* 共存时 properties 的优先级要高于 yaml
+* yaml 的后缀可以是 yaml 或 yml 都可以生效
 
 yaml 格式：
 

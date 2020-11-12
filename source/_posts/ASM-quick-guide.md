@@ -101,6 +101,13 @@ class DemoClassVisitor extends ClassVisitor {
     }
 
     // Called when access file header, so it will called only once for each class
+    /**
+    * access: 方法的 modifier, 就是 public/private 的那些修饰词
+    * name: class name
+    * signature: 不是很确定，但是好像不重要
+    * superName: 父类的名字，该例子中是 object
+    * interfaces: 实现的接口
+    */
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         super.visit(version, access, name, signature, superName, interfaces);
@@ -161,6 +168,8 @@ at Method ‘say’End.
 想要理解 ASM 运行方式，需要结合前面的 bytecode 内容。比如 `visitLocalVariable` 方法其实就是将 bytecode 里面对应的 LOCALVARIABLE 信息打印出来。
 
 ## MethodVisitor 的 visitMethodInsn 方法简单例子
+
+### 基本使用
 
 根据查到的资料，该方法可以知道当前的方法调用了其他类的什么方法，设计用例如下: Class A 有 method a, Class B 有 method b, a 中包含对 b 的调用，使用 visitMethodInsn 解析 a 方法是应该可以拿到这层关系
 
@@ -271,6 +280,161 @@ class DemoClassVisitor extends ClassVisitor {
 // opcode: 182, owner: com/jzheng/asmtest/ClassB, name: methodB, desc: ()V, itf: false
 // --- END ---
 ```
+
+## 测试 itf 参数
+
+visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf)
+
+* desc: 返回值类型描述
+* itf 方法是否来自接口，如下面所示的例子，当子类实现接口，通过子类调用方法时，值为 false，当强转为接口时值为 true。 值的注意的是，继承的方法也是 false。
+
+```java
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+
+import java.io.IOException;
+
+/**
+ * Scenario:
+ * <p>
+ * {@link org.objectweb.asm.MethodVisitor#visitMethodInsn(int, String, String, String, boolean)}, 测试方法是继承自父类或者接口时该接口中的参数表现形式
+ */
+public class TestVisitMethodInsn {
+    public static void main(String[] args) throws IOException {
+        System.out.println("--- START ---");
+        ClassReader cr = new ClassReader(Client.class.getName());
+        cr.accept(new DemoClassVisitor(), 0);
+        System.out.println("--- END ---");
+    }
+}
+
+class Client {
+    Sub sub = new Sub();
+
+    public void test() {
+        sub.methodOfSuper();
+        sub.methodOfInterface();
+        ((Super)sub).methodOfSuper();
+        ((MyInterface)sub).methodOfInterface();
+    }
+}
+
+abstract class Super {
+    abstract void methodOfSuper();
+}
+
+interface MyInterface {
+    boolean methodOfInterface();
+}
+
+class Sub extends Super implements MyInterface {
+    @Override
+    void methodOfSuper() {
+
+    }
+
+    @Override
+    public boolean methodOfInterface() {
+        return false;
+    }
+}
+
+class DemoClassVisitor extends ClassVisitor {
+    public DemoClassVisitor() {
+        super(Opcodes.ASM5);
+    }
+
+    // Called when access method
+    @Override
+    public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+        System.out.println("In Method " + name);
+
+        super.visitMethod(access, name, desc, signature, exceptions);
+        return new MethodVisitor(Opcodes.ASM5) {
+            @Override
+            public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
+                super.visitMethodInsn(opcode, owner, name, desc, itf);
+                System.out.println(String.format("opcode: %s, owner: %s, name: %s, desc: %s, itf: %s", opcode, owner, name, desc, itf));
+            }
+        };
+    }
+}
+```
+
+### visitInvokeDynamicInsn 用以检测 lambda 表达式
+
+```java
+/**
+ * Scenario:
+ * {@link org.objectweb.asm.MethodVisitor#visitInvokeDynamicInsn(String, String, Handle, Object...)}, 这个方法可以用来检测动态生成的方法，比如 lambada 表达式
+ */
+public class TestVisitInvokeDynamicInsn extends ClassVisitor {
+    public TestVisitInvokeDynamicInsn() {
+        super(Opcodes.ASM5);
+    }
+
+    @Override
+    public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+        System.out.println("Parse Method: " + name);
+
+        super.visitMethod(access, name, desc, signature, exceptions);
+        return new MethodVisitor(Opcodes.ASM5) {
+            @Override
+            public void visitInvokeDynamicInsn(String name, String desc, Handle bsm, Object... bsmArgs) {
+                for (Object sub : bsmArgs) {
+                    if (sub instanceof Handle) {
+                        System.out.println("Handle info: " + sub);
+                        System.out.printf("name: %s, desc: %s, owner: %s, tag: %s%n", ((Handle) sub).getName(), ((Handle) sub).getDesc(), ((Handle) sub).getOwner(), ((Handle) sub).getTag() );
+                    }
+                }
+                super.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
+                System.out.printf("Output from [visitInvokeDynamicInsn]%nname: %s%n desc: %s%n bsm: %s%n bsmArgs: %s%n", name, desc, bsm, Arrays.asList(bsmArgs));
+            }
+        };
+    }
+
+    public static void main(String[] args) throws IOException {
+        System.out.println("--- START ---");
+        ClassReader cr = new ClassReader(Client02.class.getName());
+        cr.accept(new TestVisitInvokeDynamicInsn(), 0);
+        System.out.println("--- END ---");
+    }
+}
+
+class Client02 {
+    public void test() {
+        String[] names = new String[]{"A", "B"};
+        Arrays.stream(names).forEach(System.out::println);
+
+        BinaryOperator<Long> addLongs = Long::sum;
+        addLongs.apply(1L,2L);
+    }
+}
+
+
+// --- START ---
+// Parse Method: <init>
+// Parse Method: test
+// Handle info: java/io/PrintStream.println(Ljava/lang/String;)V (5)
+// name: println, desc: (Ljava/lang/String;)V, owner: java/io/PrintStream, tag: 5
+// Output from [visitInvokeDynamicInsn]
+// name: accept
+//  desc: (Ljava/io/PrintStream;)Ljava/util/function/Consumer;
+//  bsm: java/lang/invoke/LambdaMetafactory.metafactory(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite; (6)
+//  bsmArgs: [(Ljava/lang/Object;)V, java/io/PrintStream.println(Ljava/lang/String;)V (5), (Ljava/lang/String;)V]
+// Handle info: java/lang/Long.sum(JJ)J (6)
+// name: sum, desc: (JJ)J, owner: java/lang/Long, tag: 6
+// Output from [visitInvokeDynamicInsn]
+// name: apply
+//  desc: ()Ljava/util/function/BinaryOperator;
+//  bsm: java/lang/invoke/LambdaMetafactory.metafactory(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite; (6)
+//  bsmArgs: [(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;, java/lang/Long.sum(JJ)J (6), (Ljava/lang/Long;Ljava/lang/Long;)Ljava/lang/Long;]
+// --- END ---
+```
+
+注意参数列表中的 bsmArgs, 其中的 Handle 可能是你想要的， 列表中的 bsm 是一个固定值，看着像是 lambda 的指代
 
 ## 修改方法
 

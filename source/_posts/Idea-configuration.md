@@ -81,3 +81,7 @@ Navigate -> Type Hierarchy 或者 Ctrl + H
 | :--------- | :-------------: | :---: |
 | 万能快捷键 | CMD + Shift + A | TODO  |
 | 查找类     |     CMD+ O      | TODO  |
+
+## Spring 中 Autowired warning
+
+Settings -> Editor -> Code Style -> Inspections -> Spring Core -> Code -> Field injection warning 选项 disable 掉

@@ -17,11 +17,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Node<T> {
-    private T data = null;
+    private T data;
+    private Node<T> parent = null;
 
     private List<Node<T>> children = new ArrayList<>();
-
-    private Node<T> parent = null;
 
     public Node(T data) {
         this.data = data;
