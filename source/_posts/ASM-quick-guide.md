@@ -285,7 +285,7 @@ class DemoClassVisitor extends ClassVisitor {
 
 visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf)
 
-* desc: 返回值类型描述
+* desc: 方法参数和返回值类型，`()` 内为参数，外面是返回值
 * itf 方法是否来自接口，如下面所示的例子，当子类实现接口，通过子类调用方法时，值为 false，当强转为接口时值为 true。 值的注意的是，继承的方法也是 false。
 
 ```java

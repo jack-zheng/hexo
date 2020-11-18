@@ -1,5 +1,5 @@
 ---
-title: Java use SAX parse xml
+title: 使用 SAX 解析 XM
 date: 2020-11-03 18:57:40
 categories:
 - 编程
@@ -18,9 +18,9 @@ tags:
 * DTDHandler: 这个类都没有使用例子，是不是一个很冷门的类啊 （；￣ェ￣） 以后有机会看到再记录把
 * ContentHandler: 负责处理 xml 节点的逻辑
 * ErrorHandler: 结合 DTD 处理异常
-* systemId: 外部资源(多半是DTD)的URI，比如本地文件 file:///usr/share/dtd/somefile.dtd 或者网络某个地址的文件 http://www.w3.org/somefile.dtd
+* systemId: 外部资源(多半是DTD)的URI，比如本地文件 `file:///usr/share/dtd/somefile.dtd` 或者网络某个地址的文件 `http://www.w3.org/somefile.dtd`
 * publicId: 和 systemId 类似，区别在于**间接性**
-  * publicID 就相当于一个名字，这个名字代表了一个外部资源。比如，我们规定”W3C HTML 4.01″这个字符串对应 "http://www.w3.org/somedir/somefile.dtd" 这个资源。那么，publicID="W3C HTML 4.01" 和 systemID="http://www.w3.org/somedir/somefile.dtd" 是一样的，二者都引用了 http://www.w3.org/somedir/somefile.dtd 作为该文档的外部DTD。
+  * publicID 就相当于一个名字，这个名字代表了一个外部资源。比如，我们规定 `W3C HTML 4.01` 这个字符串对应 `http://www.w3.org/somedir/somefile.dtd` 这个资源。那么，`publicID="W3C HTML 4.01"` 和 `systemID="http://www.w3.org/somedir/somefile.dtd"` 是一样的，二者都引用了 `http://www.w3.org/somedir/somefile.dtd` 作为该文档的外部DTD。
 * xmlReader.setFeature(url, flag): 用来表示某个特定的验证规则是否打开了
 * XML schema, 就是我们在 Spring 项目中经常能看到的 `.xsd` 文件，他是 DTD 的替代品，支持的验证功能更多，格式和 XML 一致
 

@@ -61,6 +61,29 @@ List<String> ret = names.stream().filter(name -> name.charAt(0) == 'J').collect(
 // filter 中的部分就是 Predicate 表达式，也可以分开定义写成如下形式
 Predicate<String> filterTom = input -> input.equals("Tom");
 ret = names.stream().filter(filterTom).collect(Collectors.toList());
+
+// 自定义 predicate 表达式
+public class PredicateSamples {
+    Predicate<String> checkLength = input -> input.length() > 5;
+    @Test
+    public void test_checkLength() {
+        // false
+        System.out.println(checkLength.test("1234"));
+        // true
+        System.out.println(checkLength.test("123456"));
+    }
+}
+
+// 定义方法生成 predicate 作为返回值
+static Predicate<String> generatePredicateExpression(String prefix) {
+    return test -> prefix.startsWith(test);
+}
+
+@Test
+public void test_generate_expression() {
+    // true
+    System.out.println(generatePredicateExpression("jack123").test("jack"));
+}
 ```
 
 Consumer 对传入的参数做操作，没有返回值，例如可以用它实现打印，断言等操作
