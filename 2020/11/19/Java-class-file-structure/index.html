@@ -59,7 +59,7 @@
 <meta property="og:description" content="目标：通过阅读 深入理解 JVM 虚拟机 第三版 的第 6 章，结合 ASM 里的 Reader 和 Visitor 对 class 文件有个一比较深入的了解。  bilibili 参考视频，很棒，白嫖  6.2 无关性的基石Java 虚拟机不与包括 Java 语言在内的任何语言绑定，它只与 Class 文件这种特定的二进制文件格式所关联，Class 文件中包含了 Java 虚拟机指令集，符号表以">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2020-11-19T02:45:30.000Z">
-<meta property="article:modified_time" content="2020-11-23T09:28:14.028Z">
+<meta property="article:modified_time" content="2020-11-23T14:53:55.149Z">
 <meta property="article:author" content="Jack Zheng">
 <meta property="article:tag" content="asm">
 <meta property="article:tag" content="todo">
@@ -241,7 +241,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-11-23 17:28:14" itemprop="dateModified" datetime="2020-11-23T17:28:14+08:00">2020-11-23</time>
+                <time title="修改时间：2020-11-23 22:53:55" itemprop="dateModified" datetime="2020-11-23T22:53:55+08:00">2020-11-23</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -268,14 +268,14 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>2.3k</span>
+              <span>7.2k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>2 分钟</span>
+              <span>7 分钟</span>
             </span>
 
         </div>
@@ -295,7 +295,7 @@
 <h2 id="6-3-Class-类文件的结构"><a href="#6-3-Class-类文件的结构" class="headerlink" title="6.3 Class 类文件的结构"></a>6.3 Class 类文件的结构</h2><blockquote>
 <p>Idea 安装 BinEd 插件可以查看 Class 文件在各种进制下的值</p>
 </blockquote>
-<p>Class 文件时一组以 8 个字节为基础单位的二进制流，各个数据项目严格按照顺序紧凑排列在文件之中，中间没有添加任何分隔符，这使得整个 Class 文件中存储的内容几乎全部是程序运行的必要数据，没有空隙存在。</p>
+<p>Class 文件是一组以 8 个字节为基础单位的二进制流，各个数据项目严格按照顺序紧凑排列在文件之中，中间没有添加任何分隔符，这使得整个 Class 文件中存储的内容几乎全部是程序运行的必要数据，没有空隙存在。</p>
 <p>Class 文件结构中只有两种数据类型：无符号数 + 表</p>
 <ul>
 <li>无符号数：是基本数据类，以 u1, u2, u4, u8 分别表示 1，2，4，8 个字节的无符号数。无符号数可以用来描述数字，索引引用，数量值或者按照 UTF-8 编码构成的字符串值</li>
@@ -308,108 +308,91 @@
 <th align="left">Type</th>
 <th align="left">Name</th>
 <th align="left">Count</th>
-<th align="left">Position</th>
 </tr>
 </thead>
 <tbody><tr>
 <td align="left">u4</td>
 <td align="left">magic</td>
 <td align="left">1</td>
-<td align="left">0-3</td>
 </tr>
 <tr>
 <td align="left">u2</td>
 <td align="left">minor_version</td>
 <td align="left">1</td>
-<td align="left">4-5</td>
 </tr>
 <tr>
 <td align="left">u2</td>
 <td align="left">major_version</td>
 <td align="left">1</td>
-<td align="left">6-7</td>
 </tr>
 <tr>
 <td align="left">u2</td>
 <td align="left">constant_pool_count</td>
 <td align="left">1</td>
-<td align="left">8-9</td>
 </tr>
 <tr>
 <td align="left">cp_info</td>
 <td align="left">constant_pool</td>
 <td align="left">constant_pool_count-1</td>
-<td align="left"></td>
 </tr>
 <tr>
 <td align="left">u2</td>
 <td align="left">access_flags</td>
 <td align="left">1</td>
-<td align="left"></td>
 </tr>
 <tr>
 <td align="left">u2</td>
 <td align="left">this_class</td>
 <td align="left">1</td>
-<td align="left"></td>
 </tr>
 <tr>
 <td align="left">u2</td>
 <td align="left">super_class</td>
 <td align="left">1</td>
-<td align="left"></td>
 </tr>
 <tr>
 <td align="left">u2</td>
 <td align="left">interfaces_count</td>
 <td align="left">1</td>
-<td align="left"></td>
 </tr>
 <tr>
 <td align="left">u2</td>
 <td align="left">interfaces</td>
 <td align="left">interfaces_count</td>
-<td align="left"></td>
 </tr>
 <tr>
 <td align="left">u2</td>
 <td align="left">fields_count</td>
 <td align="left">1</td>
-<td align="left"></td>
 </tr>
 <tr>
 <td align="left">field_info</td>
 <td align="left">fields</td>
 <td align="left">fields_count</td>
-<td align="left"></td>
 </tr>
 <tr>
 <td align="left">u2</td>
 <td align="left">methods_count</td>
 <td align="left">1</td>
-<td align="left"></td>
 </tr>
 <tr>
 <td align="left">method_info</td>
 <td align="left">methods</td>
 <td align="left">methods_count</td>
-<td align="left"></td>
 </tr>
 <tr>
 <td align="left">u2</td>
 <td align="left">attributes_count</td>
 <td align="left">1</td>
-<td align="left"></td>
 </tr>
 <tr>
 <td align="left">attribute_info</td>
 <td align="left">attributes</td>
 <td align="left">attributes_count</td>
-<td align="left"></td>
 </tr>
 </tbody></table>
 <h3 id="6-3-1-魔数与-Class-文件的版本"><a href="#6-3-1-魔数与-Class-文件的版本" class="headerlink" title="6.3.1 魔数与 Class 文件的版本"></a>6.3.1 魔数与 Class 文件的版本</h3><p>Class 文件前 4 个字节被称为魔数，值为 0xCAFEBABE，用来表明文件类型。紧接着 4 个字节为主次版本号。</p>
-<p>Java 虚拟机规范在 Class 文件校验部分明确要求，即使文件格式并未发生任何变化，虚拟机也必须拒绝执行超过其版本号的 Class 文件。</p>
+<p>Java 虚拟机规范在 Class 文件校验部分明确要求，即使文件格式并未发生任何变化，虚拟机也必须<strong>拒绝执行</strong>超过其版本号的 Class 文件。</p>
 <table>
 <thead>
 <tr>
@@ -473,7 +456,133 @@
 <p>仿照参考书写下测试代码, 不知道是不是编译器版本不一样，结果从常量池开始有些许偏差，不过无伤大雅，学习路径，方法还是一样的。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> c631;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestClass</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> m;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">inc</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> m + <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h3 id="6-3-2-常量池"><a href="#6-3-2-常量池" class="headerlink" title="6.3.2 常量池"></a>6.3.2 常量池</h3><p>第 9-8 个字节表示常量池。常量池是从 1 开始的。案例中对应的十六进制为 0x0016，转化为 10 进制为 22。表明有 21 个常量。</p>
+<p>Class 文件 16 进制表达式</p>
+<table>
+<thead>
+<tr>
+<th align="center">line</th>
+<th align="left">00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f</th>
+<th align="left">hex value</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">0000000000</td>
+<td align="left">ca fe ba be 00 00 00 32 00 16 0a 00 04 00 12 09</td>
+<td align="left">…….2……..</td>
+</tr>
+<tr>
+<td align="center">0000000010</td>
+<td align="left">00 03 00 13 07 00 14 07 00 15 01 00 01 6d 01 00</td>
+<td align="left">………….m..</td>
+</tr>
+<tr>
+<td align="center">0000000020</td>
+<td align="left">01 49 01 00 06 3c 69 6e 69 74 3e 01 00 03 28 29</td>
+<td align="left">.I…<init>…()</td>
+</tr>
+<tr>
+<td align="center">0000000030</td>
+<td align="left">56 01 00 04 43 6f 64 65 01 00 0f 4c 69 6e 65 4e</td>
+<td align="left">V…Code…LineN</td>
+</tr>
+<tr>
+<td align="center">0000000040</td>
+<td align="left">75 6d 62 65 72 54 61 62 6c 65 01 00 12 4c 6f 63</td>
+<td align="left">umberTable…Loc</td>
+</tr>
+<tr>
+<td align="center">0000000050</td>
+<td align="left">61 6c 56 61 72 69 61 62 6c 65 54 61 62 6c 65 01</td>
+<td align="left">alVariableTable.</td>
+</tr>
+<tr>
+<td align="center">0000000060</td>
+<td align="left">00 04 74 68 69 73 01 00 10 4c 63 36 33 31 2f 54</td>
+<td align="left">..this…Lc631/T</td>
+</tr>
+<tr>
+<td align="center">0000000070</td>
+<td align="left">65 73 74 43 6c 61 73 73 3b 01 00 03 69 6e 63 01</td>
+<td align="left">estClass;…inc.</td>
+</tr>
+<tr>
+<td align="center">0000000080</td>
+<td align="left">00 03 28 29 49 01 00 0a 53 6f 75 72 63 65 46 69</td>
+<td align="left">..()I…SourceFi</td>
+</tr>
+<tr>
+<td align="center">0000000090</td>
+<td align="left">6c 65 01 00 0e 54 65 73 74 43 6c 61 73 73 2e 6a</td>
+<td align="left">le…TestClass.j</td>
+</tr>
+<tr>
+<td align="center">00000000a0</td>
+<td align="left">61 76 61 0c 00 07 00 08 0c 00 05 00 06 01 00 0e</td>
+<td align="left">ava………….</td>
+</tr>
+<tr>
+<td align="center">00000000b0</td>
+<td align="left">63 36 33 31 2f 54 65 73 74 43 6c 61 73 73 01 00</td>
+<td align="left">c631/TestClass..</td>
+</tr>
+<tr>
+<td align="center">00000000c0</td>
+<td align="left">10 6a 61 76 61 2f 6c 61 6e 67 2f 4f 62 6a 65 63</td>
+<td align="left">.java/lang/Objec</td>
+</tr>
+<tr>
+<td align="center">00000000d0</td>
+<td align="left">74 00 21 00 03 00 04 00 00 00 01 00 02 00 05 00</td>
+<td align="left">t.!………….</td>
+</tr>
+<tr>
+<td align="center">00000000e0</td>
+<td align="left">06 00 00 00 02 00 01 00 07 00 08 00 01 00 09 00</td>
+<td align="left">…………….</td>
+</tr>
+<tr>
+<td align="center">00000000f0</td>
+<td align="left">00 00 2f 00 01 00 01 00 00 00 05 2a b7 00 01 b1</td>
+<td align="left">../……..*….</td>
+</tr>
+<tr>
+<td align="center">0000000100</td>
+<td align="left">00 00 00 02 00 0a 00 00 00 06 00 01 00 00 00 03</td>
+<td align="left">…………….</td>
+</tr>
+<tr>
+<td align="center">0000000110</td>
+<td align="left">00 0b 00 00 00 0c 00 01 00 00 00 05 00 0c 00 0d</td>
+<td align="left">…………….</td>
+</tr>
+<tr>
+<td align="center">0000000120</td>
+<td align="left">00 00 00 01 00 0e 00 0f 00 01 00 09 00 00 00 31</td>
+<td align="left">……………1</td>
+</tr>
+<tr>
+<td align="center">0000000130</td>
+<td align="left">00 02 00 01 00 00 00 07 2a b4 00 02 04 60 ac 00</td>
+<td align="left">……..*….`..</td>
+</tr>
+<tr>
+<td align="center">0000000140</td>
+<td align="left">00 00 02 00 0a 00 00 00 06 00 01 00 00 00 07 00</td>
+<td align="left">…………….</td>
+</tr>
+<tr>
+<td align="center">0000000150</td>
+<td align="left">0b 00 00 00 0c 00 01 00 00 00 07 00 0c 00 0d 00</td>
+<td align="left">…………….</td>
+</tr>
+<tr>
+<td align="center">0000000160</td>
+<td align="left">00 00 01 00 10 00 00 00 02 00 11</td>
+<td align="left">………..</td>
+</tr>
+</tbody></table>
+<p>魔数值 cafe, 版本号 <code>00 00 00 32</code> 转化后位 50 和我在 pom 指定的 1.6 版本 JDK 编译一致</p>
+<h3 id="6-3-2-常量池"><a href="#6-3-2-常量池" class="headerlink" title="6.3.2 常量池"></a>6.3.2 常量池</h3><p>第 9-8 个字节表示常量池。常量池是从 1 开始的。示例中对应的值位 <code>00 16 - 22</code> 表明常量池总共有 21 个值。</p>
 <p>PS: 常量池的 0 位空余，是为了考虑特殊情况。当指向常量池的数据需要表达 <code>不引用任何常量池中的项目</code> 这样的意思时，可以将索引值设置位 0 表示。</p>
 <p>常量池主要存放两大类的常量：字面量 Literal + 符号引用 Symbolic References。字面量接近于 Java 语言层面的常量概念，符号引用则属于编译原理的概念主要包括下面几类常量：</p>
 <ol>
@@ -575,7 +684,173 @@
 <td align="left">表示一个模块中开放或者导出的包</td>
 </tr>
 </tbody></table>
+<p>常量池第一项以 <code>0a - 10</code> 开头，查看上表得知为 CONSTANT_Methodref_info 类型的表，查询可知对应的表结构为</p>
+<table>
+<thead>
+<tr>
+<th align="left">Const Name</th>
+<th align="left">Item</th>
+<th align="left">Length</th>
+<th align="left">desc</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">CONSTANT_Methodref_info</td>
+<td align="left">tag</td>
+<td align="left">u1</td>
+<td align="left">值为 10</td>
+</tr>
+<tr>
+<td align="left">-</td>
+<td align="left">index</td>
+<td align="left">u2</td>
+<td align="left">指向声明方法的类描述符 CONSTANT_Class_info 的索引项</td>
+</tr>
+<tr>
+<td align="left">-</td>
+<td align="left">index</td>
+<td align="left">u2</td>
+<td align="left">指向名称及类型描述符 CONSTANT_NameAndType 的索引项</td>
+</tr>
+</tbody></table>
+<p>所以第一个常量值总共 5 个字节组成 <code>0a 00 04 00 12</code>，表示的是方法引用，类引用地址为 4，方法名称和类型地址为 18。</p>
+<p>为了反向验证这样分析是否正确可以通过反编译命令 <code>javap -verbose TestClass</code> 查看 class 文件。</p>
+<p>第一个常量值内容为 <code>#1 = Methodref          #4.#18         // java/lang/Object.&quot;&lt;init&gt;&quot;:()V</code> 和分析结果一致</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line">C:\Users\jack\Downloads\helloworld\understanding-the-jvm\c6-file-structure\target\classes\c631&gt;javap -verbose TestClass</span><br><span class="line">警告: 文件 .\TestClass.class 不包含类 TestClass</span><br><span class="line">Classfile /C:/Users/jack/Downloads/helloworld/understanding-the-jvm/c6-file-structure/target/classes/c631/TestClass.class</span><br><span class="line">  Last modified 2020年11月19日; size 363 bytes</span><br><span class="line">  MD5 checksum 16826804824a30e99e96960a47c3a47a</span><br><span class="line">  Compiled from &quot;TestClass.java&quot;</span><br><span class="line">public class c631.TestClass</span><br><span class="line">  minor version: 0</span><br><span class="line">  major version: 50</span><br><span class="line">  flags: (0x0021) ACC_PUBLIC, ACC_SUPER</span><br><span class="line">  this_class: #3                          // c631/TestClass</span><br><span class="line">  super_class: #4                         // java/lang/Object</span><br><span class="line">  interfaces: 0, fields: 1, methods: 2, attributes: 1</span><br><span class="line">Constant pool:</span><br><span class="line">   #1 = Methodref          #4.#18         // java/lang/Object.&quot;&lt;init&gt;&quot;:()V</span><br><span class="line">   #2 = Fieldref           #3.#19         // c631/TestClass.m:I</span><br><span class="line">   #3 = Class              #20            // c631/TestClass</span><br><span class="line">   #4 = Class              #21            // java/lang/Object</span><br><span class="line">   #5 = Utf8               m</span><br><span class="line">   #6 = Utf8               I</span><br><span class="line">   #7 = Utf8               &lt;init&gt;</span><br><span class="line">   #8 = Utf8               ()V</span><br><span class="line">   #9 = Utf8               Code</span><br><span class="line">  #10 = Utf8               LineNumberTable</span><br><span class="line">  #11 = Utf8               LocalVariableTable</span><br><span class="line">  #12 = Utf8               this</span><br><span class="line">  #13 = Utf8               Lc631/TestClass;</span><br><span class="line">  #14 = Utf8               inc</span><br><span class="line">  #15 = Utf8               ()I</span><br><span class="line">  #16 = Utf8               SourceFile</span><br><span class="line">  #17 = Utf8               TestClass.java</span><br><span class="line">  #18 = NameAndType        #7:#8          // &quot;&lt;init&gt;&quot;:()V</span><br><span class="line">  #19 = NameAndType        #5:#6          // m:I</span><br><span class="line">  #20 = Utf8               c631/TestClass</span><br><span class="line">  #21 = Utf8               java/lang/Object</span><br><span class="line">&#123;</span><br><span class="line">  public c631.TestClass();</span><br><span class="line">    descriptor: ()V</span><br><span class="line">    flags: (0x0001) ACC_PUBLIC</span><br><span class="line">    Code:</span><br><span class="line">      stack=1, locals=1, args_size=1</span><br><span class="line">         0: aload_0</span><br><span class="line">         1: invokespecial #1                  // Method java/lang/Object.&quot;&lt;init&gt;&quot;:()V</span><br><span class="line">         4: return</span><br><span class="line">      LineNumberTable:</span><br><span class="line">        line 3: 0</span><br><span class="line">      LocalVariableTable:</span><br><span class="line">        Start  Length  Slot  Name   Signature</span><br><span class="line">            0       5     0  this   Lc631/TestClass;</span><br><span class="line"></span><br><span class="line">  public int inc();</span><br><span class="line">    descriptor: ()I</span><br><span class="line">    flags: (0x0001) ACC_PUBLIC</span><br><span class="line">    Code:</span><br><span class="line">      stack=2, locals=1, args_size=1</span><br><span class="line">         0: aload_0</span><br><span class="line">         1: getfield      #2                  // Field m:I</span><br><span class="line">         4: iconst_1</span><br><span class="line">         5: iadd</span><br><span class="line">         6: ireturn</span><br><span class="line">      LineNumberTable:</span><br><span class="line">        line 7: 0</span><br><span class="line">      LocalVariableTable:</span><br><span class="line">        Start  Length  Slot  Name   Signature</span><br><span class="line">            0       7     0  this   Lc631/TestClass;</span><br><span class="line">&#125;</span><br><span class="line">SourceFile: &quot;TestClass.java&quot;</span><br></pre></td></tr></table></figure>
 
+<p>第二个常量为 09 开头，查表可知为 field 的引用</p>
+<table>
+<thead>
+<tr>
+<th align="left">Const Name</th>
+<th align="left">Item</th>
+<th align="left">Length</th>
+<th align="left">desc</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">CONSTANT_Fieldref_info</td>
+<td align="left">tag</td>
+<td align="left">u1</td>
+<td align="left">值为 9</td>
+</tr>
+<tr>
+<td align="left">-</td>
+<td align="left">index</td>
+<td align="left">u2</td>
+<td align="left">指向声明字段的类或接口类描述符 CONSTANT_Class_info 的索引项</td>
+</tr>
+<tr>
+<td align="left">-</td>
+<td align="left">index</td>
+<td align="left">u2</td>
+<td align="left">指向字段描述符 CONSTANT_NameAndType 的索引项</td>
+</tr>
+</tbody></table>
+<p>值为 <code>09 00 03 00 13</code> 对应 <code>#2 = Fieldref           #3.#19         // c631/TestClass.m:I</code></p>
+<p>第三个常量为 07 开头，为 Class 常量表</p>
+<table>
+<thead>
+<tr>
+<th align="left">Const Name</th>
+<th align="left">Item</th>
+<th align="left">Length</th>
+<th align="left">desc</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">CONSTANT_Class_info</td>
+<td align="left">tag</td>
+<td align="left">u1</td>
+<td align="left">值为 7</td>
+</tr>
+<tr>
+<td align="left">-</td>
+<td align="left">index</td>
+<td align="left">u2</td>
+<td align="left">指向全限定名常量的索引项</td>
+</tr>
+</tbody></table>
+<p><code>07 00 14</code> 对应 <code>#3 = Class              #20            // c631/TestClass</code></p>
+<p>第四个也是 07 开头</p>
+<p><code>07 00 15</code> - <code>#4 = Class              #21            // java/lang/Object</code></p>
+<p>第五个为 01 开头, 表示 Utf8 类型的常量</p>
+<table>
+<thead>
+<tr>
+<th align="left">Const Name</th>
+<th align="left">Item</th>
+<th align="left">Type</th>
+<th align="left">desc</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">CONSTANT_Utf8_info</td>
+<td align="left">tag</td>
+<td align="left">u1</td>
+<td align="left">值为 1</td>
+</tr>
+<tr>
+<td align="left">-</td>
+<td align="left">index</td>
+<td align="left">u2</td>
+<td align="left">UTF-8 编码的字符串占用的字节数</td>
+</tr>
+<tr>
+<td align="left">-</td>
+<td align="left">bytes</td>
+<td align="left">u1</td>
+<td align="left">长度为 length 的 UTF-8 编码字符串</td>
+</tr>
+</tbody></table>
+<p><code>01 00 01 6d</code>, 占用字节数 1，内容为 6d 的 UTF 内容 <code>m</code>，对应关系可以通过各种在线工具查看，很常用 <code>#5 = Utf8               m</code></p>
+<p>第六个常量 <code>01 00 01 49</code> - <code>#6 = Utf8               I</code></p>
+<p>第七个常量 <code>01 00 06 3c 69 6e 69 74 3e</code> 占用字节数 6 个 - <code>#7 = Utf8               &lt;init&gt;</code></p>
+<p>第八个 <code>01 00 03 28 29 56</code> - <code>#8 = Utf8               ()V</code></p>
+<p>第九个 <code>01 00 04 43 6f 64 65</code> - <code>#9 = Utf8               Code</code> </p>
+<p>第十个 <code>01 00 0f 4c 69 6e 65 4e 75 6d 62 65 72 54 61 62 6c 65</code> - <code>#10 = Utf8               LineNumberTable</code></p>
+<p>第十一个 <code>01 00 12 4c 6f 63 61 6c 56 61 72 69 61 62 6c 65 54 61 62 6c 65</code> - <code>#11 = Utf8               LocalVariableTable</code></p>
+<p>第十二个 <code>01 00 04 74 68 69 73</code> - <code>#12 = Utf8               this</code></p>
+<p>第十三个 <code>01 00 10 4c 63 36 33 31 2f 54 65 73 74 43 6c 61 73 73 3b</code> - <code>#13 = Utf8               Lc631/TestClass;</code></p>
+<p>第十四个 <code>01 00 03 69 6e 63</code> - <code>#14 = Utf8               inc</code></p>
+<p>第十五个 <code>01 00 03 28 29 49</code> - <code>#15 = Utf8               ()I</code></p>
+<p>第十六个 <code>01 00 0a 53 6f 75 72 63 65 46 69 6c 65</code> - <code>#16 = Utf8               SourceFile</code></p>
+<p>第十七个 <code>01 00 0e 54 65 73 74 43 6c 61 73 73 2e 6a 61 76 61</code> - <code>#17 = Utf8               TestClass.java</code></p>
+<p>第十八个 <code>0c</code> 开头，为 NameAndType 类型</p>
+<table>
+<thead>
+<tr>
+<th align="left">Const Name</th>
+<th align="left">Item</th>
+<th align="left">Length</th>
+<th align="left">desc</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">CONSTANT_NameAndType_info</td>
+<td align="left">tag</td>
+<td align="left">u1</td>
+<td align="left">值为 12</td>
+</tr>
+<tr>
+<td align="left">-</td>
+<td align="left">index</td>
+<td align="left">u2</td>
+<td align="left">指向该字段或方法<strong>名称</strong>常量项的索引项</td>
+</tr>
+<tr>
+<td align="left">-</td>
+<td align="left">index</td>
+<td align="left">u2</td>
+<td align="left">指向该字段或方法<strong>描述符</strong>常量项的索引项</td>
+</tr>
+</tbody></table>
+<p><code>0c 00 07 00 08</code> - <code>#18 = NameAndType        #7:#8          // &quot;&lt;init&gt;&quot;:()V</code></p>
+<p>第十九 <code>0c 00 05 00 06</code> - <code>#19 = NameAndType        #5:#6          // m:I</code></p>
+<p>第二十 <code>01 00 0e 63 36 33 31 2f 54 65 73 74 43 6c 61 73 73</code> - <code>#20 = Utf8               c631/TestClass</code></p>
+<p>第二十一 <code>01 00 10 6a 61 76 61 2f 6c 61 6e 67 2f 4f 62 6a 65 63 74</code> - <code>#21 = Utf8               java/lang/Object</code></p>
+<p>到此为止，常量池分析完毕</p>
+<h3 id="6-3-3-访问标志"><a href="#6-3-3-访问标志" class="headerlink" title="6.3.3 访问标志"></a>6.3.3 访问标志</h3>
     </div>
 
     
@@ -657,7 +932,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#6-2-%E6%97%A0%E5%85%B3%E6%80%A7%E7%9A%84%E5%9F%BA%E7%9F%B3"><span class="nav-number">1.</span> <span class="nav-text">6.2 无关性的基石</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-3-Class-%E7%B1%BB%E6%96%87%E4%BB%B6%E7%9A%84%E7%BB%93%E6%9E%84"><span class="nav-number">2.</span> <span class="nav-text">6.3 Class 类文件的结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-1-%E9%AD%94%E6%95%B0%E4%B8%8E-Class-%E6%96%87%E4%BB%B6%E7%9A%84%E7%89%88%E6%9C%AC"><span class="nav-number">2.1.</span> <span class="nav-text">6.3.1 魔数与 Class 文件的版本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-2-%E5%B8%B8%E9%87%8F%E6%B1%A0"><span class="nav-number">2.2.</span> <span class="nav-text">6.3.2 常量池</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#6-2-%E6%97%A0%E5%85%B3%E6%80%A7%E7%9A%84%E5%9F%BA%E7%9F%B3"><span class="nav-number">1.</span> <span class="nav-text">6.2 无关性的基石</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-3-Class-%E7%B1%BB%E6%96%87%E4%BB%B6%E7%9A%84%E7%BB%93%E6%9E%84"><span class="nav-number">2.</span> <span class="nav-text">6.3 Class 类文件的结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-1-%E9%AD%94%E6%95%B0%E4%B8%8E-Class-%E6%96%87%E4%BB%B6%E7%9A%84%E7%89%88%E6%9C%AC"><span class="nav-number">2.1.</span> <span class="nav-text">6.3.1 魔数与 Class 文件的版本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-2-%E5%B8%B8%E9%87%8F%E6%B1%A0"><span class="nav-number">2.2.</span> <span class="nav-text">6.3.2 常量池</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-3-%E8%AE%BF%E9%97%AE%E6%A0%87%E5%BF%97"><span class="nav-number">2.3.</span> <span class="nav-text">6.3.3 访问标志</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -720,12 +995,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">247k</span>
+    <span title="站点总字数">251k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">3:44</span>
+    <span title="站点阅读时长">3:49</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
