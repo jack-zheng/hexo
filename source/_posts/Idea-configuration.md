@@ -85,3 +85,19 @@ Navigate -> Type Hierarchy 或者 Ctrl + H
 ## Spring 中 Autowired warning
 
 Settings -> Editor -> Code Style -> Inspections -> Spring Core -> Code -> Field injection warning 选项 disable 掉
+
+## maven-assembly-plugin not found
+
+For newer versions of IntelliJ, enable the use plugin registry option within the Maven settings as follows:
+
+1. Click File -> Settings.
+2. Expand Build, Execution, Deployment -> Build Tools -> Maven. Check Use plugin registry.
+3. Click OK or Apply.
+
+For IntelliJ 14.0.1, open the preferences---not settings---to find the plugin registry option:
+
+1. Click File -> Preferences. Regardless of version, also invalidate the caches:
+2. Click File -> Invalidate Caches / Restart.
+3. Click Invalidate and Restart.
+
+When IntelliJ starts again the problem should be vanquished.
