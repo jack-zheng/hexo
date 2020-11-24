@@ -59,11 +59,11 @@
 <meta property="og:description" content="目标：通过阅读 深入理解 JVM 虚拟机 第三版 的第 6 章，结合 ASM 里的 Reader 和 Visitor 对 class 文件有个一比较深入的了解。  bilibili 参考视频，很棒，白嫖  6.2 无关性的基石Java 虚拟机不与包括 Java 语言在内的任何语言绑定，它只与 Class 文件这种特定的二进制文件格式所关联，Class 文件中包含了 Java 虚拟机指令集，符号表以">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2020-11-19T02:45:30.000Z">
-<meta property="article:modified_time" content="2020-11-23T14:53:55.149Z">
+<meta property="article:modified_time" content="2020-11-24T14:56:05.244Z">
 <meta property="article:author" content="Jack Zheng">
 <meta property="article:tag" content="asm">
-<meta property="article:tag" content="todo">
 <meta property="article:tag" content="jvm">
+<meta property="article:tag" content="todo">
 <meta name="twitter:card" content="summary">
 
 <link rel="canonical" href="https://jack-zheng.github.io/hexo/2020/11/19/Java-class-file-structure/">
@@ -241,7 +241,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-11-23 22:53:55" itemprop="dateModified" datetime="2020-11-23T22:53:55+08:00">2020-11-23</time>
+                <time title="修改时间：2020-11-24 22:56:05" itemprop="dateModified" datetime="2020-11-24T22:56:05+08:00">2020-11-24</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -268,14 +268,14 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>7.2k</span>
+              <span>11k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>7 分钟</span>
+              <span>10 分钟</span>
             </span>
 
         </div>
@@ -850,7 +850,519 @@
 <p>第二十 <code>01 00 0e 63 36 33 31 2f 54 65 73 74 43 6c 61 73 73</code> - <code>#20 = Utf8               c631/TestClass</code></p>
 <p>第二十一 <code>01 00 10 6a 61 76 61 2f 6c 61 6e 67 2f 4f 62 6a 65 63 74</code> - <code>#21 = Utf8               java/lang/Object</code></p>
 <p>到此为止，常量池分析完毕</p>
-<h3 id="6-3-3-访问标志"><a href="#6-3-3-访问标志" class="headerlink" title="6.3.3 访问标志"></a>6.3.3 访问标志</h3>
+<h3 id="6-3-3-访问标志"><a href="#6-3-3-访问标志" class="headerlink" title="6.3.3 访问标志"></a>6.3.3 访问标志</h3><p>紧跟在常量池之后，由两个字节组成，有 16 个标志位，当前只定义了 9 种。</p>
+<table>
+<thead>
+<tr>
+<th align="left">Name</th>
+<th align="left">flag value</th>
+<th align="left">含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">ACC_PUBLIC</td>
+<td align="left">0x0001</td>
+<td align="left">是否为 public 类型</td>
+</tr>
+<tr>
+<td align="left">ACC_FINAL</td>
+<td align="left">0x0010</td>
+<td align="left">是否为 final 类型, 只有类可设置</td>
+</tr>
+<tr>
+<td align="left">ACC_SUPER</td>
+<td align="left">0x0020</td>
+<td align="left">是否允许使用 invokespecial 字节码指定的新语义，<BR>invokespecial 语义在 JDK 1.0.2 发生过改变，<br>为了区别这条指令使用哪种语义， <BR>JDK 1.0.2 之后编译出来的类这个标志必须为真</td>
+</tr>
+<tr>
+<td align="left">ACC_INTERFACE</td>
+<td align="left">0x0200</td>
+<td align="left">是否是一个接口</td>
+</tr>
+<tr>
+<td align="left">ACC_ABSTRACT</td>
+<td align="left">0x0400</td>
+<td align="left">是否为 abstract 类型，对于接口或者抽象类来说，此标志必须为真，其他类型为假</td>
+</tr>
+<tr>
+<td align="left">ACC_SYNTHETIC</td>
+<td align="left">0x1000</td>
+<td align="left">表示这个类并非由用户代码产生</td>
+</tr>
+<tr>
+<td align="left">ACC_ANNOTATION</td>
+<td align="left">0x2000</td>
+<td align="left">标识这是一个注解</td>
+</tr>
+<tr>
+<td align="left">ACC_ENUM</td>
+<td align="left">0x4000</td>
+<td align="left">标识这是一个枚举</td>
+</tr>
+<tr>
+<td align="left">ACC_MODULE</td>
+<td align="left">0x8000</td>
+<td align="left">标识这是一个模块</td>
+</tr>
+</tbody></table>
+<p>示例种值为 <code>00 21</code> 即 0020 &amp; 0001 所以是 public + super 类型</p>
+<h3 id="6-3-4-类索引，父索引和接口索引集合"><a href="#6-3-4-类索引，父索引和接口索引集合" class="headerlink" title="6.3.4 类索引，父索引和接口索引集合"></a>6.3.4 类索引，父索引和接口索引集合</h3><ul>
+<li>类索引（this_class） - u2 类型数据</li>
+<li>父索引（super_class） - u2 类型数据</li>
+<li>接口索引集合（super_class） - u2 类型数据</li>
+</ul>
+<p>这些所以确定类的继承关系，实例中数据 <code>00 03 00 04 00 00</code> 表示 类所以指向常量池第三个常量，父索引指向第四个常量，接口集合数量为 0 </p>
+<p><code>#3 = Class              #20            // c631/TestClass</code></p>
+<p><code>#4 = Class              #21            // java/lang/Object</code></p>
+<h3 id="6-3-5-字段表集合"><a href="#6-3-5-字段表集合" class="headerlink" title="6.3.5 字段表集合"></a>6.3.5 字段表集合</h3><p>用来描述接口或类中声明的变量。这里的变量只包括<strong>类级</strong>变量以及<strong>实例级</strong>变量，不包含局部变量。</p>
+<p>字段表结构</p>
+<table>
+<thead>
+<tr>
+<th align="left">类型</th>
+<th align="left">名称</th>
+<th align="left">数量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">u2</td>
+<td align="left">access_flags</td>
+<td align="left">1</td>
+</tr>
+<tr>
+<td align="left">u2</td>
+<td align="left">name_index</td>
+<td align="left">1</td>
+</tr>
+<tr>
+<td align="left">u2</td>
+<td align="left">descriptor_index</td>
+<td align="left">1</td>
+</tr>
+<tr>
+<td align="left">u2</td>
+<td align="left">attribute_count</td>
+<td align="left">1</td>
+</tr>
+<tr>
+<td align="left">attribute_info</td>
+<td align="left">attributes</td>
+<td align="left">attribute_count</td>
+</tr>
+</tbody></table>
+<p>字段修饰符 access_flags 和类的访问修饰符很想都由一个 u2 的数据类型表示</p>
+<table>
+<thead>
+<tr>
+<th align="left">名称</th>
+<th align="left">标志值</th>
+<th align="left">含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">ACC_PUBLIC</td>
+<td align="left">0x0001</td>
+<td align="left">字段是否 public</td>
+</tr>
+<tr>
+<td align="left">ACC_PRIVATE</td>
+<td align="left">0x0002</td>
+<td align="left">字段是否 private</td>
+</tr>
+<tr>
+<td align="left">ACC_PROTECTED</td>
+<td align="left">0x0004</td>
+<td align="left">字段是否 protected</td>
+</tr>
+<tr>
+<td align="left">ACC_STATIC</td>
+<td align="left">0x0008</td>
+<td align="left">字段是否 static</td>
+</tr>
+<tr>
+<td align="left">ACC_FINAL</td>
+<td align="left">0x0010</td>
+<td align="left">字段是否 final</td>
+</tr>
+<tr>
+<td align="left">ACC_VOLATILE</td>
+<td align="left">0x0040</td>
+<td align="left">字段是否 volatile</td>
+</tr>
+<tr>
+<td align="left">ACC_TRANSIENT</td>
+<td align="left">0x0080</td>
+<td align="left">字段是否 transient</td>
+</tr>
+<tr>
+<td align="left">ACC_SYNTHTIC</td>
+<td align="left">0x0100</td>
+<td align="left">字段是否由编译器产生</td>
+</tr>
+<tr>
+<td align="left">ACC_ENUM</td>
+<td align="left">0x0400</td>
+<td align="left">字段是否 enum</td>
+</tr>
+</tbody></table>
+<ul>
+<li>作用域修饰符： public/private/protected</li>
+<li>是否是类级字段：static</li>
+<li>是否可变：final</li>
+<li>是否强制主从内存读写：volatile</li>
+<li>是否可序列化：transient</li>
+</ul>
+<p>name_index 和 descriptor_index 都指向常量池引用，表示字段简单名称以及字段和方法描述符。</p>
+<ul>
+<li>全名限定：用斜线分割的 路径+类名</li>
+<li>简单名称：只有名字，没有路径信息</li>
+<li>方法和字段描述符：参数列表+返回值类型，例如 ()V, (Lcom/lang/Object;)V</li>
+</ul>
+<p>基本数据类型含义表</p>
+<table>
+<thead>
+<tr>
+<th align="left">字符</th>
+<th align="left">含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">B</td>
+<td align="left">byte</td>
+</tr>
+<tr>
+<td align="left">C</td>
+<td align="left">char</td>
+</tr>
+<tr>
+<td align="left">D</td>
+<td align="left">double</td>
+</tr>
+<tr>
+<td align="left">F</td>
+<td align="left">float</td>
+</tr>
+<tr>
+<td align="left">I</td>
+<td align="left">int</td>
+</tr>
+<tr>
+<td align="left">J</td>
+<td align="left">long</td>
+</tr>
+<tr>
+<td align="left">S</td>
+<td align="left">short</td>
+</tr>
+<tr>
+<td align="left">Z</td>
+<td align="left">boolean</td>
+</tr>
+<tr>
+<td align="left">V</td>
+<td align="left">void</td>
+</tr>
+<tr>
+<td align="left">L</td>
+<td align="left">对象类型</td>
+</tr>
+</tbody></table>
+<p>表示数组类型时，每一维度将使用一个前置的 <code>[</code> 字符描述，比如 String[][] 表示为 <code>[[Ljava/lang/String;</code>, 整形数组 int[] 表示为 <code>[I</code>。</p>
+<p>实例中对应的字段表集合内容为 <code>00 01 00 02 00 05 00 06 00 00</code>， interface 之后紧接着为 fields_count 的表示位， <code>00 01</code>， 表示只有一个 field。</p>
+<p><code>00 02</code> 表示方位权限 private，<code>00 05</code> 表示名字指向常量池第五个常量 <code>m</code>, <code>00 06</code> 表示描述符指向第六个常量 <code>I</code>，<code>00 00</code> 属性表个数位 0 个。</p>
+<h3 id="6-3-6-方法表集合"><a href="#6-3-6-方法表集合" class="headerlink" title="6.3.6 方法表集合"></a>6.3.6 方法表集合</h3><p>方法表和之前的属性表，class 表是一个套路的, 方法表结构如下</p>
+<table>
+<thead>
+<tr>
+<th align="left">类型</th>
+<th align="left">名称</th>
+<th align="left">数量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">u2</td>
+<td align="left">access_flags</td>
+<td align="left">1</td>
+</tr>
+<tr>
+<td align="left">u2</td>
+<td align="left">name_index</td>
+<td align="left">1</td>
+</tr>
+<tr>
+<td align="left">u2</td>
+<td align="left">descriptor_index</td>
+<td align="left">1</td>
+</tr>
+<tr>
+<td align="left">u2</td>
+<td align="left">attribute_count</td>
+<td align="left">1</td>
+</tr>
+<tr>
+<td align="left">attribute_info</td>
+<td align="left">attributes</td>
+<td align="left">attribute_count</td>
+</tr>
+</tbody></table>
+<p>方法表的 access_flag 相对 field 少了 volatile 和 trasient, 多了 synchronized, native, strictfp 和 abstract</p>
+<table>
+<thead>
+<tr>
+<th align="left">名称</th>
+<th align="left">标志值</th>
+<th align="left">含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">ACC_PUBLIC</td>
+<td align="left">0x0001</td>
+<td align="left">方法是否 public</td>
+</tr>
+<tr>
+<td align="left">ACC_PRIVATE</td>
+<td align="left">0x0002</td>
+<td align="left">方法是否 private</td>
+</tr>
+<tr>
+<td align="left">ACC_PROTECTED</td>
+<td align="left">0x0004</td>
+<td align="left">方法是否 protected</td>
+</tr>
+<tr>
+<td align="left">ACC_STATIC</td>
+<td align="left">0x0008</td>
+<td align="left">方法是否 static</td>
+</tr>
+<tr>
+<td align="left">ACC_FINAL</td>
+<td align="left">0x0010</td>
+<td align="left">方法是否 final</td>
+</tr>
+<tr>
+<td align="left">ACC_SYNCHRONIZED</td>
+<td align="left">0x0020</td>
+<td align="left">方法是否 synchronized</td>
+</tr>
+<tr>
+<td align="left">ACC_BRIDGE</td>
+<td align="left">0x0040</td>
+<td align="left">方法是否是由编译器产生的桥接方法</td>
+</tr>
+<tr>
+<td align="left">ACC_VARARGS</td>
+<td align="left">0x0080</td>
+<td align="left">方法是否接收不定长参数</td>
+</tr>
+<tr>
+<td align="left">ACC_NATIVE</td>
+<td align="left">0x0100</td>
+<td align="left">方法是否为 native</td>
+</tr>
+<tr>
+<td align="left">ACC_ABSTRACT</td>
+<td align="left">0x0400</td>
+<td align="left">字段是否 abstract</td>
+</tr>
+<tr>
+<td align="left">ACC_STRICT</td>
+<td align="left">0x0800</td>
+<td align="left">字段是否 strictfp</td>
+</tr>
+<tr>
+<td align="left">ACC_SYNTHETIC</td>
+<td align="left">0x1000</td>
+<td align="left">字段是否由编译器自动产生</td>
+</tr>
+</tbody></table>
+<p>方法中的具体实现经过 javac 编译成字节码指令后存在属性表集合中一个名为 Code 的属性里面。</p>
+<p>实例内容 <code>00 02 00 01 00 07 00 08 00 01 00 09</code></p>
+<ul>
+<li>00 02 - 有两个方法</li>
+<li>00 01 - public 类型的方法</li>
+<li>00 07 - name 指向常量池7 - <init></li>
+<li>00 08 - 描述符指向8 - ()V</li>
+<li>00 01 - 属性数量 1</li>
+<li>00 09 - 属性表索引 9，指向 Code</li>
+</ul>
+<p>方法签名：Java 语法中的方法签名可以从重载(Overload)理解。Java 中重载要求方法名一致，参数列表及参数类型不同。返回值并不在比较范围内。方法除了返回值不同的重载是会编译错误的。但是在字节码的语义中，只有返回值不同的重载是合法的。</p>
+<h3 id="6-3-7-属性表集合"><a href="#6-3-7-属性表集合" class="headerlink" title="6.3.7 属性表集合"></a>6.3.7 属性表集合</h3><p>属性表集合的限制比前面那些结构要宽松一些，对虚拟机不认识的属性，会自动跳过。到 java 12 一共有 29 种预定义的属性</p>
+<table>
+<thead>
+<tr>
+<th align="left">属性名称</th>
+<th align="left">使用位置</th>
+<th align="left">含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">Code</td>
+<td align="left">方法表</td>
+<td align="left">Java代码编译成的自己吗指令</td>
+</tr>
+<tr>
+<td align="left">ConstantValue</td>
+<td align="left">字段表</td>
+<td align="left">由 final 关键字定义的常量值</td>
+</tr>
+<tr>
+<td align="left">Deprecated</td>
+<td align="left">类，方法，字段表</td>
+<td align="left">被声明为 deprecated 的方法和字段</td>
+</tr>
+<tr>
+<td align="left">Exceptions</td>
+<td align="left">方法表</td>
+<td align="left">方法抛出的异常列表</td>
+</tr>
+<tr>
+<td align="left">EnclosingMethod</td>
+<td align="left">类文件</td>
+<td align="left">仅当一个类为局部类或匿名类是才拥有这个属性，用于标识这个类所在的外围方法</td>
+</tr>
+<tr>
+<td align="left">InnerClasses</td>
+<td align="left">类文件</td>
+<td align="left">内部类列表</td>
+</tr>
+<tr>
+<td align="left">LineNumberTable</td>
+<td align="left">Code属性</td>
+<td align="left">Java 源码的行号与字节码指令的对应关系</td>
+</tr>
+<tr>
+<td align="left">LocalVariableTable</td>
+<td align="left">Code属性</td>
+<td align="left">方法的局部变量描述</td>
+</tr>
+<tr>
+<td align="left">StackMapTable</td>
+<td align="left">Code属性</td>
+<td align="left">JDK6 新增，供新的类型检查验证器检查和处理目标方法的局部变量和操作数栈所需的类型是否匹配</td>
+</tr>
+<tr>
+<td align="left">Signature</td>
+<td align="left">类，方法表和字段表</td>
+<td align="left">JDK5新增，用于支持泛型情况下的方法签名</td>
+</tr>
+<tr>
+<td align="left">SourceFile</td>
+<td align="left">类文件</td>
+<td align="left">记录源文件名称</td>
+</tr>
+<tr>
+<td align="left">SourceDebugExtension</td>
+<td align="left">类文件</td>
+<td align="left">JDK5新增，存储额外的调试信息</td>
+</tr>
+<tr>
+<td align="left">Synthetic</td>
+<td align="left">类，方法表，字段表</td>
+<td align="left">标识是否由编译器产生</td>
+</tr>
+<tr>
+<td align="left">LocalVariableTypeTable</td>
+<td align="left">类</td>
+<td align="left">JDK5新增，使用特征签名代替描述符，为了支持泛型</td>
+</tr>
+<tr>
+<td align="left">RuntimeVisibleAnnotations</td>
+<td align="left">类，方法表，字段表</td>
+<td align="left">JDK5新增，为动态注解提供支持</td>
+</tr>
+<tr>
+<td align="left">RuntimeInVisibleAnnotations</td>
+<td align="left">类，方法表，字段表</td>
+<td align="left">JDK5新增，为动态注解提供支持,标识不可见</td>
+</tr>
+<tr>
+<td align="left">RuntimeVisibleParameterAnnotations</td>
+<td align="left">方法表</td>
+<td align="left">JDK5新增，作用对象为方法参数</td>
+</tr>
+<tr>
+<td align="left">RuntimeInvisibleParameterAnnotations</td>
+<td align="left">方法表</td>
+<td align="left">JDK5新增，作用对象为方法参数</td>
+</tr>
+<tr>
+<td align="left">AnnotationDefault</td>
+<td align="left">方法表</td>
+<td align="left">JDK5新增，注解类元素默认值</td>
+</tr>
+<tr>
+<td align="left">BootstrapMethods</td>
+<td align="left">类文件</td>
+<td align="left">JDK7新增，保存 invokedynamic 指令引用的引导犯法限定符</td>
+</tr>
+<tr>
+<td align="left">RuntimeVisibleTypeAnnotations</td>
+<td align="left">类，方法表，字段表, Code属性</td>
+<td align="left">JDK8新增</td>
+</tr>
+<tr>
+<td align="left">RuntimeInvisibleTypeAnnotations</td>
+<td align="left">类，方法表，字段表, Code属性</td>
+<td align="left">JDK8新增</td>
+</tr>
+<tr>
+<td align="left">MethodParameters</td>
+<td align="left">方法表</td>
+<td align="left">JDK8新增</td>
+</tr>
+<tr>
+<td align="left">Module</td>
+<td align="left">类</td>
+<td align="left">JDK9新增</td>
+</tr>
+<tr>
+<td align="left">ModulePackages</td>
+<td align="left">类</td>
+<td align="left">JDK9新增</td>
+</tr>
+<tr>
+<td align="left">ModuleMainClass</td>
+<td align="left">类</td>
+<td align="left">JDK9新增</td>
+</tr>
+<tr>
+<td align="left">NestHost</td>
+<td align="left">类</td>
+<td align="left">JDK11新增</td>
+</tr>
+<tr>
+<td align="left">NestMembers</td>
+<td align="left">类</td>
+<td align="left">JDK11新增</td>
+</tr>
+</tbody></table>
+<p>属性表结构</p>
+<table>
+<thead>
+<tr>
+<th align="left">类型</th>
+<th align="left">名称</th>
+<th align="left">数量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">u2</td>
+<td align="left">attribute_name_index</td>
+<td align="left">1</td>
+</tr>
+<tr>
+<td align="left">u4</td>
+<td align="left">attribute_length</td>
+<td align="left">1</td>
+</tr>
+<tr>
+<td align="left">u1</td>
+<td align="left">info</td>
+<td align="left">attribute_length</td>
+</tr>
+</tbody></table>
+<p>attribute_name_index 指向常量池中的一个引用，属性值结构完全自定义，attribute_length 说明属性值所占的位数。</p>
+
     </div>
 
     
@@ -877,8 +1389,8 @@
       <footer class="post-footer">
           <div class="post-tags">
               <a href="/hexo/tags/asm/" rel="tag"># asm</a>
-              <a href="/hexo/tags/todo/" rel="tag"># todo</a>
               <a href="/hexo/tags/jvm/" rel="tag"># jvm</a>
+              <a href="/hexo/tags/todo/" rel="tag"># todo</a>
           </div>
 
         
@@ -932,7 +1444,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#6-2-%E6%97%A0%E5%85%B3%E6%80%A7%E7%9A%84%E5%9F%BA%E7%9F%B3"><span class="nav-number">1.</span> <span class="nav-text">6.2 无关性的基石</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-3-Class-%E7%B1%BB%E6%96%87%E4%BB%B6%E7%9A%84%E7%BB%93%E6%9E%84"><span class="nav-number">2.</span> <span class="nav-text">6.3 Class 类文件的结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-1-%E9%AD%94%E6%95%B0%E4%B8%8E-Class-%E6%96%87%E4%BB%B6%E7%9A%84%E7%89%88%E6%9C%AC"><span class="nav-number">2.1.</span> <span class="nav-text">6.3.1 魔数与 Class 文件的版本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-2-%E5%B8%B8%E9%87%8F%E6%B1%A0"><span class="nav-number">2.2.</span> <span class="nav-text">6.3.2 常量池</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-3-%E8%AE%BF%E9%97%AE%E6%A0%87%E5%BF%97"><span class="nav-number">2.3.</span> <span class="nav-text">6.3.3 访问标志</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#6-2-%E6%97%A0%E5%85%B3%E6%80%A7%E7%9A%84%E5%9F%BA%E7%9F%B3"><span class="nav-number">1.</span> <span class="nav-text">6.2 无关性的基石</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-3-Class-%E7%B1%BB%E6%96%87%E4%BB%B6%E7%9A%84%E7%BB%93%E6%9E%84"><span class="nav-number">2.</span> <span class="nav-text">6.3 Class 类文件的结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-1-%E9%AD%94%E6%95%B0%E4%B8%8E-Class-%E6%96%87%E4%BB%B6%E7%9A%84%E7%89%88%E6%9C%AC"><span class="nav-number">2.1.</span> <span class="nav-text">6.3.1 魔数与 Class 文件的版本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-2-%E5%B8%B8%E9%87%8F%E6%B1%A0"><span class="nav-number">2.2.</span> <span class="nav-text">6.3.2 常量池</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-3-%E8%AE%BF%E9%97%AE%E6%A0%87%E5%BF%97"><span class="nav-number">2.3.</span> <span class="nav-text">6.3.3 访问标志</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-4-%E7%B1%BB%E7%B4%A2%E5%BC%95%EF%BC%8C%E7%88%B6%E7%B4%A2%E5%BC%95%E5%92%8C%E6%8E%A5%E5%8F%A3%E7%B4%A2%E5%BC%95%E9%9B%86%E5%90%88"><span class="nav-number">2.4.</span> <span class="nav-text">6.3.4 类索引，父索引和接口索引集合</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-5-%E5%AD%97%E6%AE%B5%E8%A1%A8%E9%9B%86%E5%90%88"><span class="nav-number">2.5.</span> <span class="nav-text">6.3.5 字段表集合</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-6-%E6%96%B9%E6%B3%95%E8%A1%A8%E9%9B%86%E5%90%88"><span class="nav-number">2.6.</span> <span class="nav-text">6.3.6 方法表集合</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-7-%E5%B1%9E%E6%80%A7%E8%A1%A8%E9%9B%86%E5%90%88"><span class="nav-number">2.7.</span> <span class="nav-text">6.3.7 属性表集合</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -995,12 +1507,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">251k</span>
+    <span title="站点总字数">255k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">3:49</span>
+    <span title="站点阅读时长">3:52</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
