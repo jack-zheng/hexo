@@ -313,3 +313,179 @@ SourceFile: "TestClass.java"
 到此为止，常量池分析完毕
 
 ### 6.3.3 访问标志
+
+紧跟在常量池之后，由两个字节组成，有 16 个标志位，当前只定义了 9 种。
+
+| Name           | flag value | 含义                                                                                                                                                                            |
+| :------------- | :--------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| ACC_PUBLIC     | 0x0001     | 是否为 public 类型                                                                                                                                                              |
+| ACC_FINAL      | 0x0010     | 是否为 final 类型, 只有类可设置                                                                                                                                                 |
+| ACC_SUPER      | 0x0020     | 是否允许使用 invokespecial 字节码指定的新语义，<BR>invokespecial 语义在 JDK 1.0.2 发生过改变，<br>为了区别这条指令使用哪种语义， <BR>JDK 1.0.2 之后编译出来的类这个标志必须为真 |
+| ACC_INTERFACE  | 0x0200     | 是否是一个接口                                                                                                                                                                  |
+| ACC_ABSTRACT   | 0x0400     | 是否为 abstract 类型，对于接口或者抽象类来说，此标志必须为真，其他类型为假                                                                                                      |
+| ACC_SYNTHETIC  | 0x1000     | 表示这个类并非由用户代码产生                                                                                                                                                    |
+| ACC_ANNOTATION | 0x2000     | 标识这是一个注解                                                                                                                                                                |
+| ACC_ENUM       | 0x4000     | 标识这是一个枚举                                                                                                                                                                |
+| ACC_MODULE     | 0x8000     | 标识这是一个模块                                                                                                                                                                |
+
+示例种值为 `00 21` 即 0020 & 0001 所以是 public + super 类型
+
+### 6.3.4 类索引，父索引和接口索引集合
+
+* 类索引（this_class） - u2 类型数据
+* 父索引（super_class） - u2 类型数据
+* 接口索引集合（super_class） - u2 类型数据
+
+这些所以确定类的继承关系，实例中数据 `00 03 00 04 00 00` 表示 类所以指向常量池第三个常量，父索引指向第四个常量，接口集合数量为 0 
+
+`#3 = Class              #20            // c631/TestClass `
+
+`#4 = Class              #21            // java/lang/Object`
+
+### 6.3.5 字段表集合
+
+用来描述接口或类中声明的变量。这里的变量只包括**类级**变量以及**实例级**变量，不包含局部变量。
+
+字段表结构
+
+| 类型           | 名称             | 数量            |
+| :------------- | :--------------- | :-------------- |
+| u2             | access_flags     | 1               |
+| u2             | name_index       | 1               |
+| u2             | descriptor_index | 1               |
+| u2             | attribute_count  | 1               |
+| attribute_info | attributes       | attribute_count |
+
+字段修饰符 access_flags 和类的访问修饰符很想都由一个 u2 的数据类型表示
+
+| 名称          | 标志值 | 含义                 |
+| :------------ | :----- | :------------------- |
+| ACC_PUBLIC    | 0x0001 | 字段是否 public      |
+| ACC_PRIVATE   | 0x0002 | 字段是否 private     |
+| ACC_PROTECTED | 0x0004 | 字段是否 protected   |
+| ACC_STATIC    | 0x0008 | 字段是否 static      |
+| ACC_FINAL     | 0x0010 | 字段是否 final       |
+| ACC_VOLATILE  | 0x0040 | 字段是否 volatile    |
+| ACC_TRANSIENT | 0x0080 | 字段是否 transient   |
+| ACC_SYNTHTIC  | 0x0100 | 字段是否由编译器产生 |
+| ACC_ENUM      | 0x0400 | 字段是否 enum        |
+
+* 作用域修饰符： public/private/protected
+* 是否是类级字段：static
+* 是否可变：final
+* 是否强制主从内存读写：volatile
+* 是否可序列化：transient
+
+name_index 和 descriptor_index 都指向常量池引用，表示字段简单名称以及字段和方法描述符。
+
+* 全名限定：用斜线分割的 路径+类名
+* 简单名称：只有名字，没有路径信息
+* 方法和字段描述符：参数列表+返回值类型，例如 ()V, (Lcom/lang/Object;)V
+
+基本数据类型含义表
+
+| 字符 | 含义     |
+| :--- | :------- |
+| B    | byte     |
+| C    | char     |
+| D    | double   |
+| F    | float    |
+| I    | int      |
+| J    | long     |
+| S    | short    |
+| Z    | boolean  |
+| V    | void     |
+| L    | 对象类型 |
+
+表示数组类型时，每一维度将使用一个前置的 `[` 字符描述，比如 String[][] 表示为 `[[Ljava/lang/String;`, 整形数组 int[] 表示为 `[I`。
+
+实例中对应的字段表集合内容为 `00 01 00 02 00 05 00 06 00 00`， interface 之后紧接着为 fields_count 的表示位， `00 01`， 表示只有一个 field。
+
+`00 02` 表示方位权限 private，`00 05` 表示名字指向常量池第五个常量 `m`, `00 06` 表示描述符指向第六个常量 `I`，`00 00` 属性表个数位 0 个。
+
+### 6.3.6 方法表集合
+
+方法表和之前的属性表，class 表是一个套路的, 方法表结构如下
+
+| 类型           | 名称             | 数量            |
+| :------------- | :--------------- | :-------------- |
+| u2             | access_flags     | 1               |
+| u2             | name_index       | 1               |
+| u2             | descriptor_index | 1               |
+| u2             | attribute_count  | 1               |
+| attribute_info | attributes       | attribute_count |
+
+方法表的 access_flag 相对 field 少了 volatile 和 trasient, 多了 synchronized, native, strictfp 和 abstract
+
+| 名称             | 标志值 | 含义                             |
+| :--------------- | :----- | :------------------------------- |
+| ACC_PUBLIC       | 0x0001 | 方法是否 public                  |
+| ACC_PRIVATE      | 0x0002 | 方法是否 private                 |
+| ACC_PROTECTED    | 0x0004 | 方法是否 protected               |
+| ACC_STATIC       | 0x0008 | 方法是否 static                  |
+| ACC_FINAL        | 0x0010 | 方法是否 final                   |
+| ACC_SYNCHRONIZED | 0x0020 | 方法是否 synchronized            |
+| ACC_BRIDGE       | 0x0040 | 方法是否是由编译器产生的桥接方法 |
+| ACC_VARARGS      | 0x0080 | 方法是否接收不定长参数           |
+| ACC_NATIVE       | 0x0100 | 方法是否为 native                |
+| ACC_ABSTRACT     | 0x0400 | 字段是否 abstract                |
+| ACC_STRICT       | 0x0800 | 字段是否 strictfp                |
+| ACC_SYNTHETIC    | 0x1000 | 字段是否由编译器自动产生         |
+
+方法中的具体实现经过 javac 编译成字节码指令后存在属性表集合中一个名为 Code 的属性里面。
+
+实例内容 `00 02 00 01 00 07 00 08 00 01 00 09`
+
+* 00 02 - 有两个方法
+* 00 01 - public 类型的方法
+* 00 07 - name 指向常量池7 - <init>
+* 00 08 - 描述符指向8 - ()V
+* 00 01 - 属性数量 1
+* 00 09 - 属性表索引 9，指向 Code
+
+方法签名：Java 语法中的方法签名可以从重载(Overload)理解。Java 中重载要求方法名一致，参数列表及参数类型不同。返回值并不在比较范围内。方法除了返回值不同的重载是会编译错误的。但是在字节码的语义中，只有返回值不同的重载是合法的。
+
+### 6.3.7 属性表集合
+
+属性表集合的限制比前面那些结构要宽松一些，对虚拟机不认识的属性，会自动跳过。到 java 12 一共有 29 种预定义的属性
+
+| 属性名称                             | 使用位置                     | 含义                                                                                    |
+| :----------------------------------- | :--------------------------- | :-------------------------------------------------------------------------------------- |
+| Code                                 | 方法表                       | Java代码编译成的自己吗指令                                                              |
+| ConstantValue                        | 字段表                       | 由 final 关键字定义的常量值                                                             |
+| Deprecated                           | 类，方法，字段表             | 被声明为 deprecated 的方法和字段                                                        |
+| Exceptions                           | 方法表                       | 方法抛出的异常列表                                                                      |
+| EnclosingMethod                      | 类文件                       | 仅当一个类为局部类或匿名类是才拥有这个属性，用于标识这个类所在的外围方法                |
+| InnerClasses                         | 类文件                       | 内部类列表                                                                              |
+| LineNumberTable                      | Code属性                     | Java 源码的行号与字节码指令的对应关系                                                   |
+| LocalVariableTable                   | Code属性                     | 方法的局部变量描述                                                                      |
+| StackMapTable                        | Code属性                     | JDK6 新增，供新的类型检查验证器检查和处理目标方法的局部变量和操作数栈所需的类型是否匹配 |
+| Signature                            | 类，方法表和字段表           | JDK5新增，用于支持泛型情况下的方法签名                                                  |
+| SourceFile                           | 类文件                       | 记录源文件名称                                                                          |
+| SourceDebugExtension                 | 类文件                       | JDK5新增，存储额外的调试信息                                                            |
+| Synthetic                            | 类，方法表，字段表           | 标识是否由编译器产生                                                                    |
+| LocalVariableTypeTable               | 类                           | JDK5新增，使用特征签名代替描述符，为了支持泛型                                          |
+| RuntimeVisibleAnnotations            | 类，方法表，字段表           | JDK5新增，为动态注解提供支持                                                            |
+| RuntimeInVisibleAnnotations          | 类，方法表，字段表           | JDK5新增，为动态注解提供支持,标识不可见                                                 |
+| RuntimeVisibleParameterAnnotations   | 方法表                       | JDK5新增，作用对象为方法参数                                                            |
+| RuntimeInvisibleParameterAnnotations | 方法表                       | JDK5新增，作用对象为方法参数                                                            |
+| AnnotationDefault                    | 方法表                       | JDK5新增，注解类元素默认值                                                              |
+| BootstrapMethods                     | 类文件                       | JDK7新增，保存 invokedynamic 指令引用的引导犯法限定符                                   |
+| RuntimeVisibleTypeAnnotations        | 类，方法表，字段表, Code属性 | JDK8新增                                                                                |
+| RuntimeInvisibleTypeAnnotations      | 类，方法表，字段表, Code属性 | JDK8新增                                                                                |
+| MethodParameters                     | 方法表                       | JDK8新增                                                                                |
+| Module                               | 类                           | JDK9新增                                                                                |
+| ModulePackages                       | 类                           | JDK9新增                                                                                |
+| ModuleMainClass                      | 类                           | JDK9新增                                                                                |
+| NestHost                             | 类                           | JDK11新增                                                                               |
+| NestMembers                          | 类                           | JDK11新增                                                                               |
+
+属性表结构
+
+| 类型 | 名称                 | 数量             |
+| :--- | :------------------- | :--------------- |
+| u2   | attribute_name_index | 1                |
+| u4   | attribute_length     | 1                |
+| u1   | info                 | attribute_length |
+
+attribute_name_index 指向常量池中的一个引用，属性值结构完全自定义，attribute_length 说明属性值所占的位数。
