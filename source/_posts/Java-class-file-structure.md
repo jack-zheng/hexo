@@ -489,3 +489,22 @@ name_index 和 descriptor_index 都指向常量池引用，表示字段简单名
 | u1   | info                 | attribute_length |
 
 attribute_name_index 指向常量池中的一个引用，属性值结构完全自定义，attribute_length 说明属性值所占的位数。
+
+#### Code
+
+Java 方法体种的代码经过 javac 编译器处理之后都会转化为字节码指令存储在 Code 属性内。Code 属性出现在方法表的属性集合中，但并非所有方法表都必须存在这个属性，比如抽象方法或接口中就可以不存在 Code 属性。
+
+Code 属性表的结构
+
+| 类型           | 名称                   | 数量                   |
+| :------------- | :--------------------- | :--------------------- |
+| u2             | attribute_name_index   | 1                      |
+| u4             | attribute_length       | 1                      |
+| u2             | max_stack              | 1                      |
+| u2             | max_locals             | 1                      |
+| u4             | code_length            | 1                      |
+| u1             | code                   | code_length            |
+| u2             | exception_table_length | 1                      |
+| exception_info | exception_table        | exception_table_length |
+| u2             | attribute_count        | 1                      |
+| attribute_info | attributes             | attribute_count        |
