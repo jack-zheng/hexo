@@ -496,15 +496,21 @@ Java 方法体种的代码经过 javac 编译器处理之后都会转化为字�
 
 Code 属性表的结构
 
-| 类型           | 名称                   | 数量                   |
-| :------------- | :--------------------- | :--------------------- |
-| u2             | attribute_name_index   | 1                      |
-| u4             | attribute_length       | 1                      |
-| u2             | max_stack              | 1                      |
-| u2             | max_locals             | 1                      |
-| u4             | code_length            | 1                      |
-| u1             | code                   | code_length            |
-| u2             | exception_table_length | 1                      |
-| exception_info | exception_table        | exception_table_length |
-| u2             | attribute_count        | 1                      |
-| attribute_info | attributes             | attribute_count        |
+| 类型           | 名称                   | 数量                   | 含义                                              |
+| :------------- | :--------------------- | :--------------------- | :------------------------------------------------ |
+| u2             | attribute_name_index   | 1                      | 指向 CONSTANT_Utf8_info 常量的索引，为固定值 Code |
+| u4             | attribute_length       | 1                      | 属性值长度                                        |
+| u2             | max_stack              | 1                      | 操作数栈深度的最大值                              |
+| u2             | max_locals             | 1                      | 局部变量表存储空间，单位-变量槽(Slot)             |
+| u4             | code_length            | 1                      | 编译后字节码指令个数                              |
+| u1             | code                   | code_length            | 编译后字节码指令                                  |
+| u2             | exception_table_length | 1                      | -                                                 |
+| exception_info | exception_table        | exception_table_length | -                                                 |
+| u2             | attribute_count        | 1                      | -                                                 |
+| attribute_info | attributes             | attribute_count        | -                                                 |
+
+对于 byte, char, float, int, short, boolean 和 returnAddress 等长度不超过 32 byte 的数据类型，每个局部变量占用一个变量槽，double, long 这两个 64 位的占两个槽。
+
+同时生存的最大局部变量和类型计算出 max_locals
+
+字节码指令长度 u1。u1 可以最多表达 255 个指令，现在大约已经定义了 200 条。
