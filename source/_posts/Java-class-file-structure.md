@@ -514,3 +514,111 @@ Code 属性表的结构
 同时生存的最大局部变量和类型计算出 max_locals
 
 字节码指令长度 u1。u1 可以最多表达 255 个指令，现在大约已经定义了 200 条。
+
+测试案例中 init 方法对应的 code 代码块为 `00 09 00 00 00 2f 00 01 00 01 00 00 00 05 2a b7 00 01 b1 00 00 00 02`
+
+`00 09` 前面已经说过，指向固定的 Code 字符地址
+
+`00 00 00 31` 属性表长度 3*16 + 1 = 49
+
+`00 01` 栈深 1
+
+`00 01` 本地变量表大小 1
+
+`00 00 00 05` code 长度 5
+
+`2a b7 00 01 b1` code 内容
+
+* `2a`: aload_0 将第一个变量推送至栈顶
+* `b7` invokespecial, 后面接一个 u2 类型引用数据，执行构造方法或 private 方法，或它的父类方法
+* `00 01` 方法引用，指向 init
+* `b1` return 指令
+
+对应的 javap 代码
+
+```
+public c631.TestClass();
+  descriptor: ()V
+  flags: (0x0001) ACC_PUBLIC
+  Code:
+    stack=1, locals=1, args_size=1
+        0: aload_0
+        1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+        4: return
+    LineNumberTable:
+      line 3: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0       5     0  this   Lc631/TestClass;
+```
+
+`args_size=1` 方法虽然没有参数，但是 Java 编译时会把 this 作为第一个默认参数塞入 code 代码块中。
+
+`00 00 00 02` 异常表长度 0， 属性表长度 2
+
+异常表结构
+
+| 类型 | 名称       | 数量 |
+| :--- | :--------- | :--- |
+| u2   | start_pc   | 1    |
+| u2   | end_pc     | 1    |
+| u2   | handler_pc | 1    |
+| u2   | catch_type | 1    |
+
+异常代码案例
+
+```java
+public int inc() {
+      int x;
+      try {
+          x = 1;
+          return x;
+      } catch (Exception e) {
+          x = 2;
+          return x;
+      } finally {
+          x = 3;
+      }
+  }
+```
+
+对应的 javap 代码
+
+```txt
+public int inc();
+    descriptor: ()I
+    flags: (0x0001) ACC_PUBLIC
+    Code:
+      stack=1, locals=5, args_size=1
+         0: iconst_1
+         1: istore_1
+         2: iload_1
+         3: istore_2
+         4: iconst_3
+         5: istore_1
+         6: iload_2
+         7: ireturn
+         8: astore_2
+         9: iconst_2
+        10: istore_1
+        11: iload_1
+        12: istore_3
+        13: iconst_3
+        14: istore_1
+        15: iload_3
+        16: ireturn
+        17: astore        4
+        19: iconst_3
+        20: istore_1
+        21: aload         4
+        23: athrow
+      Exception table:
+         from    to  target type
+             0     4     8   Class java/lang/Exception
+             0     4    17   any
+             8    13    17   any
+            17    19    17   any
+```
+
+和书上的结果略有差别，但基本一致
+
