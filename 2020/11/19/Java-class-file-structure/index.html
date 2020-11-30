@@ -59,7 +59,7 @@
 <meta property="og:description" content="目标：通过阅读 深入理解 JVM 虚拟机 第三版 的第 6 章，结合 ASM 里的 Reader 和 Visitor 对 class 文件有个一比较深入的了解。  bilibili 参考视频，很棒，白嫖  6.2 无关性的基石Java 虚拟机不与包括 Java 语言在内的任何语言绑定，它只与 Class 文件这种特定的二进制文件格式所关联，Class 文件中包含了 Java 虚拟机指令集，符号表以">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2020-11-19T02:45:30.000Z">
-<meta property="article:modified_time" content="2020-11-27T11:08:40.939Z">
+<meta property="article:modified_time" content="2020-11-30T16:26:40.344Z">
 <meta property="article:author" content="Jack Zheng">
 <meta property="article:tag" content="asm">
 <meta property="article:tag" content="jvm">
@@ -241,7 +241,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-11-27 19:08:40" itemprop="dateModified" datetime="2020-11-27T19:08:40+08:00">2020-11-27</time>
+                <time title="修改时间：2020-12-01 00:26:40" itemprop="dateModified" datetime="2020-12-01T00:26:40+08:00">2020-12-01</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -268,14 +268,14 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>12k</span>
+              <span>13k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>11 分钟</span>
+              <span>12 分钟</span>
             </span>
 
         </div>
@@ -1437,6 +1437,61 @@
 <p>对于 byte, char, float, int, short, boolean 和 returnAddress 等长度不超过 32 byte 的数据类型，每个局部变量占用一个变量槽，double, long 这两个 64 位的占两个槽。</p>
 <p>同时生存的最大局部变量和类型计算出 max_locals</p>
 <p>字节码指令长度 u1。u1 可以最多表达 255 个指令，现在大约已经定义了 200 条。</p>
+<p>测试案例中 init 方法对应的 code 代码块为 <code>00 09 00 00 00 2f 00 01 00 01 00 00 00 05 2a b7 00 01 b1 00 00 00 02</code></p>
+<p><code>00 09</code> 前面已经说过，指向固定的 Code 字符地址</p>
+<p><code>00 00 00 31</code> 属性表长度 3*16 + 1 = 49</p>
+<p><code>00 01</code> 栈深 1</p>
+<p><code>00 01</code> 本地变量表大小 1</p>
+<p><code>00 00 00 05</code> code 长度 5</p>
+<p><code>2a b7 00 01 b1</code> code 内容</p>
+<ul>
+<li><code>2a</code>: aload_0 将第一个变量推送至栈顶</li>
+<li><code>b7</code> invokespecial, 后面接一个 u2 类型引用数据，执行构造方法或 private 方法，或它的父类方法</li>
+<li><code>00 01</code> 方法引用，指向 init</li>
+<li><code>b1</code> return 指令</li>
+</ul>
+<p>对应的 javap 代码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">public c631.TestClass();</span><br><span class="line">  descriptor: ()V</span><br><span class="line">  flags: (0x0001) ACC_PUBLIC</span><br><span class="line">  Code:</span><br><span class="line">    stack&#x3D;1, locals&#x3D;1, args_size&#x3D;1</span><br><span class="line">        0: aload_0</span><br><span class="line">        1: invokespecial #1                  &#x2F;&#x2F; Method java&#x2F;lang&#x2F;Object.&quot;&lt;init&gt;&quot;:()V</span><br><span class="line">        4: return</span><br><span class="line">    LineNumberTable:</span><br><span class="line">      line 3: 0</span><br><span class="line">    LocalVariableTable:</span><br><span class="line">      Start  Length  Slot  Name   Signature</span><br><span class="line">          0       5     0  this   Lc631&#x2F;TestClass;</span><br></pre></td></tr></table></figure>
+
+<p><code>args_size=1</code> 方法虽然没有参数，但是 Java 编译时会把 this 作为第一个默认参数塞入 code 代码块中。</p>
+<p><code>00 00 00 02</code> 异常表长度 0， 属性表长度 2</p>
+<p>异常表结构</p>
+<table>
+<thead>
+<tr>
+<th align="left">类型</th>
+<th align="left">名称</th>
+<th align="left">数量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">u2</td>
+<td align="left">start_pc</td>
+<td align="left">1</td>
+</tr>
+<tr>
+<td align="left">u2</td>
+<td align="left">end_pc</td>
+<td align="left">1</td>
+</tr>
+<tr>
+<td align="left">u2</td>
+<td align="left">handler_pc</td>
+<td align="left">1</td>
+</tr>
+<tr>
+<td align="left">u2</td>
+<td align="left">catch_type</td>
+<td align="left">1</td>
+</tr>
+</tbody></table>
+<p>异常代码案例</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">inc</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">int</span> x;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">          x = <span class="number">1</span>;</span><br><span class="line">          <span class="keyword">return</span> x;</span><br><span class="line">      &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">          x = <span class="number">2</span>;</span><br><span class="line">          <span class="keyword">return</span> x;</span><br><span class="line">      &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">          x = <span class="number">3</span>;</span><br><span class="line">      &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>对应的 javap 代码</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">public int inc();</span><br><span class="line">    descriptor: ()I</span><br><span class="line">    flags: (0x0001) ACC_PUBLIC</span><br><span class="line">    Code:</span><br><span class="line">      stack=1, locals=5, args_size=1</span><br><span class="line">         0: iconst_1</span><br><span class="line">         1: istore_1</span><br><span class="line">         2: iload_1</span><br><span class="line">         3: istore_2</span><br><span class="line">         4: iconst_3</span><br><span class="line">         5: istore_1</span><br><span class="line">         6: iload_2</span><br><span class="line">         7: ireturn</span><br><span class="line">         8: astore_2</span><br><span class="line">         9: iconst_2</span><br><span class="line">        10: istore_1</span><br><span class="line">        11: iload_1</span><br><span class="line">        12: istore_3</span><br><span class="line">        13: iconst_3</span><br><span class="line">        14: istore_1</span><br><span class="line">        15: iload_3</span><br><span class="line">        16: ireturn</span><br><span class="line">        17: astore        4</span><br><span class="line">        19: iconst_3</span><br><span class="line">        20: istore_1</span><br><span class="line">        21: aload         4</span><br><span class="line">        23: athrow</span><br><span class="line">      Exception table:</span><br><span class="line">         from    to  target type</span><br><span class="line">             0     4     8   Class java/lang/Exception</span><br><span class="line">             0     4    17   any</span><br><span class="line">             8    13    17   any</span><br><span class="line">            17    19    17   any</span><br></pre></td></tr></table></figure>
+
+<p>和书上的结果略有差别，但基本一致</p>
 
     </div>
 
@@ -1585,12 +1640,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">256k</span>
+    <span title="站点总字数">257k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">3:53</span>
+    <span title="站点阅读时长">3:54</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
