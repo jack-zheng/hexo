@@ -622,3 +622,156 @@ public int inc();
 
 和书上的结果略有差别，但基本一致
 
+#### Exceptions 属性
+
+和 Code 平级的概念，并不是上一章节里 Code 下面的 exception 表。这里表示的是方法可能抛出的异常，就是 throws 后面的那些东西。属性结构如下:
+
+| type | name                  | count                |
+| :--- | :-------------------- | :------------------- |
+| u2   | attribute_name_index  | 1                    |
+| u4   | attribute_length      | 1                    |
+| u2   | number_of_exceptions  | 1                    |
+| u2   | exception_index_table | number_of_exceptions |
+
+number_of_exceptions: 可能抛出的受检测的异常类型
+exception_index_table: 指向常量池中的 CONSTANT_Class_info 索引
+
+#### LineNumberTable 属性
+
+描述 Java 源码行号和字节码行号之间的对应关系。可以在编译时指定不生成行号，但是会影响异常信息显示和 debug, 表结构如下:
+
+| type             | name                     | count                    |
+| :--------------- | :----------------------- | :----------------------- |
+| u2               | attribute_name_index     | 1                        |
+| u4               | attribute_length         | 1                        |
+| u2               | line_number_table_length | 1                        |
+| line_number_info | line_number_table        | line_number_table_length |
+
+line_number_info: 包含 start_pc 和 line_number 两个 u2 类型的数据项，前者是字节码行号，后者是 Java 源码行号。
+
+#### LocalVarableTable 及 LocalVarableTypeTable 属性
+
+LocalVarableTable 描述局部变量表的变量与 Java 源码中定义的变量之间的关系。非必须，可以指定 javac 参数去除且不影响运行。但是去除后方法参数名称会变为类似 arg0, arg1 的表示，不方便，表结构如下：
+
+| type                | name                        | count                       |
+| :------------------ | :-------------------------- | :-------------------------- |
+| u2                  | attribute_name_index        | 1                           |
+| u4                  | attribute_length            | 1                           |
+| u2                  | local_variable_table_length | 1                           |
+| local_variable_info | local_variable_table        | local_variable_table_length |
+
+local_variable_info 代表栈帧与源码中局部变量的关联，结构如下：
+
+| type | name             | count |
+| :--- | :--------------- | :---- |
+| u2   | start_pc         | 1     |
+| u2   | length           | 1     |
+| u2   | name_index       | 1     |
+| u2   | descriptor_index | 1     |
+| u2   | index            | 1     |
+
+* start_pc + length: 限定了局部变量的作用范围，即作用域
+* name_index + descriptor_index: 指向常量池中 CONSTANT_Utf8_info 类型索引
+* index: 栈帧局部变量槽位置，当数据类型为 64 位则占用 index 和 index+1 两个
+
+LocalVarableTypeTable 是 JDK5 时为了支持范型而引入的，基本功能和 LocalVarableTable 一样。
+
+#### SourceFile 及 SourceDebugExtension 属性
+
+SourceFile 记录生成 Class 文件的源码文件名称，可选，通常与类名同，特殊情况除外(如内部类)。表结构如下:
+
+| type | name                 | count |
+| :--- | :------------------- | :---- |
+| u2   | attribute_name_index | 1     |
+| u4   | attribute_length     | 1     |
+| u2   | sourcefile_index     | 1     |
+
+sourcefile_index: 指向常量池中 CONSTANT_Utf8_info 型常量的索引，值问文件名。
+
+SourceDebugExtension 是 JDK5 中加入的新特性，存储额外调试信息，支持类似 JSP 这种使用 Java 编译器但是语法不同的语言，类中最多只允许一个该属性。表结构如下：
+
+| type | name                              | count |
+| :--- | :-------------------------------- | :---- |
+| u2   | attribute_name_index              | 1     |
+| u4   | attribute_length                  | 1     |
+| u2   | debug_extension[attribute_length] | 1     |
+
+#### ConstantValue 属性
+
+ConstantValue 通知虚拟机自动为静态变量赋值。只有被 static 修饰的变量才能使用这个属性。虚拟机中对非 static 变量在 <init>() 方法总进行，对于静态变量则有两种方式，一种是构造器 <clinit>() 另一种是 ConstantValue。Oracle 的 javac 中的实现方式为：static + final + 基本类型/String 在 ConstantValue 中赋值， 没有 final 或者是其他数据类型则在 <clinit>() 中赋值。表结构如下：
+
+| type | name                 | count |
+| :--- | :------------------- | :---- |
+| u2   | attribute_name_index | 1     |
+| u4   | attribute_length     | 1     |
+| u2   | constantvalue_index  | 1     |
+
+constantvalue_index: 指向常量池中一个引用，可选类型有 CONSTANT_Long_info, CONSTANT_Float_info, CONSTANT_Double_info, CONSTANT_Integer_info 和 CONSTANT_String_info。
+
+#### InnerClasses 属性
+
+InnerClasses 记录内部类与宿主类之间的关联。结构如下：
+
+| type               | name                 | count             |
+| :----------------- | :------------------- | :---------------- |
+| u2                 | attribute_name_index | 1                 |
+| u4                 | attribute_length     | 1                 |
+| u2                 | number_of_classes    | 1                 |
+| inner_classes_info | inner_classes        | number_of_classes |
+
+number_of_classes: 内部类个数
+
+inner_classes_info 结构如下
+
+| type | name                     | count |
+| :--- | :----------------------- | :---- |
+| u2   | inner_class_info_index   | 1     |
+| u2   | outer_class_info_index   | 1     |
+| u2   | inner_name_index         | 1     |
+| u2   | inner_class_access_flags | 1     |
+
+inner_class_info_index, outer_class_info_index：指向常量池中 CONSTANT_Class_info 常量索引，分别代表内部类和宿主类
+
+inner_name_index：指向常量池 CONSTANT_Utf8_info 引用，代表内部类名称，如果是匿名内部类，值为 0
+
+inner_class_access_flags：和 class 定义相似，类的访问标示符，取值范围如下
+
+| 标志名称       | 标志值 | 含义                         |
+| :------------- | :----- | :--------------------------- |
+| ACC_PUBLIC     | 0x0001 | 内部类是否为 public          |
+| ACC_PRIVATE    | 0x0002 | 内部类是否为 private         |
+| ACC_PROTECTED  | 0x0004 | 内部类是否为 protected       |
+| ACC_STATIC     | 0x0008 | 内部类是否为 static          |
+| ACC_FINAL      | 0x0010 | 内部类是否为 final           |
+| ACC_INTERFACE  | 0x0020 | 内部类是否为 接口            |
+| ACC_ABSTRACT   | 0x0400 | 内部类是否为 abstract        |
+| ACC_SYNTHETIC  | 0x1000 | 内部类是否并非由用户代码产生 |
+| ACC_ANNOTATION | 0x2000 | 内部类是否为一个注解         |
+| ACC_ENUM       | 0x4000 | 内部类是否为一个枚举         |
+
+#### Deprecated 及 Synthetic 属性
+
+都是标志符类型的布尔属性，只有存在有和没有的区别，没有属性概念。Deprecated 对应 @deprecated 注解，表示不推荐使用。
+
+Synthetic 标示字段或方法由编译器产生，JDK5之后同样的功能可以通过设置 ACC_SYNTHETIC 标志位达到。通过这种方式甚至可以越权访问或绕开语言限制功能。典型例子是枚举类中自动生成枚举元素数组和嵌套类的桥接方法(Bridge Method)。
+
+| type | name                 | count |
+| :--- | :------------------- | :---- |
+| u2   | attribute_name_index | 1     |
+| u4   | attribute_length     | 1     |
+
+attribute_length 必须为 0x00000000，因为诶呦任何属性需要设置。
+
+#### StackMapTable 属性
+
+JDK6 增加到 Class 文件规范，一个相当复杂的变长属性，位于 Code 属性表中，用来代替原来的类型检查验证器，提升性能。实现很复杂，Java SE7 新增 120 页篇幅讲解描述。
+
+| type            | name                    | count             |
+| :-------------- | :---------------------- | :---------------- |
+| u2              | attribute_name_index    | 1                 |
+| u4              | attribute_length        | 1                 |
+| u2              | number_of_entries       | 1                 |
+| stack_map_frame | stack_map_frame entries | number_of_entries |
+
+SE7 之后规定，版本号 >= 50.0 的 class 文件都必须带有 StackMapTable 属性。一个 Code 属性最多只能有一个 StackMapTable 不然抛错 ClassFormatError。
+
