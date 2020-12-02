@@ -21,6 +21,7 @@ _raw 中文本为
 ## Impl
 
 ```python
+import csv
 # 拿到 csv 的 _raw 列数据
 context = []
 rows = []

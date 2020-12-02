@@ -775,3 +775,120 @@ JDK6 增加到 Class 文件规范，一个相当复杂的变长属性，位于 C
 
 SE7 之后规定，版本号 >= 50.0 的 class 文件都必须带有 StackMapTable 属性。一个 Code 属性最多只能有一个 StackMapTable 不然抛错 ClassFormatError。
 
+#### Signature 属性
+
+在 JDK5 中和范型一起加入的，记录范型签名信息。Java 中的范型是伪范型。
+
+| type | name                 | count |
+| :--- | :------------------- | :---- |
+| u2   | attribute_name_index | 1     |
+| u4   | attribute_length     | 1     |
+| u2   | signature_index      | 1     |
+
+signature_index 指向常量池的一个 CONSTANT_Utf8_info 索引。
+
+#### BootstrapMethods 属性
+
+JDK7 时新增，JDK8 中通过 lambda 发扬光大。位于类文件属性表中，用于保存 invokeDynamic 指令引用的引导方法限定符。类文件常量池中出现过 CONSTANT_InvokeDynamic_info 类型的常量，那么属性表中必有 BootstrapMethods 属性，一个类文件中至多只能有一个 BootstrapMethods 属性。
+
+BootstrapMethods 属性结构
+
+| type             | name                  | count                 |
+| :--------------- | :-------------------- | :-------------------- |
+| u2               | attribute_name_index  | 1                     |
+| u4               | attribute_length      | 1                     |
+| u2               | num_bootstrap_methods | 1                     |
+| bootstrap_method | bootstrap_methods     | num_bootstrap_methods |
+
+bootstrap_methods[]: 每个成员包含一个指向常量池 CONSTANT_MethodHandle 结构的索引，代表一个引导方法。
+
+bootstrap_method 属性结构
+
+| type | name                    | count                   |
+| :--- | :---------------------- | :---------------------- |
+| u2   | bootstrap_method_ref    | 1                       |
+| u2   | num_bootstrap_arguments | 1                       |
+| u2   | bootstrap_arguments     | num_bootstrap_arguments |
+
+* bootstrap_method_ref：对常量池的一个有效索引，索引处必须是一个 CONSTNAT_MethodHandle_info 结构
+* num_bootstrap_arguments：arg 数量
+* bootstrap_arguments：每个成员必须是对常量池的有效引用，指向的结构必须是：CONSTANT_String_info，CONSTANT_Class_info, CONSTANT_Integer_info, CONSTANT_Long_info, CONSTANT_Float_info, CONSTANT_Double_info, CONSTANT_MethodHandle_info 或 CONSTANT_MethodType_info 之一
+
+#### MethodParameters 属性
+
+JDK8 时加入，之前没有这个属性， jar 包反编译时缺少参数信息，不方便理解，影响传播。之前还有个替代方案，通过 '-g:var' 存入 LocalVariableTable, 但是他时 Code 的字表，在接口方法这类没有具体实现的方法时不生效。
+
+| type      | name                 | count            |
+| :-------- | :------------------- | :--------------- |
+| u2        | attribute_name_index | 1                |
+| u4        | attribute_length     | 1                |
+| u1        | parameters_count     | 1                |
+| parameter | parameters           | parameters_count |
+
+parameter 属性
+
+| type | name         | count |
+| :--- | :----------- | :---- |
+| u2   | name_index   | 1     |
+| u2   | access_flags | 1     |
+
+name_index 指向常量池 CONTANT_Utf8_info 的索引值，代表名称
+
+access_flags 有三种 0x0001-ACC_FINAL, 0x1000-ACC_SYNTHETIC, 0x8000-ACC_MANDATED(原文件中隐式定义，典型用法 this)
+
+#### 模块化相关属性
+
+TBD 怎是没用到就不记了，以后用到再看看
+
+#### 运行时注解相关属性
+
+JDK5 时加入了注解相关信息到 Class 文件，他们是 RuntimeVisibleAnnotations, RuntimeInvisibleAnnotations, RuntimeVisibleParameterAnnotations 和 RuntimeInvisibleParameterAnnotations。JDK8 时新家了 RuntimeVisibleTypeAnnotations, RuntimeInvisibleTypeAnnotations。这些属性功能和结构都很雷同。
+
+RuntimeVisibleAnnotations 属性结构
+
+| type       | name                 | count           |
+| :--------- | :------------------- | :-------------- |
+| u2         | attribute_name_index | 1               |
+| u4         | attribute_length     | 1               |
+| u2         | num_annotations      | 1               |
+| annotation | annotations          | num_annotations |
+
+annotations 属性结构
+
+| type               | name                    | count                   |
+| :----------------- | :---------------------- | :---------------------- |
+| u2                 | type_index              | 1                       |
+| u2                 | num_element_value_pairs | 1                       |
+| element_value_pair | element_value_pairs     | num_element_value_pairs |
+
+type_index 指向常量池 CONSTANT_Utf8_info 常量的索引， num_element_value_pairs 数组计数器，element_value_pair 为键值对
+
+## 6.4 字节码指令简介
+
+虚拟机指令 = 操作码(opcode) + 操作数(oprand)
+
+操作码为一个字节长度，操作数为 0 至 n 个，虚拟机执行模型
+
+```txt
+do {
+  自动计算 PC 寄存器的值加 1；
+  根据 PC 寄存器指示的位置，从字节码流中取出操作码；
+  if (字节码存在操作数) 从字节码流中取出操作数；
+  执行操作吗所定义的操作；
+} while (字节码流长度 > 0)
+```
+
+### 6.4.1 字节码与数据类型
+
+大多数操作码都包含对应操作数类型信息，比如 iload。
+
+* i - int
+* l - long
+* s - short
+* b - byte
+* c - char
+* f - float
+* d - double
+* a - reference
+
+boolean, byte, short, char 在编译时会被扩展成 int 类型再处理。
