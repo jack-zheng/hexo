@@ -892,3 +892,34 @@ do {
 * a - reference
 
 boolean, byte, short, char 在编译时会被扩展成 int 类型再处理。
+
+### 6.4.2 加载和存储指令
+
+用于将数据在栈帧中的局部变量表和操作数栈之间来回传输
+
+将局部变量加载到操作栈：(i/l/f/d/a)load, (i/l/f/d/a)load_<n>
+
+将一个数值从操作数栈存储到局部变量表：(i/l/f/d/a)store, (i/l/f/d/a)store_<n>
+
+将一个常量加载到操作数栈：bipush, sipush, ldc, ldc_w, ldc2_w, aconst_null, iconst_m1, icont_<i>, lconst_<l>, fconst_<f>, dconst_<d>
+
+扩充局部变量表的访问索引指令： wide
+
+iload_<n> 代表了 iload_1, iload_2, iload_3
+
+### 6.4.3 运算指令
+
+算术指令用于对 操作数栈 上的两个值进行某种特定运算，并把 结果 重新存入操作栈 顶。byte, short, char 和 Boolean 会转化为 int 计算
+
+* 加法指令： (i, l, f, d)add
+* 减法指令： (i, l, f, d)sub
+* 乘法指令： (i, l, f, d)mul
+* 除法指令： (i, l, f, d)div
+* 求余指令： (i, l, f, d)rem
+* 取反指令： (i, l, f, d)neg
+* 位移指令： ishl, ishr, iushr, lshl, lshr, lushr
+* 按位或指令： ior, lor
+* 按位与指令： iand, land
+* 按位异或指令： ixor, lxor
+* 局部变量自增指令： iinc
+* 比较指令： dcmpg, dcmpl, fcmpg, fcmpl, lcmp
