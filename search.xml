@@ -2417,6 +2417,22 @@
       </tags>
   </entry>
   <entry>
+    <title>Python 解析 csv 文件</title>
+    <url>/hexo/2020/06/18/Python-parse-csv/</url>
+    <content><![CDATA[<p>有一个 csv 文件，其中有个 column 名为 ‘_raw’ 包含我们需要的信息，写一段脚本解析之</p>
+<figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">_raw 中文本为</span><br><span class="line"></span><br><span class="line">08:42:50,222 INFO  [RESTCallbackSubscriber] [customerId,customerId,null,null,SFAPI,null,null] [IrisSubscriber Container[queue_seb.subscriber.pillar.deactivateuser]1]Postback for event com.company.hermes.core.SFEvent=&#123;meta:Meta=&#123;priority:0,proxyId:&quot;null&quot;,serverName:&quot;null&quot;,topic:&quot;com.company.platform.mobile.deactivateuser&quot;,ptpName:null,companyId:&quot;customerId&quot;,eventId:&quot;a3b43584-3ceb-4760-9c01-699d635f4461&quot;,type:&quot;null&quot;,sourceArea:&quot;null&quot;,effectiveStartDate:&quot;null&quot;,publishedAt:&quot;2020-05-31 08:42:39&quot;,publishBy:&quot;SFAPI&quot;,publishServer:&quot;serverip&quot;,externalAllowed:false,filterParameters:&#123;&#123;companyId=customerId, userId=SFAPI, type=null, sourceArea=null, effectiveStartDate=null, publishedAt=1590914553205, publishedBy=SFAPI, externalAllowed=false, publishServer=serverip, priority=0, proxyId=null, serverName=null, topic=com.company.platform.mobile.deactivateuser, ptpName=null&#125;&#125;&#125;,body:&#123;&quot;companyId&quot;: &quot;customerId&quot;, &quot;inactiveUserId&quot;: [&quot;E_UUU_21934&quot;,&quot;E_UUU_21935&quot;]&#125;&#125; sent to https://domain/api/deactivate, (HTTP/1.1 200 OK)</span><br><span class="line"></span><br><span class="line">提取目标：publishedAt, publishedAt of filterParameters, inactiveUserId</span><br></pre></td></tr></table></figure>
+
+<h2 id="Impl"><a href="#Impl" class="headerlink" title="Impl"></a>Impl</h2><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> csv</span><br><span class="line"><span class="comment"># 拿到 csv 的 _raw 列数据</span></span><br><span class="line">context = []</span><br><span class="line">rows = []</span><br><span class="line"><span class="keyword">with</span> open(<span class="string">&#x27;dump_csv.csv&#x27;</span>, newline=<span class="string">&#x27;&#x27;</span>) <span class="keyword">as</span> csvfile:</span><br><span class="line">   contexts = csv.reader(csvfile)</span><br><span class="line">   <span class="comment"># 使用 reader = csv.DictReader(csvfile) 的话可以使用 column name 取值</span></span><br><span class="line">   <span class="comment"># 例如: reader[&#x27;companyId&#x27;], 不过缺点是要在 with loop 中处理完数据</span></span><br><span class="line">   rows = [row[<span class="number">16</span>] <span class="keyword">for</span> row <span class="keyword">in</span> contexts]</span><br><span class="line">   rows = [<span class="number">1</span>:]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 分析 _raw 数据特性，决定使用正则匹配数据</span></span><br><span class="line"><span class="comment"># publishedAt:&quot;(.*?)&quot; 加 ? 表示 非贪婪</span></span><br><span class="line"><span class="comment"># publishedAt=(\d+)</span></span><br><span class="line"><span class="comment"># inactiveUserId&quot;: (\[.*?\])</span></span><br><span class="line"><span class="comment"># 以上表达式取 group 1 数据</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">from</span> datetime <span class="keyword">import</span> datetime</span><br><span class="line"><span class="comment"># re.findAll</span></span><br><span class="line"><span class="comment"># re.match() 从开头开始匹配</span></span><br><span class="line"><span class="comment"># re.search(reg, src) 匹配任意位置</span></span><br><span class="line"></span><br><span class="line">reg1 = <span class="string">&#x27;publishedAt:&quot;(.*?)&quot;&#x27;</span></span><br><span class="line">reg2 = <span class="string">&#x27;publishedAt=(\d+)&#x27;</span></span><br><span class="line">reg3 = <span class="string">&#x27;inactiveUserId&quot;: (\[.*?\])&#x27;</span></span><br><span class="line"></span><br><span class="line">rowlist = []</span><br><span class="line"><span class="keyword">for</span> row <span class="keyword">in</span> rows:</span><br><span class="line">    infolist = []</span><br><span class="line">    timestr01 = re.search(reg1, row).group(<span class="number">1</span>)</span><br><span class="line">    d1 = datetime.strptime(timestr01, <span class="string">&#x27;%Y-%m-%d %H:%M:%S&#x27;</span>)</span><br><span class="line">    infolist.append(d1)</span><br><span class="line"></span><br><span class="line">    timestr2 = int(re.search(reg2, row).group(<span class="number">1</span>))</span><br><span class="line">    d2 = datetime.fromtimestamp(timestr2/<span class="number">1000.0</span>)</span><br><span class="line">    infolist.append(d2)</span><br><span class="line"></span><br><span class="line">    users = re.search(reg3, row).group(<span class="number">1</span>)</span><br><span class="line">    ulist = eval(users) <span class="comment"># string 转化为 list</span></span><br><span class="line">    infolist.append(ulist)</span><br><span class="line">    rowlist.append(infolist)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 把数据根据时间先后排序</span></span><br><span class="line">sortedList = sorted(rowlist, key=<span class="keyword">lambda</span> sub: sub[<span class="number">1</span>])</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">printList</span>(<span class="params">line</span>):</span></span><br><span class="line">    formatStr01 = <span class="string">&#x27;%y-%m-%d %H:%M:%S&#x27;</span></span><br><span class="line">    print(line[<span class="number">0</span>].strftime(formatStr01), end=<span class="string">&#x27; | &#x27;</span>)</span><br><span class="line">    print(<span class="string">&quot;%15f&quot;</span> % (line[<span class="number">1</span>].timestamp()), end=<span class="string">&#x27; | &#x27;</span>)</span><br><span class="line">    arrStr = str(line[<span class="number">2</span>][:<span class="number">5</span>]) + <span class="string">&quot;...&quot;</span> + str(len(line[<span class="number">2</span>])) <span class="keyword">if</span> len(line[<span class="number">2</span>]) &gt; <span class="number">5</span> <span class="keyword">else</span> str(line[<span class="number">2</span>])</span><br><span class="line">    print(arrStr)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> sub <span class="keyword">in</span> sortedList:</span><br><span class="line">    printList(sub)</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>编程</category>
+      </categories>
+      <tags>
+        <tag>python</tag>
+        <tag>csv</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Python 优雅的换行</title>
     <url>/hexo/2020/07/08/Python-%E4%BC%98%E9%9B%85%E7%9A%84%E6%8D%A2%E8%A1%8C/</url>
     <content><![CDATA[<p>记录一下查了无数遍的换行方法备用，总结一下就是使用 ‘’ + \ + ‘’ 类似的语法做链接，只可使用 ‘xxxx\xxx’ 的话会出现空格</p>
@@ -2589,22 +2605,6 @@
       <tags>
         <tag>python</tag>
         <tag>pdf</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Python 解析 csv 文件</title>
-    <url>/hexo/2020/06/18/Python-%E8%A7%A3%E6%9E%90-csv-%E6%96%87%E4%BB%B6/</url>
-    <content><![CDATA[<p>有一个 csv 文件，其中有个 column 名为 ‘_raw’ 包含我们需要的信息，写一段脚本解析之</p>
-<figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">_raw 中文本为</span><br><span class="line"></span><br><span class="line">08:42:50,222 INFO  [RESTCallbackSubscriber] [customerId,customerId,null,null,SFAPI,null,null] [IrisSubscriber Container[queue_seb.subscriber.pillar.deactivateuser]1]Postback for event com.company.hermes.core.SFEvent=&#123;meta:Meta=&#123;priority:0,proxyId:&quot;null&quot;,serverName:&quot;null&quot;,topic:&quot;com.company.platform.mobile.deactivateuser&quot;,ptpName:null,companyId:&quot;customerId&quot;,eventId:&quot;a3b43584-3ceb-4760-9c01-699d635f4461&quot;,type:&quot;null&quot;,sourceArea:&quot;null&quot;,effectiveStartDate:&quot;null&quot;,publishedAt:&quot;2020-05-31 08:42:39&quot;,publishBy:&quot;SFAPI&quot;,publishServer:&quot;serverip&quot;,externalAllowed:false,filterParameters:&#123;&#123;companyId=customerId, userId=SFAPI, type=null, sourceArea=null, effectiveStartDate=null, publishedAt=1590914553205, publishedBy=SFAPI, externalAllowed=false, publishServer=serverip, priority=0, proxyId=null, serverName=null, topic=com.company.platform.mobile.deactivateuser, ptpName=null&#125;&#125;&#125;,body:&#123;&quot;companyId&quot;: &quot;customerId&quot;, &quot;inactiveUserId&quot;: [&quot;E_UUU_21934&quot;,&quot;E_UUU_21935&quot;]&#125;&#125; sent to https://domain/api/deactivate, (HTTP/1.1 200 OK)</span><br><span class="line"></span><br><span class="line">提取目标：publishedAt, publishedAt of filterParameters, inactiveUserId</span><br></pre></td></tr></table></figure>
-
-<h2 id="Impl"><a href="#Impl" class="headerlink" title="Impl"></a>Impl</h2><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 拿到 csv 的 _raw 列数据</span></span><br><span class="line">context = []</span><br><span class="line">rows = []</span><br><span class="line"><span class="keyword">with</span> open(<span class="string">&#x27;dump_csv.csv&#x27;</span>, newline=<span class="string">&#x27;&#x27;</span>) <span class="keyword">as</span> csvfile:</span><br><span class="line">   contexts = csv.reader(csvfile)</span><br><span class="line">   <span class="comment"># 使用 reader = csv.DictReader(csvfile) 的话可以使用 column name 取值</span></span><br><span class="line">   <span class="comment"># 例如: reader[&#x27;companyId&#x27;], 不过缺点是要在 with loop 中处理完数据</span></span><br><span class="line">   rows = [row[<span class="number">16</span>] <span class="keyword">for</span> row <span class="keyword">in</span> contexts]</span><br><span class="line">   rows = [<span class="number">1</span>:]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 分析 _raw 数据特性，决定使用正则匹配数据</span></span><br><span class="line"><span class="comment"># publishedAt:&quot;(.*?)&quot; 加 ? 表示 非贪婪</span></span><br><span class="line"><span class="comment"># publishedAt=(\d+)</span></span><br><span class="line"><span class="comment"># inactiveUserId&quot;: (\[.*?\])</span></span><br><span class="line"><span class="comment"># 以上表达式取 group 1 数据</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">from</span> datetime <span class="keyword">import</span> datetime</span><br><span class="line"><span class="comment"># re.findAll</span></span><br><span class="line"><span class="comment"># re.match() 从开头开始匹配</span></span><br><span class="line"><span class="comment"># re.search(reg, src) 匹配任意位置</span></span><br><span class="line"></span><br><span class="line">reg1 = <span class="string">&#x27;publishedAt:&quot;(.*?)&quot;&#x27;</span></span><br><span class="line">reg2 = <span class="string">&#x27;publishedAt=(\d+)&#x27;</span></span><br><span class="line">reg3 = <span class="string">&#x27;inactiveUserId&quot;: (\[.*?\])&#x27;</span></span><br><span class="line"></span><br><span class="line">rowlist = []</span><br><span class="line"><span class="keyword">for</span> row <span class="keyword">in</span> rows:</span><br><span class="line">    infolist = []</span><br><span class="line">    timestr01 = re.search(reg1, row).group(<span class="number">1</span>)</span><br><span class="line">    d1 = datetime.strptime(timestr01, <span class="string">&#x27;%Y-%m-%d %H:%M:%S&#x27;</span>)</span><br><span class="line">    infolist.append(d1)</span><br><span class="line"></span><br><span class="line">    timestr2 = int(re.search(reg2, row).group(<span class="number">1</span>))</span><br><span class="line">    d2 = datetime.fromtimestamp(timestr2/<span class="number">1000.0</span>)</span><br><span class="line">    infolist.append(d2)</span><br><span class="line"></span><br><span class="line">    users = re.search(reg3, row).group(<span class="number">1</span>)</span><br><span class="line">    ulist = eval(users) <span class="comment"># string 转化为 list</span></span><br><span class="line">    infolist.append(ulist)</span><br><span class="line">    rowlist.append(infolist)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 把数据根据时间先后排序</span></span><br><span class="line">sortedList = sorted(rowlist, key=<span class="keyword">lambda</span> sub: sub[<span class="number">1</span>])</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">printList</span>(<span class="params">line</span>):</span></span><br><span class="line">    formatStr01 = <span class="string">&#x27;%y-%m-%d %H:%M:%S&#x27;</span></span><br><span class="line">    print(line[<span class="number">0</span>].strftime(formatStr01), end=<span class="string">&#x27; | &#x27;</span>)</span><br><span class="line">    print(<span class="string">&quot;%15f&quot;</span> % (line[<span class="number">1</span>].timestamp()), end=<span class="string">&#x27; | &#x27;</span>)</span><br><span class="line">    arrStr = str(line[<span class="number">2</span>][:<span class="number">5</span>]) + <span class="string">&quot;...&quot;</span> + str(len(line[<span class="number">2</span>])) <span class="keyword">if</span> len(line[<span class="number">2</span>]) &gt; <span class="number">5</span> <span class="keyword">else</span> str(line[<span class="number">2</span>])</span><br><span class="line">    print(arrStr)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> sub <span class="keyword">in</span> sortedList:</span><br><span class="line">    printList(sub)</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>编程</category>
-      </categories>
-      <tags>
-        <tag>python</tag>
-        <tag>csv</tag>
       </tags>
   </entry>
   <entry>
@@ -5715,6 +5715,220 @@
 </tr>
 </tbody></table>
 <p>SE7 之后规定，版本号 &gt;= 50.0 的 class 文件都必须带有 StackMapTable 属性。一个 Code 属性最多只能有一个 StackMapTable 不然抛错 ClassFormatError。</p>
+<h4 id="Signature-属性"><a href="#Signature-属性" class="headerlink" title="Signature 属性"></a>Signature 属性</h4><p>在 JDK5 中和范型一起加入的，记录范型签名信息。Java 中的范型是伪范型。</p>
+<table>
+<thead>
+<tr>
+<th align="left">type</th>
+<th align="left">name</th>
+<th align="left">count</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">u2</td>
+<td align="left">attribute_name_index</td>
+<td align="left">1</td>
+</tr>
+<tr>
+<td align="left">u4</td>
+<td align="left">attribute_length</td>
+<td align="left">1</td>
+</tr>
+<tr>
+<td align="left">u2</td>
+<td align="left">signature_index</td>
+<td align="left">1</td>
+</tr>
+</tbody></table>
+<p>signature_index 指向常量池的一个 CONSTANT_Utf8_info 索引。</p>
+<h4 id="BootstrapMethods-属性"><a href="#BootstrapMethods-属性" class="headerlink" title="BootstrapMethods 属性"></a>BootstrapMethods 属性</h4><p>JDK7 时新增，JDK8 中通过 lambda 发扬光大。位于类文件属性表中，用于保存 invokeDynamic 指令引用的引导方法限定符。类文件常量池中出现过 CONSTANT_InvokeDynamic_info 类型的常量，那么属性表中必有 BootstrapMethods 属性，一个类文件中至多只能有一个 BootstrapMethods 属性。</p>
+<p>BootstrapMethods 属性结构</p>
+<table>
+<thead>
+<tr>
+<th align="left">type</th>
+<th align="left">name</th>
+<th align="left">count</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">u2</td>
+<td align="left">attribute_name_index</td>
+<td align="left">1</td>
+</tr>
+<tr>
+<td align="left">u4</td>
+<td align="left">attribute_length</td>
+<td align="left">1</td>
+</tr>
+<tr>
+<td align="left">u2</td>
+<td align="left">num_bootstrap_methods</td>
+<td align="left">1</td>
+</tr>
+<tr>
+<td align="left">bootstrap_method</td>
+<td align="left">bootstrap_methods</td>
+<td align="left">num_bootstrap_methods</td>
+</tr>
+</tbody></table>
+<p>bootstrap_methods[]: 每个成员包含一个指向常量池 CONSTANT_MethodHandle 结构的索引，代表一个引导方法。</p>
+<p>bootstrap_method 属性结构</p>
+<table>
+<thead>
+<tr>
+<th align="left">type</th>
+<th align="left">name</th>
+<th align="left">count</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">u2</td>
+<td align="left">bootstrap_method_ref</td>
+<td align="left">1</td>
+</tr>
+<tr>
+<td align="left">u2</td>
+<td align="left">num_bootstrap_arguments</td>
+<td align="left">1</td>
+</tr>
+<tr>
+<td align="left">u2</td>
+<td align="left">bootstrap_arguments</td>
+<td align="left">num_bootstrap_arguments</td>
+</tr>
+</tbody></table>
+<ul>
+<li>bootstrap_method_ref：对常量池的一个有效索引，索引处必须是一个 CONSTNAT_MethodHandle_info 结构</li>
+<li>num_bootstrap_arguments：arg 数量</li>
+<li>bootstrap_arguments：每个成员必须是对常量池的有效引用，指向的结构必须是：CONSTANT_String_info，CONSTANT_Class_info, CONSTANT_Integer_info, CONSTANT_Long_info, CONSTANT_Float_info, CONSTANT_Double_info, CONSTANT_MethodHandle_info 或 CONSTANT_MethodType_info 之一</li>
+</ul>
+<h4 id="MethodParameters-属性"><a href="#MethodParameters-属性" class="headerlink" title="MethodParameters 属性"></a>MethodParameters 属性</h4><p>JDK8 时加入，之前没有这个属性， jar 包反编译时缺少参数信息，不方便理解，影响传播。之前还有个替代方案，通过 ‘-g:var’ 存入 LocalVariableTable, 但是他时 Code 的字表，在接口方法这类没有具体实现的方法时不生效。</p>
+<table>
+<thead>
+<tr>
+<th align="left">type</th>
+<th align="left">name</th>
+<th align="left">count</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">u2</td>
+<td align="left">attribute_name_index</td>
+<td align="left">1</td>
+</tr>
+<tr>
+<td align="left">u4</td>
+<td align="left">attribute_length</td>
+<td align="left">1</td>
+</tr>
+<tr>
+<td align="left">u1</td>
+<td align="left">parameters_count</td>
+<td align="left">1</td>
+</tr>
+<tr>
+<td align="left">parameter</td>
+<td align="left">parameters</td>
+<td align="left">parameters_count</td>
+</tr>
+</tbody></table>
+<p>parameter 属性</p>
+<table>
+<thead>
+<tr>
+<th align="left">type</th>
+<th align="left">name</th>
+<th align="left">count</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">u2</td>
+<td align="left">name_index</td>
+<td align="left">1</td>
+</tr>
+<tr>
+<td align="left">u2</td>
+<td align="left">access_flags</td>
+<td align="left">1</td>
+</tr>
+</tbody></table>
+<p>name_index 指向常量池 CONTANT_Utf8_info 的索引值，代表名称</p>
+<p>access_flags 有三种 0x0001-ACC_FINAL, 0x1000-ACC_SYNTHETIC, 0x8000-ACC_MANDATED(原文件中隐式定义，典型用法 this)</p>
+<h4 id="模块化相关属性"><a href="#模块化相关属性" class="headerlink" title="模块化相关属性"></a>模块化相关属性</h4><p>TBD 怎是没用到就不记了，以后用到再看看</p>
+<h4 id="运行时注解相关属性"><a href="#运行时注解相关属性" class="headerlink" title="运行时注解相关属性"></a>运行时注解相关属性</h4><p>JDK5 时加入了注解相关信息到 Class 文件，他们是 RuntimeVisibleAnnotations, RuntimeInvisibleAnnotations, RuntimeVisibleParameterAnnotations 和 RuntimeInvisibleParameterAnnotations。JDK8 时新家了 RuntimeVisibleTypeAnnotations, RuntimeInvisibleTypeAnnotations。这些属性功能和结构都很雷同。</p>
+<p>RuntimeVisibleAnnotations 属性结构</p>
+<table>
+<thead>
+<tr>
+<th align="left">type</th>
+<th align="left">name</th>
+<th align="left">count</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">u2</td>
+<td align="left">attribute_name_index</td>
+<td align="left">1</td>
+</tr>
+<tr>
+<td align="left">u4</td>
+<td align="left">attribute_length</td>
+<td align="left">1</td>
+</tr>
+<tr>
+<td align="left">u2</td>
+<td align="left">num_annotations</td>
+<td align="left">1</td>
+</tr>
+<tr>
+<td align="left">annotation</td>
+<td align="left">annotations</td>
+<td align="left">num_annotations</td>
+</tr>
+</tbody></table>
+<p>annotations 属性结构</p>
+<table>
+<thead>
+<tr>
+<th align="left">type</th>
+<th align="left">name</th>
+<th align="left">count</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">u2</td>
+<td align="left">type_index</td>
+<td align="left">1</td>
+</tr>
+<tr>
+<td align="left">u2</td>
+<td align="left">num_element_value_pairs</td>
+<td align="left">1</td>
+</tr>
+<tr>
+<td align="left">element_value_pair</td>
+<td align="left">element_value_pairs</td>
+<td align="left">num_element_value_pairs</td>
+</tr>
+</tbody></table>
+<p>type_index 指向常量池 CONSTANT_Utf8_info 常量的索引， num_element_value_pairs 数组计数器，element_value_pair 为键值对</p>
+<h2 id="6-4-字节码指令简介"><a href="#6-4-字节码指令简介" class="headerlink" title="6.4 字节码指令简介"></a>6.4 字节码指令简介</h2><p>虚拟机指令 = 操作码(opcode) + 操作数(oprand)</p>
+<p>操作码为一个字节长度，操作数为 0 至 n 个，虚拟机执行模型</p>
+<figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">do &#123;</span><br><span class="line">  自动计算 PC 寄存器的值加 1；</span><br><span class="line">  根据 PC 寄存器指示的位置，从字节码流中取出操作码；</span><br><span class="line">  if (字节码存在操作数) 从字节码流中取出操作数；</span><br><span class="line">  执行操作吗所定义的操作；</span><br><span class="line">&#125; while (字节码流长度 &gt; 0)</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-4-1-字节码与数据类型"><a href="#6-4-1-字节码与数据类型" class="headerlink" title="6.4.1 字节码与数据类型"></a>6.4.1 字节码与数据类型</h3><p>大多数操作码都包含对应操作数类型信息，比如 iload。</p>
+<ul>
+<li>i - int</li>
+<li>l - long</li>
+<li>s - short</li>
+<li>b - byte</li>
+<li>c - char</li>
+<li>f - float</li>
+<li>d - double</li>
+<li>a - reference</li>
+</ul>
+<p>boolean, byte, short, char 在编译时会被扩展成 int 类型再处理。</p>
 ]]></content>
       <categories>
         <category>编程</category>
