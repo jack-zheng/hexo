@@ -923,3 +923,71 @@ iload_<n> 代表了 iload_1, iload_2, iload_3
 * 按位异或指令： ixor, lxor
 * 局部变量自增指令： iinc
 * 比较指令： dcmpg, dcmpl, fcmpg, fcmpl, lcmp
+
+### 6.4.4 类型转换指令
+
+该指令可以将两种不同数值类型的数据互相转化，这些转化操作一般用于用户代码中的显示类型转化，或者前面提到的字节码指令集中数据类型相关指令无法与数据类型一一对应的问题。
+
+虚拟机直接支持宽化类型转化，及小范围向大范围转换
+
+1. int 类型到 long, float, double
+2. long 到 float， double
+3. float 到 double
+
+窄化转化指令： i2b, i2c, i2s, l2i, f2i, f2l, d2i, d2l, d2f。
+
+窄化转化可能发生上限溢出，下限溢出 或精度丢失，但是这些问题都不会抛出运行时异常。
+
+### 6.4.5 对象创建与访问指令
+
+* 创建类实例 new
+* 创建数组 newarray, anewarray, multianewarray
+* 访问类字段和实例字段的指令：getfield, putfield, getstatic, putstatic
+* 把一个数组元素加载到操作数栈中的指令：baload, caload, saload, iaload, laload, faload, daload, aaload
+* 将一个操作数栈的值存储到数组元素中：bastore, castore, sastore, iastore, fastore, dastore, aastore
+* 取数组长度的指令：arraylength
+* 检查类实例类型的指令：instanceof, checkcast
+
+### 6.4.6 操作数栈管理指令
+
+* 将操作数栈栈顶的一个或两个元素出栈：pop, pop2
+* 复制栈顶的一个或两个数值并将复制或双份复制值重新压入栈顶：dup, dup2, dup_x1, dup2_x1, dup_x2, dup2_x2
+
+### 6.4.7 控制转移指令
+
+可以让 Java 虚拟机有条件或五天见的从指定位置指令的吓一跳指令继续执行程序。
+
+* 条件分支： ifeq, iflt, ifle, ifne, ifgt, ifge, ifnull, ifnonnull, if_icmpeq, if_icmpne, if_icmplt, if_icompgt, if_icomple, if_icompge, if_acmpeq, if_acmpne
+* 复合条件分支：tableswitch, lookupswitch
+* 无条件分支：goto, goto_w, jsr, jsr_w, ret
+
+### 6.4.8 方法调用和返回指令
+
+* invokevirtual: 调用对象的实例方法，根据对象的世纪类型进行分派，Java 中最常见的分派方式
+* invokeinterface: 调用接口方法，运行时搜索一个实现了该接口方法的对象，找出适合的方法进行调用
+* invokespecial: 调用一些需要特殊处理的实例方法，包括实例初始化方法，私有方法和父类方法
+* invokestatic: 调用静态方法
+* invokedynamic: 运行时动态解析出调用点限定符所应用的方法，并执行该方法。
+
+返回指令：当返回值是 boolean, byte, char, short, int 时使用 ireturn, 其他还有 lreturn, freturn, dreturn 和 areturn。还有为 void 准备的 return。
+
+### 6.4.9 异常处理指令
+
+Java 中显示的排除异常操作由 athrow 指令实现，虚拟机中异常处理不是由字节码指令实现，而是通过 异常表
+
+### 6.4.10 同步指令
+
+虚拟机支持方法级别的同步和方法内部一段指令序列的同步，这两种同步结构都是用管程，也叫锁。方法级别的管程是隐示的无需通过字节码指令控制。他的实现在方法调用和返回之间。虚拟机可以重常量池方法表结构中的 ACC_SYNCHRONIZED 得知是否被声明为同步方法。如果执行时出现异常，同步方法所持有的锁会在异常抛到同步方法边界之外时自动释放。对应的指令为 monitorenter 和 monitorexit。
+
+虚拟机必须保证每条 monitorenter 指令都有一条 monitorexit 指令与之对应。
+
+## 6.5 公有设计，私有实现
+
+Class 文件格式和字节码集是完全独立于操作系统和虚拟机实现的，任何一款虚拟机实现都必须能够读取 Class 文件并精确实现包含在其中的 Java 虚拟机代码的语义。虚拟机规范鼓励在满足约束的条件下修改和优化实现。虚拟机实现方式主要有两种：
+
+1. 将输入的 Java 虚拟机代码在加载或执行时翻译成另一种虚拟机代码
+2. 将输入的 Java 虚拟机代码在加载或执行时翻译成宿主机本地指令集，即 即时编译器代码生成技术
+
+## 6.6 Class 文件结构的发展
+
+相对与 Java 技术体系的变化，Class 文件结构可谓是相当的稳定了。。。
