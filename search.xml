@@ -279,6 +279,76 @@
       </tags>
   </entry>
   <entry>
+    <title>Effective Java Item 42 Lambda 优先于匿名类</title>
+    <url>/hexo/2020/06/04/Effective-Java-Item-42-Lambda-%E4%BC%98%E5%85%88%E4%BA%8E%E5%8C%BF%E5%90%8D%E7%B1%BB/</url>
+    <content><![CDATA[<p>本节要点：</p>
+<ul>
+<li>使用 lambda 代替匿名函数</li>
+<li>不要指定 lambda 中的数据类型，除非报错</li>
+<li>主要长度，最多三行</li>
+</ul>
+<p>名词对照表</p>
+<table>
+<thead>
+<tr>
+<th>EN</th>
+<th>CN</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>function type</td>
+<td>函数类型</td>
+</tr>
+<tr>
+<td>function object</td>
+<td>函数对象</td>
+</tr>
+<tr>
+<td>function interface</td>
+<td>函数接口</td>
+</tr>
+<tr>
+<td>type inference</td>
+<td>类型推导</td>
+</tr>
+<tr>
+<td>raw type</td>
+<td>原生类型</td>
+</tr>
+</tbody></table>
+<p>自从 java 1.1 发布依赖，如果我们想要创建一个方法对象那么就需要使用到匿名函数</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">List&lt;String&gt; list = Arrays.asList(<span class="string">&quot;jerry&quot;</span>, <span class="string">&quot;tom&quot;</span>);</span><br><span class="line">Collections.sort(list, <span class="keyword">new</span> Comparator&lt;String&gt;() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compare</span><span class="params">(String o1, String o2)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> Integer.compare(o1.length(), o2.length());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line">list.forEach(System.out::println);</span><br><span class="line"><span class="comment">// output:</span></span><br><span class="line"><span class="comment">// tom</span></span><br><span class="line"><span class="comment">// jerry</span></span><br></pre></td></tr></table></figure>
+
+<p>这种表述方式可以实现我们的需求，但是实现繁琐并且语义表达不顺畅， 在 java 8 中，我们可以使用 lambda 来代替匿名函数</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">List&lt;String&gt; list = Arrays.asList(<span class="string">&quot;jerry&quot;</span>, <span class="string">&quot;tom&quot;</span>);</span><br><span class="line">Collections.sort(list, (s1, s2) -&gt; Integer.compare(s1.length(), s2.length()));</span><br><span class="line">list.forEach(System.out::println);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 甚至可以简写为</span></span><br><span class="line">Collections.sort(list, Comparator.comparingInt(String::length));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 或者更甚</span></span><br><span class="line">list.sort(Comparator.comparingInt(String::length));</span><br></pre></td></tr></table></figure>
+
+<p>再使用 lambda 的时候有一条原则<strong>去掉 lambda 中的所有参数类型，除非它能使你的表达更清楚</strong>。默认情况下，程序会根据上下文推断出类型，实在不行它会报错的，那个时候你再自己修不迟。</p>
+<p>Operator 枚举类优化，可以将参数使用 DoubleBinaryOperator 这个方法接口做优化</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 原始代码</span></span><br><span class="line"><span class="keyword">enum</span> Operation &#123;</span><br><span class="line">    PLUS(<span class="string">&quot;+&quot;</span>) &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> x + y;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    MINUS(<span class="string">&quot;-&quot;</span>) &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> x - y;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    TIMES(<span class="string">&quot;*&quot;</span>) &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> x * y;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    DIVIDE(<span class="string">&quot;/&quot;</span>) &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String symbol;</span><br><span class="line"></span><br><span class="line">    Operation(String symbol) &#123; <span class="keyword">this</span>.symbol = symbol; &#125;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> symbol; &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过将上面的 apply() 方法抽象，这个 Operation 的枚举中的行为可以看作是传入两个数，进行计算， 我们将计算抽象，得到如下的简化形式</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">enum</span> Operation &#123;</span><br><span class="line">    PLUS(<span class="string">&quot;+&quot;</span>, (x, y) -&gt; x + y),</span><br><span class="line">    MINUS(<span class="string">&quot;-&quot;</span>, (x, y) -&gt; x - y),</span><br><span class="line">    TIMES(<span class="string">&quot;*&quot;</span>, (x, y) -&gt; x * y),</span><br><span class="line">    DIVIDE(<span class="string">&quot;/&quot;</span>, (x, y) -&gt; x / y);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String symbol;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> DoubleBinaryOperator operator;</span><br><span class="line"></span><br><span class="line">    Operation(String symbol, DoubleBinaryOperator operator) &#123;</span><br><span class="line">        <span class="keyword">this</span>.symbol = symbol;</span><br><span class="line">        <span class="keyword">this</span>.operator = operator;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> symbol; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> operator.applyAsDouble(x, y);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>缺点：lambda 没有名字和文档，如果一段算法不能自我描述，或者超出了几行，就别把他放到一个 lambda 函数中。 </p>
+<p>lambda 注意点：</p>
+<ul>
+<li>一个 lambda 一行是最理想的，最多不能超过三行！</li>
+<li>绝大多视情况下，使用 lambda 代替匿名函数，但是如果是对抽象类的实现，还是得依靠匿名函数， lambda 并不能完成这样的功能。</li>
+<li>lambda 不能获取自身引用， 在 lambda 中 this 指代的是外围示例，匿名类中 this 指自己</li>
+<li>可能的话，别去序列化 lambda 和 匿名函数</li>
+<li>lambda 是小函数的最佳表现方式，除非万不得已，不然就别用匿名类实现函数接口</li>
+</ul>
+]]></content>
+      <categories>
+        <category>编程</category>
+      </categories>
+      <tags>
+        <tag>java</tag>
+        <tag>effective java</tag>
+        <tag>Lambda和Stream</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Effective Java Item 55 谨慎返回 Optional</title>
     <url>/hexo/2020/06/08/Effective-Java-Item-55-%E8%B0%A8%E6%85%8E%E8%BF%94%E5%9B%9E-Optional/</url>
     <content><![CDATA[<p>在 Java 8 中，引入了 Optional class 给我们在处理无法返回任何值的情况下，有了第三种选择。</p>
@@ -490,76 +560,6 @@
       </categories>
       <tags>
         <tag>python</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Effective Java Item 42 Lambda 优先于匿名类</title>
-    <url>/hexo/2020/06/04/Effective-Java-Item-42-Lambda-%E4%BC%98%E5%85%88%E4%BA%8E%E5%8C%BF%E5%90%8D%E7%B1%BB/</url>
-    <content><![CDATA[<p>本节要点：</p>
-<ul>
-<li>使用 lambda 代替匿名函数</li>
-<li>不要指定 lambda 中的数据类型，除非报错</li>
-<li>主要长度，最多三行</li>
-</ul>
-<p>名词对照表</p>
-<table>
-<thead>
-<tr>
-<th>EN</th>
-<th>CN</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>function type</td>
-<td>函数类型</td>
-</tr>
-<tr>
-<td>function object</td>
-<td>函数对象</td>
-</tr>
-<tr>
-<td>function interface</td>
-<td>函数接口</td>
-</tr>
-<tr>
-<td>type inference</td>
-<td>类型推导</td>
-</tr>
-<tr>
-<td>raw type</td>
-<td>原生类型</td>
-</tr>
-</tbody></table>
-<p>自从 java 1.1 发布依赖，如果我们想要创建一个方法对象那么就需要使用到匿名函数</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">List&lt;String&gt; list = Arrays.asList(<span class="string">&quot;jerry&quot;</span>, <span class="string">&quot;tom&quot;</span>);</span><br><span class="line">Collections.sort(list, <span class="keyword">new</span> Comparator&lt;String&gt;() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compare</span><span class="params">(String o1, String o2)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> Integer.compare(o1.length(), o2.length());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line">list.forEach(System.out::println);</span><br><span class="line"><span class="comment">// output:</span></span><br><span class="line"><span class="comment">// tom</span></span><br><span class="line"><span class="comment">// jerry</span></span><br></pre></td></tr></table></figure>
-
-<p>这种表述方式可以实现我们的需求，但是实现繁琐并且语义表达不顺畅， 在 java 8 中，我们可以使用 lambda 来代替匿名函数</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">List&lt;String&gt; list = Arrays.asList(<span class="string">&quot;jerry&quot;</span>, <span class="string">&quot;tom&quot;</span>);</span><br><span class="line">Collections.sort(list, (s1, s2) -&gt; Integer.compare(s1.length(), s2.length()));</span><br><span class="line">list.forEach(System.out::println);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 甚至可以简写为</span></span><br><span class="line">Collections.sort(list, Comparator.comparingInt(String::length));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 或者更甚</span></span><br><span class="line">list.sort(Comparator.comparingInt(String::length));</span><br></pre></td></tr></table></figure>
-
-<p>再使用 lambda 的时候有一条原则<strong>去掉 lambda 中的所有参数类型，除非它能使你的表达更清楚</strong>。默认情况下，程序会根据上下文推断出类型，实在不行它会报错的，那个时候你再自己修不迟。</p>
-<p>Operator 枚举类优化，可以将参数使用 DoubleBinaryOperator 这个方法接口做优化</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 原始代码</span></span><br><span class="line"><span class="keyword">enum</span> Operation &#123;</span><br><span class="line">    PLUS(<span class="string">&quot;+&quot;</span>) &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> x + y;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    MINUS(<span class="string">&quot;-&quot;</span>) &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> x - y;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    TIMES(<span class="string">&quot;*&quot;</span>) &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> x * y;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    DIVIDE(<span class="string">&quot;/&quot;</span>) &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String symbol;</span><br><span class="line"></span><br><span class="line">    Operation(String symbol) &#123; <span class="keyword">this</span>.symbol = symbol; &#125;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> symbol; &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>通过将上面的 apply() 方法抽象，这个 Operation 的枚举中的行为可以看作是传入两个数，进行计算， 我们将计算抽象，得到如下的简化形式</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">enum</span> Operation &#123;</span><br><span class="line">    PLUS(<span class="string">&quot;+&quot;</span>, (x, y) -&gt; x + y),</span><br><span class="line">    MINUS(<span class="string">&quot;-&quot;</span>, (x, y) -&gt; x - y),</span><br><span class="line">    TIMES(<span class="string">&quot;*&quot;</span>, (x, y) -&gt; x * y),</span><br><span class="line">    DIVIDE(<span class="string">&quot;/&quot;</span>, (x, y) -&gt; x / y);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String symbol;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> DoubleBinaryOperator operator;</span><br><span class="line"></span><br><span class="line">    Operation(String symbol, DoubleBinaryOperator operator) &#123;</span><br><span class="line">        <span class="keyword">this</span>.symbol = symbol;</span><br><span class="line">        <span class="keyword">this</span>.operator = operator;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> symbol; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> operator.applyAsDouble(x, y);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>缺点：lambda 没有名字和文档，如果一段算法不能自我描述，或者超出了几行，就别把他放到一个 lambda 函数中。 </p>
-<p>lambda 注意点：</p>
-<ul>
-<li>一个 lambda 一行是最理想的，最多不能超过三行！</li>
-<li>绝大多视情况下，使用 lambda 代替匿名函数，但是如果是对抽象类的实现，还是得依靠匿名函数， lambda 并不能完成这样的功能。</li>
-<li>lambda 不能获取自身引用， 在 lambda 中 this 指代的是外围示例，匿名类中 this 指自己</li>
-<li>可能的话，别去序列化 lambda 和 匿名函数</li>
-<li>lambda 是小函数的最佳表现方式，除非万不得已，不然就别用匿名类实现函数接口</li>
-</ul>
-]]></content>
-      <categories>
-        <category>编程</category>
-      </categories>
-      <tags>
-        <tag>java</tag>
-        <tag>effective java</tag>
-        <tag>Lambda和Stream</tag>
       </tags>
   </entry>
   <entry>
@@ -6372,6 +6372,51 @@
 <li>局部变量自增指令： iinc</li>
 <li>比较指令： dcmpg, dcmpl, fcmpg, fcmpl, lcmp</li>
 </ul>
+<h3 id="6-4-4-类型转换指令"><a href="#6-4-4-类型转换指令" class="headerlink" title="6.4.4 类型转换指令"></a>6.4.4 类型转换指令</h3><p>该指令可以将两种不同数值类型的数据互相转化，这些转化操作一般用于用户代码中的显示类型转化，或者前面提到的字节码指令集中数据类型相关指令无法与数据类型一一对应的问题。</p>
+<p>虚拟机直接支持宽化类型转化，及小范围向大范围转换</p>
+<ol>
+<li>int 类型到 long, float, double</li>
+<li>long 到 float， double</li>
+<li>float 到 double</li>
+</ol>
+<p>窄化转化指令： i2b, i2c, i2s, l2i, f2i, f2l, d2i, d2l, d2f。</p>
+<p>窄化转化可能发生上限溢出，下限溢出 或精度丢失，但是这些问题都不会抛出运行时异常。</p>
+<h3 id="6-4-5-对象创建与访问指令"><a href="#6-4-5-对象创建与访问指令" class="headerlink" title="6.4.5 对象创建与访问指令"></a>6.4.5 对象创建与访问指令</h3><ul>
+<li>创建类实例 new</li>
+<li>创建数组 newarray, anewarray, multianewarray</li>
+<li>访问类字段和实例字段的指令：getfield, putfield, getstatic, putstatic</li>
+<li>把一个数组元素加载到操作数栈中的指令：baload, caload, saload, iaload, laload, faload, daload, aaload</li>
+<li>将一个操作数栈的值存储到数组元素中：bastore, castore, sastore, iastore, fastore, dastore, aastore</li>
+<li>取数组长度的指令：arraylength</li>
+<li>检查类实例类型的指令：instanceof, checkcast</li>
+</ul>
+<h3 id="6-4-6-操作数栈管理指令"><a href="#6-4-6-操作数栈管理指令" class="headerlink" title="6.4.6 操作数栈管理指令"></a>6.4.6 操作数栈管理指令</h3><ul>
+<li>将操作数栈栈顶的一个或两个元素出栈：pop, pop2</li>
+<li>复制栈顶的一个或两个数值并将复制或双份复制值重新压入栈顶：dup, dup2, dup_x1, dup2_x1, dup_x2, dup2_x2</li>
+</ul>
+<h3 id="6-4-7-控制转移指令"><a href="#6-4-7-控制转移指令" class="headerlink" title="6.4.7 控制转移指令"></a>6.4.7 控制转移指令</h3><p>可以让 Java 虚拟机有条件或五天见的从指定位置指令的吓一跳指令继续执行程序。</p>
+<ul>
+<li>条件分支： ifeq, iflt, ifle, ifne, ifgt, ifge, ifnull, ifnonnull, if_icmpeq, if_icmpne, if_icmplt, if_icompgt, if_icomple, if_icompge, if_acmpeq, if_acmpne</li>
+<li>复合条件分支：tableswitch, lookupswitch</li>
+<li>无条件分支：goto, goto_w, jsr, jsr_w, ret</li>
+</ul>
+<h3 id="6-4-8-方法调用和返回指令"><a href="#6-4-8-方法调用和返回指令" class="headerlink" title="6.4.8 方法调用和返回指令"></a>6.4.8 方法调用和返回指令</h3><ul>
+<li>invokevirtual: 调用对象的实例方法，根据对象的世纪类型进行分派，Java 中最常见的分派方式</li>
+<li>invokeinterface: 调用接口方法，运行时搜索一个实现了该接口方法的对象，找出适合的方法进行调用</li>
+<li>invokespecial: 调用一些需要特殊处理的实例方法，包括实例初始化方法，私有方法和父类方法</li>
+<li>invokestatic: 调用静态方法</li>
+<li>invokedynamic: 运行时动态解析出调用点限定符所应用的方法，并执行该方法。</li>
+</ul>
+<p>返回指令：当返回值是 boolean, byte, char, short, int 时使用 ireturn, 其他还有 lreturn, freturn, dreturn 和 areturn。还有为 void 准备的 return。</p>
+<h3 id="6-4-9-异常处理指令"><a href="#6-4-9-异常处理指令" class="headerlink" title="6.4.9 异常处理指令"></a>6.4.9 异常处理指令</h3><p>Java 中显示的排除异常操作由 athrow 指令实现，虚拟机中异常处理不是由字节码指令实现，而是通过 异常表</p>
+<h3 id="6-4-10-同步指令"><a href="#6-4-10-同步指令" class="headerlink" title="6.4.10 同步指令"></a>6.4.10 同步指令</h3><p>虚拟机支持方法级别的同步和方法内部一段指令序列的同步，这两种同步结构都是用管程，也叫锁。方法级别的管程是隐示的无需通过字节码指令控制。他的实现在方法调用和返回之间。虚拟机可以重常量池方法表结构中的 ACC_SYNCHRONIZED 得知是否被声明为同步方法。如果执行时出现异常，同步方法所持有的锁会在异常抛到同步方法边界之外时自动释放。对应的指令为 monitorenter 和 monitorexit。</p>
+<p>虚拟机必须保证每条 monitorenter 指令都有一条 monitorexit 指令与之对应。</p>
+<h2 id="6-5-公有设计，私有实现"><a href="#6-5-公有设计，私有实现" class="headerlink" title="6.5 公有设计，私有实现"></a>6.5 公有设计，私有实现</h2><p>Class 文件格式和字节码集是完全独立于操作系统和虚拟机实现的，任何一款虚拟机实现都必须能够读取 Class 文件并精确实现包含在其中的 Java 虚拟机代码的语义。虚拟机规范鼓励在满足约束的条件下修改和优化实现。虚拟机实现方式主要有两种：</p>
+<ol>
+<li>将输入的 Java 虚拟机代码在加载或执行时翻译成另一种虚拟机代码</li>
+<li>将输入的 Java 虚拟机代码在加载或执行时翻译成宿主机本地指令集，即 即时编译器代码生成技术</li>
+</ol>
+<h2 id="6-6-Class-文件结构的发展"><a href="#6-6-Class-文件结构的发展" class="headerlink" title="6.6 Class 文件结构的发展"></a>6.6 Class 文件结构的发展</h2><p>相对与 Java 技术体系的变化，Class 文件结构可谓是相当的稳定了。。。</p>
 ]]></content>
       <categories>
         <category>编程</category>
