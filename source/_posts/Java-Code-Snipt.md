@@ -28,7 +28,9 @@ public class Tuple2<A, B> {
 }
 ```
 
-## lambda 实现 interface
+## lambda
+
+### 实现 interface
 
 ```java
 public class TestLambda {
@@ -45,4 +47,10 @@ interface MyPrint {
     void print(String name);
 }
 // output: jack
+```
+
+### 判断 collection 中是否包含某元素
+
+```java
+Arrays.asList(1, 2, 3).stream.anyMatch(sub -> sub > 3);
 ```
