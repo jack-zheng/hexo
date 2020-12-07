@@ -206,6 +206,100 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/07/31/Get-Know-About-Java-Reflection/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2020/07/31/Get-Know-About-Java-Reflection/" class="post-title-link" itemprop="url">Java 拾遗之 反射</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-07-31 17:35:17" itemprop="dateCreated datePublished" datetime="2020-07-31T17:35:17+08:00">2020-07-31</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-12-08 00:02:13" itemprop="dateModified" datetime="2020-12-08T00:02:13+08:00">2020-12-08</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
+                    <span itemprop="name">编程</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>956</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>记录一些 Java 反射基础知识</p>
+<h2 id="准备测试-Bean"><a href="#准备测试-Bean" class="headerlink" title="准备测试 Bean"></a>准备测试 Bean</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> reflectiontest.bean;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestUser</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> String name;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">int</span> age;</span><br><span class="line">  <span class="keyword">public</span>  String gender;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Getter and Setter</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="getFields-VS-getDeclaredFields"><a href="#getFields-VS-getDeclaredFields" class="headerlink" title="getFields VS getDeclaredFields"></a>getFields VS getDeclaredFields</h2><p>getFields 只会返回 public 类型的 fields, getDeclaredFields 会返回所有类型的 fieds</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">get_class_field</span><span class="params">()</span> </span>&#123;</span><br><span class="line">Field[] fields = TestUser.class.getFields();</span><br><span class="line">System.out.println(<span class="string">&quot;Output of getFields...&quot;</span>);</span><br><span class="line"><span class="keyword">for</span> (Field f : fields) &#123;</span><br><span class="line">    System.out.println(f);</span><br><span class="line">&#125;</span><br><span class="line">System.out.println(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">Field[] declareFields = TestUser.class.getDeclaredFields();</span><br><span class="line">System.out.println(<span class="string">&quot;Output of getDeclaredFields...&quot;</span>);</span><br><span class="line"><span class="keyword">for</span> (Field f : declareFields) &#123;</span><br><span class="line">    System.out.println(f);</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Output of getFields...</span></span><br><span class="line"><span class="comment">// public java.lang.String reflectiontest.bean.TestUser.gender</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// Output of getDeclaredFields...</span></span><br><span class="line"><span class="comment">// private java.lang.String reflectiontest.bean.TestUser.name</span></span><br><span class="line"><span class="comment">// private int reflectiontest.bean.TestUser.age</span></span><br><span class="line"><span class="comment">// public java.lang.String reflectiontest.bean.TestUser.gender</span></span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/07/29/Python-%E7%89%88%E6%9C%AC%E7%AE%A1%E7%90%86-pyenv/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +331,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-04 19:29:21" itemprop="dateModified" datetime="2020-12-04T19:29:21+08:00">2020-12-04</time>
+                <time title="修改时间：2020-12-08 00:02:13" itemprop="dateModified" datetime="2020-12-08T00:02:13+08:00">2020-12-08</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -368,7 +462,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-04 19:29:21" itemprop="dateModified" datetime="2020-12-04T19:29:21+08:00">2020-12-04</time>
+                <time title="修改时间：2020-12-08 00:02:13" itemprop="dateModified" datetime="2020-12-08T00:02:13+08:00">2020-12-08</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -473,7 +567,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-04 19:29:21" itemprop="dateModified" datetime="2020-12-04T19:29:21+08:00">2020-12-04</time>
+                <time title="修改时间：2020-12-08 00:02:13" itemprop="dateModified" datetime="2020-12-08T00:02:13+08:00">2020-12-08</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -610,7 +704,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-04 19:29:21" itemprop="dateModified" datetime="2020-12-04T19:29:21+08:00">2020-12-04</time>
+                <time title="修改时间：2020-12-08 00:02:13" itemprop="dateModified" datetime="2020-12-08T00:02:13+08:00">2020-12-08</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -721,7 +815,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-04 19:29:21" itemprop="dateModified" datetime="2020-12-04T19:29:21+08:00">2020-12-04</time>
+                <time title="修改时间：2020-12-08 00:02:13" itemprop="dateModified" datetime="2020-12-08T00:02:13+08:00">2020-12-08</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -814,7 +908,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-04 19:29:21" itemprop="dateModified" datetime="2020-12-04T19:29:21+08:00">2020-12-04</time>
+                <time title="修改时间：2020-12-08 00:02:13" itemprop="dateModified" datetime="2020-12-08T00:02:13+08:00">2020-12-08</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -935,7 +1029,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-04 19:29:21" itemprop="dateModified" datetime="2020-12-04T19:29:21+08:00">2020-12-04</time>
+                <time title="修改时间：2020-12-08 00:02:13" itemprop="dateModified" datetime="2020-12-08T00:02:13+08:00">2020-12-08</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1046,7 +1140,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-04 19:29:21" itemprop="dateModified" datetime="2020-12-04T19:29:21+08:00">2020-12-04</time>
+                <time title="修改时间：2020-12-08 00:02:13" itemprop="dateModified" datetime="2020-12-08T00:02:13+08:00">2020-12-08</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1139,7 +1233,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-04 19:29:21" itemprop="dateModified" datetime="2020-12-04T19:29:21+08:00">2020-12-04</time>
+                <time title="修改时间：2020-12-08 00:02:13" itemprop="dateModified" datetime="2020-12-08T00:02:13+08:00">2020-12-08</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1188,99 +1282,6 @@
 </ol>
 <h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2><p>运行了一下官方给的例子，成功。但是我自己下载的中文 pdf 有问题，查了下，是说 camelot 基于 PyPDF2，然后这个 lib 是不支持处理中文字符的，不过可以通过修改对应 lib 的源码实现支持，网上有教程。不过我暂时只处理英文文档，就不纠结了。</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> camelot</span><br><span class="line">tables = camelot.read_pdf(<span class="string">&#x27;foo.pdf&#x27;</span>)</span><br><span class="line">tables[<span class="number">0</span>].df</span><br><span class="line"><span class="comment"># 输出表格，foo.pdf 在官方教程中有给下载链接</span></span><br></pre></td></tr></table></figure>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/06/18/Python-parse-csv/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2020/06/18/Python-parse-csv/" class="post-title-link" itemprop="url">Python 解析 csv 文件</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-06-18 17:43:48" itemprop="dateCreated datePublished" datetime="2020-06-18T17:43:48+08:00">2020-06-18</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-04 19:29:21" itemprop="dateModified" datetime="2020-12-04T19:29:21+08:00">2020-12-04</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
-                    <span itemprop="name">编程</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>2.8k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>3 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>有一个 csv 文件，其中有个 column 名为 ‘_raw’ 包含我们需要的信息，写一段脚本解析之</p>
-<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">_raw 中文本为</span><br><span class="line"></span><br><span class="line">08:42:50,222 INFO  [RESTCallbackSubscriber] [customerId,customerId,null,null,SFAPI,null,null] [IrisSubscriber Container[queue_seb.subscriber.pillar.deactivateuser]1]Postback for event com.company.hermes.core.SFEvent=&#123;meta:Meta=&#123;priority:0,proxyId:&quot;null&quot;,serverName:&quot;null&quot;,topic:&quot;com.company.platform.mobile.deactivateuser&quot;,ptpName:null,companyId:&quot;customerId&quot;,eventId:&quot;a3b43584-3ceb-4760-9c01-699d635f4461&quot;,type:&quot;null&quot;,sourceArea:&quot;null&quot;,effectiveStartDate:&quot;null&quot;,publishedAt:&quot;2020-05-31 08:42:39&quot;,publishBy:&quot;SFAPI&quot;,publishServer:&quot;serverip&quot;,externalAllowed:false,filterParameters:&#123;&#123;companyId=customerId, userId=SFAPI, type=null, sourceArea=null, effectiveStartDate=null, publishedAt=1590914553205, publishedBy=SFAPI, externalAllowed=false, publishServer=serverip, priority=0, proxyId=null, serverName=null, topic=com.company.platform.mobile.deactivateuser, ptpName=null&#125;&#125;&#125;,body:&#123;&quot;companyId&quot;: &quot;customerId&quot;, &quot;inactiveUserId&quot;: [&quot;E_UUU_21934&quot;,&quot;E_UUU_21935&quot;]&#125;&#125; sent to https://domain/api/deactivate, (HTTP/1.1 200 OK)</span><br><span class="line"></span><br><span class="line">提取目标：publishedAt, publishedAt of filterParameters, inactiveUserId</span><br></pre></td></tr></table></figure>
-
-<h2 id="Impl"><a href="#Impl" class="headerlink" title="Impl"></a>Impl</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> csv</span><br><span class="line"><span class="comment"># 拿到 csv 的 _raw 列数据</span></span><br><span class="line">context = []</span><br><span class="line">rows = []</span><br><span class="line"><span class="keyword">with</span> open(<span class="string">&#x27;dump_csv.csv&#x27;</span>, newline=<span class="string">&#x27;&#x27;</span>) <span class="keyword">as</span> csvfile:</span><br><span class="line">   contexts = csv.reader(csvfile)</span><br><span class="line">   <span class="comment"># 使用 reader = csv.DictReader(csvfile) 的话可以使用 column name 取值</span></span><br><span class="line">   <span class="comment"># 例如: reader[&#x27;companyId&#x27;], 不过缺点是要在 with loop 中处理完数据</span></span><br><span class="line">   rows = [row[<span class="number">16</span>] <span class="keyword">for</span> row <span class="keyword">in</span> contexts]</span><br><span class="line">   rows = [<span class="number">1</span>:]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 分析 _raw 数据特性，决定使用正则匹配数据</span></span><br><span class="line"><span class="comment"># publishedAt:&quot;(.*?)&quot; 加 ? 表示 非贪婪</span></span><br><span class="line"><span class="comment"># publishedAt=(\d+)</span></span><br><span class="line"><span class="comment"># inactiveUserId&quot;: (\[.*?\])</span></span><br><span class="line"><span class="comment"># 以上表达式取 group 1 数据</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">from</span> datetime <span class="keyword">import</span> datetime</span><br><span class="line"><span class="comment"># re.findAll</span></span><br><span class="line"><span class="comment"># re.match() 从开头开始匹配</span></span><br><span class="line"><span class="comment"># re.search(reg, src) 匹配任意位置</span></span><br><span class="line"></span><br><span class="line">reg1 = <span class="string">&#x27;publishedAt:&quot;(.*?)&quot;&#x27;</span></span><br><span class="line">reg2 = <span class="string">&#x27;publishedAt=(\d+)&#x27;</span></span><br><span class="line">reg3 = <span class="string">&#x27;inactiveUserId&quot;: (\[.*?\])&#x27;</span></span><br><span class="line"></span><br><span class="line">rowlist = []</span><br><span class="line"><span class="keyword">for</span> row <span class="keyword">in</span> rows:</span><br><span class="line">    infolist = []</span><br><span class="line">    timestr01 = re.search(reg1, row).group(<span class="number">1</span>)</span><br><span class="line">    d1 = datetime.strptime(timestr01, <span class="string">&#x27;%Y-%m-%d %H:%M:%S&#x27;</span>)</span><br><span class="line">    infolist.append(d1)</span><br><span class="line"></span><br><span class="line">    timestr2 = int(re.search(reg2, row).group(<span class="number">1</span>))</span><br><span class="line">    d2 = datetime.fromtimestamp(timestr2/<span class="number">1000.0</span>)</span><br><span class="line">    infolist.append(d2)</span><br><span class="line"></span><br><span class="line">    users = re.search(reg3, row).group(<span class="number">1</span>)</span><br><span class="line">    ulist = eval(users) <span class="comment"># string 转化为 list</span></span><br><span class="line">    infolist.append(ulist)</span><br><span class="line">    rowlist.append(infolist)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 把数据根据时间先后排序</span></span><br><span class="line">sortedList = sorted(rowlist, key=<span class="keyword">lambda</span> sub: sub[<span class="number">1</span>])</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">printList</span>(<span class="params">line</span>):</span></span><br><span class="line">    formatStr01 = <span class="string">&#x27;%y-%m-%d %H:%M:%S&#x27;</span></span><br><span class="line">    print(line[<span class="number">0</span>].strftime(formatStr01), end=<span class="string">&#x27; | &#x27;</span>)</span><br><span class="line">    print(<span class="string">&quot;%15f&quot;</span> % (line[<span class="number">1</span>].timestamp()), end=<span class="string">&#x27; | &#x27;</span>)</span><br><span class="line">    arrStr = str(line[<span class="number">2</span>][:<span class="number">5</span>]) + <span class="string">&quot;...&quot;</span> + str(len(line[<span class="number">2</span>])) <span class="keyword">if</span> len(line[<span class="number">2</span>]) &gt; <span class="number">5</span> <span class="keyword">else</span> str(line[<span class="number">2</span>])</span><br><span class="line">    print(arrStr)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> sub <span class="keyword">in</span> sortedList:</span><br><span class="line">    printList(sub)</span><br></pre></td></tr></table></figure>
 
       
     </div>
@@ -1346,7 +1347,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">91</span>
+          <span class="site-state-item-count">92</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1359,7 +1360,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">84</span>
+        <span class="site-state-item-count">85</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1393,12 +1394,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">267k</span>
+    <span title="站点总字数">270k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">4:03</span>
+    <span title="站点阅读时长">4:06</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
