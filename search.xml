@@ -3741,6 +3741,28 @@
       </tags>
   </entry>
   <entry>
+    <title>为什么我们要在打印 log 之前进行 isInfoEnabled 判断？</title>
+    <url>/hexo/2020/12/08/Why-we-should-call-isInfoEnabled-before-print-log/</url>
+    <content><![CDATA[<p>平时我们在代码中打印 log 基本都是直接调用 <code>logger.info()</code> 方法，官方推荐在外面再包一层 <code>if (logger.isInfoEnabled())</code> 判断，Why?</p>
+<p>以 log4j 为例：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = Logger.getLogger(ExampleBeanWithSetter.class);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (logger.isInfoEnabled()) &#123;</span><br><span class="line">    logger.info(<span class="string">&quot;Hello world...&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果没有加外层的 <code>isInfoEnabled</code> 判断，那个将会直接执行 <code>logger.info(String)</code> 方法， 相对于有判断的形式，多了一步拼接字符串的步骤。换句话说，最大的区别有两点：</p>
+<ol>
+<li>拼接字符串耗时</li>
+<li>这些字符串也会消耗内存空间</li>
+</ol>
+<p>对一般的小系统当然是没什么影响，如果是高并发或者 log 很多的系统，可以作为一个优化的方向。</p>
+]]></content>
+      <categories>
+        <category>编程</category>
+      </categories>
+      <tags>
+        <tag>java</tag>
+        <tag>logger</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Win10 安装 WSL 并集成 VSCode</title>
     <url>/hexo/2019/12/02/Win10%20%E5%AE%89%E8%A3%85%20WSL%20%E5%B9%B6%E9%9B%86%E6%88%90%20VSCode/</url>
     <content><![CDATA[<p>在 Win10 下用 VSCode + WSL 开发，体验还是不错的，一开始看了下官方文档，好长，好复杂。但是实际操作下来，其实很简单，赶紧搞起来，甚香( •̀ ω •́ )✧</p>
