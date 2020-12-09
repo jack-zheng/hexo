@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/hexo/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/hexo/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/hexo/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/hexo/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="UgODgWVmvTsdD--vjodDR3tPUZRWM3i7JpHzbYejxUM">
+
+<link rel="stylesheet" href="/hexo/css/main.css">
+
+
+<link rel="stylesheet" href="/hexo/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/hexo/',
+    scheme: 'Muse',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="前述 Creating inner classes The link to the outer class Using .this and .new Inner classes and upcasting Inner classes in methods and scopes  最近在看 Spring Core 文档的以后，刚好遇到一个 Inner Class 相关的问题，回忆以下突然发现对他基">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java inner class">
+<meta property="og:url" content="https://jack-zheng.github.io/hexo/2020/12/09/Java-inner-class/index.html">
+<meta property="og:site_name" content="Jackpot">
+<meta property="og:description" content="前述 Creating inner classes The link to the outer class Using .this and .new Inner classes and upcasting Inner classes in methods and scopes  最近在看 Spring Core 文档的以后，刚好遇到一个 Inner Class 相关的问题，回忆以下突然发现对他基">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-12-09T07:32:00.000Z">
+<meta property="article:modified_time" content="2020-12-09T12:40:12.417Z">
+<meta property="article:author" content="Jack Zheng">
+<meta property="article:tag" content="thing in java">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://jack-zheng.github.io/hexo/2020/12/09/Java-inner-class/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>Java inner class | Jackpot</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/hexo/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jackpot</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-tags">
+
+    <a href="/hexo/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/hexo/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/hexo/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/jack-zheng" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/12/09/Java-inner-class/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java inner class
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-12-09 15:32:00 / 修改时间：20:40:12" itemprop="dateCreated datePublished" datetime="2020-12-09T15:32:00+08:00">2020-12-09</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
+                    <span itemprop="name">编程</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5.4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <ul>
+<li><a href="#前述">前述</a></li>
+<li><a href="#creating-inner-classes">Creating inner classes</a></li>
+<li><a href="#the-link-to-the-outer-class">The link to the outer class</a></li>
+<li><a href="#using-this-and-new">Using .this and .new</a></li>
+<li><a href="#inner-classes-and-upcasting">Inner classes and upcasting</a></li>
+<li><a href="#inner-classes-in-methods-and-scopes">Inner classes in methods and scopes</a></li>
+</ul>
+<p>最近在看 Spring Core 文档的以后，刚好遇到一个 Inner Class 相关的问题，回忆以下突然发现对他基本没有什么很深入的理解，特此重新阅读以下 Think in Java 4th 看看能不能有什么特别的收获。</p>
+<p>想要解决的问题：</p>
+<ol>
+<li>什么是内部类</li>
+<li>静态/非静态内部类有什么区别</li>
+<li>内部类有什么用</li>
+<li>字节码层面是怎么表现的</li>
+</ol>
+<h2 id="前述"><a href="#前述" class="headerlink" title="前述"></a>前述</h2><p>Java 语法是支持在一个 class 内部再放入另一个 class 的定义的，这种做法叫做 内部类(Inner Class)。</p>
+<p>Inner class 是一个很有价值的功能，他让你可以把两个逻辑上共存的 class 放到一起，并让他们之间有了一层可见性控制的功能。</p>
+<h2 id="Creating-inner-classes"><a href="#Creating-inner-classes" class="headerlink" title="Creating inner classes"></a>Creating inner classes</h2><p>创建内部类的做法只需要直接将内部类定义放到外部类里面就行了， 很直接了当, 一般来说，外部类还有会有一些方法用来返回内部类引用，比如 to() 和 contents()。如果是 <code>非静态</code>内部类，你需要先新建外部类，然后才能创建内部类。如果是 <code>静态</code>内部类，你可以直接创建内部类对象。</p>
+<p>注意内部类创建的声明方式 <code>Surrounding.Inner inner = surrounddingInstance.method();</code> 这个还是挺特别的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Parcel2</span> </span>&#123;</span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Contents</span> </span>&#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">int</span> i = <span class="number">11</span>;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">value</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> i;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Destination</span> </span>&#123;</span><br><span class="line">        <span class="keyword">private</span> String label;</span><br><span class="line"></span><br><span class="line">        Destination(String whereTo) &#123;</span><br><span class="line">            label = whereTo;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function">String <span class="title">readLabel</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> label;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Destination <span class="title">to</span><span class="params">(String s)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> Destination(s);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Contents <span class="title">contents</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> Contents();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">ship</span><span class="params">(String dest)</span> </span>&#123;</span><br><span class="line">        Contents c = contents();</span><br><span class="line">        Destination d = to(dest);</span><br><span class="line">        System.out.println(d.readLabel());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Parcel2 p = <span class="keyword">new</span> Parcel2();</span><br><span class="line">        p.ship(<span class="string">&quot;Tasmania&quot;</span>);</span><br><span class="line">        Parcel2 q = <span class="keyword">new</span> Parcel2();</span><br><span class="line">        <span class="comment">// Defining references to inner classes:</span></span><br><span class="line">        Parcel2.Contents c = q.contents();</span><br><span class="line">        Parcel2.Destination d = q.to(<span class="string">&quot;Borneo&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// output: Tasmania</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="The-link-to-the-outer-class"><a href="#The-link-to-the-outer-class" class="headerlink" title="The link to the outer class"></a>The link to the outer class</h2><p>内部类最显著的特点：Inner class 创建的时候会持有一个外边引用的联结，这使得他能没有限制的访问外部类成员变量和方法。</p>
+<p>下面的例子，我们声明了一个接口 Selector, 它定义了三个方法， Sequence 是一个可变长的数组容器，只实现了构造函数和 add() 方法。他有一个内部类 SequenceSelector 实现了 Selector 接口。功能上，Sequence 负责表明对象实例，SequenceSelector 作用类似游标，用来遍历 Sequence 里的子元素。</p>
+<p>重点：SequenceSelector <strong>可以访问</strong> Sequence 的<strong>私有</strong>变量而不受限制</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">Selector</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">end</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">Object <span class="title">current</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">next</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Sequence</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Object[] items;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> next = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Sequence</span><span class="params">(<span class="keyword">int</span> size)</span> </span>&#123;</span><br><span class="line">        items = <span class="keyword">new</span> Object[size];</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">add</span><span class="params">(Object x)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (next &lt; items.length) items[next++] = x;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">SequenceSelector</span> <span class="keyword">implements</span> <span class="title">Selector</span> </span>&#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">end</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> i == items.length;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> Object <span class="title">current</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> items[i];</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">next</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">if</span> (i &lt; items.length) i++;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Selector <span class="title">selector</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> SequenceSelector();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Sequence sequence = <span class="keyword">new</span> Sequence(<span class="number">10</span>);</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; i++) sequence.add(Integer.toString(i));</span><br><span class="line">        Selector selector = sequence.selector();</span><br><span class="line">        <span class="keyword">while</span> (!selector.end()) &#123;</span><br><span class="line">            System.out.print(selector.current() + <span class="string">&quot; &quot;</span>);</span><br><span class="line">            selector.next();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Using-this-and-new"><a href="#Using-this-and-new" class="headerlink" title="Using .this and .new"></a>Using .this and .new</h2><p>内部类中，你可以使用 <code>外部类.this</code> 的方式得到外部类的引用。下面的例子中，inner class 的 <code>outer()</code> 通过 <code>DotThis.this</code> 返回了外部类的引用，并调用 <code>f()</code> 打印结果</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DotThis</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">f</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;DotThis.f()&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Inner</span> </span>&#123;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> DotThis <span class="title">outer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> DotThis.<span class="keyword">this</span>;</span><br><span class="line">            <span class="comment">// A plain &quot;this&quot; would be Inner’s &quot;this&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Inner <span class="title">inner</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> Inner();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        DotThis dt = <span class="keyword">new</span> DotThis();</span><br><span class="line">        DotThis.Inner dti = dt.inner();</span><br><span class="line">        dti.outer().f();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// output: DotThis.f()</span></span><br></pre></td></tr></table></figure>
+
+<p>如果你想创建内部类，那么你可以通过 <code>外部类实例.new</code> 的形式创建。</p>
+<p>创建是你不需要为 <code>Inner()</code> 指定前缀 class，这个挺方便的。本来还以为需要用 <code>dn.new DotNew.Inner();</code> 的语法，后来试过发现编译会报错。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DotNew</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Inner</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        DotNew dn = <span class="keyword">new</span> DotNew();</span><br><span class="line">        DotNew.Inner dni = dn.<span class="function">new <span class="title">Inner</span><span class="params">()</span></span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>PS: [Attention] 书上将非静态内部类叫做 inner class，静态内部类叫做 nested class 或 static inner class, 有点意思</p>
+<p>想要创建内部类你必须要先创建外部类，这是因为，创建内部类需要外部类的引用，这更像是一个先决条件。如果想脱钩，可以使用 nested class，静态内部类。</p>
+<h2 id="Inner-classes-and-upcasting"><a href="#Inner-classes-and-upcasting" class="headerlink" title="Inner classes and upcasting"></a>Inner classes and upcasting</h2><p>Inner class 和接口结合，可以达到隐藏自己实现的目的，这个特性很厉害。下面的例子里 Parcel4 通过 destination() 和 contents() 拿到内部类的引用。但是由于返回的是接口类型的，而且内部类是 private 和 protected 的所以包外的类压根就不能访问，也不知道他的实现细节。这就很阴霸，起到了和强的隔离效果 （；￣ェ￣）</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestParcel</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Parcel4 p = <span class="keyword">new</span> Parcel4();</span><br><span class="line">        Contents c = p.contents();</span><br><span class="line">        Destination d = p.destination(<span class="string">&quot;Tasmania&quot;</span>);</span><br><span class="line">        <span class="comment">// Illegal -- can’t access private class:</span></span><br><span class="line">        <span class="comment">// ! Parcel4.PContents pc = p.new PContents();</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">Destination</span> </span>&#123;</span><br><span class="line">    <span class="function">String <span class="title">readLabel</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">Contents</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">value</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Parcel4</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">PContents</span> <span class="keyword">implements</span> <span class="title">Contents</span> </span>&#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">int</span> i = <span class="number">11</span>;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">value</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> i;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">protected</span> <span class="class"><span class="keyword">class</span> <span class="title">PDestination</span> <span class="keyword">implements</span> <span class="title">Destination</span> </span>&#123;</span><br><span class="line">        <span class="keyword">private</span> String label;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">private</span> <span class="title">PDestination</span><span class="params">(String whereTo)</span> </span>&#123;</span><br><span class="line">            label = whereTo;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> String <span class="title">readLabel</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> label;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Destination <span class="title">destination</span><span class="params">(String s)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> PDestination(s);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Contents <span class="title">contents</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> PContents();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Exc8: 确认下外部类是否能访问内部类变量? Determine whether an outer class has access to the private elements of its inner class.<br>看调用方式，如果是外部类方法直接调用内部类成员变量，不能，外部类实例化后，内部类可能压根就没有实例化，访问个毛线<br>如果是实例化了，就可以调用，习题答案如下</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Outer8</span> </span>&#123;    </span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Inner</span> </span>&#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">int</span> ii1 = <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">int</span> ii2 = <span class="number">2</span>;</span><br><span class="line">        <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">showIi2</span><span class="params">()</span> </span>&#123; System.out.println(ii2); &#125;</span><br><span class="line">        <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">hi</span><span class="params">()</span> </span>&#123; System.out.println(<span class="string">&quot;Inner hi&quot;</span>); &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    <span class="comment">// Need to create objects to access private elements of Inner:</span></span><br><span class="line">    <span class="keyword">int</span> oi = <span class="keyword">new</span> Inner().ii1;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">showOi</span><span class="params">()</span> </span>&#123; System.out.println(oi); &#125;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">showIi2</span><span class="params">()</span> </span>&#123; <span class="keyword">new</span> Inner().showIi2(); &#125; </span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">outerHi</span><span class="params">()</span> </span>&#123; <span class="keyword">new</span> Inner().hi(); &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Outer8 out = <span class="keyword">new</span> Outer8();</span><br><span class="line">        out.showOi();</span><br><span class="line">        out.showIi2();</span><br><span class="line">        out.outerHi();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Inner-classes-in-methods-and-scopes"><a href="#Inner-classes-in-methods-and-scopes" class="headerlink" title="Inner classes in methods and scopes"></a>Inner classes in methods and scopes</h2>
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Jack Zheng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://jack-zheng.github.io/hexo/2020/12/09/Java-inner-class/" title="Java inner class">https://jack-zheng.github.io/hexo/2020/12/09/Java-inner-class/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/null" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/hexo/tags/thing-in-java/" rel="tag"># thing in java</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+                <a href="/hexo/2020/12/08/Why-we-should-call-isInfoEnabled-before-print-log/" rel="next" title="为什么我们要在打印 log 之前进行 isInfoEnabled 判断？">
+                  <i class="fa fa-chevron-left"></i> 为什么我们要在打印 log 之前进行 isInfoEnabled 判断？
+                </a>
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+            </div>
+          </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%BF%B0"><span class="nav-number">1.</span> <span class="nav-text">前述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Creating-inner-classes"><span class="nav-number">2.</span> <span class="nav-text">Creating inner classes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-link-to-the-outer-class"><span class="nav-number">3.</span> <span class="nav-text">The link to the outer class</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Using-this-and-new"><span class="nav-number">4.</span> <span class="nav-text">Using .this and .new</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Inner-classes-and-upcasting"><span class="nav-number">5.</span> <span class="nav-text">Inner classes and upcasting</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Inner-classes-in-methods-and-scopes"><span class="nav-number">6.</span> <span class="nav-text">Inner classes in methods and scopes</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Jack Zheng"
+      src="/hexo/images/jack.jpg">
+  <p class="site-author-name" itemprop="name">Jack Zheng</p>
+  <div class="site-description" itemprop="description">我是张江搬砖小码农, 知识搬运工</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/hexo/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/hexo/categories/">
+          
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/hexo/tags/">
+          
+        <span class="site-state-item-count">87</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jack Zheng</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">279k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:13</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.5.0
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/hexo/lib/anime.min.js"></script>
+  <script src="/hexo/lib/velocity/velocity.min.js"></script>
+  <script src="/hexo/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/hexo/js/utils.js"></script>
+
+<script src="/hexo/js/motion.js"></script>
+
+
+<script src="/hexo/js/schemes/muse.js"></script>
+
+
+<script src="/hexo/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/hexo/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'd444c814810f7e73ee3a',
+      clientSecret: '9b3c417a0c1076887b3cf583c7d7a27456b708ef',
+      repo: 'hexo-comments',
+      owner: 'jack-zheng',
+      admin: ['jack-zheng'],
+      id: '650f24c80e0f0d1e868426e2f4834b7f',
+        language: '',
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>
