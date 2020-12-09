@@ -101,3 +101,9 @@ For IntelliJ 14.0.1, open the preferences---not settings---to find the plugin re
 3. Click Invalidate and Restart.
 
 When IntelliJ starts again the problem should be vanquished.
+
+## 默认注释格式
+
+默认注释格式会把双斜杠放到最前面，和习惯很不搭配，可以通过 Perferences -> settings -> Editor -> Code style -> java 跳出设置界面
+
+到 Code generic tab 下面，将 Comment Code 选项下的 `Line comment at first coumn` 去掉，下一级的 `Add a space at comment start` 选上即可
