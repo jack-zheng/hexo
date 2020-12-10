@@ -223,3 +223,72 @@ public void person_name_jack() {
 partial 对非修饰类型有效吗？有效
 
 `new Expectations(ClassA.class)` 会对这个 class 的所有实例生效，`new Expectations(instance)` 则只会对当前这个 instance 起作用，范围更精确
+
+## 获取 Logger 引用做验证
+
+如果你在 UT 中想要验证某条 log 有没有打印出来，你可以使用 `@Capturing` annotation。
+
+> 相比于 @Mocked 而言，@Capturing 最大的特点是，他用于修饰 父类或者接口，那么他的所有实现类都会被 mocked 掉。对 log 的案例来说，我们为 Logger 这个 interface 加上这个注释之后，后续所有的实现都被 mock 掉，然后我们再做验证
+
+```java
+// Tested Class
+public class MySubscriber {
+
+  private static final Logger LOGGER = LogManager.getLogger(MySubscriber.class);
+
+  @Override
+  public void onEvent(Event event) {
+    if (LOGGER.isInfoEnabled()) {
+      LOGGER.info("Start Process MySubscriber...");
+      LOGGER.info("End...");
+    }
+  }
+}
+
+// In UT
+@Capturing
+private Logger logger;
+
+@Test
+public void test_capturing_anno() {
+  new Expectations(ReadAuditSwitchHelper.class) {{
+    logger.isInfoEnabled();
+    result = true;
+  }};
+
+  subscriber.onEvent(context, event);
+
+  new Verifications() {{
+    logger.isInfoEnabled(); times=1;
+    List<String> capturedInfos = new ArrayList<>();
+    logger.info(withCapture(capturedInfos));
+
+    capturedInfos.stream().forEach(System.out::println);
+  }};
+}
+```
+
+## 获取方法参数
+
+```java
+// 如果是单个参数
+new Verifications() {{
+  double d;
+  String s;
+  mock.doSomething(d = withCapture(), null, s = withCapture());
+
+  assertTrue(d > 0.0);
+  assertTrue(s.length() > 1);
+}};
+
+// 如果是多个参数
+new Verifications() {{
+  List<DataObject> dataObjects = new ArrayList<>();
+  mock.doSomething(withCapture(dataObjects));
+
+  assertEquals(2, dataObjects.size());
+  DataObject data1 = dataObjects.get(0);
+  DataObject data2 = dataObjects.get(1);
+  // Perform arbitrary assertions on data1 and data2.
+}};
+```
