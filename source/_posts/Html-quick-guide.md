@@ -486,3 +486,96 @@ border-width, border-style, border-color 可以写成复合形式： `border: 5p
 border-collapse: collapse; 表格边框线合并
 
 边框会影响盒子实际大小
+
+### 内边距 padding
+
+padding-left/top/right/bottom
+
+复合写法：
+
+| 写法                        | 意义                  |
+| :-------------------------- | :-------------------- |
+| padding: 5px                | 上下左右都是 5px      |
+| padding: 5px 10px           | 上下 5px, 左右 10 px  |
+| padding: 5px 10px 20px      | 上，左右，下          |
+| padding: 5px 10px 20px 30px | 上，右，下，左 顺时针 |
+
+padding 也撑大盒子
+
+### 外边距 margin
+
+控制盒子与盒子之间的距离
+
+margin-left/top/right/bottom
+
+**块级**盒子实现水平居中：
+
+1. 盒子必须有宽度
+2. `margin: 0 auto;`
+
+**行内**元素实现水平居中：给父级元素添加 `text-align: center;`
+
+外边距合并-嵌套快元素塌陷，解决方案：
+
+1. 可以为父元素定义上边框
+2. 可以为父元素定义上边距
+3. 可以为父元素添加 overflow: hidden 属性
+
+不同的网页元素默认都会带有不同的 内外边距，而且不同 browser 值不同，清除如下
+
+```html
+<style>
+/*一般都会先写这一句*/
+    * {
+       margin: 0;
+       padding: 0;
+    }
+</style>
+```
+
+行内元素尽量只设置左右的内外边距
+
+### 示例
+
+`li { list-style: none;}` 去掉 list 的原点
+
+### 圆角边框
+
+border-radius: npx 或 百分比;
+
+### 盒子阴影
+
+box-shadow: h-shadow v-shadow blur spread color inset; rgba(0,0,0,.3)
+
+### 文字阴影
+
+text-shadow: h-shadow v-shadow blur color;
+
+## 浮动 float
+
+传统三种布局方式
+
+1. 标准流 - 默认方式
+2. 浮动
+3. 定位
+
+浮动可以改变元素的默认排列方式
+
+网页布局第一准则：多个块级元素纵向排列找标准流，多个块级元素横向排列找浮动
+
+**float**属性用于创建浮动框，将其移动到一边，知道左边缘或右边缘触及包含块或另一个浮动框的边缘。
+
+### 浮动的特性
+
+设置浮动的元素最重要的特性：
+
+1. 脱离标准普通流的控制，移动到指定位置，俗称 脱标
+2. 浮动的盒子不在保留原先的位置
+
+多个盒子设置浮动，则它们会按照属性值一行内显示并且顶端对齐排列
+
+PS: 浮动元素相互没有间隙，父级宽度装不下，另起一行对齐
+
+浮动元素有行内块特性
+
+p181
