@@ -20,6 +20,7 @@ tags:
   - [Reaching outward from a multiply nested class](#reaching-outward-from-a-multiply-nested-class)
 - [Why inner classes?](#why-inner-classes)
   - [Closures & callbacks](#closures--callbacks)
+  - [Inner classes & control frameworks](#inner-classes--control-frameworks)
 
 最近在看 Spring Core 文档的以后，刚好遇到一个 Inner Class 相关的问题，回忆以下突然发现对他基本没有什么很深入的理解，特此重新阅读以下 Think in Java 4th 看看能不能有什么特别的收获。
 
@@ -1021,3 +1022,9 @@ Callee2 继承了 MyIncrement 那个相应的他就自带了 increment() 方法�
 在主函数中，Caller 通过构造函数统一对 Incrementable 做操作。
 
 PS：个人感觉这个例子中 MyIncrement 这个类对说明 callback 这个特性反而起了舞蹈的作用，让整个示例反觉更繁琐了。
+
+### Inner classes & control frameworks
+
+> List<Event> (pronounced "List of Event") 原来带类型的 collection 这么发音吗，学到了，又感觉很合理
+
+> 本章主要例子中用到了 Command pattern 不过我已经忘了那是个什么东西了，又要复习了 （；￣ェ￣）
