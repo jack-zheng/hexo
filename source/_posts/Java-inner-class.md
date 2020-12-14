@@ -21,6 +21,8 @@ tags:
 - [Why inner classes?](#why-inner-classes)
   - [Closures & callbacks](#closures--callbacks)
   - [Inner classes & control frameworks](#inner-classes--control-frameworks)
+- [Inheriting from inner classes](#inheriting-from-inner-classes)
+- [Can inner classes be overridden?](#can-inner-classes-be-overridden)
 
 最近在看 Spring Core 文档的以后，刚好遇到一个 Inner Class 相关的问题，回忆以下突然发现对他基本没有什么很深入的理解，特此重新阅读以下 Think in Java 4th 看看能不能有什么特别的收获。
 
@@ -1028,3 +1030,287 @@ PS：个人感觉这个例子中 MyIncrement 这个类对说明 callback 这个�
 > List<Event> (pronounced "List of Event") 原来带类型的 collection 这么发音吗，学到了，又感觉很合理
 
 > 本章主要例子中用到了 Command pattern 不过我已经忘了那是个什么东西了，又要复习了 （；￣ェ￣）
+
+control framework 是一种用于处理 event 的应用框架。下面是书中 GreenHouse 的例子。
+
+在没有使用 inner class 的时候，我们先创建一个 abstract 的类代表我们要处理的 event
+
+```java
+public abstract class Event {
+    private long eventTime;
+    protected final long delayTime;
+
+    public Event(long delayTime) {
+        this.delayTime = delayTime;
+        start();
+    }
+
+    public void start() { // Allows restarting
+        eventTime = System.nanoTime() + delayTime;
+    }
+
+    public boolean ready() {
+        return System.nanoTime() >= eventTime;
+    }
+
+    public abstract void action();
+}
+```
+
+`start()` 单独抽离，方便以后实现 restart 功能， `ready()` 即判断是否已经可以执行事件，`action()` 是我们要执行事件的内容。
+
+以下是 Controller 代码，代表整段程序的执行逻辑, Controller 实体持有事件列表，然后通过 while 遍历 event 并执行。处理时通过一个新建的 list 处理防止动态改变值。
+
+```java
+public class Controller {
+    // A class from java.util to hold Event objects:
+    private List<Event> eventList = new ArrayList<Event>();
+
+    public void addEvent(Event c) {
+        eventList.add(c);
+    }
+
+    public void run() {
+        while (eventList.size() > 0)
+            // Make a copy so you’re not modifying the list
+            // while you’re selecting the elements in it:
+            for (Event e : new ArrayList<Event>(eventList))
+                if (e.ready()) {
+                    System.out.println(e);
+                    e.action();
+                    eventList.remove(e);
+                }
+    }
+}
+```
+
+在遍历 event 时，我们并不知道 event 具体是什么，这正是框架的目的，我们并不关心某个具体的对象。而这恰恰是 inner class 擅长的地方。通过使用它我们可以在两方面优化上面的代码。
+
+1. 我们可以把 event 和 controller 合二为一，将各个 event 特有的 action() 封装在内部类中
+2. 内部类让你的实现对外不可见。
+
+使用 内部类 实现代码如下
+
+```java
+public class GreenhouseControls extends Controller {
+    private boolean light = false;
+
+    public class LightOn extends Event {
+        public LightOn(long delayTime) {
+            super(delayTime);
+        }
+
+        public void action() {
+            // Put hardware control code here to
+            // physically turn on the light.
+            light = true;
+        }
+
+        public String toString() {
+            return "Light is on";
+        }
+    }
+
+    public class LightOff extends Event {
+        public LightOff(long delayTime) {
+            super(delayTime);
+        }
+
+        public void action() {
+            // Put hardware control code here to
+            // physically turn off the light.
+            light = false;
+        }
+
+        public String toString() {
+            return "Light is off";
+        }
+    }
+
+    private boolean water = false;
+
+    public class WaterOn extends Event {
+        public WaterOn(long delayTime) {
+            super(delayTime);
+        }
+
+        public void action() {
+            // Put hardware control code here.
+            water = true;
+        }
+
+        public String toString() {
+            return "Greenhouse water is on";
+        }
+    }
+
+    public class WaterOff extends Event {
+        public WaterOff(long delayTime) {
+            super(delayTime);
+        }
+
+        public void action() {
+            // Put hardware control code here.
+            water = false;
+        }
+
+        public String toString() {
+            return "Greenhouse water is off";
+        }
+    }
+
+    private String thermostat = "Day";
+
+    public class ThermostatNight extends Event {
+        public ThermostatNight(long delayTime) {
+            super(delayTime);
+        }
+
+        public void action() {
+            // Put hardware control code here.
+            thermostat = "Night";
+        }
+
+        public String toString() {
+            return "Thermostat on night setting";
+        }
+    }
+
+    public class ThermostatDay extends Event {
+        public ThermostatDay(long delayTime) {
+            super(delayTime);
+        }
+
+        public void action() {
+            // Put hardware control code here.
+            thermostat = "Day";
+        }
+
+        public String toString() {
+            return "Thermostat on day setting";
+        }
+    }
+
+    // An example of an action() that inserts a
+    // new one of itself into the event list:
+    public class Bell extends Event {
+        public Bell(long delayTime) {
+            super(delayTime);
+        }
+
+        public void action() {
+            addEvent(new Bell(delayTime));
+        }
+
+        public String toString() {
+            return "Bing!";
+        }
+    }
+
+    public class Restart extends Event {
+        private Event[] eventList;
+
+        public Restart(long delayTime, Event[] eventList) {
+            super(delayTime);
+            this.eventList = eventList;
+            for (Event e : eventList)
+                addEvent(e);
+        }
+
+        public void action() {
+            for (Event e : eventList) {
+                e.start(); // Rerun each event
+                addEvent(e);
+            }
+            start(); // Rerun this Event
+            addEvent(this);
+        }
+
+        public String toString() {
+            return "Restarting system";
+        }
+    }
+
+    public static class Terminate extends Event {
+        public Terminate(long delayTime) {
+            super(delayTime);
+        }
+
+        public void action() {
+            System.exit(0);
+        }
+
+        public String toString() {
+            return "Terminating";
+        }
+    }
+}
+```
+
+代码结构很简单，分别声明了一些事件类型 lightOn/Off, waterOn/Off 等，内部类继承 Event，实现个则的抽象方法即可。
+
+Bell 和 Restart 有别于其他的 event 内部类，它还会调用 Outer class 的其他方法。
+
+以下是 GreenhouseController 执行函数
+
+```java
+public class GreenhouseController {
+    public static void main(String[] args) {
+        GreenhouseControls gc = new GreenhouseControls();
+        // Instead of hard-wiring, you could parse
+        // configuration information from a text file here:
+        gc.addEvent(gc.new Bell(900));
+        Event[] eventList = {
+                gc.new ThermostatNight(0),
+                gc.new LightOn(200),
+                gc.new LightOff(400),
+                gc.new WaterOn(600),
+                gc.new WaterOff(800),
+                gc.new ThermostatDay(1400)
+        };
+        gc.addEvent(gc.new Restart(2000, eventList));
+        if (args.length == 1)
+            gc.addEvent(
+                    new GreenhouseControls.Terminate(
+                            new Integer(args[0])));
+        gc.run();
+    }
+}
+// output:
+// Bing!
+// Thermostat on night setting
+// Light is on
+// Light is off
+// Greenhouse water is on
+// Greenhouse water is off
+// Thermostat on day setting
+// Restarting system
+// Terminating
+```
+
+## Inheriting from inner classes
+
+如果想要继承一个内部类，语法稍微有点特殊，由于内部类需要借助外部类才能实例化，所以构造函数中需要调用 `outer.super()` 实例如下：
+
+```java
+class WithInner {
+    class Inner {
+    }
+}
+
+public class InheritInner extends WithInner.Inner {
+    //! InheritInner() {} // Won’t compile
+    InheritInner(WithInner wi) {
+        wi.super();
+    }
+
+    public static void main(String[] args) {
+        WithInner wi = new WithInner();
+        InheritInner ii = new InheritInner(wi);
+    }
+}
+```
+
+InheritInner 继承自内部类，在构造函数中需要外部类实体做参数。
+
+## Can inner classes be overridden?
