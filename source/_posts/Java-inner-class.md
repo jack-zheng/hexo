@@ -1,10 +1,10 @@
 ---
-title: Java inner class
+title: Java 内部类读书笔记
 date: 2020-12-09 15:32:00
 categories:
 - 编程
 tags:
-- thing in java
+- TIJ4
 ---
 
 - [前述](#前述)
@@ -23,15 +23,18 @@ tags:
   - [Inner classes & control frameworks](#inner-classes--control-frameworks)
 - [Inheriting from inner classes](#inheriting-from-inner-classes)
 - [Can inner classes be overridden?](#can-inner-classes-be-overridden)
+- [Local inner classes](#local-inner-classes)
+- [Inner-class identifiers](#inner-class-identifiers)
+- [Summary](#summary)
 
 最近在看 Spring Core 文档的以后，刚好遇到一个 Inner Class 相关的问题，回忆以下突然发现对他基本没有什么很深入的理解，特此重新阅读以下 Think in Java 4th 看看能不能有什么特别的收获。
 
 想要解决的问题：
 
-1. 什么是内部类
-2. 静态/非静态内部类有什么区别
-3. 内部类有什么用
-4. 字节码层面是怎么表现的
+- [x] 什么是内部类 - 将 class 定义嵌入另一个 class 的一种语法
+- [x] 静态/非静态内部类有什么区别 - 前者可以单独使用，或者需要 enclosin class 的实例才能使用
+- [x] 内部类有什么用 - 更好的闭包
+- [ ] 字节码层面是怎么表现的
 
 ## 前述
 
@@ -1314,3 +1317,196 @@ public class InheritInner extends WithInner.Inner {
 InheritInner 继承自内部类，在构造函数中需要外部类实体做参数。
 
 ## Can inner classes be overridden?
+
+内部类并不能像方法那样被重写。我们准备一个 class Egg, 里面声明一个内部类 Yolk 并在构造函数中调用它。我们再新建一个类 GigEgg 继承 Egg, 在里面声明一个同名的内部类，试图用类似方法重写的方式覆盖他。示例如下：
+
+```java
+class Egg {
+    private Yolk y;
+
+    protected class Yolk {
+        public Yolk() {
+            System.out.println("Egg.Yolk()");
+        }
+    }
+
+    public Egg() {
+        System.out.println("New Egg()");
+        y = new Yolk();
+    }
+}
+
+public class BigEgg extends Egg {
+    public class Yolk {
+        public Yolk() {
+            System.out.println("BigEgg.Yolk()");
+        }
+    }
+
+    public static void main(String[] args) {
+        new BigEgg();
+    }
+}
+
+// output:
+// New Egg()
+// Egg.Yolk()
+```
+
+默认的构造函数会在编译时指定调用基类中的 Yolk 对象。这个例子表明 JVM 在处理内部类时并没有做什么特殊的操作，基类和子类中的内部函数时完全隔离的。
+
+This example shows that there isn’t any extra inner-class magic going on when you inherit
+from the outer class. The two inner classes are completely separate entities, each in its own
+namespace. However, it’s still possible to explicitly inherit from the inner class: 
+
+```java
+class Egg2 {
+    protected class Yolk {
+        public Yolk() {
+            System.out.println("Egg2.Yolk()");
+        }
+
+        public void f() {
+            System.out.println("Egg2.Yolk.f()");
+        }
+    }
+
+    private Yolk y = new Yolk();
+
+    public Egg2() {
+        System.out.println("New Egg2()");
+    }
+
+    public void insertYolk(Yolk yy) {
+        y = yy;
+    }
+
+    public void g() {
+        y.f();
+    }
+}
+
+public class BigEgg2 extends Egg2 {
+    public class Yolk extends Egg2.Yolk {
+        public Yolk() {
+            System.out.println("BigEgg2.Yolk()");
+        }
+
+        public void f() {
+            System.out.println("BigEgg2.Yolk.f()");
+        }
+    }
+
+    public BigEgg2() {
+        insertYolk(new Yolk());
+    }
+
+    public static void main(String[] args) {
+        Egg2 e2 = new BigEgg2();
+        e2.g();
+    }
+}
+
+// output
+// Egg2.Yolk() <- 初始化子类时调用基类构造，先初始化基类中的 field
+// New Egg2() <- 基类构造
+// Egg2.Yolk() <- 子类 new Yolk() 先调用 基类 中的 Yolk 构造
+// BigEgg2.Yolk() <- 子类构造调用
+// BigEgg2.Yolk.f() <- 子类调用 g 方法
+```
+
+在上面的例子里面，我们显示的指定 BigEgg2 中的 Yolk 继承自 Egg2 中的 Yolk, 然后基类中还提供了一个 `insertYolk()` 来修改基类中内部类的引用。
+
+## Local inner classes
+
+内部类可以创建在代码块中，一般常见的是创建在方法里面。我们无法访问方法体里面的内部类，因为他并不是 outer class 的一部分。但是这个内部类还是可以毫无限制的访问外部类的各种信息。
+
+下面是 local inner class 和 匿名内部类的对比例子：
+
+```java
+interface Counter {
+    int next();
+}
+
+public class LocalInnerClass {
+    private int count = 0;
+
+    Counter getCounter(final String name) {
+        // A local inner class:
+        class LocalCounter implements Counter {
+            public LocalCounter() {
+                // Local inner class can have a constructor
+                System.out.println("LocalCounter()");
+            }
+
+            public int next() {
+                System.out.print(name); // Access local final
+                return count++;
+            }
+        }
+        return new LocalCounter();
+    }
+
+    // The same thing with an anonymous inner class:
+    Counter getCounter2(final String name) {
+        return new Counter() {
+            // Anonymous inner class cannot have a named
+            // constructor, only an instance initializer:
+            {
+                System.out.println("Counter()");
+            }
+
+            public int next() {
+                System.out.print(name); // Access local final
+                return count++;
+            }
+        };
+    }
+
+    public static void main(String[] args) {
+        LocalInnerClass lic = new LocalInnerClass();
+        Counter
+                c1 = lic.getCounter("Local inner "),
+                c2 = lic.getCounter2("Anonymous inner ");
+        for (int i = 0; i < 5; i++)
+            System.out.println(c1.next());
+        for (int i = 0; i < 5; i++)
+            System.out.println(c2.next());
+    }
+} 
+
+// output
+// LocalCounter()
+// Counter()
+// Local inner 0
+// Local inner 1
+// Local inner 2
+// Local inner 3
+// Local inner 4
+// Anonymous inner 5
+// Anonymous inner 6
+// Anonymous inner 7
+// Anonymous inner 8
+// Anonymous inner 9
+```
+
+上面的例子中，Counter 接口会依次返回 count 值。local inner class 和 匿名内部类都实现了这个接口。两个内部类逻辑和功能也都一样，唯一区别是，匿名内部类他是没有构造函数的，需要用代码块代替。
+
+如果你需要创建多个实例的化，你也要使用 local inner class，你用 anonymous 是建不出来多个实例的。
+
+## Inner-class identifiers
+
+每个类在编译后都会生成一个 `.class` 文件保存对应的类信息。内部类也一样，格式为 `外部类$内部类` 下面是 LocalInnerClass.java 编译后的文件：
+
+```txt
+Counter.class
+LocalInnerClass$l.class
+LocallnnerClassSlLocalCounter.class
+LocallnnerClass.class
+```
+
+如果是内部匿名类，类名由数字代替。如果是多层嵌套的内部类，类名间链接多个 `$` 符号。
+
+## Summary
+
+接口和内部类是 Java 特有的，你在 C++ 中找不到类似的概念，他们帮助我们实现多重继承的问题而且实现上要比 C++ 的优雅。

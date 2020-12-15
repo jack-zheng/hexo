@@ -133,6 +133,12 @@ git diff f31762ada1764 8ab244e3b2de31ca -- <file-path>
 
 ```bash
 git log -- <file path>
+
+# 或者使用
+
+git log --full-log -- <file path>
+
+# 第二种会包含各种 merge 的信息， 比较全。但是一般第一种就够用了
 ```
 
 ## 查看文件某一行删除记录
