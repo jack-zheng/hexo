@@ -206,6 +206,236 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/12/17/Java-reusing-classes/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2020/12/17/Java-reusing-classes/" class="post-title-link" itemprop="url">Java 代码重用</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-12-17 18:51:46 / 修改时间：21:24:18" itemprop="dateCreated datePublished" datetime="2020-12-17T18:51:46+08:00">2020-12-17</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
+                    <span itemprop="name">编程</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>6.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>6 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>最近看 Code 经常看到有使用 final 参数的例子，但是对这点没有系统的认识，重新认真读一遍 Think in Java 4th 相关章节并做笔记。</p>
+<p>想要解决的问题：</p>
+<ul>
+<li><input disabled="" type="checkbox"> local inner class 中如果用到方法中的参数，为什么要用 final 修饰？</li>
+</ul>
+<p>F1: java 编译器在实现 Q1 中描述的问题时，用的是值拷贝，而不是 reference 拷贝，为了防止内外值不一致，只能强制用 final 把它定为一个常量，不改变他的值</p>
+<h2 id="The-final-keyword"><a href="#The-final-keyword" class="headerlink" title="The final keyword"></a>The final keyword</h2><p>Java 里面 final 这个关键字的含义会根据上下文不同而有所区别，但是大体上来说，他都会表达出一个 ‘不允许改变’ 的含义。你会出于两种目的阻止他改变，一种是设计上另一种是效率上。这两种目的很不一样，所以可能存在误用的情况。</p>
+<p>接下来我们会例举三种 final 的使用场景：data, method, class</p>
+<h3 id="final-data"><a href="#final-data" class="headerlink" title="final data"></a>final data</h3><p>在两种情况下你以将变量声明为常量：</p>
+<ol>
+<li>编译期常量，不能被改变</li>
+<li>在运行时赋值并且不能被改变</li>
+</ol>
+<p>编译时常量有一个好处是在编译期间就将常量相关的运算做了，可以节省运行时的计算时间。这种情况下，对应的常量类型必须是 final 修饰的 primitive 类型，声明变量时就得赋值。</p>
+<p>static + final 表明系统中只有一块内存空间存储相应的值。这种变量是有<strong>命名规范</strong>的，全部大些，中间用下划线分隔。</p>
+<p>通过使用 final 修饰 class 表明这个类的 reference 是一个常量。</p>
+<p>示例说明：</p>
+<p>声明一个 Value class 用做演示 final 修饰对象情况的素材。</p>
+<p>valueOne: 演示 final 修饰的基本数据类型不能改变值</p>
+<p>VALUE_TWO/VALUE_THREE: 演示 static final 的常见用法和命名规范</p>
+<p>i4/INT_5: final 修饰的变量可以通过表达式赋值，不一定需要直接赋值</p>
+<p>v1/v2/VAL_3: final 修饰的对象 reference 不能改，但对应的对象可以改变</p>
+<p>a: 数组也是一种对象，符合上一条行为规范</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.Random;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Value</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i; <span class="comment">// Package access</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Value</span><span class="params">(<span class="keyword">int</span> i)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.i = i;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FinalData</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Random rand = <span class="keyword">new</span> Random(<span class="number">47</span>);</span><br><span class="line">    <span class="keyword">private</span> String id;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">FinalData</span><span class="params">(String id)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.id = id;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Can be compile-time constants:</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> valueOne = <span class="number">9</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> VALUE_TWO = <span class="number">99</span>;</span><br><span class="line">    <span class="comment">// Typical public constant:</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> VALUE_THREE = <span class="number">39</span>;</span><br><span class="line">    <span class="comment">// Cannot be compile-time constants:</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> i4 = rand.nextInt(<span class="number">20</span>);</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> INT_5 = rand.nextInt(<span class="number">20</span>);</span><br><span class="line">    <span class="keyword">private</span> Value v1 = <span class="keyword">new</span> Value(<span class="number">11</span>);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Value v2 = <span class="keyword">new</span> Value(<span class="number">22</span>);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Value VAL_3 = <span class="keyword">new</span> Value(<span class="number">33</span>);</span><br><span class="line">    <span class="comment">// Arrays:</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span>[] a = &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> id + <span class="string">&quot;: &quot;</span> + <span class="string">&quot;i4 = &quot;</span> + i4 + <span class="string">&quot;, INT_5 = &quot;</span> + INT_5;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        FinalData fd1 = <span class="keyword">new</span> FinalData(<span class="string">&quot;fd1&quot;</span>);</span><br><span class="line">        <span class="comment">//! fd1.valueOne++; // Error: can’t change value</span></span><br><span class="line">        fd1.v2.i++; <span class="comment">// Object isn’t constant!</span></span><br><span class="line">        fd1.v1 = <span class="keyword">new</span> Value(<span class="number">9</span>); <span class="comment">// OK -- not final</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; fd1.a.length; i++)</span><br><span class="line">            fd1.a[i]++; <span class="comment">// Object isn’t constant!</span></span><br><span class="line">        <span class="comment">//! fd1.v2 = new Value(0); // Error: Can’t</span></span><br><span class="line">        <span class="comment">//! fd1.VAL_3 = new Value(1); // change reference</span></span><br><span class="line">        <span class="comment">//! fd1.a = new int[3];</span></span><br><span class="line">        System.out.println(fd1);</span><br><span class="line">        System.out.println(<span class="string">&quot;Creating new FinalData&quot;</span>);</span><br><span class="line">        FinalData fd2 = <span class="keyword">new</span> FinalData(<span class="string">&quot;fd2&quot;</span>);</span><br><span class="line">        System.out.println(fd1);</span><br><span class="line">        System.out.println(fd2);</span><br><span class="line">    &#125;</span><br><span class="line">&#125; </span><br></pre></td></tr></table></figure>
+
+<p>public so they’re usable outside the package, static to emphasize that there’s only one, and final to say that it’s a constant.</p>
+<p>public: 包外可访问；static：强调只有一份空间；final：常量</p>
+<h3 id="Blank-finals"><a href="#Blank-finals" class="headerlink" title="Blank finals"></a>Blank finals</h3><p>变量声明为 final 类型但是没有给初始值的情况叫做 Blank finals。但是在这个变量使用前，它必须被初始化。</p>
+<p>归结为两种情况为 final 变量赋值，一种就是声明时赋值，另一种是构造函数内赋值。不做的话会有编译错误。提供第二种赋值方式之后，对于同一个变量，每个类都可以有自己不同 final 变量值了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Poppet</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> i;</span><br><span class="line"></span><br><span class="line">    Poppet(<span class="keyword">int</span> ii) &#123;</span><br><span class="line">        i = ii;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BlankFinal</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> i = <span class="number">0</span>; <span class="comment">// Initialized final</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> j; <span class="comment">// Blank final</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Poppet p; <span class="comment">// Blank final reference</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Blank finals MUST be initialized in the constructor:</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">BlankFinal</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        j = <span class="number">1</span>; <span class="comment">// Initialize blank final</span></span><br><span class="line">        p = <span class="keyword">new</span> Poppet(<span class="number">1</span>); <span class="comment">// Initialize blank final reference</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">BlankFinal</span><span class="params">(<span class="keyword">int</span> x)</span> </span>&#123;</span><br><span class="line">        j = x; <span class="comment">// Initialize blank final</span></span><br><span class="line">        p = <span class="keyword">new</span> Poppet(x); <span class="comment">// Initialize blank final reference</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">new</span> BlankFinal();</span><br><span class="line">        <span class="keyword">new</span> BlankFinal(<span class="number">47</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="final-arguments"><a href="#final-arguments" class="headerlink" title="final arguments"></a>final arguments</h3><p>你还可以在方法的参数列表中，将变量类型指定为 final，标示在方法体内你不能改变参数的 reference。</p>
+<p>示例说明：</p>
+<p>with/without: 表明 final 修饰对参数不能内改变 reference</p>
+<p>f()/g(): 表明 final 修饰的基本数据类型值不能被修改</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Gizmo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">spin</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FinalArguments</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">with</span><span class="params">(<span class="keyword">final</span> Gizmo g)</span> </span>&#123;</span><br><span class="line">        <span class="comment">//! g = new Gizmo(); // Illegal -- g is final</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">without</span><span class="params">(Gizmo g)</span> </span>&#123;</span><br><span class="line">        g = <span class="keyword">new</span> Gizmo(); <span class="comment">// OK -- g not final</span></span><br><span class="line">        g.spin();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// void f(final int i) &#123; i++; &#125; // Can’t change</span></span><br><span class="line">    <span class="comment">// You can only read from a final primitive:</span></span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">g</span><span class="params">(<span class="keyword">final</span> <span class="keyword">int</span> i)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> i + <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        FinalArguments bf = <span class="keyword">new</span> FinalArguments();</span><br><span class="line">        bf.without(<span class="keyword">null</span>);</span><br><span class="line">        bf.with(<span class="keyword">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="final-methods"><a href="#final-methods" class="headerlink" title="final methods"></a>final methods</h3><p>fianl 修饰 method 有两种作用，一种是表达了你不想被修饰的方法在子类中被重写而改变语义；另一种是提升执行效率。但是第二种功能在 Java 5/6 时已经包含在 JVM 优化中了，所以现在只推荐在第一种意图是使用该语法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyFinal</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">method01</span><span class="params">()</span></span>&#123;&#125;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyFinalTest</span> <span class="keyword">extends</span> <span class="title">MyFinal</span></span>&#123;</span><br><span class="line">    <span class="comment">// ! public final void method01()&#123;&#125;; // compile error</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="final-and-private"><a href="#final-and-private" class="headerlink" title="final and private"></a>final and private</h3><p>类中的所有 private 方法其实都是默认有 final 修饰的，只不过你显示的加了也没什么额外的作用。</p>
+<p>private 方法代表的意思不就是外部不能访问，当然也不能修改这个方法吗，没毛病。</p>
+<p>示例说明：</p>
+<p>下面的例子中，我们在基类中声明了两个方法 f()/g() 分别显示和隐示的加上 final 关键字。虽然你可以在它的子类中重写这个方法，但是只有在最末端的子类中可以调用，且调用的还是子类自己的实现。</p>
+<p>如果你在子类的实现上加上 <code>Override</code> 标签，还会有编译错误，因为 private 方法自带 final, 表明的含义就是不能被重写。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">WithFinals</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Identical to &quot;private&quot; alone:</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">f</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;WithFinals.f()&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Also automatically &quot;final&quot;:</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">g</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;WithFinals.g()&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">OverridingPrivate</span> <span class="keyword">extends</span> <span class="title">WithFinals</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">f</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;OverridingPrivate.f()&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">g</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;OverridingPrivate.g()&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">OverridingPrivate2</span> <span class="keyword">extends</span> <span class="title">OverridingPrivate</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">f</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;OverridingPrivate2.f()&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">g</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;OverridingPrivate2.g()&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FinalOverridingIllusion</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        OverridingPrivate2 op2 = <span class="keyword">new</span> OverridingPrivate2();</span><br><span class="line">        op2.f();</span><br><span class="line">        op2.g();</span><br><span class="line">        <span class="comment">// You can upcast:</span></span><br><span class="line">        OverridingPrivate op = op2;</span><br><span class="line">        <span class="comment">// But you can’t call the methods:</span></span><br><span class="line">        <span class="comment">//! op.f();</span></span><br><span class="line">        <span class="comment">//! op.g();</span></span><br><span class="line">        <span class="comment">// Same here:</span></span><br><span class="line">        WithFinals wf = op2;</span><br><span class="line">        <span class="comment">//! wf.f();</span></span><br><span class="line">        <span class="comment">//! wf.g();</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125; </span><br><span class="line"><span class="comment">// output:</span></span><br><span class="line"><span class="comment">// OverridingPrivate2.f()</span></span><br><span class="line"><span class="comment">// OverridingPrivate2.g()</span></span><br></pre></td></tr></table></figure>
+
+<p>If a method is private, it isn’t part of the base-class interface. It is just some code that’s hidden away inside the class, and it just happens to have that name.</p>
+<p>私有方法并不是基类的一部分，它是该类中的隐藏代码，只不过恰巧有了名字。</p>
+<h3 id="final-class"><a href="#final-class" class="headerlink" title="final class"></a>final class</h3><p>final 修饰的 class 表明，不管出于什么目的，你不想你的这个 class 被继承。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SmallBrain</span> </span>&#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">Dinosaur</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i = <span class="number">7</span>;</span><br><span class="line">    <span class="keyword">int</span> j = <span class="number">1</span>;</span><br><span class="line">    SmallBrain x = <span class="keyword">new</span> SmallBrain();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">f</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//! class Further extends Dinosaur &#123;&#125;</span></span><br><span class="line"><span class="comment">// error: Cannot extend final class ‘Dinosaur’</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Jurassic</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Dinosaur n = <span class="keyword">new</span> Dinosaur();</span><br><span class="line">        n.f();</span><br><span class="line">        n.i = <span class="number">40</span>;</span><br><span class="line">        n.j++;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>final class 的 field 可以不是 final 的，但是 final class 里面的 method 都隐示为 final method。因为 final class 就是为了防止被继承，都不被继承了，对应的方法都不能重写也是合理的。</p>
+<h3 id="final-caution"><a href="#final-caution" class="headerlink" title="final caution"></a>final caution</h3><p>例举了一些老的 Java lib 实现 Vector 和 Hashtable 说明，使用 final 修饰方法的时候要谨慎，你完全不知道其他人会怎样使用你的代码。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/12/17/Java-generics/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2020/12/17/Java-generics/" class="post-title-link" itemprop="url">Java 泛型读书笔记</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-12-17 17:42:08 / 修改时间：21:24:18" itemprop="dateCreated datePublished" datetime="2020-12-17T17:42:08+08:00">2020-12-17</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
+                    <span itemprop="name">编程</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>121</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>项目重构的时候刚好遇到一些泛型相关的问题，发现这块掌握的确实有点浅薄，重新认真读一遍 Think in Java 4th 相关章节并做笔记，顺便一提，100 页的内容有点心虚。</p>
+<ul>
+<li><a href="#前述">前述</a></li>
+</ul>
+<p>想要解决的问题：</p>
+<ul>
+<li><input disabled="" type="checkbox"> 泛型的定义是什么</li>
+<li><input disabled="" type="checkbox"> 为什么需要泛型</li>
+<li><input disabled="" type="checkbox"> 集合类中使用泛型的注意点</li>
+</ul>
+<h2 id="前述"><a href="#前述" class="headerlink" title="前述"></a>前述</h2>
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/12/15/Code-snippet-use-html-show-ul-tag-in-tree-format/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +467,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-16 20:03:26" itemprop="dateModified" datetime="2020-12-16T20:03:26+08:00">2020-12-16</time>
+                <time title="修改时间：2020-12-17 21:24:18" itemprop="dateModified" datetime="2020-12-17T21:24:18+08:00">2020-12-17</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -330,7 +560,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-16 20:03:26" itemprop="dateModified" datetime="2020-12-16T20:03:26+08:00">2020-12-16</time>
+                <time title="修改时间：2020-12-17 21:24:18" itemprop="dateModified" datetime="2020-12-17T21:24:18+08:00">2020-12-17</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -490,6 +720,8 @@
 <p>这部分是使用 inner class 重构之前 factory/interface 相关的代码,有机会回头再瞅一眼</p>
 </blockquote>
 <p>Look at how much nicer the interfaces/Factories.java example comes out when you use anonymous inner classes:</p>
+<p>示例概述：</p>
+<p>通过内部类实现工厂方法，并且在示例中将 outer 类的构造函数设置成 private，将新建的动作限制到只能通过 factory 实现，6 的飞起。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">Service</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">method1</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">method2</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">ServiceFactory</span> </span>&#123;</span><br><span class="line">    <span class="function">Service <span class="title">getService</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Implementation1</span> <span class="keyword">implements</span> <span class="title">Service</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Implementation1</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">method1</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Implementation1 method1&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">method2</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Implementation1 method2&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> ServiceFactory factory = <span class="keyword">new</span> ServiceFactory() &#123;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> Service <span class="title">getService</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> Implementation1();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Implementation2</span> <span class="keyword">implements</span> <span class="title">Service</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Implementation2</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">method1</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Implementation2 method1&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">method2</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Implementation2 method2&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> ServiceFactory factory = <span class="keyword">new</span> ServiceFactory() &#123;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> Service <span class="title">getService</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> Implementation2();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Factories</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">serviceConsumer</span><span class="params">(ServiceFactory fact)</span> </span>&#123;</span><br><span class="line">        Service s = fact.getService();</span><br><span class="line">        s.method1();</span><br><span class="line">        s.method2();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        serviceConsumer(Implementation1.factory);</span><br><span class="line">        <span class="comment">// Implementations are completely interchangeable:</span></span><br><span class="line">        serviceConsumer(Implementation2.factory);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// output:</span></span><br><span class="line"><span class="comment">// Implementation1 method1</span></span><br><span class="line"><span class="comment">// Implementation1 method2</span></span><br><span class="line"><span class="comment">// Implementation2 method1</span></span><br><span class="line"><span class="comment">// Implementation2 method2</span></span><br></pre></td></tr></table></figure>
 
 <p>通过为 Factory 提供 inner class 的实现,我们可以将上例中的 Implementation1 和 Implementation2 的构造函数设置成私有,缩小了 Service 实现的作用域。同时不需要为 工厂 提供具体的实现类。从语法上这样的解决方案更合理。</p>
@@ -528,14 +760,14 @@
 <p>从典型的使用方式上看,内部类会继承 class 或者 实现接口,然后操作外部类的属性。所以我们可以说<strong>内部类提供了一个外部类的窗口</strong>。</p>
 <p>Inner class 存在的最合理的解释：</p>
 <blockquote>
-<p>那个内部类都可以独立的实现一个继承。即,不管外部类是否已经继承了一个实现这对 inner class 毫无影响。</p>
+<p>内部类都可以独立的实现一个继承。即不管外部类是否已经继承了一个实现这对 inner class 毫无影响。</p>
 </blockquote>
 <p>换个角度看,inner class 可以看作是多重继承的一种解决方案。在这方面,interface 可以解决一部分问题,但是 inner class 效率更高。</p>
 <p>就上面的问题,下面我们举例子来说明,比如我们想要在一个类里实现两个接口,你有两种选择,一个 class + 2<em>interface 或者 class + inner class + 1</em>interface</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">A</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">B</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">X</span> <span class="keyword">implements</span> <span class="title">A</span>, <span class="title">B</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Y</span> <span class="keyword">implements</span> <span class="title">A</span> </span>&#123;</span><br><span class="line">    <span class="function">B <span class="title">makeB</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// Anonymous inner class:</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> B() &#123;&#125;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MultiInterfaces</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">takesA</span><span class="params">(A a)</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">takesB</span><span class="params">(B b)</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        X x = <span class="keyword">new</span> X();</span><br><span class="line">        Y y = <span class="keyword">new</span> Y();</span><br><span class="line">        takesA(x);</span><br><span class="line">        takesA(y);</span><br><span class="line">        takesB(x);</span><br><span class="line">        takesB(y.makeB());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>示例中我们有 A, B 两个接口, X 实现两个接口,Y 实现一个接口 + 一个 inner class。X,Y 虽然实现方式不太一样,但是目的都达到了,两个接口都实现了。</p>
-<p>但是,如果是抽象类或者实体类的化,多重继承就会受到限制。</p>
+<p>但是,如果是抽象类或者实体类,多重继承就会受到限制。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">D</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">E</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Z</span> <span class="keyword">extends</span> <span class="title">D</span> </span>&#123;</span><br><span class="line">    <span class="function">E <span class="title">makeE</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> E() &#123;</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MultiImplementation</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">takesD</span><span class="params">(D d)</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">takesE</span><span class="params">(E e)</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Z z = <span class="keyword">new</span> Z();</span><br><span class="line">        takesD(z);</span><br><span class="line">        takesE(z.makeE());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <blockquote>
@@ -552,15 +784,15 @@
 <h3 id="Closures-amp-callbacks"><a href="#Closures-amp-callbacks" class="headerlink" title="Closures &amp; callbacks"></a>Closures &amp; callbacks</h3><p>Closure(闭包) 即一个可调用对象,保留了创建它的作用域的信息。Inner class 就是 OO 概念上的一个闭包,他持有外部类的引用,访问不受限。</p>
 <p>Java 支持部分指针机制,其中之一就是 callback(回调)。在回调总中,一些对象给出自身的一部分信息(引用),通过这部分信息,其他对象可以操作这个对象。</p>
 <p>inner class 的闭包特性比之与指针,扩展性更强,更安全。</p>
+<p>示例说明：</p>
+<p>下面这个例子只为了一个目的, 就是凸显出内部类可以拿到外部类的引用(Callee2.this),并且没有任何访问限制。</p>
+<p>我们声明一个 Incremnentable 接口，其中有一个方法 <code>increment()</code>, Callee1 实现了 Incrementable。</p>
+<p>再声明 MyIncrement 基类，也有一个 <code>increment()</code> 方法，然后声明 Callee2 继承了 MyIncrement 那么相应的他就自带了 increment() 方法, 无法再实现 Incrementable 接口,这里通过内部类 Closure 实现接口, 在通过 getCallbackReference() 拿到引用，变相的达到了多重继承的效果。在主函数中,Caller 通过构造函数统一对 Incrementable 做操作。</p>
+<p>PS：个人感觉这个例子中 MyIncrement 这个类对说明 callback 这个特性反而起了舞蹈的作用,让整个示例反觉更繁琐了。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">Incrementable</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">increment</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Very simple to just implement the interface:</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Callee1</span> <span class="keyword">implements</span> <span class="title">Incrementable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">increment</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        i++;</span><br><span class="line">        System.out.println(i);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyIncrement</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">increment</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Other operation&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">f</span><span class="params">(MyIncrement mi)</span> </span>&#123;</span><br><span class="line">        mi.increment();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// If your class must implement increment() in</span></span><br><span class="line"><span class="comment">// some other way, you must use an inner class:</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Callee2</span> <span class="keyword">extends</span> <span class="title">MyIncrement</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">increment</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.increment();</span><br><span class="line">        i++;</span><br><span class="line">        System.out.println(i);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">Closure</span> <span class="keyword">implements</span> <span class="title">Incrementable</span> </span>&#123;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">increment</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="comment">// Specify outer-class method, otherwise</span></span><br><span class="line">            <span class="comment">// you’d get an infinite recursion:</span></span><br><span class="line">            Callee2.<span class="keyword">this</span>.increment();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function">Incrementable <span class="title">getCallbackReference</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> Closure();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Caller</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Incrementable callbackReference;</span><br><span class="line"></span><br><span class="line">    Caller(Incrementable cbh) &#123;</span><br><span class="line">        callbackReference = cbh;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">go</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        callbackReference.increment();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Callbacks</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Callee1 c1 = <span class="keyword">new</span> Callee1();</span><br><span class="line">        Callee2 c2 = <span class="keyword">new</span> Callee2();</span><br><span class="line">        MyIncrement.f(c2);</span><br><span class="line">        Caller caller1 = <span class="keyword">new</span> Caller(c1);</span><br><span class="line">        Caller caller2 = <span class="keyword">new</span> Caller(c2.getCallbackReference());</span><br><span class="line">        caller1.go();</span><br><span class="line">        caller1.go();</span><br><span class="line">        caller2.go();</span><br><span class="line">        caller2.go();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// output</span></span><br><span class="line"><span class="comment">// Other operation</span></span><br><span class="line"><span class="comment">// 1</span></span><br><span class="line"><span class="comment">// 1</span></span><br><span class="line"><span class="comment">// 2</span></span><br><span class="line"><span class="comment">// Other operation</span></span><br><span class="line"><span class="comment">// 2</span></span><br><span class="line"><span class="comment">// Other operation</span></span><br><span class="line"><span class="comment">// 3</span></span><br></pre></td></tr></table></figure>
 
-<p>上面这个例子只为了一个目的,就是凸显出,内部类可以拿到外部类的引用(Callee2.this),并且没有任何限制。</p>
-<p>Callee1 实现了 Incrementable</p>
-<p>Callee2 继承了 MyIncrement 那个相应的他就自带了 increment() 方法,无法再实现 Incrementable 接口,这里通过 内部类 Closure 实现接口,在通过 getCallbackReference() 拿到引用</p>
-<p>在主函数中,Caller 通过构造函数统一对 Incrementable 做操作。</p>
-<p>PS：个人感觉这个例子中 MyIncrement 这个类对说明 callback 这个特性反而起了舞蹈的作用,让整个示例反觉更繁琐了。</p>
 <h3 id="Inner-classes-amp-control-frameworks"><a href="#Inner-classes-amp-control-frameworks" class="headerlink" title="Inner classes &amp; control frameworks"></a>Inner classes &amp; control frameworks</h3><blockquote>
-<p>List<Event> (pronounced “List of Event”) 原来带类型的 collection 这么发音吗,学到了,又感觉很合理</p>
+<p>List<Event> (pronounced “List of Event”) 原来带类型的 collection 这么发音的吗,学到了同时感觉很合理</p>
 </blockquote>
 <blockquote>
 <p>本章主要例子中用到了 Command pattern 不过我已经忘了那是个什么东西了,又要复习了 （；￣ェ￣）</p>
@@ -570,7 +802,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">Event</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">long</span> eventTime;</span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">final</span> <span class="keyword">long</span> delayTime;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Event</span><span class="params">(<span class="keyword">long</span> delayTime)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.delayTime = delayTime;</span><br><span class="line">        start();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">start</span><span class="params">()</span> </span>&#123; <span class="comment">// Allows restarting</span></span><br><span class="line">        eventTime = System.nanoTime() + delayTime;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">ready</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> System.nanoTime() &gt;= eventTime;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">action</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p><code>start()</code> 单独抽离,方便以后实现 restart 功能, <code>ready()</code> 即判断是否已经可以执行事件,<code>action()</code> 是我们要执行事件的内容。</p>
-<p>以下是 Controller 代码,代表整段程序的执行逻辑, Controller 实体持有事件列表,然后通过 while 遍历 event 并执行。处理时通过一个新建的 list 处理防止动态改变值。</p>
+<p>以下是 Controller 代码, Controller 实体持有事件列表,然后通过 while 遍历 event 并执行。处理时将变量 list 备份用来遍历防止动态改变值。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Controller</span> </span>&#123;</span><br><span class="line">    <span class="comment">// A class from java.util to hold Event objects:</span></span><br><span class="line">    <span class="keyword">private</span> List&lt;Event&gt; eventList = <span class="keyword">new</span> ArrayList&lt;Event&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addEvent</span><span class="params">(Event c)</span> </span>&#123;</span><br><span class="line">        eventList.add(c);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">while</span> (eventList.size() &gt; <span class="number">0</span>)</span><br><span class="line">            <span class="comment">// Make a copy so you’re not modifying the list</span></span><br><span class="line">            <span class="comment">// while you’re selecting the elements in it:</span></span><br><span class="line">            <span class="keyword">for</span> (Event e : <span class="keyword">new</span> ArrayList&lt;Event&gt;(eventList))</span><br><span class="line">                <span class="keyword">if</span> (e.ready()) &#123;</span><br><span class="line">                    System.out.println(e);</span><br><span class="line">                    e.action();</span><br><span class="line">                    eventList.remove(e);</span><br><span class="line">                &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>在遍历 event 时,我们并不知道 event 具体是什么,这正是框架的目的,我们并不关心某个具体的对象。而这恰恰是 inner class 擅长的地方。通过使用它我们可以在两方面优化上面的代码。</p>
@@ -584,7 +816,7 @@
 <p>代码结构很简单,分别声明了一些事件类型 lightOn/Off, waterOn/Off 等,内部类继承 Event,实现个则的抽象方法即可。</p>
 <p>Bell 和 Restart 有别于其他的 event 内部类,它还会调用 Outer class 的其他方法。</p>
 <p>以下是 GreenhouseController 执行函数</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">GreenhouseController</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        GreenhouseControls gc = <span class="keyword">new</span> GreenhouseControls();</span><br><span class="line">        <span class="comment">// Instead of hard-wiring, you could parse</span></span><br><span class="line">        <span class="comment">// configuration information from a text file here:</span></span><br><span class="line">        gc.addEvent(gc.new Bell(<span class="number">900</span>));</span><br><span class="line">        Event[] eventList = &#123;</span><br><span class="line">                gc.new ThermostatNight(<span class="number">0</span>),</span><br><span class="line">                gc.new LightOn(<span class="number">200</span>),</span><br><span class="line">                gc.new LightOff(<span class="number">400</span>),</span><br><span class="line">                gc.new WaterOn(<span class="number">600</span>),</span><br><span class="line">                gc.new WaterOff(<span class="number">800</span>),</span><br><span class="line">                gc.new ThermostatDay(<span class="number">1400</span>)</span><br><span class="line">        &#125;;</span><br><span class="line">        gc.addEvent(gc.new Restart(<span class="number">2000</span>, eventList));</span><br><span class="line">        <span class="keyword">if</span> (args.length == <span class="number">1</span>)</span><br><span class="line">            gc.addEvent(</span><br><span class="line">                    <span class="keyword">new</span> GreenhouseControls.Terminate(</span><br><span class="line">                            <span class="keyword">new</span> Integer(args[<span class="number">0</span>])));</span><br><span class="line">        gc.run();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// output:</span></span><br><span class="line"><span class="comment">// Bing!</span></span><br><span class="line"><span class="comment">// Thermostat on night setting</span></span><br><span class="line"><span class="comment">// Light is on</span></span><br><span class="line"><span class="comment">// Light is off</span></span><br><span class="line"><span class="comment">// Greenhouse water is on</span></span><br><span class="line"><span class="comment">// Greenhouse water is off</span></span><br><span class="line"><span class="comment">// Thermostat on day setting</span></span><br><span class="line"><span class="comment">// Restarting system</span></span><br><span class="line"><span class="comment">// Terminating</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">GreenhouseController</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        GreenhouseControls gc = <span class="keyword">new</span> GreenhouseControls();</span><br><span class="line">        <span class="comment">// Instead of hard-wiring, you could parse</span></span><br><span class="line">        <span class="comment">// configuration information from a text file here:</span></span><br><span class="line">        gc.addEvent(gc.new Bell(<span class="number">900</span>));</span><br><span class="line">        Event[] eventList = &#123;</span><br><span class="line">                gc.new ThermostatNight(<span class="number">0</span>),</span><br><span class="line">                gc.new LightOn(<span class="number">200</span>),</span><br><span class="line">                gc.new LightOff(<span class="number">400</span>),</span><br><span class="line">                gc.new WaterOn(<span class="number">600</span>),</span><br><span class="line">                gc.new WaterOff(<span class="number">800</span>),</span><br><span class="line">                gc.new ThermostatDay(<span class="number">1400</span>)</span><br><span class="line">        &#125;;</span><br><span class="line">        gc.addEvent(gc.new Restart(<span class="number">2000</span>, eventList));</span><br><span class="line">        gc.addEvent(<span class="keyword">new</span> GreenhouseControls.Terminate(<span class="keyword">new</span> Integer(<span class="number">5000</span>)));</span><br><span class="line">        gc.run();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// output:</span></span><br><span class="line"><span class="comment">// Bing!</span></span><br><span class="line"><span class="comment">// Thermostat on night setting</span></span><br><span class="line"><span class="comment">// Light is on</span></span><br><span class="line"><span class="comment">// Light is off</span></span><br><span class="line"><span class="comment">// Greenhouse water is on</span></span><br><span class="line"><span class="comment">// Greenhouse water is off</span></span><br><span class="line"><span class="comment">// Thermostat on day setting</span></span><br><span class="line"><span class="comment">// Restarting system</span></span><br><span class="line"><span class="comment">// Terminating</span></span><br></pre></td></tr></table></figure>
 
 <h2 id="Inheriting-from-inner-classes"><a href="#Inheriting-from-inner-classes" class="headerlink" title="Inheriting from inner classes"></a>Inheriting from inner classes</h2><p>如果想要继承一个内部类,语法稍微有点特殊,由于内部类需要借助外部类才能实例化,所以构造函数中需要调用 <code>outer.super()</code> 实例如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">WithInner</span> </span>&#123;</span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Inner</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">InheritInner</span> <span class="keyword">extends</span> <span class="title">WithInner</span>.<span class="title">Inner</span> </span>&#123;</span><br><span class="line">    <span class="comment">//! InheritInner() &#123;&#125; // Won’t compile</span></span><br><span class="line">    InheritInner(WithInner wi) &#123;</span><br><span class="line">        wi.<span class="keyword">super</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        WithInner wi = <span class="keyword">new</span> WithInner();</span><br><span class="line">        InheritInner ii = <span class="keyword">new</span> InheritInner(wi);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -659,7 +891,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-16 20:03:26" itemprop="dateModified" datetime="2020-12-16T20:03:26+08:00">2020-12-16</time>
+                <time title="修改时间：2020-12-17 21:24:18" itemprop="dateModified" datetime="2020-12-17T21:24:18+08:00">2020-12-17</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -758,7 +990,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-16 20:03:26" itemprop="dateModified" datetime="2020-12-16T20:03:26+08:00">2020-12-16</time>
+                <time title="修改时间：2020-12-17 21:24:18" itemprop="dateModified" datetime="2020-12-17T21:24:18+08:00">2020-12-17</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1277,7 +1509,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
           
-            <a href="/hexo/2020/12/01/Java-methods-equals-and-hashcode/" class="post-title-link" itemprop="url">Java methods equals and hashcode</a>
+            <a href="/hexo/2020/12/01/Java-methods-equals-and-hashcode/" class="post-title-link" itemprop="url">Java 中重写 equals 和 hashcode 的问题</a>
         </h1>
 
         <div class="post-meta">
@@ -1294,7 +1526,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-16 20:03:26" itemprop="dateModified" datetime="2020-12-16T20:03:26+08:00">2020-12-16</time>
+                <time title="修改时间：2020-12-17 21:24:18" itemprop="dateModified" datetime="2020-12-17T21:24:18+08:00">2020-12-17</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1390,7 +1622,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-16 20:03:26" itemprop="dateModified" datetime="2020-12-16T20:03:26+08:00">2020-12-16</time>
+                <time title="修改时间：2020-12-17 21:24:18" itemprop="dateModified" datetime="2020-12-17T21:24:18+08:00">2020-12-17</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1481,7 +1713,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-16 20:03:26" itemprop="dateModified" datetime="2020-12-16T20:03:26+08:00">2020-12-16</time>
+                <time title="修改时间：2020-12-17 21:24:18" itemprop="dateModified" datetime="2020-12-17T21:24:18+08:00">2020-12-17</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -2857,7 +3089,7 @@
 <li>name_index + descriptor_index: 指向常量池中 CONSTANT_Utf8_info 类型索引</li>
 <li>index: 栈帧局部变量槽位置，当数据类型为 64 位则占用 index 和 index+1 两个</li>
 </ul>
-<p>LocalVarableTypeTable 是 JDK5 时为了支持范型而引入的，基本功能和 LocalVarableTable 一样。</p>
+<p>LocalVarableTypeTable 是 JDK5 时为了支持泛型而引入的，基本功能和 LocalVarableTable 一样。</p>
 <h4 id="SourceFile-及-SourceDebugExtension-属性"><a href="#SourceFile-及-SourceDebugExtension-属性" class="headerlink" title="SourceFile 及 SourceDebugExtension 属性"></a>SourceFile 及 SourceDebugExtension 属性</h4><p>SourceFile 记录生成 Class 文件的源码文件名称，可选，通常与类名同，特殊情况除外(如内部类)。表结构如下:</p>
 <table>
 <thead>
@@ -3111,7 +3343,7 @@
 </tr>
 </tbody></table>
 <p>SE7 之后规定，版本号 &gt;= 50.0 的 class 文件都必须带有 StackMapTable 属性。一个 Code 属性最多只能有一个 StackMapTable 不然抛错 ClassFormatError。</p>
-<h4 id="Signature-属性"><a href="#Signature-属性" class="headerlink" title="Signature 属性"></a>Signature 属性</h4><p>在 JDK5 中和范型一起加入的，记录范型签名信息。Java 中的范型是伪范型。</p>
+<h4 id="Signature-属性"><a href="#Signature-属性" class="headerlink" title="Signature 属性"></a>Signature 属性</h4><p>在 JDK5 中和泛型一起加入的，记录泛型签名信息。Java 中的泛型是伪泛型。</p>
 <table>
 <thead>
 <tr>
@@ -3441,7 +3673,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-16 20:03:26" itemprop="dateModified" datetime="2020-12-16T20:03:26+08:00">2020-12-16</time>
+                <time title="修改时间：2020-12-17 21:24:18" itemprop="dateModified" datetime="2020-12-17T21:24:18+08:00">2020-12-17</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -3509,206 +3741,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/11/12/Spring-service-run-once-after-server-up/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2020/11/12/Spring-service-run-once-after-server-up/" class="post-title-link" itemprop="url">Spring 怎么实现 server 启动之后立刻执行一个服务</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-11-12 12:59:19" itemprop="dateCreated datePublished" datetime="2020-11-12T12:59:19+08:00">2020-11-12</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-16 20:03:26" itemprop="dateModified" datetime="2020-12-16T20:03:26+08:00">2020-12-16</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
-                    <span itemprop="name">编程</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>2.2k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>2 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>最近遇到一个需求需要在 Spring web service 启动之后立即执行，类似一个初始化的工作，搜出来有好多实现方式，稍微记录一下他们的区别</p>
-<h2 id="ApplicationListener"><a href="#ApplicationListener" class="headerlink" title="ApplicationListener"></a>ApplicationListener</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">InitTraceSourceEventListener</span> <span class="keyword">implements</span> <span class="title">ApplicationListener</span>&lt;<span class="title">ApplicationReadyEvent</span>&gt; </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onApplicationEvent</span><span class="params">(ApplicationReadyEvent applicationReadyEvent)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;InitTraceSourceEventListener triggered...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>或者</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ProjectConfiguration</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger log = </span><br><span class="line">   LoggerFactory.getLogger(ProjectConfiguration.class);</span><br><span class="line"></span><br><span class="line">   <span class="meta">@EventListener(ApplicationReadyEvent.class)</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doSomethingAfterStartup</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    log.info(<span class="string">&quot;hello world, I have just started up&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="SpringBootServletInitializer"><a href="#SpringBootServletInitializer" class="headerlink" title="SpringBootServletInitializer"></a>SpringBootServletInitializer</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableAutoConfiguration</span></span><br><span class="line"><span class="meta">@ComponentScan</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Application</span> <span class="keyword">extends</span> <span class="title">SpringBootServletInitializer</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@SuppressWarnings(&quot;resource&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(<span class="keyword">final</span> String[] args)</span> </span>&#123;</span><br><span class="line">        ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);</span><br><span class="line"></span><br><span class="line">        context.getBean(Table.class).fillWithTestdata(); // &lt;-- here</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="PostConstruct"><a href="#PostConstruct" class="headerlink" title="@PostConstruct"></a>@PostConstruct</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Monitor</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Autowired</span> <span class="keyword">private</span> SomeService service</span><br><span class="line"></span><br><span class="line">    <span class="meta">@PostConstruct</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="comment">// start your monitoring in here</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h2 id="ApplicationRunner"><a href="#ApplicationRunner" class="headerlink" title="ApplicationRunner"></a>ApplicationRunner</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.springframework.boot.ApplicationRunner;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ServerInitializer</span> <span class="keyword">implements</span> <span class="title">ApplicationRunner</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">(ApplicationArguments applicationArguments)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//code goes here</span></span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h2 id="CommandLineRunner"><a href="#CommandLineRunner" class="headerlink" title="CommandLineRunner"></a>CommandLineRunner</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CommandLineAppStartupRunner</span> <span class="keyword">implements</span> <span class="title">CommandLineRunner</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = LoggerFactory.getLogger(CommandLineAppStartupRunner.class);</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">(String...args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        logger.info(<span class="string">&quot;Application started with command-line arguments: &#123;&#125; . \n To kill this application, press Ctrl + C.&quot;</span>, Arrays.toString(args));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="InitializingBean"><a href="#InitializingBean" class="headerlink" title="InitializingBean"></a>InitializingBean</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyInitializingBean</span> <span class="keyword">implements</span> <span class="title">InitializingBean</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = ...;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">afterPropertiesSet</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    logger.info(<span class="string">&quot;InitializingBean#afterPropertiesSet()&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/11/11/Springboot-add-local-jar-into-dependency/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2020/11/11/Springboot-add-local-jar-into-dependency/" class="post-title-link" itemprop="url">Springboot add local jar into dependency</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-11-11 17:18:57" itemprop="dateCreated datePublished" datetime="2020-11-11T17:18:57+08:00">2020-11-11</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-16 20:03:26" itemprop="dateModified" datetime="2020-12-16T20:03:26+08:00">2020-12-16</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
-                    <span itemprop="name">编程</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>Springboot 项目中怎么添加本地 jar 包记录</p>
-<ol>
-<li>在项目资源目录下创建一个文件夹，用来存放本地 jar 包</li>
-<li>在 pom.xml 中添加 本地 jar 包的引用，引用目录为第一步创建的文件目录</li>
-<li>在 pom.xml 的 plugins 中添加编译打包的目录，使本地jar包能打到项目中去</li>
-</ol>
-<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">resources</span><br><span class="line">├── application.properties</span><br><span class="line">├── lib</span><br><span class="line">│   └── tracesonar-0.1-SNAPSHOT.jar (本地包)</span><br><span class="line">├── static</span><br><span class="line">└── templates</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- add local lib reference --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.github.TraceSonar<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>TraceSonar<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>0.0.3<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">scope</span>&gt;</span>system<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">systemPath</span>&gt;</span>$&#123;project.basedir&#125;/src/main/resources/lib/tracesonar-0.1-SNAPSHOT.jar<span class="tag">&lt;/<span class="name">systemPath</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">plugins</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-compiler-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">source</span>&gt;</span>1.8<span class="tag">&lt;/<span class="name">source</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">target</span>&gt;</span>1.8<span class="tag">&lt;/<span class="name">target</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">encoding</span>&gt;</span>UTF-8<span class="tag">&lt;/<span class="name">encoding</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">compilerArguments</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">extdirs</span>&gt;</span>$&#123;project.basedir&#125;/src/main/resources/lib<span class="tag">&lt;/<span class="name">extdirs</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">compilerArguments</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -3759,7 +3791,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">95</span>
+          <span class="site-state-item-count">97</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -3806,12 +3838,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">312k</span>
+    <span title="站点总字数">319k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">4:44</span>
+    <span title="站点阅读时长">4:50</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>

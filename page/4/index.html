@@ -206,6 +206,251 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/09/10/Splunk-Quick-Guide/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2020/09/10/Splunk-Quick-Guide/" class="post-title-link" itemprop="url">Splunk 快速入门</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-09-10 15:43:42" itemprop="dateCreated datePublished" datetime="2020-09-10T15:43:42+08:00">2020-09-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-12-17 21:24:18" itemprop="dateModified" datetime="2020-12-17T21:24:18+08:00">2020-12-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E5%B0%8F%E5%B7%A5%E5%85%B7/" itemprop="url" rel="index">
+                    <span itemprop="name">小工具</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="常用-Query"><a href="#常用-Query" class="headerlink" title="常用 Query"></a>常用 Query</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- event 出现的次数</span></span><br><span class="line">search=index | stats sum(linecount) as Total</span><br><span class="line"><span class="comment">-- or</span></span><br><span class="line">search=index | stats count as Total</span><br></pre></td></tr></table></figure>
+
+<h3 id="查询-event-的日均量"><a href="#查询-event-的日均量" class="headerlink" title="查询 event 的日均量"></a>查询 event 的日均量</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">eventtype=<span class="string">&quot;searchAccountLocked&quot;</span> | timechart span=1d count | stats avg(count)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在此基础上，计算 7 天的平均值</span></span><br><span class="line">eventtype=<span class="string">&quot;searchAccountLocked&quot;</span> | timechart span=1d count | stats avg(count) as avgc ｜ <span class="built_in">eval</span> n=exact(1 * avgc)</span><br></pre></td></tr></table></figure>
+
+<h2 id="通过-Regex-匹配得到目标百分比"><a href="#通过-Regex-匹配得到目标百分比" class="headerlink" title="通过 Regex 匹配得到目标百分比"></a>通过 Regex 匹配得到目标百分比</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://community.splunk.com/t5/Splunk-Search/Get-percentage-of-matchin-to-all-events/td-p/39113">社区类似问题</a></li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 搜索全部 event, 通过 regex 匹配到目标，计算百分比</span></span><br><span class="line">UserChangeEvent MessageBox | stats count(<span class="built_in">eval</span>(match(field1, <span class="string">&quot;.*updatedFields\&quot;:\[&#123;\&quot;fieldName\&quot;:\&quot;jobCode\&quot;.*&quot;</span>))) as JCEvent count as total | <span class="built_in">eval</span> JC_pct=JCEvent/total*100</span><br><span class="line"></span><br><span class="line"><span class="comment"># 升级版，计算多个百分比情况</span></span><br><span class="line"><span class="comment"># EMP_PCT 内容是空的 event 在所有 jobcode event 中的占比，和 jobcode 在所有 event 中的占比</span></span><br><span class="line">UserChangeEvent MessageBox | stats count(<span class="built_in">eval</span>(match(field1, <span class="string">&quot;.*updatedFields\&quot;:\[&#123;\&quot;fieldName\&quot;:\&quot;jobCode\&quot;.*&quot;</span>))) as totalJCEvent count(<span class="built_in">eval</span>(match(field1, <span class="string">&quot;.*updatedFields\&quot;:\[&#123;\&quot;fieldName\&quot;:\&quot;jobCode\&quot;,\&quot;fieldType\&quot;:\&quot;java.lang.String\&quot;,\&quot;afterValue\&quot;:\&quot;\&quot;&#125;\].*&quot;</span>))) as emptyEvent count as total | <span class="built_in">eval</span> EMP_PCT=emptyEvent/totalJCEvent*100, JC_PCT=totalJCEvent/total*100</span><br></pre></td></tr></table></figure>
+
+<h2 id="取两位小数"><a href="#取两位小数" class="headerlink" title="取两位小数"></a>取两位小数</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">| 7xAVG=round((7*total/1), 2)</span><br></pre></td></tr></table></figure>
+
+<h2 id="通过正则创建新-field"><a href="#通过正则创建新-field" class="headerlink" title="通过正则创建新 field"></a>通过正则创建新 field</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 选出结果集，从输出信息中匹配 &#x27;Company: &#x27; 开头 &#x27;, total CommonField&#x27; 结尾的部分并命名为 cname 统计出现次数</span></span><br><span class="line"><span class="comment"># _raw 表示 record 内容</span></span><br><span class="line">search condition | rex field=_raw <span class="string">&quot;Company: (?&lt;cname&gt;.*), total CommonField&quot;</span> | stats count by cname</span><br></pre></td></tr></table></figure>
+
+<h2 id="stats-和-eval-的区别"><a href="#stats-和-eval-的区别" class="headerlink" title="stats 和 eval 的区别"></a>stats 和 eval 的区别</h2><p>stats 是对已经有的 field 的删选，而 eval 是通过已有的 field 计算出新的 field 加到结果集中进行删选，等价于新增 field</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 删选 event, 新建一个 field 名叫 is_prod, 当 host 匹配 pattern 时赋值 yes_prod</span></span><br><span class="line">search event | <span class="built_in">eval</span> is_prod=<span class="keyword">if</span>(like(host, <span class="string">&quot;pc%&quot;</span>), <span class="string">&quot;yes_prod&quot;</span>, <span class="string">&quot;not_prod&quot;</span>) | stats count by is_prod</span><br></pre></td></tr></table></figure>
+
+<p>其中 eval 还支持多种删选条件，可塑性好高</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 统计各环境的 event 数量并统计比例</span></span><br><span class="line">search event | <span class="built_in">eval</span> env=<span class="keyword">case</span>(like(host, <span class="string">&quot;pc%&quot;</span>), <span class="string">&quot;prod&quot;</span>, like(host, <span class="string">&quot;sc%&quot;</span>), <span class="string">&quot;prov&quot;</span>, like(host, <span class="string">&quot;*&quot;</span>), <span class="string">&quot;others&quot;</span>) | stats count by env</span><br></pre></td></tr></table></figure>
+
+<h2 id="Splunk-SDK"><a href="#Splunk-SDK" class="headerlink" title="Splunk SDK"></a>Splunk SDK</h2><p>尝试了 python 版本的 SDK，香！</p>
+<p>参考 <a target="_blank" rel="noopener" href="https://dev.splunk.com/enterprise/docs/python/sdk-python/examplespython/commandline">官方文档</a> 下载依赖，在本地配置 <code>.splunkrc</code> 文件写入连接信息方便调用。第一次用的时候密码配错了，还以为内网不可用，需要用 vlab，再测试的时候发现了这个问题。总的来说很可以。</p>
+<p>Steps:</p>
+<ol>
+<li>clone git 开源项目 <a target="_blank" rel="noopener" href="https://github.com/splunk/splunk-sdk-python">Splunk SDK Python</a></li>
+<li>用户目录下创建 <code>.splunkrc</code> 文件</li>
+<li>cd 到 <code>splunk-sdk-python/examples</code> folder 下，运行命令 <code>python search.py &quot;search * | head 10&quot; --earliest_time=&quot;2011-08-10T17:15:00.000-07:00&quot; --rf=&quot;desc&quot; --output_mode=json</code> 可以看到对应时间戳下的前 10 条记录</li>
+</ol>
+<p><code>.splunkrc</code> 文件模板</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># Splunk host (default: localhost)</span><br><span class="line">host&#x3D;xxx.xxx.xxx</span><br><span class="line"># Splunk admin port (default: 8089)</span><br><span class="line">port&#x3D;8089</span><br><span class="line"># Splunk username</span><br><span class="line">username&#x3D;jack</span><br><span class="line"># Splunk password</span><br><span class="line">password&#x3D;mypwd</span><br><span class="line"># Access scheme (default: https)</span><br><span class="line">scheme&#x3D;https</span><br><span class="line"># Your version of Splunk (default: 5.0)</span><br><span class="line">version&#x3D;7.1.2</span><br></pre></td></tr></table></figure>
+
+<h2 id="三个小例子快速入门"><a href="#三个小例子快速入门" class="headerlink" title="三个小例子快速入门"></a>三个小例子快速入门</h2><h3 id="搜索-event-并通过饼图展示"><a href="#搜索-event-并通过饼图展示" class="headerlink" title="搜索 event 并通过饼图展示"></a>搜索 event 并通过饼图展示</h3><ol>
+<li>输入时间节点和关键词：<code>MessageBox topic=com.successfactors.usermanagement.event.UserChangeEvent | stats count by servername</code></li>
+<li>选择可视化 tab</li>
+<li>选择饼图</li>
+</ol>
+<p><img src="pie.png" alt="饼图"></p>
+<h3 id="显示每天的-event-量"><a href="#显示每天的-event-量" class="headerlink" title="显示每天的 event 量"></a>显示每天的 event 量</h3><ol>
+<li>选择时间</li>
+<li>输入搜索条件: <code>MessageBox topic=com.successfactors.usermanagement.event.UserChangeEvent | timechart count span=1d</code></li>
+<li>选择图形</li>
+</ol>
+<p><img src="bar.png" alt="柱状图"></p>
+<h3 id="通过正则删选-event-并计算百分比"><a href="#通过正则删选-event-并计算百分比" class="headerlink" title="通过正则删选 event 并计算百分比"></a>通过正则删选 event 并计算百分比</h3><ol>
+<li>选择时间</li>
+<li>输入删选条件: <code>MessageBox topic=com.successfactors.usermanagement.event.UserChangeEvent | stats count as total count(eval(match(field1, &quot;companyId&quot;))) as containsCID | eval CID_PCT=round(containsCID/total*100, 2)</code></li>
+</ol>
+<p><img src="regex.png" alt="百分比表"></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/09/09/The-Visitor-Pattern/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2020/09/09/The-Visitor-Pattern/" class="post-title-link" itemprop="url">访问者模式</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-09-09 15:37:59" itemprop="dateCreated datePublished" datetime="2020-09-09T15:37:59+08:00">2020-09-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-12-17 21:24:18" itemprop="dateModified" datetime="2020-12-17T21:24:18+08:00">2020-12-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
+                    <span itemprop="name">编程</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p>GoF 定义: Allows for one or more operation to be applied to a set of objects at runtime, decoupling the operations from the object structure. </p>
+</blockquote>
+<p>访问者模式讲的是表示一个作用于某对象结构中的各元素的操作。它使你可以在不改变各元素的类的前提下定义作用于这些元素的新操作。</p>
+<p>行为模式之一，目的是将<strong>行为</strong>和<strong>对象</strong>分开。</p>
+<p>缺点：<strong>每增</strong>加一种支持的 object，你就必须在 visitor 及其实现类中添加新的方法支持这个改动。</p>
+<h2 id="描述"><a href="#描述" class="headerlink" title="描述"></a>描述</h2><p>被访问者就是上文中的 object，他持有数据，我们想把他和数据运算分离，保持其独立性</p>
+<p>访问者代表着 operations，通过它可以实现数据运算</p>
+<h2 id="UML"><a href="#UML" class="headerlink" title="UML"></a>UML</h2><img src="/hexo/2020/09/09/The-Visitor-Pattern/visitor_pattern.png" class="" title="visitor_pattern UML">
+
+<h2 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h2><h3 id="From-DZone"><a href="#From-DZone" class="headerlink" title="From DZone"></a>From DZone</h3><ul>
+<li><a target="_blank" rel="noopener" href="https://dzone.com/articles/design-patterns-visitor">DZone - Visitor Pattern</a></li>
+</ul>
+<p>抽象一个邮寄业务，计算购物车中所有的物件总的邮费。每样物件都有自己的属性，比如价格，重量之类的。我们将邮费计算的规则单独封装在 Visitor 中，在物件类中通过调用 accept 实现计算。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 代表 object 的接口</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Visitable</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">accept</span><span class="params">(Visitor visitor)</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 实现 accept 的实例</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Book</span> <span class="keyword">implements</span> <span class="title">Visitable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">double</span> price = <span class="number">8.0</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">double</span> weight = <span class="number">3.2</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">accept</span><span class="params">(Visitor visitor)</span> </span>&#123;</span><br><span class="line">        visitor.visit(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">getPrice</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> price;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">getWeight</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> weight;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// visitor 接口</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Visitor</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">visit</span><span class="params">(Book book)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">visit</span><span class="params">(Shoes shoes)</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// visitor 实例</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PostageVisitor</span> <span class="keyword">implements</span> <span class="title">Visitor</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">double</span> totalPostageForCart;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visit</span><span class="params">(Book book)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// rule to calculate book postage cost</span></span><br><span class="line">        <span class="comment">// if price over 10, free postage.</span></span><br><span class="line">        <span class="keyword">if</span>(book.getPrice() &lt; <span class="number">10.0</span>) &#123;</span><br><span class="line">            totalPostageForCart += book.getWeight() * <span class="number">2</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visit</span><span class="params">(Shoes shoes)</span> </span>&#123; <span class="comment">//TODO &#125;</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">getTotalPostageForCart</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.totalPostageForCart;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 客户端调用</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Book book = <span class="keyword">new</span> Book();</span><br><span class="line">        Shoes shoes = <span class="keyword">new</span> Shoes();</span><br><span class="line">        PostageVisitor postageVisitor = <span class="keyword">new</span> PostageVisitor();</span><br><span class="line"></span><br><span class="line">        book.accept(postageVisitor);</span><br><span class="line">        shoes.accept(postageVisitor);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;Total cost: &quot;</span> + postageVisitor.getTotalPostageForCart());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="From-Refactoring-Guru"><a href="#From-Refactoring-Guru" class="headerlink" title="From Refactoring Guru"></a>From Refactoring Guru</h3><ul>
+<li><a target="_blank" rel="noopener" href="https://refactoringguru.cn/design-patterns/visitor/java/example">重构大师</a></li>
+</ul>
+<p>根据定义的图形打印信息到 XML 文件中，这个例子本质上和前一个没什么区别，但是他提供了组合类型的 object 支持，并且输出 xml, 还有 format 都让我眼前一亮。反正感觉很赞！</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 定义持有 accept 的接口</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Shape</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">move</span><span class="params">(<span class="keyword">int</span> x, <span class="keyword">int</span> y)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">draw</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">String <span class="title">accept</span><span class="params">(Visitor visitor)</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义接口实现</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Dot</span> <span class="keyword">implements</span> <span class="title">Shape</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> id;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> x;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> y;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Dot</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Dot</span><span class="params">(<span class="keyword">int</span> id, <span class="keyword">int</span> x, <span class="keyword">int</span> y)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.id = id;</span><br><span class="line">        <span class="keyword">this</span>.x = x;</span><br><span class="line">        <span class="keyword">this</span>.y = y;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">move</span><span class="params">(<span class="keyword">int</span> x, <span class="keyword">int</span> y)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// move shape</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">draw</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// draw shape</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">accept</span><span class="params">(Visitor visitor)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> visitor.visitDot(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// getter + setter</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义组合类型的实现</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CompoundShape</span> <span class="keyword">implements</span> <span class="title">Shape</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> id;</span><br><span class="line">    <span class="keyword">public</span> List&lt;Shape&gt; children = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">CompoundShape</span><span class="params">(<span class="keyword">int</span> id)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.id = id;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">move</span><span class="params">(<span class="keyword">int</span> x, <span class="keyword">int</span> y)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// move shape</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">draw</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// draw shape</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getId</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> id;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">accept</span><span class="params">(Visitor visitor)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> visitor.visitCompoundGraphic(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">add</span><span class="params">(Shape shape)</span> </span>&#123;</span><br><span class="line">        children.add(shape);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义 visitor 接口</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Visitor</span> </span>&#123;</span><br><span class="line">    <span class="function">String <span class="title">visitDot</span><span class="params">(Dot dot)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">String <span class="title">visitCircle</span><span class="params">(Circle circle)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">String <span class="title">visitRectangle</span><span class="params">(Rectangle rectangle)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">String <span class="title">visitCompoundGraphic</span><span class="params">(CompoundShape cg)</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// visitor 实现</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">XMLExportVisitor</span> <span class="keyword">implements</span> <span class="title">Visitor</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">export</span><span class="params">(Shape... args)</span> </span>&#123;</span><br><span class="line">        StringBuilder sb = <span class="keyword">new</span> StringBuilder();</span><br><span class="line">        sb.append(<span class="string">&quot;&lt;?xml version=\&quot;1.0\&quot; encoding=\&quot;utf-8\&quot;?&gt;&quot;</span> + <span class="string">&quot;\n&quot;</span>);</span><br><span class="line">        <span class="keyword">for</span> (Shape shape : args) &#123;</span><br><span class="line">            sb.append(shape.accept(<span class="keyword">this</span>)).append(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> sb.toString();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">visitDot</span><span class="params">(Dot d)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;&lt;dot&gt;&quot;</span> + <span class="string">&quot;\n&quot;</span> +</span><br><span class="line">                <span class="string">&quot;    &lt;id&gt;&quot;</span> + d.getId() + <span class="string">&quot;&lt;/id&gt;&quot;</span> + <span class="string">&quot;\n&quot;</span> +</span><br><span class="line">                <span class="string">&quot;    &lt;x&gt;&quot;</span> + d.getX() + <span class="string">&quot;&lt;/x&gt;&quot;</span> + <span class="string">&quot;\n&quot;</span> +</span><br><span class="line">                <span class="string">&quot;    &lt;y&gt;&quot;</span> + d.getY() + <span class="string">&quot;&lt;/y&gt;&quot;</span> + <span class="string">&quot;\n&quot;</span> +</span><br><span class="line">                <span class="string">&quot;&lt;/dot&gt;&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">visitCompoundGraphic</span><span class="params">(CompoundShape cg)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;&lt;compound_graphic&gt;&quot;</span> + <span class="string">&quot;\n&quot;</span> +</span><br><span class="line">                <span class="string">&quot;   &lt;id&gt;&quot;</span> + cg.getId() + <span class="string">&quot;&lt;/id&gt;&quot;</span> + <span class="string">&quot;\n&quot;</span> +</span><br><span class="line">                _visitCompoundGraphic(cg) +</span><br><span class="line">                <span class="string">&quot;&lt;/compound_graphic&gt;&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> String <span class="title">_visitCompoundGraphic</span><span class="params">(CompoundShape cg)</span> </span>&#123;</span><br><span class="line">        StringBuilder sb = <span class="keyword">new</span> StringBuilder();</span><br><span class="line">        <span class="keyword">for</span> (Shape shape : cg.children) &#123;</span><br><span class="line">            String obj = shape.accept(<span class="keyword">this</span>);</span><br><span class="line">            <span class="comment">// Proper indentation for sub-objects.</span></span><br><span class="line">            obj = <span class="string">&quot;    &quot;</span> + obj.replace(<span class="string">&quot;\n&quot;</span>, <span class="string">&quot;\n    &quot;</span>) + <span class="string">&quot;\n&quot;</span>;</span><br><span class="line">            sb.append(obj);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> sb.toString();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 客户端调用</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Dot dot = <span class="keyword">new</span> Dot(<span class="number">1</span>, <span class="number">10</span>, <span class="number">55</span>);</span><br><span class="line">        Circle circle = <span class="keyword">new</span> Circle(<span class="number">2</span>, <span class="number">23</span>, <span class="number">15</span>, <span class="number">10</span>);</span><br><span class="line">        Rectangle rectangle = <span class="keyword">new</span> Rectangle(<span class="number">3</span>, <span class="number">10</span>, <span class="number">17</span>, <span class="number">20</span>, <span class="number">30</span>);</span><br><span class="line"></span><br><span class="line">        CompoundShape compoundShape = <span class="keyword">new</span> CompoundShape(<span class="number">4</span>);</span><br><span class="line">        compoundShape.add(dot);</span><br><span class="line">        compoundShape.add(circle);</span><br><span class="line">        compoundShape.add(rectangle);</span><br><span class="line"></span><br><span class="line">        CompoundShape c = <span class="keyword">new</span> CompoundShape(<span class="number">5</span>);</span><br><span class="line">        c.add(dot);</span><br><span class="line">        compoundShape.add(c);</span><br><span class="line"></span><br><span class="line">        export(circle, compoundShape);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">export</span><span class="params">(Shape... shapes)</span> </span>&#123;</span><br><span class="line">        XMLExportVisitor exportVisitor = <span class="keyword">new</span> XMLExportVisitor();</span><br><span class="line">        System.out.println(exportVisitor.export(shapes));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/09/08/Spring5-note/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +482,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-16 20:03:26" itemprop="dateModified" datetime="2020-12-16T20:03:26+08:00">2020-12-16</time>
+                <time title="修改时间：2020-12-17 21:24:18" itemprop="dateModified" datetime="2020-12-17T21:24:18+08:00">2020-12-17</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -529,7 +774,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-16 20:03:26" itemprop="dateModified" datetime="2020-12-16T20:03:26+08:00">2020-12-16</time>
+                <time title="修改时间：2020-12-17 21:24:18" itemprop="dateModified" datetime="2020-12-17T21:24:18+08:00">2020-12-17</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -676,7 +921,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-16 20:03:26" itemprop="dateModified" datetime="2020-12-16T20:03:26+08:00">2020-12-16</time>
+                <time title="修改时间：2020-12-17 21:24:18" itemprop="dateModified" datetime="2020-12-17T21:24:18+08:00">2020-12-17</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -767,7 +1012,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-16 20:03:26" itemprop="dateModified" datetime="2020-12-16T20:03:26+08:00">2020-12-16</time>
+                <time title="修改时间：2020-12-17 21:24:18" itemprop="dateModified" datetime="2020-12-17T21:24:18+08:00">2020-12-17</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -871,7 +1116,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-16 20:03:26" itemprop="dateModified" datetime="2020-12-16T20:03:26+08:00">2020-12-16</time>
+                <time title="修改时间：2020-12-17 21:24:18" itemprop="dateModified" datetime="2020-12-17T21:24:18+08:00">2020-12-17</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -962,7 +1207,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-16 20:03:26" itemprop="dateModified" datetime="2020-12-16T20:03:26+08:00">2020-12-16</time>
+                <time title="修改时间：2020-12-17 21:24:18" itemprop="dateModified" datetime="2020-12-17T21:24:18+08:00">2020-12-17</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1056,7 +1301,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-16 20:03:26" itemprop="dateModified" datetime="2020-12-16T20:03:26+08:00">2020-12-16</time>
+                <time title="修改时间：2020-12-17 21:24:18" itemprop="dateModified" datetime="2020-12-17T21:24:18+08:00">2020-12-17</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1151,7 +1396,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-16 20:03:26" itemprop="dateModified" datetime="2020-12-16T20:03:26+08:00">2020-12-16</time>
+                <time title="修改时间：2020-12-17 21:24:18" itemprop="dateModified" datetime="2020-12-17T21:24:18+08:00">2020-12-17</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1171,7 +1416,7 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>3k</span>
+              <span>3.4k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -1190,9 +1435,9 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>记录一下泛型的定义，历史，使用案例等。素材只要来源于 On Java 8, Thinking in Java 和 Effective Java。</p>
+          <p>记录一下泛型的定义，历史，使用案例等。素材主要来源于 On Java 8, Thinking in Java 和 Effective Java。</p>
 <h2 id="历史"><a href="#历史" class="headerlink" title="历史"></a>历史</h2><p>1.5 版本引入，主要动机是支持 Collection 类</p>
-<h2 id="泛型方法"><a href="#泛型方法" class="headerlink" title="泛型方法"></a>泛型方法</h2><p>把这一块放到最前面时为了避免理解上的误区，泛型方法和泛型类，泛型接口没有从属关系，就算时普通的 Utils 方法也可以声明泛型方法</p>
+<h2 id="泛型方法"><a href="#泛型方法" class="headerlink" title="泛型方法"></a>泛型方法</h2><p>把这一块放到最前面时为了避免理解上的误区，泛型方法和泛型类，泛型接口没有从属关系，就算是普通的 Utils 方法也可以声明泛型方法</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">GenericUtils</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function"><span class="keyword">void</span> <span class="title">printParam</span><span class="params">(T t)</span> </span>&#123;</span><br><span class="line">        System.out.println(t);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test_print</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    GenericUtils.printParam(<span class="string">&quot;Jack&quot;</span>);</span><br><span class="line">    GenericUtils.printParam(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Output:</span></span><br><span class="line"><span class="comment">// Jack</span></span><br><span class="line"><span class="comment">// 1</span></span><br></pre></td></tr></table></figure>
 
 <h2 id="泛型类"><a href="#泛型类" class="headerlink" title="泛型类"></a>泛型类</h2><p>即在声明类时添加类型声明，最常见的如 Collection 系列下的 ArrayList</p>
@@ -1202,6 +1447,11 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 1.8 中引入的接口，充当工厂方法的角色</span></span><br><span class="line"><span class="meta">@FunctionalInterface</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Supplier</span>&lt;<span class="title">T</span>&gt; </span>&#123; <span class="function">T <span class="title">get</span><span class="params">()</span></span>; &#125;</span><br><span class="line"></span><br><span class="line">Supplier&lt;Integer&gt; integerSupplier = () -&gt; (<span class="keyword">new</span> Random()).nextInt();</span><br><span class="line">System.out.println(integerSupplier.get());</span><br></pre></td></tr></table></figure>
 
 <h2 id="使用案例"><a href="#使用案例" class="headerlink" title="使用案例"></a>使用案例</h2><p>记录一下工作生活中遇到的具体使用案例</p>
+<h3 id="代码重构"><a href="#代码重构" class="headerlink" title="代码重构"></a>代码重构</h3><p>公司代码重构时遇到下面这种情况：</p>
+<p>比如原来有个类叫 Background, 重构时为他抽了一个 interface IBackground。但是在替换一些集合相关的代码时出现了不兼容的问题。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// before</span></span><br><span class="line">List&lt;Background&gt; list = someClass.getBackgroundList();</span><br><span class="line"><span class="comment">// what I prefer to, but compile failed</span></span><br><span class="line">List&lt;IBackground&gt; list = someClass.getBackgroundList();</span><br><span class="line"><span class="comment">// what I should do</span></span><br><span class="line">List&lt;IBackground&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;(someClass.getBackgroundList());</span><br><span class="line"><span class="comment">// or</span></span><br><span class="line">List&lt;? extends IBackground&gt; list = someClass.getBackgroundList();</span><br></pre></td></tr></table></figure>
+
+<p>上面的这种转换失败就是由泛型转化异常造成的</p>
 <h3 id="指定泛型返回值为某个类的子类"><a href="#指定泛型返回值为某个类的子类" class="headerlink" title="指定泛型返回值为某个类的子类"></a>指定泛型返回值为某个类的子类</h3><p>可以使用泛型方法</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> &lt;T extends Sup&gt;  <span class="function">T <span class="title">getSometing</span><span class="params">()</span> </span>&#123;&#125;;</span><br></pre></td></tr></table></figure>
 
@@ -1225,195 +1475,12 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Sup</span> </span>&#123; &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Sub</span> <span class="keyword">extends</span> <span class="title">Sup</span> </span>&#123; &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Father</span> </span>&#123; </span><br><span class="line">    Map&lt;String, ? extends List &lt;? extends Sup&gt;&gt; getNestMap(); </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Son</span> <span class="keyword">implements</span> <span class="title">Father</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> Map&lt;String, List&lt;Sub&gt;&gt; getNestMap() &#123;</span><br><span class="line">        Map&lt;String, List&lt;Sub&gt;&gt; map =  <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">        List&lt;Sub&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        list.add(<span class="keyword">new</span> Sub());</span><br><span class="line">        map.put(<span class="string">&quot;Jack&quot;</span>, list);</span><br><span class="line">        <span class="keyword">return</span> map;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>PS: List 前的 <code>? extends</code> 是不可少的，不然 Override 方法会编译错误，应为实现中是用 ArrayList 这个子类实现的，所以接口定义时语意上要有这个声明</p>
-<h2 id="工作中遇到的问题"><a href="#工作中遇到的问题" class="headerlink" title="工作中遇到的问题"></a>工作中遇到的问题</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 下面两个方法有没有区别？</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">WildCardTest</span> </span>&#123;</span><br><span class="line">    &lt;T extends Sup&gt; <span class="function">List&lt;T&gt; <span class="title">getList01</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    List&lt;? extends Sup&gt; getList02();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="工作中遇到的问题"><a href="#工作中遇到的问题" class="headerlink" title="工作中遇到的问题"></a>工作中遇到的问题</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 下面两个方法有没有区别？</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">WildCardTest</span> </span>&#123;</span><br><span class="line">    &lt;T extends Sup&gt; <span class="function">List&lt;T&gt; <span class="title">getList01</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    List&lt;? extends Sup&gt; getList02();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>没有。。。看了一下这两个方法编译出来的字节码是完全一样的，除了行号。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; access flags 0x401</span><br><span class="line">&#x2F;&#x2F; signature &lt;T::Lcom&#x2F;playground&#x2F;genericsample&#x2F;Sup;&gt;()Ljava&#x2F;util&#x2F;List&lt;TT;&gt;;</span><br><span class="line">&#x2F;&#x2F; declaration: java.util.List&lt;T&gt; getList01&lt;T extends com.playground.genericsample.Sup&gt;()</span><br><span class="line">public abstract getList01()Ljava&#x2F;util&#x2F;List;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; access flags 0x401</span><br><span class="line">&#x2F;&#x2F; signature ()Ljava&#x2F;util&#x2F;List&lt;+Lcom&#x2F;playground&#x2F;genericsample&#x2F;Sup;&gt;;</span><br><span class="line">&#x2F;&#x2F; declaration: java.util.List&lt;? extends com.playground.genericsample.Sup&gt; getList02()</span><br><span class="line">public abstract getList02()Ljava&#x2F;util&#x2F;List;</span><br></pre></td></tr></table></figure>
 
 <p>但是这两种表达方式在实现的时候还是有区别的，用界限符(?)的这种，要求在集合类型前面也加上界限符。。。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/08/07/Same-Name-Same-Path-In-Java/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2020/08/07/Same-Name-Same-Path-In-Java/" class="post-title-link" itemprop="url">JVM 会如何处理同名同路径的类</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-08-07 11:36:11" itemprop="dateCreated datePublished" datetime="2020-08-07T11:36:11+08:00">2020-08-07</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-16 20:03:26" itemprop="dateModified" datetime="2020-12-16T20:03:26+08:00">2020-12-16</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
-                    <span itemprop="name">编程</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>49</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>问题记录：</p>
-<p>项目由多个 repo 组成，当这些 repo 中存在相同路径，相同名称的类时，JVM 会怎么处理？</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/08/07/Compiled-Java-Class-Can-Bypass-Type-Check/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2020/08/07/Compiled-Java-Class-Can-Bypass-Type-Check/" class="post-title-link" itemprop="url">编译好的 Java 类可以绕过类型检测？</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-08-07 10:52:45" itemprop="dateCreated datePublished" datetime="2020-08-07T10:52:45+08:00">2020-08-07</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-12-16 20:03:26" itemprop="dateModified" datetime="2020-12-16T20:03:26+08:00">2020-12-16</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
-                    <span itemprop="name">编程</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>296</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>问题记录：</p>
-<p>在做项目重构的时候遇到如下问题，repo1 下有 class A, 重构时我们在 repo1 中抽象出一个 interface FA 实现 A 的所有的方法，然后修改外部引用使 A 解偶。其中发现一个很有趣的现象，原先 repo2 使用 A 编译出来的 jar, 不做任何修改还是可以和 FA 源码进行编译，但是使用 repo2 的源码和 FA 源码进行编译会抛 mismatch 的 exception。猜测和 Java 编译规则有关系，难道是编译后的文件其实是一样的，所以原来的 jar 可以通用，但是源码的话和编译规则有冲突会挂。</p>
-<p>本地试了下，并不能重现，不清楚是重现的不对还是公司的项目有什么特殊的处理方式，有机会再看看把 ╮(￣▽￣””)╭</p>
 
       
     </div>
@@ -1479,7 +1546,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">95</span>
+          <span class="site-state-item-count">97</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1526,12 +1593,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">312k</span>
+    <span title="站点总字数">319k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">4:44</span>
+    <span title="站点阅读时长">4:50</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
