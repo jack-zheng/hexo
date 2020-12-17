@@ -674,7 +674,7 @@ local_variable_info 代表栈帧与源码中局部变量的关联，结构如下
 * name_index + descriptor_index: 指向常量池中 CONSTANT_Utf8_info 类型索引
 * index: 栈帧局部变量槽位置，当数据类型为 64 位则占用 index 和 index+1 两个
 
-LocalVarableTypeTable 是 JDK5 时为了支持范型而引入的，基本功能和 LocalVarableTable 一样。
+LocalVarableTypeTable 是 JDK5 时为了支持泛型而引入的，基本功能和 LocalVarableTable 一样。
 
 #### SourceFile 及 SourceDebugExtension 属性
 
@@ -777,7 +777,7 @@ SE7 之后规定，版本号 >= 50.0 的 class 文件都必须带有 StackMapTab
 
 #### Signature 属性
 
-在 JDK5 中和范型一起加入的，记录范型签名信息。Java 中的范型是伪范型。
+在 JDK5 中和泛型一起加入的，记录泛型签名信息。Java 中的泛型是伪泛型。
 
 | type | name                 | count |
 | :--- | :------------------- | :---- |

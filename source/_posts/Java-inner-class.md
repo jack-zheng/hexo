@@ -583,6 +583,10 @@ public class Parcel10 {
 
 Look at how much nicer the interfaces/Factories.java example comes out when you use anonymous inner classes:
 
+示例概述：
+
+通过内部类实现工厂方法，并且在示例中将 outer 类的构造函数设置成 private，将新建的动作限制到只能通过 factory 实现，6 的飞起。
+
 ```java
 interface Service {
     void method1();
@@ -870,7 +874,7 @@ public class MultiNestingAccess {
 
 Inner class 存在的最合理的解释：
 
-> 那个内部类都可以独立的实现一个继承。即,不管外部类是否已经继承了一个实现这对 inner class 毫无影响。
+> 内部类都可以独立的实现一个继承。即不管外部类是否已经继承了一个实现这对 inner class 毫无影响。
 
 换个角度看,inner class 可以看作是多重继承的一种解决方案。在这方面,interface 可以解决一部分问题,但是 inner class 效率更高。
 
@@ -908,7 +912,7 @@ public class MultiInterfaces {
 
 示例中我们有 A, B 两个接口, X 实现两个接口,Y 实现一个接口 + 一个 inner class。X,Y 虽然实现方式不太一样,但是目的都达到了,两个接口都实现了。
 
-但是,如果是抽象类或者实体类的化,多重继承就会受到限制。
+但是,如果是抽象类或者实体类,多重继承就会受到限制。
 
 ```java
 class D {}
@@ -955,6 +959,16 @@ Closure(闭包) 即一个可调用对象,保留了创建它的作用域的信息
 Java 支持部分指针机制,其中之一就是 callback(回调)。在回调总中,一些对象给出自身的一部分信息(引用),通过这部分信息,其他对象可以操作这个对象。
 
 inner class 的闭包特性比之与指针,扩展性更强,更安全。
+
+示例说明：
+
+下面这个例子只为了一个目的, 就是凸显出内部类可以拿到外部类的引用(Callee2.this),并且没有任何访问限制。
+
+我们声明一个 Incremnentable 接口，其中有一个方法 `increment()`, Callee1 实现了 Incrementable。
+
+再声明 MyIncrement 基类，也有一个 `increment()` 方法，然后声明 Callee2 继承了 MyIncrement 那么相应的他就自带了 increment() 方法, 无法再实现 Incrementable 接口,这里通过内部类 Closure 实现接口, 在通过 getCallbackReference() 拿到引用，变相的达到了多重继承的效果。在主函数中,Caller 通过构造函数统一对 Incrementable 做操作。
+
+PS：个人感觉这个例子中 MyIncrement 这个类对说明 callback 这个特性反而起了舞蹈的作用,让整个示例反觉更繁琐了。
 
 ```java
 interface Incrementable {
@@ -1044,19 +1058,9 @@ public class Callbacks {
 // 3
 ```
 
-上面这个例子只为了一个目的,就是凸显出,内部类可以拿到外部类的引用(Callee2.this),并且没有任何限制。
-
-Callee1 实现了 Incrementable
-
-Callee2 继承了 MyIncrement 那个相应的他就自带了 increment() 方法,无法再实现 Incrementable 接口,这里通过 内部类 Closure 实现接口,在通过 getCallbackReference() 拿到引用
-
-在主函数中,Caller 通过构造函数统一对 Incrementable 做操作。
-
-PS：个人感觉这个例子中 MyIncrement 这个类对说明 callback 这个特性反而起了舞蹈的作用,让整个示例反觉更繁琐了。
-
 ### Inner classes & control frameworks
 
-> List<Event> (pronounced "List of Event") 原来带类型的 collection 这么发音吗,学到了,又感觉很合理
+> List<Event> (pronounced "List of Event") 原来带类型的 collection 这么发音的吗,学到了同时感觉很合理
 
 > 本章主要例子中用到了 Command pattern 不过我已经忘了那是个什么东西了,又要复习了 （；￣ェ￣）
 
@@ -1088,7 +1092,7 @@ public abstract class Event {
 
 `start()` 单独抽离,方便以后实现 restart 功能, `ready()` 即判断是否已经可以执行事件,`action()` 是我们要执行事件的内容。
 
-以下是 Controller 代码,代表整段程序的执行逻辑, Controller 实体持有事件列表,然后通过 while 遍历 event 并执行。处理时通过一个新建的 list 处理防止动态改变值。
+以下是 Controller 代码, Controller 实体持有事件列表,然后通过 while 遍历 event 并执行。处理时将变量 list 备份用来遍历防止动态改变值。
 
 ```java
 public class Controller {
@@ -1298,10 +1302,7 @@ public class GreenhouseController {
                 gc.new ThermostatDay(1400)
         };
         gc.addEvent(gc.new Restart(2000, eventList));
-        if (args.length == 1)
-            gc.addEvent(
-                    new GreenhouseControls.Terminate(
-                            new Integer(args[0])));
+        gc.addEvent(new GreenhouseControls.Terminate(new Integer(5000)));
         gc.run();
     }
 }

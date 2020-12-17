@@ -8,7 +8,7 @@ tags:
 - 泛型
 ---
 
-记录一下泛型的定义，历史，使用案例等。素材只要来源于 On Java 8, Thinking in Java 和 Effective Java。
+记录一下泛型的定义，历史，使用案例等。素材主要来源于 On Java 8, Thinking in Java 和 Effective Java。
 
 ## 历史
 
@@ -16,7 +16,7 @@ tags:
 
 ## 泛型方法
 
-把这一块放到最前面时为了避免理解上的误区，泛型方法和泛型类，泛型接口没有从属关系，就算时普通的 Utils 方法也可以声明泛型方法
+把这一块放到最前面时为了避免理解上的误区，泛型方法和泛型类，泛型接口没有从属关系，就算是普通的 Utils 方法也可以声明泛型方法
 
 ```java
 public class GenericUtils {
@@ -60,6 +60,25 @@ System.out.println(integerSupplier.get());
 ## 使用案例
 
 记录一下工作生活中遇到的具体使用案例
+
+### 代码重构
+
+公司代码重构时遇到下面这种情况：
+
+比如原来有个类叫 Background, 重构时为他抽了一个 interface IBackground。但是在替换一些集合相关的代码时出现了不兼容的问题。
+
+```java
+// before
+List<Background> list = someClass.getBackgroundList();
+// what I prefer to, but compile failed
+List<IBackground> list = someClass.getBackgroundList();
+// what I should do
+List<IBackground> list = new ArrayList<>(someClass.getBackgroundList());
+// or
+List<? extends IBackground> list = someClass.getBackgroundList();
+```
+
+上面的这种转换失败就是由泛型转化异常造成的
 
 ### 指定泛型返回值为某个类的子类
 
@@ -119,7 +138,7 @@ public class Son implements Father {
 
 PS: List 前的 `? extends` 是不可少的，不然 Override 方法会编译错误，应为实现中是用 ArrayList 这个子类实现的，所以接口定义时语意上要有这个声明
 
-## 工作中遇到的问题
+### 工作中遇到的问题
 
 ```java
 // 下面两个方法有没有区别？
