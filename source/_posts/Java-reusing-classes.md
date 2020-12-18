@@ -148,11 +148,11 @@ public class BlankFinal {
 
 ### final arguments
 
-你还可以在方法的参数列表中，将变量类型指定为 final，标示在方法体内你不能改变参数的 reference。
+你还可以在方法的参数列表中，将变量类型指定为 final，表示在方法体内你不能改变参数的 reference。
 
 示例说明：
 
-with/without: 表明 final 修饰对参数不能内改变 reference
+with/without: 表明 final 修饰的对象参数 reference 不能被改变
 
 f()/g(): 表明 final 修饰的基本数据类型值不能被修改
 
@@ -204,6 +204,42 @@ public class MyFinalTest extends MyFinal{
 ### final and private
 
 类中的所有 private 方法其实都是默认有 final 修饰的，只不过你显示的加了也没什么额外的作用。
+
+这里说的默认在编译的字节码上并不会显示的表现出来，下面的示例中 testMethod02 和 testMethod03 意义上是一样的，但是编译的自己码还是不同的
+
+```java
+public class AccessIdentifierTest {
+    public void testMethod01(){};
+    private void testMethod02(){};
+    private final void testMethod03(){};
+
+    public static void main(String[] args) {
+        AccessIdentifierTest test = new AccessIdentifierTest();
+    }
+}
+```
+
+```bytecode
+// access flags 0x2
+private testMethod02()V
+L0
+LINENUMBER 5 L0
+RETURN
+L1
+LOCALVARIABLE this Linnerclass/AccessIdentifierTest; L0 L1 0
+MAXSTACK = 0
+MAXLOCALS = 1
+
+// access flags 0x12
+private final testMethod03()V
+L0
+LINENUMBER 6 L0
+RETURN
+L1
+LOCALVARIABLE this Linnerclass/AccessIdentifierTest; L0 L1 0
+MAXSTACK = 0
+MAXLOCALS = 1
+```
 
 private 方法代表的意思不就是外部不能访问，当然也不能修改这个方法吗，没毛病。
 
@@ -301,6 +337,8 @@ public class Jurassic {
 ```
 
 final class 的 field 可以不是 final 的，但是 final class 里面的 method 都隐示为 final method。因为 final class 就是为了防止被继承，都不被继承了，对应的方法都不能重写也是合理的。
+
+和前面的章节一样，这里的默认 final 也是语义上的，并不会在字节码中体现出来。
 
 ### final caution 
 
