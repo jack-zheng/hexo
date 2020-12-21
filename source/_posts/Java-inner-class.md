@@ -97,6 +97,22 @@ public class Parcel2 {
 // output: Tasmania
 ```
 
+官方给的例子有点不太好记忆，本人更倾向于简单的直接 Outer/Inner 这中名字来命名 class
+
+```java
+public class Outer {
+    class Inner {}
+
+    public Inner getInner() {
+        return new Inner();
+    }
+
+    public static void main(String[] args) {
+        Outer.Inner inner = new Outer().getInner();
+    }
+}
+```
+
 ## The link to the outer class
 
 内部类最显著的特点: Inner class 创建的时候会持有一个外部类的引用, 概念上类似指针, 这使得他能没有限制的访问外部类成员变量和方法。
@@ -169,6 +185,29 @@ public class Sequence {
 ```
 
 每次我们调用 selector() 方法时都会产生一个内部类的实体，而且各个实体之间是相互独立的，很赞。
+
+自己写的内部类持有外部引用的例子，光这个点的话，官方的例子有点累赘，不过这种设计思路很喜欢
+
+```java
+public class Outer {
+    private String name = "outer";
+    class Inner {
+        public String getOuterName() {
+            return Outer.this.name;
+        }
+    }
+
+    public Inner getInner() {
+        return new Inner();
+    }
+
+    public static void main(String[] args) {
+        Outer.Inner inner = new Outer().getInner();
+        System.out.println(inner.getOuterName());
+    }
+}
+// output: outer
+```
 
 ## Using .this and .new
 
@@ -321,7 +360,7 @@ class Outer8 {
 1.A class defined within a method - 在方法体内定义类
 2.A class defined within a scope inside a method - 在方法的某个更小的 scope 中声明类，比如方法的 if 条件语句中
 3.An anonymous class implementing an interface - 匿名内部类实现接口
-4.An anonymous class extending a class that has a non-default constructor - 匿名内部类继承抽象类 + 默认构造函数
+4.An anonymous class extending a class that has a non-default constructor - 匿名内部类继承抽象类 + 自定义构造函数
 5.An anonymous class that performs field initialization  - 匿名内部类 + field 初始化
 6.An anonymous class that performs construction using instance initialization (anonymous inner classes cannot have constructors) - 匿名内部类 + 构造代码块
 
@@ -441,6 +480,8 @@ public class Parcel7b {
 }
 ```
 
+看文章顺序这个应该是对应 item4: An anonymous class extending a class that has a non-default constructor 的但是总感觉他这种说法不贴切，可能是我笔记有问题，按理说，下面的 instance initialization 更贴切才对。
+
 上面例子中,内部类使用默认构造函数实例化,如果你需要一个特殊的构造函数,你可以参考下面的例子。Wrapping 是一个普通的类，我们在 Parcel8 中的 wrapping 方法中调用了 Wrapping 的带参构造函数，并且返回时重写了其中的 value 方法。和之前的那些返回内部类的方式异曲同工。
 
 ```java
@@ -504,7 +545,7 @@ public class Parcel9 {
 
 If you’re defining an anonymous inner class and want to use an object that’s defined outside the anonymous inner class, the compiler requires that the argument reference be **final**, as you see in the argument to destination(). If you forget, you’ll get a compile-time error message. 
 
-内部匿名类会走基类的构造器,但是如果你在实例里需要定制一些行为,但是由于你没有名字,没有自己的构造器,那该怎么办？
+内部匿名类会调用基类的构造器,但是如果你在实例里需要定制一些行为,但是由于你没有名字,没有自己的构造器,那该怎么办？
 
 对应 item6: An anonymous class that performs construction using instance initialization, 这种情况下,你可以使用 构造代码块(instance initializaiton) 实现通用的功能。
 
@@ -571,9 +612,10 @@ public class Parcel10 {
         Destination d = p.destination("Tasmania", 101.395F);
     }
 }
+// output: Over budget!
 ```
 
-上例中,构造代码块是没有重载的,所以一个匿名内部类只能有一个构造器。
+在内部类的使用中，代码块可以看作是内部类的构造函数
 
 和其他普通的类相比, 你可以使用匿名内部类来扩展类或接口,但只能选其一,而且数量只能是一个。
 
@@ -784,7 +826,7 @@ public class Parcel11 {
 }
 ```
 
-由于使用了静态的内部类,外部累也可以使用静态方法返回内部类实例。在 main() 中调用时就可以直接 call 方法而不用外部类实例了。
+由于使用了静态的内部类,外部类也可以使用静态方法返回内部类实例。在 main() 中调用时就可以直接 call 方法而不用外部类实例了。
 
 ### Classes inside interfaces 
 
@@ -810,7 +852,7 @@ public interface ClassInInterface {
 
 通过这种方式我们可以很方便的在接口使用方分享一些公用代码。
 
-在这本书的前面几张,有建议说在每个 class 里面加一个 main() 方法来存放测试代码,但是这回增加需要编译的代码量。这里我们可以将测试放到 nested class 中：
+在这本书的前面几章,有建议说在每个 class 里面加一个 main() 方法来存放测试代码,但是这回增加需要编译的代码量。这里我们可以将测试放到 nested class 中：
 
 ```java
 public class TestBed {
@@ -956,7 +998,7 @@ public class MultiImplementation {
 
 Closure(闭包) 即一个可调用对象,保留了创建它的作用域的信息。Inner class 就是 OO 概念上的一个闭包,他持有外部类的引用,访问不受限。
 
-Java 支持部分指针机制,其中之一就是 callback(回调)。在回调总中,一些对象给出自身的一部分信息(引用),通过这部分信息,其他对象可以操作这个对象。
+Java 支持部分指针机制,其中之一就是 callback(回调)。在回调中,一些对象给出自身的一部分信息(引用),通过这部分信息,其他对象可以操作这个对象。
 
 inner class 的闭包特性比之与指针,扩展性更强,更安全。
 

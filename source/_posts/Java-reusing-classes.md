@@ -11,9 +11,9 @@ tags:
 
 想要解决的问题：
 
-- [ ] local inner class 中如果用到方法中的参数，为什么要用 final 修饰？
+- [x] local inner class 中如果用到方法中的参数，为什么要用 final 修饰？
 
-F1: java 编译器在实现 Q1 中描述的问题时，用的是值拷贝，而不是 reference 拷贝，为了防止内外值不一致，只能强制用 final 把它定为一个常量，不改变他的值
+A1: java 编译器在实现 Q1 中描述的问题时，用的是值拷贝，而不是 reference 拷贝，为了防止内外值不一致，只能强制用 final 把它定为一个常量，不改变他的值
 
 ## The final keyword
 

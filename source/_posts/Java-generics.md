@@ -38,7 +38,7 @@ Java 灵感来源于 C++, 通过比较 C++ 的泛型(template)可以让你更清
 
 generic 这个概念最初被提出来是为了创建容器 class，这是有别于 arrays 的一个概念，它会提供更高的扩展性，跟多信息要看 Holding your object 章节和后面的章节。(他这里提到的容器我估摸着就是 Collection 那一族类了)
 
-一面是一个很常见的 class 持有 object 的例子, 里面有一个 Automobile 类，还有一个 Holder1 类通过构造函数持有它：
+下面是一个很常见的 class 持有 object 的例子, 里面有一个 Automobile 类，还有一个 Holder1 类通过构造函数持有它：
 
 ```java
 class Automobile {}
@@ -85,9 +85,7 @@ public class Holder2 {
 } 
 ```
 
-上例中 Holder2 持有了三种不同类型的数据，但是通常来说我们只希望容器持有一种特殊类型的数据就行了，指定之后，这种特殊性可以在编译期就被检测出来。
-
-这种语法就是范型，我们在 class 名字后面接一个 尖括号+字母 的形式表示
+上例中 Holder2 持有了三种不同类型的数据，但是通常来说我们只希望容器持有一种特殊类型的数据就行了，指定之后，这种特殊性可以在编译期就被检测出来。这种语法就是范型，我们在 class 名字后面接一个 尖括号+字母 的形式表示
 
 ```java
 public class Holder3<T> {
@@ -409,7 +407,7 @@ public class Fibonacci implements Generator<Integer> {
 
 泛型参数不支持基本数据类型，必须是包装型的。
 
-下面我们用 Iterable 接口 + adapter 模式扩展一下上面的斐波那契数列，说实话，这个 adapter 模式和我印象中的不一样，又得设计模式那一块了 （；￣ェ￣）
+下面我们用 Iterable 接口 + adapter 模式扩展一下上面的斐波那契数列，说实话，这个 adapter 模式和我印象中的不一样，又得复习一下对应的那块设计模式 code 了 （；￣ェ￣）
 
 ```java
 public class IterableFibonacci extends Fibonacci implements Iterable<Integer> {
