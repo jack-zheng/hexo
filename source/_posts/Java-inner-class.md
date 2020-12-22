@@ -1010,7 +1010,9 @@ inner class 的闭包特性比之与指针,扩展性更强,更安全。
 
 再声明 MyIncrement 基类，也有一个 `increment()` 方法，然后声明 Callee2 继承了 MyIncrement 那么相应的他就自带了 increment() 方法, 无法再实现 Incrementable 接口,这里通过内部类 Closure 实现接口, 在通过 getCallbackReference() 拿到引用，变相的达到了多重继承的效果。在主函数中,Caller 通过构造函数统一对 Incrementable 做操作。
 
-PS：个人感觉这个例子中 MyIncrement 这个类对说明 callback 这个特性反而起了舞蹈的作用,让整个示例反觉更繁琐了。
+PS：个人感觉这个例子中 MyIncrement 这个类对说明 callback 这个特性反而起了误导的作用,让整个示例反觉更繁琐了。整个例子只需要保留 Callee2 + Caller 部分即。我们可以通过 caller 的 go() 方法调用 Callee2 中的方法，改变内部变量值。
+
+PPS: 这个例子确实多余，这里表现出来的特性不就是 `Outer.this` 这个属性吗，绕了一大圈。
 
 ```java
 interface Incrementable {
@@ -1106,9 +1108,7 @@ public class Callbacks {
 
 > 本章主要例子中用到了 Command pattern 不过我已经忘了那是个什么东西了,又要复习了 （；￣ェ￣）
 
-control framework 是一种用于处理 event 的应用框架。下面是书中 GreenHouse 的例子。
-
-在没有使用 inner class 的时候,我们先创建一个 abstract 的类代表我们要处理的 event
+control framework 是一种用于处理 event 的应用框架。下面是书中 GreenHouse 的例子。我们先创建一个 abstract 的类代表我们要处理的 event
 
 ```java
 public abstract class Event {
