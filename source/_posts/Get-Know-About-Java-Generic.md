@@ -164,3 +164,31 @@ public interface WildCardTest {
 ```
 
 但是这两种表达方式在实现的时候还是有区别的，用界限符(?)的这种，要求在集合类型前面也加上界限符。。。
+
+### 向 List<? extends Number> 中添加数据失败
+
+`List<? extends Number> list = new ArrayList<>(); list.add(3);` 向该 list 中添加数据 3 有编译错误。这是应为通过 `List<? extends Number> list` 声明的 list 可以存储 Number 及其子类，效果上来看下面这些声明的集合只是 `? extends Number` 的一部分，那么我们加 3 这个行为在类型一致这个前提下就会有与以上的错误。一般这种声明方式拿到的结果只用于读操作。
+
+```java
+List<? extends Number> foo3 = new ArrayList<Number>();  // Number "extends" Number
+List<? extends Number> foo3 = new ArrayList<Integer>(); // Integer extends Number
+List<? extends Number> foo3 = new ArrayList<Double>();  // Double extends Number
+```
+
+### 方法中同时有 Class T 和 T bean 的情况怎么兼容
+
+声明一个 list 类型是 `<? extends Number>` 我们还有一个方法参数列表 `Class<T> clz1, T clz2` 这种情况下怎么兼容。
+
+```java
+public class TestGeneric {
+    public static void main(String[] args) {
+        List<Class<? extends Number>> list = Arrays.asList(Integer.class, Double.class, Long.class);
+        // !testGeneric(list.get(0), 1); // compile failed
+        testGeneric(Integer.class, 1);
+    }
+
+    public static <T> void testGeneric(Class<T> clz1, T clz2) {
+        // do something
+    }
+}
+```
