@@ -329,3 +329,26 @@ System.out.println(after);
 // {a=[a, n], b=[b], c=[c]}
 // {a=[A, N], b=[B], c=[C]}
 ```
+
+### Collectors.toMap() 怎么使用
+
+函数定义：
+
+```java
+public static <T, K, U>
+    Collector<T, ?, Map<K,U>> toMap(Function<? super T, ? extends K> keyMapper,
+                                    Function<? super T, ? extends U> valueMapper) {
+        return toMap(keyMapper, valueMapper, throwingMerger(), HashMap::new);
+    }
+```
+
+简单理解就是两个参数分解是两个计算式，得到 key 和 value 的对应的值
+
+```java
+List<Class<? extends Number>> list = Arrays.asList(Integer.class, Double.class, Long.class);
+Map map = list.stream().collect(Collectors.toMap(Function.identity(), x->0));
+```
+
+`Function.identity()` 等价于 x -> x
+
+`x -> 0` 等价于设置常量

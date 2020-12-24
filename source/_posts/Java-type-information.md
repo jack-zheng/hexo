@@ -1,5 +1,5 @@
 ---
-title: Java type information
+title: TIJ4 - Type Information 笔记
 date: 2020-12-22 22:18:06
 categories:
 - 编程
@@ -15,6 +15,8 @@ tags:
   - [New cast syntax](#new-cast-syntax)
 - [Checking before a cast](#checking-before-a-cast)
   - [Using class literals](#using-class-literals)
+  - [A dynamic instanceof](#a-dynamic-instanceof)
+  - [Counting recursively](#counting-recursively)
 
 ## 前述
 
@@ -789,3 +791,168 @@ public class PetCount {
 提示：当你的程序中充满了大量的 instanceof 判断，那么你的成程序很可能有缺陷
 
 ### Using class literals
+
+如果我们使用 PetCreator 的类字面量(.class)来重构它的实现，省去了 try-catch block, 而且表达的语义更清晰, 程序会更明了：
+
+```java
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+public class LiteralPetCreator extends PetCreator {
+    // No try block needed.
+    @SuppressWarnings("unchecked")
+    public static final List<Class<? extends Pet>> allTypes =
+            Collections.unmodifiableList(Arrays.asList(
+                    Pet.class, Dog.class, Cat.class, Rodent.class,
+                    Mutt.class, Pug.class, EgyptianMau.class, Manx.class,
+                    Cymric.class, Rat.class, Mouse.class, Hamster.class));
+    // Types for random creation:
+    private static final List<Class<? extends Pet>> types =
+            allTypes.subList(allTypes.indexOf(Mutt.class), allTypes.size());
+
+    public List<Class<? extends Pet>> types() {
+        return types;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(types);
+    }
+}
+// output:
+// [class review.Mutt, class review.Pug, class review.EgyptianMau, class review.Manx, class review.Cymric, class review.Rat, class review.Mouse, class review.Hamster]
+```
+
+新建一个 Pets 工具类用来创建创建 pet, 书上管这种方式叫做 Facade 模式。
+
+```java
+import java.util.ArrayList;
+
+public class Pets {
+    public static final PetCreator creator =
+            new LiteralPetCreator();
+
+    public static Pet randomPet() {
+        return creator.randomPet();
+    }
+
+    public static Pet[] createArray(int size) {
+        return creator.createArray(size);
+    }
+
+    public static ArrayList<Pet> arrayList(int size) {
+        return creator.arrayList(size);
+    }
+}
+```
+
+This also provides indirection to randomPet( ), createArray( ) and arrayList( ).
+Because PetCount.countPets( ) takes a PetCreator argument, we can easily test the
+LiteralPetCreator (via the above Facade): 
+
+```java
+public class PetCount2 {
+    public static void main(String[] args) {
+        PetCount.countPets(Pets.creator);
+    }
+}
+```
+
+### A dynamic instanceof
+
+新建一个 PetCount 继承自 LinedHashMap, 这种从现成的 Map 对象继承的做法我以前到是没怎么见过，也没怎么用过，长见识了，而且用起来挺方便的。
+
+`Class.isInstance()` 效果上和 `instanceof` 等价，继承 map 之后通过调用 entrySet() 拿到所有的 entry, 然后通过范型遍历，节省了很多代码，和之前那一串 forName 相比干净了很多。
+
+```java
+public class PetCount3 {
+    static class PetCounter extends LinkedHashMap<Class<? extends Pet>,Integer> {
+        public PetCounter() {
+            super(LiteralPetCreator.allTypes.stream().collect(Collectors.toMap(Function.identity(), x->0)));
+        }
+        public void count(Pet pet) {
+            // Class.isInstance() eliminates instanceof:
+            for(Map.Entry<Class<? extends Pet>, Integer> pair : entrySet())
+                if(pair.getKey().isInstance(pet))
+                    put(pair.getKey(), pair.getValue() + 1);
+        }
+        public String toString() {
+            StringBuilder result = new StringBuilder("{");
+            for(Map.Entry<Class<? extends Pet>,Integer> pair
+                    : entrySet()) {
+                result.append(pair.getKey().getSimpleName());
+                result.append("=");
+                result.append(pair.getValue());
+                result.append(", ");
+            }
+            result.delete(result.length()-2, result.length());
+            result.append("}");
+            return result.toString();
+        }
+    }
+    public static void main(String[] args) {
+        PetCounter petCount = new PetCounter();
+        for(Pet pet : Pets.createArray(20)) {
+            System.out.println(pet.getClass().getSimpleName() + " ");
+            petCount.count(pet);
+        }
+        System.out.println();
+        System.out.println(petCount);
+    }
+}
+```
+
+### Counting recursively
+
+除了 Class.isInstance() 还可以使用 isAssignFrom 来做类型判断，示例如下
+
+```java
+public class TypeCounter extends HashMap<Class<?>,Integer> {
+    private Class<?> baseType;
+    public TypeCounter(Class<?> baseType) {
+        this.baseType = baseType;
+    }
+    public void count(Object obj) {
+        Class<?> type = obj.getClass();
+        if(!baseType.isAssignableFrom(type))
+            throw new RuntimeException(obj + " incorrect type: "
+                    + type + ", should be type or subtype of "
+                    + baseType);
+        countClass(type);
+    }
+    private void countClass(Class<?> type) {
+        Integer quantity = get(type);
+        put(type, quantity == null ? 1 : quantity + 1);
+        Class<?> superClass = type.getSuperclass();
+        if(superClass != null &&
+                baseType.isAssignableFrom(superClass))
+            countClass(superClass);
+    }
+    public String toString() {
+        StringBuilder result = new StringBuilder("{");
+        for(Map.Entry<Class<?>,Integer> pair : entrySet()) {
+            result.append(pair.getKey().getSimpleName());
+            result.append("=");
+            result.append(pair.getValue());
+            result.append(", ");
+        }
+        result.delete(result.length()-2, result.length());
+        result.append("}");
+        return result.toString();
+    }
+}
+
+public class PetCount4 {
+    public static void main(String[] args) {
+        TypeCounter counter = new TypeCounter(Pet.class);
+        for(Pet pet : Pets.createArray(20)) {
+            System.out.println(pet.getClass().getSimpleName() + " ");
+            counter.count(pet);
+        }
+        System.out.println();
+        System.out.println(counter);
+    }
+}
+```
+
+这几个示例其实就说明了一个点，使用 isInstance() 和 isAssignFro() 可以绕开 forName 使得代码整洁，好看很多。整洁好看也就意味着更少的维护成本。
