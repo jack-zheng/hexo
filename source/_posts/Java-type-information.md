@@ -17,6 +17,8 @@ tags:
   - [Using class literals](#using-class-literals)
   - [A dynamic instanceof](#a-dynamic-instanceof)
   - [Counting recursively](#counting-recursively)
+- [Registered factories](#registered-factories)
+- [instanceof vs. Class equivalence](#instanceof-vs-class-equivalence)
 
 ## 前述
 
@@ -955,4 +957,134 @@ public class PetCount4 {
 }
 ```
 
-这几个示例其实就说明了一个点，使用 isInstance() 和 isAssignFro() 可以绕开 forName 使得代码整洁，好看很多。整洁好看也就意味着更少的维护成本。
+这几个示例其实就说明了一个点，使用 isInstance() 和 isAssignFrom() 可以绕开 forName 使得代码整洁，好看很多。整洁好看也就意味着更少的维护成本。
+
+## Registered factories
+
+上面的例子有一个问题，就是每次你新建一个 Pets 的子类，你必须去 LiteralPetCreator 中将这个新建的 Class 手动添加进去，未免有点累赘。这里有两种解决方案，一种就是新写一个工具类遍历代码，找到 Pets 的子类统一处理，另一种方案就是将所有的类放到一个地方统一管理，基类就是很好的一个地方，示例如下： 
+
+```java
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+interface Factory<T> { T create(); } 
+
+class Part {
+    public String toString() {
+        return getClass().getSimpleName();
+    }
+
+    static List<Factory<? extends Part>> partFactories =
+            new ArrayList<>();
+
+    static {
+        // Collections.addAll() gives an "unchecked generic
+        // array creation ... for varargs parameter" warning.
+        partFactories.add(new FuelFilter.Factory());
+        partFactories.add(new AirFilter.Factory());
+        partFactories.add(new CabinAirFilter.Factory());
+        partFactories.add(new OilFilter.Factory());
+        partFactories.add(new FanBelt.Factory());
+        partFactories.add(new PowerSteeringBelt.Factory());
+        partFactories.add(new GeneratorBelt.Factory());
+    }
+
+    private static Random rand = new Random(47);
+
+    public static Part createRandom() {
+        int n = rand.nextInt(partFactories.size());
+        return partFactories.get(n).create();
+    }
+}
+
+class Filter extends Part {
+}
+
+class FuelFilter extends Filter {
+    // Create a Class Factory for each specific type:
+    public static class Factory implements review.Factory<FuelFilter> {
+        public FuelFilter create() {
+            return new FuelFilter();
+        }
+    }
+}
+
+class AirFilter extends Filter {
+    public static class Factory
+            implements review.Factory<AirFilter> {
+        public AirFilter create() {
+            return new AirFilter();
+        }
+    }
+}
+
+class CabinAirFilter extends Filter {
+    public static class Factory
+            implements review.Factory<CabinAirFilter> {
+        public CabinAirFilter create() {
+            return new CabinAirFilter();
+        }
+    }
+}
+
+class OilFilter extends Filter {
+    public static class Factory
+            implements review.Factory<OilFilter> {
+        public OilFilter create() {
+            return new OilFilter();
+        }
+    }
+}
+
+class Belt extends Part {
+}
+
+class FanBelt extends Belt {
+    public static class Factory
+            implements review.Factory<FanBelt> {
+        public FanBelt create() {
+            return new FanBelt();
+        }
+    }
+}
+
+class GeneratorBelt extends Belt {
+    public static class Factory
+            implements review.Factory<GeneratorBelt> {
+        public GeneratorBelt create() {
+            return new GeneratorBelt();
+        }
+    }
+}
+
+class PowerSteeringBelt extends Belt {
+    public static class Factory
+            implements review.Factory<PowerSteeringBelt> {
+        public PowerSteeringBelt create() {
+            return new PowerSteeringBelt();
+        }
+    }
+}
+
+public class RegisteredFactories {
+    public static void main(String[] args) {
+        for (int i = 0; i < 10; i++)
+            System.out.println(Part.createRandom());
+    }
+}
+
+// output:
+// GeneratorBelt
+// CabinAirFilter
+// GeneratorBelt
+// AirFilter
+// PowerSteeringBelt
+// CabinAirFilter
+// FuelFilter
+// PowerSteeringBelt
+// PowerSteeringBelt
+// FuelFilter
+```
+
+## instanceof vs. Class equivalence
