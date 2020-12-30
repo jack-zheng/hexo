@@ -292,3 +292,70 @@ new Verifications() {{
   // Perform arbitrary assertions on data1 and data2.
 }};
 ```
+
+## @Mocked 导致 equals 方法失效
+
+今天写 UT 的时候遇到一个问题，当我使用 @Mocked 修饰一个类时，这个累的所有引用都会被 mock 掉，虽然知道有这种特性，但是以前都没有碰到问题，忽视了，debug 花了好久。
+
+示例如下：
+
+准别两个简单的 MyBean 和 MyField, MyField 是 MyBean 的一个属性，并在声明时就做了初始化。
+
+对应的 UT 可以 work，但当我对 MyField 添加 @Mocked 注解时，对应的 equals 方法会被抹去，UT 就挂了。
+
+解决方案有两种：1. 不用 @Mocked; 2. 只做方法层面的 mock
+
+对于第二种方法，testng 升级到 6.1 之后需要配合 @DataProvider 使用，变得麻烦了，也不知道后面的版本会不会修复这个问题
+
+```java
+public class MyBean {
+    private MyField field = new MyField();
+
+    // getter/setter
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MyBean myBean = (MyBean) o;
+        return Objects.equals(field, myBean.field);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(field);
+    }
+}
+
+public class MyField {
+    private String name;
+
+    // getter/setter
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MyField myField = (MyField) o;
+        return Objects.equals(name, myField.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
+    }
+}
+
+public class TestMockedAnno01 {
+  // @Mocked MyField field;
+
+  @Test
+  public void test() {
+    MyBean bean1 = new MyBean();
+    MyBean bean2 = new MyBean();
+
+    Assert.assertEquals(bean1, bean2);
+
+  }
+}
+```
