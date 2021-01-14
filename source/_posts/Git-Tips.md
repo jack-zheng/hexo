@@ -168,7 +168,42 @@ git remote show origin
 
 情景描述：
 
-我自己有一个分之 A， 同时创建了另一个分之 B 并在上面做了改动，commit 为 c1。我对他的这个 commit 有依赖，又不想自己 CV 代码或者以后有 conflict 什么的，这时可以 checkout 到我自己的分支，然后 `git cherry pick c1` 来合并代码。他的代码 merge 之后我也不用解决冲突，美滋滋儿。
+我自己有一个分支 A， 同时创建了另一个分支 B 并在上面做了改动，commit 为 c1。我对他的这个 commit 有依赖，又不想自己 CV 代码或者以后有 conflict 什么的，这时可以 checkout 到我自己的分支，然后 `git cherry-pick c1` 来合并代码。他的代码 merge 之后我也不用解决冲突，美滋滋儿。
+
+PS: 在合并 B 分支上的 commit 的时候我并不需要指定分支名字，是不是从侧面验证了，每个 git commit 都是唯一的，不同分支的 commit 也保证 id 不重复
+
+```txt
+        ^                  ^                                               
+        |                  |                                               
+        |   cherry-pick    |                                               
+        |C1 <---------     |C2                                             
+        |            |     |                                               
+        |            |     |                                               
+        |C1'         ----- |C1                                             
+        |                  |                                               
+        |                  |                                               
+        |Branch-A          |Branch-B                                       
+        |------------------|                                               
+                  ^                                                        
+                  |                                                        
+                  |                                                        
+                  |                                                        
+                  | Master                                                 
+                  |                                                        
+                  |                                                        
+```
+
+### How to drop
+
+如果本地有改动
+
+```bash
+git stash
+git reset --hard HEAD^
+git stash pop
+```
+
+如果没有直接 `git reset --hard HEAD^`, `cherry-pick` 本质上就是新加了一个 commit 到 branch 而已。
 
 ## 使用 rebase 来合并自己分支的 commit 记录，强迫症福音
 

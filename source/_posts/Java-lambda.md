@@ -297,6 +297,50 @@ ThreadLocal<Album> thisAlbum = ThreadLocal.withInitial(() -> database.lookupCurr
 
 ## 工作中遇到的一些例子
 
+### 如果集合包含范型信息，在没有指定具体的范型类的时候，调用 lambda 会报编译错误
+
+当使用注释掉的语句代替现有的语句时就会报编译错误：Non-static method cannot be referenced from a static contex
+
+```java
+@Test
+public void test4()
+{
+  Set<MyProp> props = new HashSet<>();
+  MyProp p1 = new MyProp(1);
+  MyProp p2 = new MyProp(2);
+  props.add(p1);
+  props.add(p2);
+  MyInterface<String> i0 = new MyInterface<>(props); // MyInterface i0 = new MyInterface<>(props);
+  System.out.println(i0.getList().stream().map(MyProp::getId).collect(Collectors.toList()));
+}
+private class MyInterface<T> {
+  private Set props;
+  MyInterface(Set props) {
+    this.props = props;
+  }
+  public Set<MyProp> getList() { // public Set getList() 
+    return props;
+  }
+}
+private static class MyProp {
+  private final int id;
+  public MyProp(int id) { this.id = id; }
+  public int getId() { return id; }
+}
+```
+
+找了一下网上的解释，虽然有重现和解决方案，但是对它的底层原因并没有很清楚的解释，以后如果有机会再深入了解 lambda 的语法的话，可以再看看
+
+PS: 个人感觉应该是在没有指定 type 的时候，类型判断有问题
+
+### 从 List 中抽取属性组成新的集合
+
+List of BeanProperty, BeanProperty 有 `getName()` 方法，如何通过 lambda 函数抽取
+
+```java
+List<String> ret = list.stream().map(BeanProperty::getName).collect(Collectors.toList());
+```
+
 ### Map -> Map 转化
 
 Map\<String, List\<Obj\>\> 对 list 中的值进行修改，案例简化为 Map<String, List\<String>\> 将 list 中的 String 转化为大写
@@ -342,7 +386,7 @@ public static <T, K, U>
     }
 ```
 
-简单理解就是两个参数分解是两个计算式，得到 key 和 value 的对应的值
+简单理解就是两个参数分别是两个计算式，得到 key 和 value 的对应的值
 
 ```java
 List<Class<? extends Number>> list = Arrays.asList(Integer.class, Double.class, Long.class);
