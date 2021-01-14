@@ -1059,6 +1059,24 @@
       </tags>
   </entry>
   <entry>
+    <title>Java 集合类初探</title>
+    <url>/hexo/2021/01/14/Get-know-about-java-collection/</url>
+    <content><![CDATA[<p>想要解决的问题：</p>
+<ol>
+<li>了解集合类的大致情况，包括名称，类关系</li>
+<li>HashMap 和 Collection 的关系</li>
+<li>自己画一个关系图并和 TIJ4 做对比</li>
+</ol>
+<p>基本上能将这一簇类的关系图画出来即可</p>
+]]></content>
+      <categories>
+        <category>编程</category>
+      </categories>
+      <tags>
+        <tag>集合</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Java 拾遗之 final 关键字</title>
     <url>/hexo/2020/10/22/Get-know-about-java-final/</url>
     <content><![CDATA[<p>从定义上来说 final 表达的是只能赋值一次，赋之后不能改变的意思。下面介绍几种常见使用形式。</p>
@@ -1143,7 +1161,14 @@
 <h2 id="显示-repo-关联的远端地址"><a href="#显示-repo-关联的远端地址" class="headerlink" title="显示 repo 关联的远端地址"></a>显示 repo 关联的远端地址</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git remote show origin</span><br></pre></td></tr></table></figure>
 
 <h2 id="cherry-pick-提取某一个-commit-和并到目标分支"><a href="#cherry-pick-提取某一个-commit-和并到目标分支" class="headerlink" title="cherry pick 提取某一个 commit 和并到目标分支"></a>cherry pick 提取某一个 commit 和并到目标分支</h2><p>情景描述：</p>
-<p>我自己有一个分之 A， 同时创建了另一个分之 B 并在上面做了改动，commit 为 c1。我对他的这个 commit 有依赖，又不想自己 CV 代码或者以后有 conflict 什么的，这时可以 checkout 到我自己的分支，然后 <code>git cherry pick c1</code> 来合并代码。他的代码 merge 之后我也不用解决冲突，美滋滋儿。</p>
+<p>我自己有一个分支 A， 同时创建了另一个分支 B 并在上面做了改动，commit 为 c1。我对他的这个 commit 有依赖，又不想自己 CV 代码或者以后有 conflict 什么的，这时可以 checkout 到我自己的分支，然后 <code>git cherry-pick c1</code> 来合并代码。他的代码 merge 之后我也不用解决冲突，美滋滋儿。</p>
+<p>PS: 在合并 B 分支上的 commit 的时候我并不需要指定分支名字，是不是从侧面验证了，每个 git commit 都是唯一的，不同分支的 commit 也保证 id 不重复</p>
+<figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">^                  ^                                               </span><br><span class="line">|                  |                                               </span><br><span class="line">|   cherry-pick    |                                               </span><br><span class="line">|C1 &lt;---------     |C2                                             </span><br><span class="line">|            |     |                                               </span><br><span class="line">|            |     |                                               </span><br><span class="line">|C1&#x27;         ----- |C1                                             </span><br><span class="line">|                  |                                               </span><br><span class="line">|                  |                                               </span><br><span class="line">|Branch-A          |Branch-B                                       </span><br><span class="line">|------------------|                                               </span><br><span class="line">          ^                                                        </span><br><span class="line">          |                                                        </span><br><span class="line">          |                                                        </span><br><span class="line">          |                                                        </span><br><span class="line">          | Master                                                 </span><br><span class="line">          |                                                        </span><br><span class="line">          |                                                        </span><br></pre></td></tr></table></figure>
+
+<h3 id="How-to-drop"><a href="#How-to-drop" class="headerlink" title="How to drop"></a>How to drop</h3><p>如果本地有改动</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git stash</span><br><span class="line">git reset --hard HEAD^</span><br><span class="line">git stash pop</span><br></pre></td></tr></table></figure>
+
+<p>如果没有直接 <code>git reset --hard HEAD^</code>, <code>cherry-pick</code> 本质上就是新加了一个 commit 到 branch 而已。</p>
 <h2 id="使用-rebase-来合并自己分支的-commit-记录，强迫症福音"><a href="#使用-rebase-来合并自己分支的-commit-记录，强迫症福音" class="headerlink" title="使用 rebase 来合并自己分支的 commit 记录，强迫症福音"></a>使用 rebase 来合并自己分支的 commit 记录，强迫症福音</h2><p>check out 一个测试 branch，修改 readme</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;a&#x27;</span> &gt;&gt; README.md</span><br><span class="line">git add-commit -m <span class="string">&#x27;edit01&#x27;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;b&#x27;</span> &gt;&gt; README.md</span><br><span class="line">git add-commit -m <span class="string">&#x27;edit01&#x27;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;c&#x27;</span> &gt;&gt; README.md</span><br><span class="line">git add-commit -m <span class="string">&#x27;edit01&#x27;</span></span><br></pre></td></tr></table></figure>
 
@@ -2013,7 +2038,15 @@
 <p>可以使用 peek 进行流的调试</p>
 <h2 id="第八章-设计和架构的原则"><a href="#第八章-设计和架构的原则" class="headerlink" title="第八章 设计和架构的原则"></a>第八章 设计和架构的原则</h2><p>列举了 Lambda 和 设计模式， DSL 的结合的例子，和我看这本书的初衷有点远了，先跳过。</p>
 <h2 id="第九章-使用-Lambda-表达式编写并发程序"><a href="#第九章-使用-Lambda-表达式编写并发程序" class="headerlink" title="第九章 使用 Lambda 表达式编写并发程序"></a>第九章 使用 Lambda 表达式编写并发程序</h2><p>使用 Vertx 框架结合 Lambda 的知识点，实现一个聊天室，跳过。但是它的这个框架我倒是感觉很有意思，灵感是从 NodeJS 那边来的，支持并发。</p>
-<h2 id="工作中遇到的一些例子"><a href="#工作中遇到的一些例子" class="headerlink" title="工作中遇到的一些例子"></a>工作中遇到的一些例子</h2><h3 id="Map-gt-Map-转化"><a href="#Map-gt-Map-转化" class="headerlink" title="Map -&gt; Map 转化"></a>Map -&gt; Map 转化</h3><p>Map&lt;String, List&lt;Obj&gt;&gt; 对 list 中的值进行修改，案例简化为 Map&lt;String, List&lt;String&gt;&gt; 将 list 中的 String 转化为大写</p>
+<h2 id="工作中遇到的一些例子"><a href="#工作中遇到的一些例子" class="headerlink" title="工作中遇到的一些例子"></a>工作中遇到的一些例子</h2><h3 id="如果集合包含范型信息，在没有指定具体的范型类的时候，调用-lambda-会报编译错误"><a href="#如果集合包含范型信息，在没有指定具体的范型类的时候，调用-lambda-会报编译错误" class="headerlink" title="如果集合包含范型信息，在没有指定具体的范型类的时候，调用 lambda 会报编译错误"></a>如果集合包含范型信息，在没有指定具体的范型类的时候，调用 lambda 会报编译错误</h3><p>当使用注释掉的语句代替现有的语句时就会报编译错误：Non-static method cannot be referenced from a static contex</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test4</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  Set&lt;MyProp&gt; props = <span class="keyword">new</span> HashSet&lt;&gt;();</span><br><span class="line">  MyProp p1 = <span class="keyword">new</span> MyProp(<span class="number">1</span>);</span><br><span class="line">  MyProp p2 = <span class="keyword">new</span> MyProp(<span class="number">2</span>);</span><br><span class="line">  props.add(p1);</span><br><span class="line">  props.add(p2);</span><br><span class="line">  MyInterface&lt;String&gt; i0 = <span class="keyword">new</span> MyInterface&lt;&gt;(props); <span class="comment">// MyInterface i0 = new MyInterface&lt;&gt;(props);</span></span><br><span class="line">  System.out.println(i0.getList().stream().map(MyProp::getId).collect(Collectors.toList()));</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">MyInterface</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> Set props;</span><br><span class="line">  MyInterface(Set props) &#123;</span><br><span class="line">    <span class="keyword">this</span>.props = props;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> Set&lt;MyProp&gt; <span class="title">getList</span><span class="params">()</span> </span>&#123; <span class="comment">// public Set getList() </span></span><br><span class="line">    <span class="keyword">return</span> props;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">MyProp</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> id;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="title">MyProp</span><span class="params">(<span class="keyword">int</span> id)</span> </span>&#123; <span class="keyword">this</span>.id = id; &#125;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getId</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> id; &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>找了一下网上的解释，虽然有重现和解决方案，但是对它的底层原因并没有很清楚的解释，以后如果有机会再深入了解 lambda 的语法的话，可以再看看</p>
+<p>PS: 个人感觉应该是在没有指定 type 的时候，类型判断有问题</p>
+<h3 id="从-List-中抽取属性组成新的集合"><a href="#从-List-中抽取属性组成新的集合" class="headerlink" title="从 List 中抽取属性组成新的集合"></a>从 List 中抽取属性组成新的集合</h3><p>List of BeanProperty, BeanProperty 有 <code>getName()</code> 方法，如何通过 lambda 函数抽取</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">List&lt;String&gt; ret = list.stream().map(BeanProperty::getName).collect(Collectors.toList());</span><br></pre></td></tr></table></figure>
+
+<h3 id="Map-gt-Map-转化"><a href="#Map-gt-Map-转化" class="headerlink" title="Map -&gt; Map 转化"></a>Map -&gt; Map 转化</h3><p>Map&lt;String, List&lt;Obj&gt;&gt; 对 list 中的值进行修改，案例简化为 Map&lt;String, List&lt;String&gt;&gt; 将 list 中的 String 转化为大写</p>
 <p>第一步先熟悉 list -&gt; list 转化方式</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line">List&lt;String&gt; test = Arrays.asList(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;c&quot;</span>);</span><br><span class="line">List&lt;String&gt; answer = test.stream().map(String::toUpperCase).collect(Collectors.toList());</span><br><span class="line">System.out.println(answer);</span><br><span class="line"><span class="comment">//output: [A, C]</span></span><br></pre></td></tr></table></figure>
 
@@ -2023,7 +2056,7 @@
 <h3 id="Collectors-toMap-怎么使用"><a href="#Collectors-toMap-怎么使用" class="headerlink" title="Collectors.toMap() 怎么使用"></a>Collectors.toMap() 怎么使用</h3><p>函数定义：</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T, K, U&gt;</span><br><span class="line">    Collector&lt;T, ?, Map&lt;K,U&gt;&gt; toMap(Function&lt;? <span class="keyword">super</span> T, ? extends K&gt; keyMapper,</span><br><span class="line">                                    Function&lt;? <span class="keyword">super</span> T, ? extends U&gt; valueMapper) &#123;</span><br><span class="line">        <span class="keyword">return</span> toMap(keyMapper, valueMapper, throwingMerger(), HashMap::<span class="keyword">new</span>);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
 
-<p>简单理解就是两个参数分解是两个计算式，得到 key 和 value 的对应的值</p>
+<p>简单理解就是两个参数分别是两个计算式，得到 key 和 value 的对应的值</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line">List&lt;Class&lt;? extends Number&gt;&gt; list = Arrays.asList(Integer.class, Double.class, Long.class);</span><br><span class="line">Map map = list.stream().collect(Collectors.toMap(Function.identity(), x-&gt;<span class="number">0</span>));</span><br></pre></td></tr></table></figure>
 
 <p><code>Function.identity()</code> 等价于 x -&gt; x</p>
