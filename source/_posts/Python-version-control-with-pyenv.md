@@ -1,10 +1,9 @@
 ---
-title: Python 版本管理-pyenv
+title: Python 使用 pyenv 进行版本管理
 date: 2020-07-29 13:20:05
 categories:
-- 编程
-tags:
 - python
+tags:
 - pyenv
 ---
 
@@ -76,9 +75,9 @@ pyenv versions
 
 `pyenv local 3.6.5` 可以指定 folder 下的 python 版本，他会将版本信息写入当前目录下的 `.python-version` 文件中
 
-如果想要指定终端的 python 版本，可以用 `pyenv shell xxx`, 这个我到时没有亲测
+如果想要指定终端的 python 版本，可以用 `pyenv shell xxx`, 这个我没有需求，未亲测
 
-作用范围和其编程语言一样，范围最小的那个生效 `shell > local > gloabl`
+作用范围和其编程语言一样，范围最精确的那个生效 `shell > local > gloabl`
 
 ### 查看 python 路径
 

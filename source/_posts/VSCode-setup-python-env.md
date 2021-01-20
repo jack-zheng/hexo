@@ -2,9 +2,8 @@
 title: VSCode setup python 环境
 date: 2020-06-12 15:43:34
 categories:
-- 小工具
-tags:
 - vscode
+tags:
 - python
 ---
 
@@ -75,3 +74,23 @@ if __name__ == '__main__':
 1. 别点右上角那个，那个是直接运行当前文件的，不会接收配置的参数！！
 2. 当断点生效时，VSCode 还提供了一个 DEBUG CONSOLE 来给你操作运行时的变量，真是太酷了
 3. 如果你想要输入多行，使用 `Shift + Enter` 实现换行
+
+如果要调试带有 argumnet 注解的代码，比如
+
+```python
+@click.command()
+@click.argument('input', type=click.File('rb'))
+@click.argument('output', type=click.File('wb'))
+def inout(input, output):
+    """Copy contents of INPUT to OUTPUT."""
+    while True:
+        chunk = input.read(1024)
+        if not chunk:
+            break
+        output.write(chunk)
+
+if __name__ == '__main__':
+    inout("input_path", "output_path")
+```
+
+只需要将 argument 直接写在最后的函数入口中就行了
