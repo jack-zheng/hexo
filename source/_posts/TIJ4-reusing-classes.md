@@ -1,10 +1,10 @@
 ---
-title: Java 代码重用
+title: TIJ4 复用类 Reusing Classes
 date: 2020-12-17 18:51:46
 categories:
-- 编程
-tags:
 - TIJ4
+tags:
+- resuing
 ---
 
 最近看 Code 经常看到有使用 final 参数的例子，但是对这点没有系统的认识，重新认真读一遍 Think in Java 4th 相关章节并做笔记。

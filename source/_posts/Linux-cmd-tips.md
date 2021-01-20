@@ -82,3 +82,15 @@ sftp> put /Users/my/Downloads/re-produce.gif /export/sftp
 Uploading /Users/my/Downloads/re-produce.gif to /export/sftp/re-produce.gif
 /Users/my/Downloads/re-produce.gif            100%  257KB  86.6KB/s   00:02
 ```
+
+## 统计文件
+
+* 当前目录下的文件个数，不包含文件夹 `ls -l | grep '^-' | wc -l`
+* 当前目录下的文件个数，递归 `ls -l | grep '^-' | wc -l`
+* 当前目录下的文件夹个数 `ls -l | grep '^d' | wc -l`
+
+解释：
+
+* `ls -l`: 显示当前目录下所有文件，文件+文件夹
+* `grep '^-'`: 删选文件，`grep '^-'` 筛选文件夹。 示例 `-rw-r--r--    1 jack  staff     1061 Aug  3 16:53 LICENSE`
+* `wc -l`: 统计行数
