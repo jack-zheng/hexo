@@ -59,7 +59,7 @@
 <meta property="og:description" content="刚好这几天要修一个异常处理的问题，回顾以下异常相关的知识点 想要解决的问题： [ ] runtime 异常和其他的异常有什么区别[ ] 异常处理的最佳实践是什么[ ] catch 里加一个 return 会怎么样 前述Java 的一个基本规范：组织糟糕的代码不会被运行。最理想的异常捕捉点是编译器，代码运行之前。但是并不是所有的 errors 都能在编译器就被捕捉到。剩下的这些问题，我们需要在运行时">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-01-21T05:49:44.000Z">
-<meta property="article:modified_time" content="2021-01-21T12:12:50.417Z">
+<meta property="article:modified_time" content="2021-01-21T14:53:08.443Z">
 <meta property="article:author" content="Jack Zheng">
 <meta property="article:tag" content="exception">
 <meta name="twitter:card" content="summary">
@@ -233,7 +233,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2021-01-21 13:49:44 / 修改时间：20:12:50" itemprop="dateCreated datePublished" datetime="2021-01-21T13:49:44+08:00">2021-01-21</time>
+              <time title="创建时间：2021-01-21 13:49:44 / 修改时间：22:53:08" itemprop="dateCreated datePublished" datetime="2021-01-21T13:49:44+08:00">2021-01-21</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -260,14 +260,14 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>1.7k</span>
+              <span>3.3k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>2 分钟</span>
+              <span>3 分钟</span>
             </span>
 
         </div>
@@ -299,7 +299,28 @@
 <p>这种做法可以让你为未来做打算，他会在之后的什么地方被处理，你很快能看到。</p>
 <p>Exceptions 让你能够以 transaction 为单位处理问题， 你也可以将它想象成一个 undo 系统，你可以设置多个恢复点，当你的程序抛出异常时，他可以将程序恢复到某个稳定的节点。</p>
 <p>Exceptions 最重要的一个点就是，当异常发生时，他阻止程序继续执行下去。这种情况在 C 总尤为明显，C 是没有打断机制的，这种情况下，程序可能进入到一个完全错误的状态。</p>
-<h2 id="Exception-arguments"><a href="#Exception-arguments" class="headerlink" title="Exception arguments"></a>Exception arguments</h2>
+<h2 id="Exception-arguments"><a href="#Exception-arguments" class="headerlink" title="Exception arguments"></a>Exception arguments</h2><p>和其他 Java 中的对象一样，你可以通过 new 在堆上创建一个 exception 对象，它有两种构造函数，一种是无参的，另一种是带字符串的，比如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException(<span class="string">&quot;t = null&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>当然这个信息字符串也可以在之后通过调用方法设置，之后你会看到这种用法。</p>
+<p><code>throw</code> 这个关键词可以产生几种很有趣的结果。当你使用 new 创建一个 exception 的时候，你指定了 throw 的对象。虽然这个对象和你方法的返回值类型不一样，但是它还是会被这个方法返回。由此，你可以将异常处理看作一种特殊的 return 机制。返回的同时，方法和 scope 将会推出(出栈)。</p>
+<p>和普通方法的共同点到此为止了，接下来的处理方式将迥异于普通方法。异常将会在 exception handler 中被处理。</p>
+<p>虽然你可以在处理异常时抛出任何 Throwable 的子类，但是一般来说，我本会更具 error 的类型来指定它。error 的信息可以从他的名字和内容体现出来，但是更常见的情况是异常只包含名字而没有其他什么内容。</p>
+<h2 id="Catching-an-exception"><a href="#Catching-an-exception" class="headerlink" title="Catching an exception"></a>Catching an exception</h2><p>在理解异常捕捉之前，你先得理解<strong>守护区域</strong>的概念。它代表了一段可能抛出异常的代码段，这段代码之后会紧接着一段异常处理代码。</p>
+<h3 id="The-try-block"><a href="#The-try-block" class="headerlink" title="The try block"></a>The try block</h3><p>如果你在方法体中抛出一个异常(或者方法体中调用的其他方法抛出异常)，那么这个方法体在执行完 throwing 之后就结束了。如果你不想就这个结束，你可以在这些代码外面加一个 try block</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line"> <span class="comment">// Code that might generate exceptions</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在不提供异常处理机制的语言中，如果你写代码很仔细的话，你可能需要为每一个方法添加异常处理，但是通过 try block 你只需要将他们全部包裹起来即可。这样你的代码会更容易阅读。</p>
+<h3 id="Exception-handlers"><a href="#Exception-handlers" class="headerlink" title="Exception handlers"></a>Exception handlers</h3><p>当然，被抛出的异常都需要有一个地方来处理，这个地方就是 exception handler。它紧跟着 try block 通过关键字 catch 引出</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line"> <span class="comment">// Code that might generate exceptions</span></span><br><span class="line">&#125; <span class="keyword">catch</span>(Type1 id1)|&#123;</span><br><span class="line"> <span class="comment">// Handle exceptions of Type1</span></span><br><span class="line">&#125; <span class="keyword">catch</span>(Type2 id2) &#123;</span><br><span class="line"> <span class="comment">// Handle exceptions of Type2</span></span><br><span class="line">&#125; <span class="keyword">catch</span>(Type3 id3) &#123;</span><br><span class="line"> <span class="comment">// Handle exceptions of Type3</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// etc...</span></span><br></pre></td></tr></table></figure>
+
+<p>每一个 catch 就是一个小的方法体，只接收一个参数。有时你甚至不需要这个参数，仅仅根据异常的名字就可以写完处理逻辑。</p>
+<p>如果异常被抛出，exception-handling 机制会搜寻第一个匹配的 catch 分支并进入，当 catch 分支走完后，异常处理被视为结束。不像 switch，catch 分支不需要 break 关键字，执行完直接返回。</p>
+<h2 id="Termination-vs-resumption-中断还是继续？"><a href="#Termination-vs-resumption-中断还是继续？" class="headerlink" title="Termination vs. resumption (中断还是继续？)"></a>Termination vs. resumption (中断还是继续？)</h2><p>异常处理有两种模型，Java 采用的是中断，他认为当异常发生后，你不能在回到异常发生的节点。</p>
+<p>另一种是 resumption(继续)，他表示异常发生后，我们可以做一些补救措施，并且尝试重新执行失败的方法。采用这个方式意味着你在异常产生后依旧希望继续执行程序。</p>
+<p>如果你想要 resumption 的处理方法，你不能在 error 发生的地方抛异常，或者你可以把你抛异常的代码放到一个循环中，多次运行，知道结果符合你预期。</p>
+<p>历史上，码农们有尝试过使用 resumption 机制的操作系统，但最终回归到了 termination 机制。虽然 resumption 机制乍一听上去很美，但是并不是这么实用。可能是应为这种机制下你写的代码不能很通用，导致维护困难，特别是在写一些大型项目的时候。</p>
+<h2 id="Creating-your-own-exceptions"><a href="#Creating-your-own-exceptions" class="headerlink" title="Creating your own exceptions"></a>Creating your own exceptions</h2>
     </div>
 
     
@@ -379,7 +400,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%BF%B0"><span class="nav-number">1.</span> <span class="nav-text">前述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Concepts"><span class="nav-number">2.</span> <span class="nav-text">Concepts</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Basic-exceptions"><span class="nav-number">3.</span> <span class="nav-text">Basic exceptions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Exception-arguments"><span class="nav-number">4.</span> <span class="nav-text">Exception arguments</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%BF%B0"><span class="nav-number">1.</span> <span class="nav-text">前述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Concepts"><span class="nav-number">2.</span> <span class="nav-text">Concepts</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Basic-exceptions"><span class="nav-number">3.</span> <span class="nav-text">Basic exceptions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Exception-arguments"><span class="nav-number">4.</span> <span class="nav-text">Exception arguments</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Catching-an-exception"><span class="nav-number">5.</span> <span class="nav-text">Catching an exception</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-try-block"><span class="nav-number">5.1.</span> <span class="nav-text">The try block</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Exception-handlers"><span class="nav-number">5.2.</span> <span class="nav-text">Exception handlers</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Termination-vs-resumption-%E4%B8%AD%E6%96%AD%E8%BF%98%E6%98%AF%E7%BB%A7%E7%BB%AD%EF%BC%9F"><span class="nav-number">6.</span> <span class="nav-text">Termination vs. resumption (中断还是继续？)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Creating-your-own-exceptions"><span class="nav-number">7.</span> <span class="nav-text">Creating your own exceptions</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -442,12 +463,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">372k</span>
+    <span title="站点总字数">374k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">5:38</span>
+    <span title="站点阅读时长">5:40</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
