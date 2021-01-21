@@ -57,3 +57,66 @@ Exceptions 让你能够以 transaction 为单位处理问题， 你也可以将�
 Exceptions 最重要的一个点就是，当异常发生时，他阻止程序继续执行下去。这种情况在 C 总尤为明显，C 是没有打断机制的，这种情况下，程序可能进入到一个完全错误的状态。
 
 ## Exception arguments
+
+和其他 Java 中的对象一样，你可以通过 new 在堆上创建一个 exception 对象，它有两种构造函数，一种是无参的，另一种是带字符串的，比如：
+
+```java
+throw new NullPointerException("t = null");
+```
+
+当然这个信息字符串也可以在之后通过调用方法设置，之后你会看到这种用法。
+
+`throw` 这个关键词可以产生几种很有趣的结果。当你使用 new 创建一个 exception 的时候，你指定了 throw 的对象。虽然这个对象和你方法的返回值类型不一样，但是它还是会被这个方法返回。由此，你可以将异常处理看作一种特殊的 return 机制。返回的同时，方法和 scope 将会推出(出栈)。
+
+和普通方法的共同点到此为止了，接下来的处理方式将迥异于普通方法。异常将会在 exception handler 中被处理。
+
+虽然你可以在处理异常时抛出任何 Throwable 的子类，但是一般来说，我本会更具 error 的类型来指定它。error 的信息可以从他的名字和内容体现出来，但是更常见的情况是异常只包含名字而没有其他什么内容。
+
+## Catching an exception
+
+在理解异常捕捉之前，你先得理解**守护区域**的概念。它代表了一段可能抛出异常的代码段，这段代码之后会紧接着一段异常处理代码。
+
+### The try block
+
+如果你在方法体中抛出一个异常(或者方法体中调用的其他方法抛出异常)，那么这个方法体在执行完 throwing 之后就结束了。如果你不想就这个结束，你可以在这些代码外面加一个 try block
+
+```java
+try {
+ // Code that might generate exceptions
+}
+```
+
+在不提供异常处理机制的语言中，如果你写代码很仔细的话，你可能需要为每一个方法添加异常处理，但是通过 try block 你只需要将他们全部包裹起来即可。这样你的代码会更容易阅读。
+
+### Exception handlers
+
+当然，被抛出的异常都需要有一个地方来处理，这个地方就是 exception handler。它紧跟着 try block 通过关键字 catch 引出
+
+```java
+try {
+ // Code that might generate exceptions
+} catch(Type1 id1)|{
+ // Handle exceptions of Type1
+} catch(Type2 id2) {
+ // Handle exceptions of Type2
+} catch(Type3 id3) {
+ // Handle exceptions of Type3
+}
+// etc...
+```
+
+每一个 catch 就是一个小的方法体，只接收一个参数。有时你甚至不需要这个参数，仅仅根据异常的名字就可以写完处理逻辑。
+
+如果异常被抛出，exception-handling 机制会搜寻第一个匹配的 catch 分支并进入，当 catch 分支走完后，异常处理被视为结束。不像 switch，catch 分支不需要 break 关键字，执行完直接返回。
+
+## Termination vs. resumption (中断还是继续？)
+
+异常处理有两种模型，Java 采用的是中断，他认为当异常发生后，你不能在回到异常发生的节点。
+
+另一种是 resumption(继续)，他表示异常发生后，我们可以做一些补救措施，并且尝试重新执行失败的方法。采用这个方式意味着你在异常产生后依旧希望继续执行程序。
+
+如果你想要 resumption 的处理方法，你不能在 error 发生的地方抛异常，或者你可以把你抛异常的代码放到一个循环中，多次运行，知道结果符合你预期。
+
+历史上，码农们有尝试过使用 resumption 机制的操作系统，但最终回归到了 termination 机制。虽然 resumption 机制乍一听上去很美，但是并不是这么实用。可能是应为这种机制下你写的代码不能很通用，导致维护困难，特别是在写一些大型项目的时候。
+
+## Creating your own exceptions
