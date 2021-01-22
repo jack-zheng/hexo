@@ -120,3 +120,206 @@ try {
 历史上，码农们有尝试过使用 resumption 机制的操作系统，但最终回归到了 termination 机制。虽然 resumption 机制乍一听上去很美，但是并不是这么实用。可能是应为这种机制下你写的代码不能很通用，导致维护困难，特别是在写一些大型项目的时候。
 
 ## Creating your own exceptions
+
+Java 允许你自己定制异常，你需要做的只是继承一个已有的异常类即可。当然继承的时候如果有的话，选一个最贴近你异常类的，那是极好的。创建时只需要用它的默认构造函数即可，代码很简单：
+
+```java
+class SimpleException extends Exception {
+}
+
+public class InheritingExceptions {
+    public void f() throws SimpleException {
+        System.out.println("Throw SimpleException from f()");
+        throw new SimpleException();
+    }
+
+    public static void main(String[] args) {
+        InheritingExceptions sed = new InheritingExceptions();
+        try {
+            sed.f();
+        } catch (SimpleException e) {
+            System.out.println("Caught it!");
+        }
+    }
+}
+// output:
+// Throw SimpleException from f()
+// Caught it!
+```
+
+用以上的方式创建的异常会自带默认的构造函数，这个默认的构造函数是无参的，在自定义异常时，最重要的是要有个贴切的名字。
+
+下面是带带参构造的例子
+
+```java
+class MyException extends Exception {
+    public MyException() {
+    }
+
+    public MyException(String msg) {
+        super(msg);
+    }
+}
+
+public class FullConstructors {
+    public static void f() throws MyException {
+        System.out.println("Throwing MyException from f()");
+        throw new MyException();
+    }
+
+    public static void g() throws MyException {
+        System.out.println("Throwing MyException from g()");
+        throw new MyException("Originated in g()");
+    }
+
+    public static void main(String[] args) {
+        try {
+            f();
+        } catch (MyException e) {
+            e.printStackTrace(System.out);
+        }
+        try {
+            g();
+        } catch (MyException e) {
+            e.printStackTrace(System.out);
+        }
+    }
+}
+// output
+// Throwing MyException from f()
+// reading.container.MyException
+// 	at reading.container.FullConstructors.f(FullConstructors.java:15)
+// 	at reading.container.FullConstructors.main(FullConstructors.java:25)
+// Throwing MyException from g()
+// reading.container.MyException: Originated in g()
+// 	at reading.container.FullConstructors.g(FullConstructors.java:20)
+// 	at reading.container.FullConstructors.main(FullConstructors.java:30)
+```
+
+只需要少量的新加 code 就能实现带参构造，声明的时候用上 `super` 关键字即可。
+
+在 exception handler 中你可以看到一个方法调用叫做 `e.printStackTrace(System.out)`。他可以将异常信息输出。
+
+## Exercises
+
+Exercise 1: (2) Create a class with a main( ) that throws an object of class Exception
+inside a try block. Give the constructor for Exception a String argument. Catch the
+exception inside a catch clause and print the String argument. Add a finally clause and
+print a message to prove you were there.
+
+```java
+class Exe1Exception extends Exception {
+    Exe1Exception(String msg) {
+        super(msg);
+    }
+}
+
+public class Exercise1 {
+    public static void main(String[] args) {
+        try {
+            throw new Exe1Exception("my exception msg...");
+        } catch (Exe1Exception e) {
+            System.out.println(e.getMessage());
+        } finally {
+            System.out.println("Into final cluster...");
+        }
+    }
+}
+
+// output
+// my exception msg...
+// Into final cluster...
+```
+
+Exercise 2: (1) Define an object reference and initialize it to null. Try to call a method
+through this reference. Now wrap the code in a try-catch clause to catch the exception.
+
+```java
+public class Exercise1 {
+    public static void main(String[] args) {
+        try {
+            String str = null;
+            System.out.println(str.isEmpty());
+        } catch (NullPointerException e) {
+            System.out.println("Invoked object is null...");
+        }
+    }
+}
+// output
+// Invoked object is null...
+```
+
+Exercise 3: (1) Write code to generate and catch an
+ArraylndexOutOfBoundsException.
+
+```java
+public class Exercise1 {
+    public static void main(String[] args) {
+        try {
+            String[] strArr = new String[0];
+            strArr[0] = "str";
+        } catch (ArrayIndexOutOfBoundsException e) {
+            System.out.println("ArrayIndexOutOfBoundsException caught...");
+        }
+    }
+}
+```
+
+Exercise 4: (2) Create your own exception class using the extends keyword. Write a
+constructor for this class that takes a String argument and stores it inside the object with a
+String reference. Write a method that displays the stored String. Create a try-catch clause
+to exercise your new exception.
+
+```java
+class ExeException extends Exception {
+    ExeException(String msg) {
+        super(msg);
+    }
+
+    public String getExeExceptionMsg() {
+        return getMessage();
+    }
+}
+
+public class Exercise1 {
+    public static void main(String[] args) {
+        try {
+            throw new ExeException("exe exception...");
+        } catch (ExeException e) {
+            System.out.println("Caught ExeException, msg: " + e.getExeExceptionMsg());
+        }
+    }
+}
+// output
+// Caught ExeException, msg: exe exception...
+```
+
+Exercise 5: (3) Create your own resumption-like behavior using a while loop that
+repeats until an exception is no longer thrown. 
+
+```java
+class ExeException extends Exception {}
+
+public class Exercise1 {
+    public static void main(String[] args) {
+        int index = 0;
+        while (index < 3) {
+            try {
+                System.out.println(index / 0);
+            } catch (ArithmeticException e) {
+                System.out.println("Arithmetic exception when index is " + index);
+                index ++;
+            }
+        }
+        System.out.println("end program...");
+    }
+}
+
+// output
+// Arithmetic exception when index is 0
+// Arithmetic exception when index is 1
+// Arithmetic exception when index is 2
+// end program...
+```
+
+## Exceptions and logging
