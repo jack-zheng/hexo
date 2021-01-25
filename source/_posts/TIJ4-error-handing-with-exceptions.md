@@ -323,3 +323,584 @@ public class Exercise1 {
 ```
 
 ## Exceptions and logging
+
+使用 logging 工具类记录信息
+
+```java
+import java.util.logging.*;
+import java.io.*;
+
+class LoggingException extends Exception {
+    private static Logger logger = Logger.getLogger("LoggingException");
+
+    public LoggingException() {
+        StringWriter trace = new StringWriter();
+        printStackTrace(new PrintWriter(trace));
+        logger.severe(trace.toString());
+    }
+}
+
+public class LoggingExceptions {
+    public static void main(String[] args) {
+        try {
+            throw new LoggingException();
+        } catch (LoggingException e) {
+            System.err.println("Caught " + e);
+        }
+        try {
+            throw new LoggingException();
+        } catch (LoggingException e) {
+            System.err.println("Caught " + e);
+        }
+    }
+}
+// output
+// Jan 25, 2021 10:57:56 AM reading.container.LoggingException <init>
+// SEVERE: reading.container.LoggingException
+// 	at reading.container.LoggingExceptions.main(LoggingExceptions.java:20)
+
+// Caught reading.container.LoggingException
+// Jan 25, 2021 10:57:56 AM reading.container.LoggingException <init>
+// SEVERE: reading.container.LoggingException
+// 	at reading.container.LoggingExceptions.main(LoggingExceptions.java:25)
+
+// Caught reading.container.LoggingException
+```
+
+`Logger.getLogger()` 接收一个字符串作为参数创建 Logger 对象，如果没有其他设置，他回把对应的信息输出到 `System.err` 中去。`printStackTrace()` 接收一个 PrintWriter 作为参数，再通过调用 `logger.severe()` 将信息输出。
+
+上面这种处理方式将所有的 logging 相关动作封装在了异常中，所以很简便，但是更常见的处理方式是将你要处理的 log 在 exception handler 中进行封装。
+
+```java
+class MyException2 extends Exception {
+    private int x;
+    public MyException2() {}
+    public MyException2(String msg) { super(msg); }
+    public MyException2(String msg, int x) {
+        super(msg);
+        this.x = x;
+    }
+    public int val() { return x; }
+    public String getMessage() {
+        return "Detail Message: "+ x + " "+ super.getMessage();
+    }
+}
+
+public class ExtraFeatures {
+    public static void f() throws MyException2 {
+        System.out.println("Throwing MyException2 from f()");
+        throw new MyException2();
+    }
+    public static void g() throws MyException2 {
+        System.out.println("Throwing MyException2 from g()");
+        throw new MyException2("Originated in g()");
+    }
+    public static void h() throws MyException2 {
+        System.out.println("Throwing MyException2 from h()");
+        throw new MyException2("Originated in h()", 47);
+    }
+    public static void main(String[] args) {
+        try {
+            f();
+        } catch(MyException2 e) {
+            e.printStackTrace(System.out);
+        }
+        try {
+            g();
+        } catch(MyException2 e) {
+            e.printStackTrace(System.out);
+        }
+        try {
+            h();
+        } catch(MyException2 e) {
+            e.printStackTrace(System.out);
+            System.out.println("e.val() = " + e.val());
+        }
+    }
+}
+// output
+// Throwing MyException2 from f()
+// reading.container.MyException2: Detail Message: 0 null
+// 	at reading.container.ExtraFeatures.f(ExtraFeatures.java:20)
+// 	at reading.container.ExtraFeatures.main(ExtraFeatures.java:32)
+// Throwing MyException2 from g()
+// reading.container.MyException2: Detail Message: 0 Originated in g()
+// 	at reading.container.ExtraFeatures.g(ExtraFeatures.java:24)
+// 	at reading.container.ExtraFeatures.main(ExtraFeatures.java:37)
+// Throwing MyException2 from h()
+// reading.container.MyException2: Detail Message: 47 Originated in h()
+// 	at reading.container.ExtraFeatures.h(ExtraFeatures.java:28)
+// 	at reading.container.ExtraFeatures.main(ExtraFeatures.java:42)
+// e.val() = 47
+```
+
+我们在自定义异常中添加了一个新的 field 并给出了对应的 getter 方法，重写了 `Throwable.getMessage( )` 方法。
+
+exception 也是一个 Java 对象，你可以继续扩展这个类，但是值得注意的是，你的包装可能被其他人忽略，因为他们在使用的时候可能只想找一个贴切的异常并丢出去。
+
+## The exception specification
+
+在 Java 中，你需要告知调用者你的方法可能会抛出什么异常，而且这是强制的语法。这种语法使用 throw 作为关键字，后面接需要 catch 的异常 `void f() throws TooBig, TooSmall, DivZero { //...`
+
+如果方法声明只是简单的 `void f() { //...` 这表示没有异常从这个方法中抛出。 `{except` 表示异常继承自 `RuntimeException`，这个异常可以在任何地方抛出。在异常声明中，你不能作弊。如果你方法中有抛出异常，但是你没有处理的话，编译器就会监测到并给你提示，要跑处理它，要跑继续抛出它。通过自顶向下的约束异常声明，Java 保证了在编译期的异常检测。
+
+有一个特别的地方是，你可以在没有对应实现的情况下抛出异常。这种处理方式可以看作是一个预先打桩，为你将来的实现做预备，而且省去了你以后还要改应用代码的麻烦。
+
+在编译期强制你检测的这种异常，叫做 Checked Exception。
+
+## Catching any exception
+
+在异常处理中，声明一个 catch 来捕捉所有的异常是可行的。你可以 catch Exception 来实现，他是几乎所有异常的基类
+
+```java
+catch(Exception e) {
+ System.out.println("Caught an exception");
+}
+```
+
+他会处理任何异常，所以确保将它放到你的 catch 列表的末位。由于他是一个基类，所以你一般不能得到什么很特殊的信息，但是你还是可以调用那些基于 Throwable 的方法，比如
+
+String getMessage( )  
+String getLocalizedMessage( )  
+
+获取 message，或者是基于本地化的 message。
+
+`String toString( )` 返回一个间断的关于 Throwable 类的描述，如果这个类有详细信息的话，也会包含在其中。
+
+void printStackTrace( )  
+void printStackTrace(PrintStream)  
+void printStackTrace(java.io.PrintWriter)  
+
+打印 Throwable 以及对应的调用栈信息。栈信息会告诉你异常发生的点。第一种方式会将异常输出到 standard error, 第二和三种方式会输出到对应的流。
+
+Throwable 还有很多其他的方法可以调用，比如 `getClass()`， 它能返回一个异常对象，`getName()` 返回类信息，包含路径名，`getSimpleName()` 只含有类名。
+
+```java
+public class ExceptionMethods {
+    public static void main(String[] args) {
+        try {
+            throw new Exception("My Exception");
+        } catch (Exception e) {
+            System.out.println("Caught Exception");
+            System.out.println("getMessage():" + e.getMessage());
+            System.out.println("getLocalizedMessage():" +
+                    e.getLocalizedMessage());
+            System.out.println("toString():" + e);
+            System.out.println("System.out.printlnStackTrace():");
+            e.printStackTrace(System.out);
+        }
+    }
+}
+// output
+// Caught Exception
+// getMessage():My Exception
+// getLocalizedMessage():My Exception
+// toString():java.lang.Exception: My Exception
+// System.out.printlnStackTrace():
+// java.lang.Exception: My Exception
+// 	at reading.container.ExceptionMethods.main(ExceptionMethods.java:6)
+```
+
+### The stack trace
+
+`printStackTrace( )` 中的信息也可以通过 `getStackTrace( )` 得到，他会返回一个信息栈。下面是一个示例，可以看到，root cause 是在第一行打印的，最外层的异常点在最后打印。
+
+```java
+public class WhoCalled {
+    static void f() {
+        // Generate an exception to fill in the stack trace
+        try {
+            throw new Exception();
+        } catch (Exception e) {
+            for (StackTraceElement ste : e.getStackTrace())
+                System.out.println(ste.getMethodName());
+        }
+    }
+
+    static void g() {
+        f();
+    }
+
+    static void h() {
+        g();
+    }
+
+    public static void main(String[] args) {
+        f();
+        System.out.println("--------------------------------");
+        g();
+        System.out.println("--------------------------------");
+        h();
+    }
+}
+
+// output
+// f
+// main
+// --------------------------------
+// f
+// g
+// main
+// --------------------------------
+// f
+// g
+// h
+// main
+```
+
+### Rethrowing an exception
+
+有时你在捕捉到异常之后会想要再一次 throw 它，比如之前提到的，通过 Exception 捕捉到异常的情况。这时你只需要在 handler 里面再 throw 即可
+
+```java
+catch(Exception e) {
+    System.out.println("An exception was thrown");
+    throw e;
+}
+```
+
+Rethrowing 会将异常交由更高的 context 处理，这个过程中，异常对象的所有信息都会被保存下来，如果你想要创建一个新的异常对象，你可以使用 `fillInStackTrace( )` 方法，示例如下：
+
+```java
+public class Rethrowing {
+    public static void f() throws Exception {
+        System.out.println("originating the exception in f()");
+        throw new Exception("thrown from f()");
+    }
+
+    public static void g() throws Exception {
+        try {
+            f();
+        } catch (Exception e) {
+            System.out.println("Inside g(),e.printStackTrace()");
+            e.printStackTrace(System.out);
+            throw e;
+        }
+    }
+
+    public static void h() throws Exception {
+        try {
+            f();
+        } catch (Exception e) {
+            System.out.println("Inside h(),e.printStackTrace()");
+            e.printStackTrace(System.out);
+            throw (Exception) e.fillInStackTrace();
+        }
+    }
+
+    public static void main(String[] args) {
+        try {
+            g();
+        } catch (Exception e) {
+            System.out.println("main: printStackTrace()");
+            e.printStackTrace(System.out);
+        }
+        try {
+            h();
+        } catch (Exception e) {
+            System.out.println("main: printStackTrace()");
+            e.printStackTrace(System.out);
+        }
+    }
+}
+
+// originating the exception in f()
+// Inside g(),e.printStackTrace()
+// java.lang.Exception: thrown from f()
+// 	at reading.container.Rethrowing.f(Rethrowing.java:6)
+// 	at reading.container.Rethrowing.g(Rethrowing.java:11)
+// 	at reading.container.Rethrowing.main(Rethrowing.java:31)
+// main: printStackTrace()
+// java.lang.Exception: thrown from f()
+// 	at reading.container.Rethrowing.f(Rethrowing.java:6)
+// 	at reading.container.Rethrowing.g(Rethrowing.java:11)
+// 	at reading.container.Rethrowing.main(Rethrowing.java:31)
+// /--------------------- Dash --------------------/
+// originating the exception in f()
+// Inside h(),e.printStackTrace()
+// java.lang.Exception: thrown from f()
+// 	at reading.container.Rethrowing.f(Rethrowing.java:6)
+// 	at reading.container.Rethrowing.h(Rethrowing.java:21)
+// 	at reading.container.Rethrowing.main(Rethrowing.java:38)
+// main: printStackTrace()
+// java.lang.Exception: thrown from f()
+// 	at reading.container.Rethrowing.h(Rethrowing.java:25)
+// 	at reading.container.Rethrowing.main(Rethrowing.java:38)
+```
+
+`f()` 中通过 `fillInStackTrace( )` 改变了异常原点，相比于之前的调用 `g()` 的方法信息没有了。当然你也可以用 throw 新的 Exception 来实现和 `fillInStackTrace()` 同样的功能
+
+```java
+class OneException extends Exception {
+    public OneException(String s) {
+        super(s);
+    }
+}
+
+class TwoException extends Exception {
+    public TwoException(String s) {
+        super(s);
+    }
+}
+
+public class RethrowNew {
+    public static void f() throws OneException {
+        System.out.println("originating the exception in f()");
+        throw new OneException("thrown from f()");
+    }
+
+    public static void main(String[] args) {
+        try {
+            try {
+                f();
+            } catch (OneException e) {
+                System.out.println(
+                        "Caught in inner try, e.printStackTrace()");
+                e.printStackTrace(System.out);
+                throw new TwoException("from inner try");
+            }
+        } catch (TwoException e) {
+            System.out.println(
+                    "Caught in outer try, e.printStackTrace()");
+            e.printStackTrace(System.out);
+        }
+    }
+}
+
+// originating the exception in f()
+// Caught in inner try, e.printStackTrace()
+// reading.container.OneException: thrown from f()
+// 	at reading.container.RethrowNew.f(RethrowNew.java:18)
+// 	at reading.container.RethrowNew.main(RethrowNew.java:24)
+// Caught in outer try, e.printStackTrace()
+// reading.container.TwoException: from inner try
+// 	at reading.container.RethrowNew.main(RethrowNew.java:29)
+```
+
+最后的 exception handler 只知道异常来源于 inner try block 而不知道任何关于 f() 的信息。你完全不用关心异常的清理问题，他们都是基于堆创建的对象，垃圾回收机制会负责清理他们。
+
+### Exception chaining
+
+通常来说，当你抛出自己的异常时，你都会希望这个异常带有原始异常的信息。在 Java 1.4 以前，码农们需要自己处理这个问题，但是之后的版本中，你可以通过在构造函数中传入异常类来实现这个功能。
+
+Throwable 的子类中只有三个提供这个功能，分别是 Error(用于记录 JVM 异常)，Exception 和 RuntimeException。如果其他类型的异常，你也想串联起来的话，你可以调用 `initCause()` 方法，示例如下：
+
+```java
+class DynamicFieldsException extends Exception {}
+
+public class DynamicFields {
+    private Object[][] fields;
+
+    public DynamicFields(int initialSize) {
+        fields = new Object[initialSize][2];
+        for (int i = 0; i < initialSize; i++)
+            fields[i] = new Object[]{null, null};
+    }
+
+    public String toString() {
+        StringBuilder result = new StringBuilder();
+        for (Object[] obj : fields) {
+            result.append(obj[0]);
+            result.append(": ");
+            result.append(obj[1]);
+            result.append("\n");
+        }
+        return result.toString();
+    }
+
+    private int hasField(String id) {
+        for (int i = 0; i < fields.length; i++)
+            if (id.equals(fields[i][0]))
+                return i;
+        return -1;
+    }
+
+    private int
+    getFieldNumber(String id) throws NoSuchFieldException {
+        int fieldNum = hasField(id);
+        if (fieldNum == -1)
+            throw new NoSuchFieldException();
+        return fieldNum;
+    }
+
+    private int makeField(String id) {
+        for (int i = 0; i < fields.length; i++)
+            if (fields[i][0] == null) {
+                fields[i][0] = id;
+                return i;
+            }
+        // No empty fields. Add one:
+        Object[][] tmp = new Object[fields.length + 1][2];
+        for (int i = 0; i < fields.length; i++)
+            tmp[i] = fields[i];
+        for (int i = fields.length; i < tmp.length; i++)
+            tmp[i] = new Object[]{null, null};
+        fields = tmp;
+        // Recursive call with expanded fields:
+        return makeField(id);
+    }
+
+    public Object getField(String id) throws NoSuchFieldException {
+        return fields[getFieldNumber(id)][1];
+    }
+
+    public Object setField(String id, Object value)
+            throws DynamicFieldsException {
+        if (value == null) {
+            // Most exceptions don’t have a "cause" constructor.
+            // In these cases you must use initCause(),
+            // available in all Throwable subclasses.
+            DynamicFieldsException dfe = new DynamicFieldsException();
+            dfe.initCause(new NullPointerException());
+            throw dfe;
+        }
+        int fieldNumber = hasField(id);
+        if (fieldNumber == -1)
+            fieldNumber = makeField(id);
+        Object result = null;
+        try {
+            result = getField(id); // Get old value
+        } catch (NoSuchFieldException e) {
+            // Use constructor that takes "cause":
+            throw new RuntimeException(e);
+        }
+        fields[fieldNumber][1] = value;
+        return result;
+    }
+
+    public static void main(String[] args) {
+        DynamicFields df = new DynamicFields(3);
+        System.out.println(df);
+        try {
+            df.setField("d", "A value for d");
+            df.setField("number", 47);
+            df.setField("number2", 48);
+            System.out.println(df);
+            df.setField("d", "A new value for d");
+            df.setField("number3", 11);
+            System.out.println("df: " + df);
+            System.out.println("df.getField(\"d\") : " + df.getField("d"));
+            Object field = df.setField("d", null); // Exception
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace(System.out);
+        } catch (DynamicFieldsException e) {
+            e.printStackTrace(System.out);
+        }
+    }
+}
+
+// output
+// null: null
+// null: null
+// null: null
+
+// d: A value for d
+// number: 47
+// number2: 48
+
+// df: d: A new value for d
+// number: 47
+// number2: 48
+// number3: 11
+
+// df.getField("d") : A new value for d
+// reading.container.DynamicFieldsException
+// 	at reading.container.DynamicFields.setField(DynamicFields.java:68)
+// 	at reading.container.DynamicFields.main(DynamicFields.java:98)
+// Caused by: java.lang.NullPointerException
+// 	at reading.container.DynamicFields.setField(DynamicFields.java:69)
+// 	... 1 more
+```
+
+示例说明：
+
+* 自定义一个异常 DynamicFieldsException
+* DynamicFields 为测试类，包含一个需要处理的 field 叫做 fields，他是一个二维数组
+* fields 初始化时可以给定长度，宽度为固定值 2, 也就是 n*2 的矩阵
+* fields 的子单元值为对象，不能填充原始类型的值
+* 自定义 toString 方法可以答应矩阵值
+* setField 可以设置一行的值，如果超出容量，自动 copy + append, 设置的值不能为 null 否则报错
+* getField 返回对应行的值，如果没有抛异常
+
+在 `setField()` 方法中，我们我们为 DynamicFieldsException 通过调用 initCause 设置了 NPE 为 root
+
+## Standard Java exceptions
+
+Java 的 Throwable 类代表了所有可 throw 类，通常有两个常用子类 Error 和 Exception。Error 表示 compile-time 和系统错误，这些是你不需要关心的。另一类是 Exception，这些是码农需要关心的。
+
+想要对 Exception 有一个概览，最好就去看一下 JDK 文档，这可以给你找找感觉，但是当你看了之后，你会发现，这些异常，出了名字不同外，其他基本都是一样的。如果你是用第三方包，那么很大概率会遇到他们自定义的异常。所以最重要的事是来哦姐他的定义，还有就是知道当你遇到它时你需要做什么。
+
+异常的名字就代表了它处理的场景，异常的命名要求贴切明了。异常并不是全都定义在 java.lang 下，其他一些包，比如 util, net 和 io 也都有自己的异常类。你可以通过查看他们的包路径知道这些信息。比如所有的 I/O 异常都是继承于 java.io.IOException。
+
+### Special case: RuntimeException
+
+下面是第一个示例
+
+```java
+if (t == null) {
+    throw new NullPointException();
+}
+```
+
+如果代码中每个可能有 null 引用的地方都需要做 NPE 检测，那想象就很刺激。所幸，这个检测 Java 会替你完成，所以上述的代码中的 NPE 检查是多余的。
+
+JDK 中有一族异常处理类似的问题，Java 代码中会自动抛出，自动处理这些异常签名。他们有一个基类叫做 `RuntimeException`, 由它派生出来的异常都不需要在声明中他别指出来。他们也被叫做 unchecked exceptions(非受检异常)。虽然你不需要检测 RuntimeException, 都是你在写代码的过程中可能会想要抛出这个异常。
+
+下面是一个没有捕获 RuntimeException 的例子：
+
+```java
+public class NeverCaught {
+    static void f() {
+        throw new RuntimeException("From f()");
+    }
+
+    static void g() {
+        f();
+    }
+
+    public static void main(String[] args) {
+        g();
+    }
+}
+
+// output
+// Exception in thread "main" java.lang.RuntimeException: From f()
+// 	at reading.container.NeverCaught.f(NeverCaught.java:5)
+// 	at reading.container.NeverCaught.g(NeverCaught.java:9)
+// 	at reading.container.NeverCaught.main(NeverCaught.java:13)
+```
+
+你可以看到，即使你在 f() 中 throw 了这个异常，但是你在调用它的位置也不需要用异常签名标识它。
+
+时刻牢记，只有 运行时异常 可以这么处理， checked exception 不行，因为 Java 语法中，将运行时异常当作系统错误处理，系统错误的定义：
+
+1. 那些你不能预料的异常，比如 null reference
+2. 那种作为作者，你在程序中应该检查的错误，比如 ArraylndexOutOfBoundsException
+
+## Performing cleanup with finally
+
+### What’s finally for? 
+
+### Using finally during return
+
+### Pitfall: the lost exception
+
+## Exception restrictions
+
+## Constructors
+
+## Exception matching
+
+## Alternative approaches
+
+### History
+
+### Perspectives
+
+### Passing exceptions to the console
+
+### Converting checked to unchecked exceptions
+
+## Exception guidelines
+
+## Summary
