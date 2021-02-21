@@ -455,7 +455,7 @@ exception 也是一个 Java 对象，你可以继续扩展这个类，但是值�
 
 ## Catching any exception
 
-在异常处理中，声明一个 catch 来捕获 Exception 以达到捕获几乎所有异常的基类的目的，这是可行的，而且很常见。
+在异常处理中，声明一个 catch 来捕获 Exception 以达到捕获几乎所有异常的基类的目的，这样做是可行的而且很常见。
 
 ```java
 catch(Exception e) {
@@ -463,7 +463,7 @@ catch(Exception e) {
 }
 ```
 
-他会处理任何异常，所以确保将它放到你的 catch 列表的末位。由于他是一个基类，所以你一般不能得到什么很特殊的信息，但是你还是可以调用那些基于 Throwable 的方法，比如
+他会处理几乎所有的受检异常，所以确保将它放到你的 catch 列表的末位。由于他是一个基类，所以你一般不能得到什么很特殊的信息，但是你还是可以调用那些基于 Throwable 的方法，比如
 
 ```java
 String getMessage( )  
@@ -692,7 +692,18 @@ public class RethrowNew {
 
 通常来说，当你抛出自己的异常时，你都会希望这个异常带有原始异常的信息。在 Java 1.4 以前，码农们需要自己处理这个问题，但是之后的版本中，你可以通过在构造函数中传入异常类来实现这个功能。
 
-Throwable 的子类中只有三个提供这个功能，分别是 Error(用于记录 JVM 异常)，Exception 和 RuntimeException。如果其他类型的异常，你也想串联起来的话，你可以调用 `initCause()` 方法，示例如下：
+Throwable 的子类中只有三个提供这个功能，分别是 Error(用于记录 JVM 异常)，Exception 和 RuntimeException。如果其他类型的异常，你也想串联起来的话，你可以调用 `initCause()` 方法.
+
+示例说明：
+
+* 自定义一个异常 DynamicFieldsException
+* DynamicFields 为测试类，包含一个需要处理的 field 叫做 fields，他是一个二维数组
+* fields 初始化时可以给定长度，宽度为固定值 2, 也就是 n*2 的矩阵
+* fields 的子单元值为对象，不能填充原始类型的值
+* 自定义 toString 方法可以打印矩阵值
+* setField 可以设置一行的值，如果超出容量，自动 copy + append, 设置的值不能为 null，否则报错
+* getField 返回对应行的值，如果没有抛异常
+
 
 ```java
 class DynamicFieldsException extends Exception {}
@@ -821,23 +832,13 @@ public class DynamicFields {
 // 	... 1 more
 ```
 
-示例说明：
-
-* 自定义一个异常 DynamicFieldsException
-* DynamicFields 为测试类，包含一个需要处理的 field 叫做 fields，他是一个二维数组
-* fields 初始化时可以给定长度，宽度为固定值 2, 也就是 n*2 的矩阵
-* fields 的子单元值为对象，不能填充原始类型的值
-* 自定义 toString 方法可以答应矩阵值
-* setField 可以设置一行的值，如果超出容量，自动 copy + append, 设置的值不能为 null 否则报错
-* getField 返回对应行的值，如果没有抛异常
-
 在 `setField()` 方法中，我们我们为 DynamicFieldsException 通过调用 initCause 设置了 NPE 为 root
 
 ## Standard Java exceptions
 
-Java 的 Throwable 类代表了所有可 throw 类，通常有两个常用子类 Error 和 Exception。Error 表示 compile-time 和系统错误，这些是你不需要关心的。另一类是 Exception，这些是码农需要关心的。
+Java 的 Throwable 类代表了所有可 throw 类，有两个常用子类 Error 和 Exception。Error 表示 compile-time 和系统错误，这些是你不需要关心的。另一类是 Exception，这些是码农需要关心的。
 
-想要对 Exception 有一个概览，最好就去看一下 JDK 文档，这可以给你找找感觉，但是当你看了之后，你会发现，这些异常，出了名字不同外，其他基本都是一样的。如果你是用第三方包，那么很大概率会遇到他们自定义的异常。所以最重要的事是来哦姐他的定义，还有就是知道当你遇到它时你需要做什么。
+想要对 Exception 有一个概览，最好就去看一下 JDK 文档，这可以给你找找感觉，但是当你看了之后，你会发现，这些异常，除了名字不同外，其他基本都是一样的。如果你是用第三方包，那么很大概率会遇到他们自定义的异常。所以最重要的事是了解他的定义，还有就是知道当你遇到它时你需要做什么。
 
 异常的名字就代表了它处理的场景，异常的命名要求贴切明了。异常并不是全都定义在 java.lang 下，其他一些包，比如 util, net 和 io 也都有自己的异常类。你可以通过查看他们的包路径知道这些信息。比如所有的 I/O 异常都是继承于 java.io.IOException。
 
@@ -853,7 +854,7 @@ if (t == null) {
 
 如果代码中每个可能有 null 引用的地方都需要做 NPE 检测，那想象就很刺激。所幸，这个检测 Java 会替你完成，所以上述的代码中的 NPE 检查是多余的。
 
-JDK 中有一族异常处理类似的问题，Java 代码中会自动抛出，自动处理这些异常签名。他们有一个基类叫做 `RuntimeException`, 由它派生出来的异常都不需要在声明中他别指出来。他们也被叫做 unchecked exceptions(非受检异常)。虽然你不需要检测 RuntimeException, 都是你在写代码的过程中可能会想要抛出这个异常。
+JDK 中有一族异常处理类似的问题，Java 代码中会自动抛出，自动处理这些异常签名。他们有一个基类叫做 `RuntimeException`, 由它派生出来的异常都不需要在声明中特别指出来。他们也被叫做 unchecked exceptions(非受检异常)。虽然你不需要检测 RuntimeException, 但是你在写代码的过程中可能会想要抛出这个异常。
 
 下面是一个没有捕获 RuntimeException 的例子：
 
@@ -888,7 +889,7 @@ public class NeverCaught {
 
 ## Performing cleanup with finally
 
-在你的代码中总有一些动作是你无论如何都要做的，不管是否有异常发生， 为了应对这写问题，我们在所有的 catch 结束后引入了 `finally` 这个关键字。完成的表现形式如下：
+在你的代码中总有一些动作是你无论如何都要做的，不管是否有异常发生， 为了应对这些问题，我们在 catch 结束后引入了 `finally` 这个关键字。表现形式如下：
 
 ```java
 try {
@@ -949,7 +950,7 @@ finally 可以用于重制除内存以外的对象，比如关闭文件，或者
 
 示例说明：
 
-下面这个例子，我们想要达到的效果是无论如果要在程序结束时将开关关闭。
+下面这个例子，我们想要达到的效果是无论如何要在程序结束时将开关关闭。
 
 我们声明了两个异常 OnOffException1， OnOffException2，但是如果要将关闭的动作放到 catch 中，会出现很多重复的代码。
 
@@ -1003,7 +1004,6 @@ public class OnOffSwitch {
     }
 }
 
-// output
 // on
 // off
 ```
@@ -1029,7 +1029,6 @@ public class WithFinally {
     }
 }
 
-// output
 // on
 // off
 ```
@@ -1052,15 +1051,13 @@ public class AlwaysFinally {
                 System.out.println("finally in 2nd try block");
             }
         } catch (FourException e) {
-            System.out.println(
-                    "Caught FourException in 1st try block");
+            System.out.println("Caught FourException in 1st try block");
         } finally {
             System.out.println("finally in 1st try block");
         }
     }
 }
 
-// output
 // Entering first try block
 // Entering second try block
 // finally in 2nd try block
@@ -1072,7 +1069,7 @@ public class AlwaysFinally {
 
 ### Using finally during return
 
-由于 finally 是保证会被执行的，这就是的一段程序中有两个返回点变为可能，而且一些重要的 cleanup 必定会被执行。
+由于 finally 是保证会被执行的，这就使得一段程序中有两个返回点变为可能，而且一些重要的 cleanup 必定会被执行。
 
 ```java
 public class MultipleReturns {
