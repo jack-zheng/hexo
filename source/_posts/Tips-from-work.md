@@ -1,8 +1,8 @@
 ---
-title: Bug 记录
+title: 工作中的那些琐碎小事
 date: 2019-12-19 17:32:33
 categories:
-- 编程
+- 杂记
 tags:
 - java
 - exception
@@ -75,3 +75,11 @@ Error:
 ## 记录一个 jar 升级导致的问题
 
 在原先的 code 中，我们有个 UT 需要 xstream 的 Mapper 类，就在 UT 里面直接实现了类接口。某天， xstream 突然被人升级到 1.4.9+ 了，原来的 UT 就挂了，在这个版本里新添加了一个方法 `isReferenceable` 原来的 case 是没有实现的
+
+## Cache 处理的一些小技巧
+
+在产品中发现处理 cache 的逻辑是，更新数据时删掉对应的 cache, 然后在取数据时再重新将 cache 存储起来。以前没注意，现在再看看发现挺有意思。
+
+## @NonNull 标签
+
+Java 方法的参数列表中加入 @NonNull 并不会在写 code 的时候为你提供 NPE check, 更多的是结合其他框架, 比如 Spring 使用, 本身只起到提示作用。

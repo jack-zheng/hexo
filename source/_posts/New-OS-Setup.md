@@ -9,15 +9,6 @@ tags:
 
 记录一下新系统常用配置和软件安装
 
-## Chrome
-
-外网限制，安装 Chrome 扩展极度不便。所有的第一步是安装 SwithyOmega 的扩展来翻墙。
-
-1. 去 [SwitchyOmega](https://github.com/FelisCatus/SwitchyOmega) 官网下载 crx 文件。
-2. 重命名，将后缀改为 zip，然后直接拖到浏览器
-
-PS: 直接将 crx 文件拖进去会报错 `CRX_HEADER_INVALID`
-
 ## MacOS 显示隐藏文件
 
 `cmd + shift + .`
