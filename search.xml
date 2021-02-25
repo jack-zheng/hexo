@@ -60,45 +60,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Bug 记录</title>
-    <url>/hexo/2019/12/19/Bug%20%E8%AE%B0%E5%BD%95/</url>
-    <content><![CDATA[<p>该页面用于记录实际工作中遇到的 bug，以示警戒</p>
-<h2 id="Exception-Handle-遗漏"><a href="#Exception-Handle-遗漏" class="headerlink" title="Exception Handle 遗漏"></a>Exception Handle 遗漏</h2><p>有同事打补丁时对 checked exception 和 RunTimeException 处理有遗漏导致客户使用出问题，反馈后 debug 发现，简化后场景如下</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* 场景描述：</span></span><br><span class="line"><span class="comment">*</span></span><br><span class="line"><span class="comment">* 在处理 filterData() 时，作者只考虑到 checked exception, 没有考虑 runtime exception.</span></span><br><span class="line"><span class="comment">* 实际使用时，客户在某些情况下会抛出 NPE 这种 runtime exception, 导致返回 null, 显示出现错误</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> List&lt;Integer&gt; <span class="title">populateDatas</span><span class="params">(datas)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">for</span> (data : datas) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                filterData(data);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (FilterException fe) &#123;</span><br><span class="line">                System.out.println(<span class="string">&quot;Err when filter &quot;</span> + data);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Populate data failed.&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="Java-中的异常分类"><a href="#Java-中的异常分类" class="headerlink" title="Java 中的异常分类"></a>Java 中的异常分类</h3><p><img src="relation.png" alt="Throwable关系图"></p>
-<h3 id="常见的异常种类"><a href="#常见的异常种类" class="headerlink" title="常见的异常种类"></a>常见的异常种类</h3><p>RunTimeException:</p>
-<ul>
-<li>NPE</li>
-<li>AuthmeticException</li>
-<li>NumberFormatException</li>
-<li>IndexOutOfBoundsException</li>
-</ul>
-<p>CheckedException:</p>
-<ul>
-<li>反射相关：NoSuchMethod,FieldException</li>
-<li>NoSuchFileException</li>
-</ul>
-<p>Error:</p>
-<ul>
-<li>OutOfMemmoryError</li>
-<li>ZipError</li>
-</ul>
-<h3 id="一点感悟"><a href="#一点感悟" class="headerlink" title="一点感悟"></a>一点感悟</h3><p>以后处理这样的问题还是要多留心 log, 从这个点出发的话估计这个问题发现只需要一个小时就够了。这次应为有很多干扰的 exception 跑出来，没有仔细查看导致绕了好大一个圈，要不是刚好本地有一个可以重现的样本就爆炸了╭(°A°`)╮ 谨记谨记</p>
-<h2 id="Event-数据量撑爆了产品环境"><a href="#Event-数据量撑爆了产品环境" class="headerlink" title="Event 数据量撑爆了产品环境"></a>Event 数据量撑爆了产品环境</h2><p>开发完 event 相关的 feature 之后没有对测试环境进行跟踪，功能没有问题，但是产生了很多冗余数据，比如包含了很多将 field 从 null 跟新到 “” 空字串的 event。很多 data center 因为业务过重，单这个 event 每天产生 500w 数据，Kafka 就危了。。。引以为戒。</p>
-<h2 id="JDBC-空字串存为-NULL"><a href="#JDBC-空字串存为-NULL" class="headerlink" title="JDBC 空字串存为 NULL"></a>JDBC 空字串存为 NULL</h2><p>通过 JDBC 存储空字串时，他会自动将它存为 NULL</p>
-<h2 id="记录一个-jar-升级导致的问题"><a href="#记录一个-jar-升级导致的问题" class="headerlink" title="记录一个 jar 升级导致的问题"></a>记录一个 jar 升级导致的问题</h2><p>在原先的 code 中，我们有个 UT 需要 xstream 的 Mapper 类，就在 UT 里面直接实现了类接口。某天， xstream 突然被人升级到 1.4.9+ 了，原来的 UT 就挂了，在这个版本里新添加了一个方法 <code>isReferenceable</code> 原来的 case 是没有实现的</p>
-]]></content>
-      <categories>
-        <category>编程</category>
-      </categories>
-      <tags>
-        <tag>java</tag>
-        <tag>exception</tag>
-        <tag>issues</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Java 中 C 语言风格的参数声明</title>
     <url>/hexo/2020/08/13/C-Style-Declaration-in-Java/</url>
     <content><![CDATA[<p>最近在调查一个 build issue 的时候发现有一段函数声明大致如下</p>
@@ -183,6 +144,34 @@
       <tags>
         <tag>java</tag>
         <tag>编译器</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Configuration for chrome and switchyomega</title>
+    <url>/hexo/2021/02/25/Configuration-for-chrome-and-switchyomega/</url>
+    <content><![CDATA[<p>Chrome + SwitchyOmega 已经配置了无数遍了，抽出来单独写一篇详细教程</p>
+<h2 id="配置步骤"><a href="#配置步骤" class="headerlink" title="配置步骤"></a>配置步骤</h2><p>外网限制，安装 Chrome 扩展极度不便。所有的第一步是安装 SwithyOmega 的扩展来翻墙。</p>
+<ol>
+<li>去 <a href="https://github.com/FelisCatus/SwitchyOmega">SwitchyOmega</a> 官网下载 crx 文件。</li>
+<li>重命名，将后缀改为 zip，然后直接拖到浏览器 - <strong>直接将 crx 文件拖进去会报错 <code>CRX_HEADER_INVALID</code></strong></li>
+<li>左键点击插件 icon -&gt; Options -&gt; New profile 添加 Profile Proxy 类型配置文件</li>
+<li>Protocol, Server, Port 一次填入 SOCKS5, 127.0.0.1, 1086</li>
+<li>选择 auto switch, <code>Rule List Config</code> 下选择 AutoProxy 类型</li>
+<li><code>Rule List URL</code> 填入 <code>https://raw.githubusercontent.com/gfwlist/gfwlist/master/gfwlist.txt</code> 点击下载更新文件</li>
+<li>Apply Change, 打完收工</li>
+</ol>
+<p>PS: 公司里面有提供 PAC 解决方案，很方便，规则都给你定好了 New Profile 选择 PAC 类型，填入指定的 URL, 再点击 download 即可</p>
+<h2 id="Resources"><a href="#Resources" class="headerlink" title="Resources"></a>Resources</h2><ul>
+<li><a href="https://github.com/FelisCatus/SwitchyOmega/wiki/GFWList">GFWList 配置教程 - 官方</a></li>
+<li><a href="https://github.com/gfwlist/gfwlist">GFW 规则主页</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>配置</category>
+      </categories>
+      <tags>
+        <tag>Chrome</tag>
+        <tag>代理</tag>
       </tags>
   </entry>
   <entry>
@@ -2415,12 +2404,6 @@
     <title>新系统初始化设置</title>
     <url>/hexo/2020/08/03/New-OS-Setup/</url>
     <content><![CDATA[<p>记录一下新系统常用配置和软件安装</p>
-<h2 id="Chrome"><a href="#Chrome" class="headerlink" title="Chrome"></a>Chrome</h2><p>外网限制，安装 Chrome 扩展极度不便。所有的第一步是安装 SwithyOmega 的扩展来翻墙。</p>
-<ol>
-<li>去 <a href="https://github.com/FelisCatus/SwitchyOmega">SwitchyOmega</a> 官网下载 crx 文件。</li>
-<li>重命名，将后缀改为 zip，然后直接拖到浏览器</li>
-</ol>
-<p>PS: 直接将 crx 文件拖进去会报错 <code>CRX_HEADER_INVALID</code></p>
 <h2 id="MacOS-显示隐藏文件"><a href="#MacOS-显示隐藏文件" class="headerlink" title="MacOS 显示隐藏文件"></a>MacOS 显示隐藏文件</h2><p><code>cmd + shift + .</code></p>
 <h2 id="Homebrew"><a href="#Homebrew" class="headerlink" title="Homebrew"></a>Homebrew</h2><p>官网推荐的通过 curl raw 文件安装，本地没有 proxy 的话 pass，基本不动。可以直接通过 <code>git clone https://github.com/Homebrew/install</code> 这个 repo 然后 <code>cd</code> 到 install 文件夹下执行 <code>/bin/bash -c ./install.sh</code> 来触发任务</p>
 <h3 id="速度测试"><a href="#速度测试" class="headerlink" title="速度测试"></a>速度测试</h3><p>运行如下命令，查看是哪个步骤速度比较慢</p>
@@ -3925,6 +3908,47 @@
       </categories>
       <tags>
         <tag>设计模式</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>工作中的那些琐碎小事</title>
+    <url>/hexo/2019/12/19/Tips-from-work/</url>
+    <content><![CDATA[<p>该页面用于记录实际工作中遇到的 bug，以示警戒</p>
+<h2 id="Exception-Handle-遗漏"><a href="#Exception-Handle-遗漏" class="headerlink" title="Exception Handle 遗漏"></a>Exception Handle 遗漏</h2><p>有同事打补丁时对 checked exception 和 RunTimeException 处理有遗漏导致客户使用出问题，反馈后 debug 发现，简化后场景如下</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* 场景描述：</span></span><br><span class="line"><span class="comment">*</span></span><br><span class="line"><span class="comment">* 在处理 filterData() 时，作者只考虑到 checked exception, 没有考虑 runtime exception.</span></span><br><span class="line"><span class="comment">* 实际使用时，客户在某些情况下会抛出 NPE 这种 runtime exception, 导致返回 null, 显示出现错误</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> List&lt;Integer&gt; <span class="title">populateDatas</span><span class="params">(datas)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">for</span> (data : datas) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                filterData(data);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (FilterException fe) &#123;</span><br><span class="line">                System.out.println(<span class="string">&quot;Err when filter &quot;</span> + data);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Populate data failed.&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Java-中的异常分类"><a href="#Java-中的异常分类" class="headerlink" title="Java 中的异常分类"></a>Java 中的异常分类</h3><p><img src="relation.png" alt="Throwable关系图"></p>
+<h3 id="常见的异常种类"><a href="#常见的异常种类" class="headerlink" title="常见的异常种类"></a>常见的异常种类</h3><p>RunTimeException:</p>
+<ul>
+<li>NPE</li>
+<li>AuthmeticException</li>
+<li>NumberFormatException</li>
+<li>IndexOutOfBoundsException</li>
+</ul>
+<p>CheckedException:</p>
+<ul>
+<li>反射相关：NoSuchMethod,FieldException</li>
+<li>NoSuchFileException</li>
+</ul>
+<p>Error:</p>
+<ul>
+<li>OutOfMemmoryError</li>
+<li>ZipError</li>
+</ul>
+<h3 id="一点感悟"><a href="#一点感悟" class="headerlink" title="一点感悟"></a>一点感悟</h3><p>以后处理这样的问题还是要多留心 log, 从这个点出发的话估计这个问题发现只需要一个小时就够了。这次应为有很多干扰的 exception 跑出来，没有仔细查看导致绕了好大一个圈，要不是刚好本地有一个可以重现的样本就爆炸了╭(°A°`)╮ 谨记谨记</p>
+<h2 id="Event-数据量撑爆了产品环境"><a href="#Event-数据量撑爆了产品环境" class="headerlink" title="Event 数据量撑爆了产品环境"></a>Event 数据量撑爆了产品环境</h2><p>开发完 event 相关的 feature 之后没有对测试环境进行跟踪，功能没有问题，但是产生了很多冗余数据，比如包含了很多将 field 从 null 跟新到 “” 空字串的 event。很多 data center 因为业务过重，单这个 event 每天产生 500w 数据，Kafka 就危了。。。引以为戒。</p>
+<h2 id="JDBC-空字串存为-NULL"><a href="#JDBC-空字串存为-NULL" class="headerlink" title="JDBC 空字串存为 NULL"></a>JDBC 空字串存为 NULL</h2><p>通过 JDBC 存储空字串时，他会自动将它存为 NULL</p>
+<h2 id="记录一个-jar-升级导致的问题"><a href="#记录一个-jar-升级导致的问题" class="headerlink" title="记录一个 jar 升级导致的问题"></a>记录一个 jar 升级导致的问题</h2><p>在原先的 code 中，我们有个 UT 需要 xstream 的 Mapper 类，就在 UT 里面直接实现了类接口。某天， xstream 突然被人升级到 1.4.9+ 了，原来的 UT 就挂了，在这个版本里新添加了一个方法 <code>isReferenceable</code> 原来的 case 是没有实现的</p>
+<h2 id="Cache-处理的一些小技巧"><a href="#Cache-处理的一些小技巧" class="headerlink" title="Cache 处理的一些小技巧"></a>Cache 处理的一些小技巧</h2><p>在产品中发现处理 cache 的逻辑是，更新数据时删掉对应的 cache, 然后在取数据时再重新将 cache 存储起来。以前没注意，现在再看看发现挺有意思。</p>
+<h2 id="NonNull-标签"><a href="#NonNull-标签" class="headerlink" title="@NonNull 标签"></a>@NonNull 标签</h2><p>Java 方法的参数列表中加入 @NonNull 并不会在写 code 的时候为你提供 NPE check, 更多的是结合其他框架, 比如 Spring 使用, 本身只起到提示作用。</p>
+]]></content>
+      <categories>
+        <category>杂记</category>
+      </categories>
+      <tags>
+        <tag>java</tag>
+        <tag>exception</tag>
+        <tag>issues</tag>
       </tags>
   </entry>
   <entry>
