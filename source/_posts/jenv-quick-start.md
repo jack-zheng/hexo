@@ -15,19 +15,29 @@ jenv 是和 pyenv 一个类型的工具，应对多版本 java 的需求进行�
 # 安装
 brew install jenv
 
+# bashrc/zshrc 中添加配置
+export PATH="$HOME/.jenv/bin:$PATH"
+eval "$(jenv init -)"
+
 # local 已经安装的版本检测
 which java
 
-# 安装多版本 java, 可以通过 java11, java12 等指定版本。默认最新版
-brew cask install java
-# 安装成功会给出路径信息：Moving Generic Artifact 'jdk-14.0.2.jdk' to '/Library/Java/JavaVirtualMachines/openjdk-14.0.2.jdk'.
+# 查看 brew 安装的 Java 路径
+brew list java 
+
+# 可以看到安装的路径是 /usr/local/Cellar/openjdk/XXX
+# 默认就是从 openjdk repo 下载的
+# 如果想安装其他版本可以 special 一下 version: brew list openjdk@11
 
 # jenv 添加 home 路径
-jenv add /Library/Java/JavaVirtualMachines/openjdk-14.0.2.jdk/Contents/Home
+jenv add /usr/local/Cellar/openjdk@11/11.0.9
 
 # 查看可用版本
 jenv versions
 
-# 如果想要只在某个路径下面指定 java 版本，可以使用
+# 如果想要只在某个路径下面指定 java 版本，可以 cd 到目标目录下，使用
 jenv local 14
+
+# 删除某个版本
+jenv remove 14
 ```
