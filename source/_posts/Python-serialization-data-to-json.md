@@ -2,9 +2,8 @@
 title: Python 使用 json 序列化
 date: 2020-06-13 16:11:08
 categories:
-- 编程
-tags:
 - python
+tags:
 - 序列化
 ---
 

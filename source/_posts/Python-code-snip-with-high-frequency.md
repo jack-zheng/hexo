@@ -2,9 +2,8 @@
 title: Python 中常用的代码段
 date: 2020-01-23 14:11:18
 categories:
-- 编程
-tags:
 - python
+tags:
 - tips
 ---
 记录一些我经常查找的 python 方法作为备忘

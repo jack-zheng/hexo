@@ -2,9 +2,8 @@
 title: Python 解析 csv 文件
 date: 2020-06-18 17:43:48
 categories:
-- 编程
-tags:
 - python
+tags:
 - csv
 ---
 

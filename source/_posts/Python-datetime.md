@@ -2,9 +2,9 @@
 title: Python 日期和时间
 date: 2020-06-18 16:34:33
 categories:
-- 编程
-tags:
 - python
+tags:
+- date
 ---
 
 对 python 中涉及到时间的类库做一个大致的了解并收集一些常用的 sample。类库包括：time, date, datetime, timezone 等

@@ -2,9 +2,9 @@
 title: Python 脚本高频报错
 date: 2020-06-12 10:43:08
 categories:
-- 编程
-tags:
 - python
+tags:
+- tips
 ---
 
 ## requests lib SSLError
