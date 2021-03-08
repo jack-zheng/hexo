@@ -1,10 +1,10 @@
 ---
-title: Spring5 note
+title: Spring5 视频笔记
 date: 2020-09-08 21:28:47
 categories:
-- 编程
+- spring
 tags:
-- java
+- 视频笔记
 - spring
 ---
 

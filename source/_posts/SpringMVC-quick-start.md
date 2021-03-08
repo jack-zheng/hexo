@@ -1,11 +1,11 @@
 ---
-title: SpringMVC 快速入门
+title: SpringMVC 视频笔记
 date: 2020-10-14 21:17:02
 categories:
-- 编程
-tags:
-- java
 - spring
+tags:
+- springmvc
+- 视频笔记
 ---
 
 [B 站狂神 SpringMVC 教程笔记](https://www.bilibili.com/video/BV1aE41167Tu?p=3)

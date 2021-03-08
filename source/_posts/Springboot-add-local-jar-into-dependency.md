@@ -1,11 +1,10 @@
 ---
-title: Springboot add local jar into dependency
+title: Springboot 通过本地方式添加依赖
 date: 2020-11-11 17:18:57
 categories:
-- 编程
+- spring
 tags:
-- java
-- 本地
+- jar
 ---
 
 Springboot 项目中怎么添加本地 jar 包记录

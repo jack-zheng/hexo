@@ -1,5 +1,5 @@
 ---
-title: Configuration for chrome and switchyomega
+title: Chrome + SwitchyOmega 配置方案
 date: 2021-02-25 16:20:40
 categories:
 - 配置

@@ -1,11 +1,10 @@
 ---
-title: Springboot 学习笔记
+title: Springboot 视频笔记
 date: 2020-11-05 21:42:07
 categories:
-- 编程
-tags:
-- java
 - spring
+tags:
+- 视频笔记
 - springboot
 ---
 
