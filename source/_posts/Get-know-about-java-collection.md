@@ -2,9 +2,9 @@
 title: Java 集合类初探
 date: 2021-01-14 19:17:49
 categories:
-- 编程
+- java
 tags:
-- 集合
+- collection
 ---
 
 想要解决的问题：

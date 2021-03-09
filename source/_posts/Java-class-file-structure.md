@@ -2,7 +2,7 @@
 title: Java class 文件架构摘要
 date: 2020-11-19 10:45:30
 categories:
-- 编程
+- java
 tags:
 - todo
 - jvm

@@ -2,9 +2,9 @@
 title: Java holding your objects
 date: 2020-12-22 19:55:40
 categories:
-- 编程
-tags:
 - TIJ4
+tags:
+- collection
 ---
 
 - [前述](#前述)

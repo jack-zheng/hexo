@@ -2,10 +2,9 @@
 title: Java 代码块记录
 date: 2020-08-10 15:19:26
 categories:
-- 编程
-tags:
 - java
-- 代码段
+tags:
+- snip
 ---
 
 记录平时遇到的一些精巧的小代码段

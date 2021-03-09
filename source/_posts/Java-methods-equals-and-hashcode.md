@@ -2,9 +2,10 @@
 title: Java 中重写 equals 和 hashcode 的问题
 date: 2020-12-01 17:25:15
 categories:
-- 编程
-tags:
 - java
+tags:
+- equals
+- hash
 ---
 
 刚好最近遇到需要重写 equals 和 hashcode 的情况，总结记录一下，加深印象。

@@ -2,9 +2,9 @@
 title: TIJ4 - Type Information 笔记
 date: 2020-12-22 22:18:06
 categories:
-- 编程
-tags:
 - TIJ4
+tags:
+- type
 ---
 
 - [前述](#前述)

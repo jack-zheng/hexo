@@ -2,9 +2,8 @@
 title: Java 函数式编程
 date: 2020-05-28 21:15:28
 categories:
-- 编程
-tags:
 - java
+tags:
 - 函数式
 - lambda
 ---

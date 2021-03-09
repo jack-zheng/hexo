@@ -2,12 +2,12 @@
 title: Java 内部类读书笔记
 date: 2020-12-09 15:32:00
 categories:
-- 编程
-tags:
 - TIJ4
+tags:
+- inner_class
 ---
 
-- [前述](#前述)
+- [Intro](#intro)
 - [Creating inner classes](#creating-inner-classes)
 - [The link to the outer class](#the-link-to-the-outer-class)
 - [Using .this and .new](#using-this-and-new)
@@ -36,11 +36,11 @@ tags:
 - [x] 内部类有什么用 - 更好的闭包
 - [ ] 字节码层面是怎么表现的
 
-## 前述
+## Intro
 
 Java 语法是支持在一个 class 内部再放入另一个 class 的定义的,这种做法叫做 内部类(Inner Class)。
 
-Inner class 是一个很有价值的功能,他让你可以把两个逻辑上共存的 class 放到一起,并让他们之间有了一层可见性控制的功能。
+Inner class 是一个很有价值的功能, 他让你可以把两个逻辑上共存的 class 放到一起, 并让他们之间有了一层可见性控制的功能。
 
 ## Creating inner classes
 

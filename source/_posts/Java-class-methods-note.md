@@ -2,10 +2,9 @@
 title: Class 这个类中的方法使用记录
 date: 2020-12-24 16:37:33
 categories:
-- 编程
-tags:
 - java
-- 语法
+tags:
+- snip
 ---
 
 最近在使用 Class 这个类的时候遇到一些问题，顺便记录一下这个类中方法的使用案例
