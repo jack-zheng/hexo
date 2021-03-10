@@ -1,5 +1,5 @@
 ---
-title: TIJ4 interfaces
+title: TIJ4 接口 读书笔记 
 date: 2021-03-09 19:17:36
 categories:
 - TIJ4
@@ -20,12 +20,7 @@ TBD
 
 Interfaces 可以内嵌到 class 或者其他 interface 内部，这种做法可以引入一些有趣的特性。
 
-Interfaces may be nested within classes and within other interfaces. 3 This reveals a number
-of interesting features:
-
 ```java
-package reading.container;
-
 class A {
     interface B {
         void f();
@@ -147,34 +142,26 @@ public class NestingInterfaces {
 }
 ```
 
-The syntax for nesting an interface within a class is reasonably obvious. Just like non-nested
-interfaces, these can have public or package-access visibility.
+这种嵌套 interface 的语法是合理的，和普通的 interface 一下，所有访问修饰符都用在嵌套接口上。
 
-As an added twist, interfaces can also be private, as seen in A.D (the same qualification
-syntax is used for nested interfaces as for nested classes). What good is a private nested
-interface? You might guess that it can only be implemented as a private inner class as in
-DImp, but A.DImp2 shows that it can also be implemented as a public class. However,
+内嵌接口在使用上和 内部类并没有什么不同. 那么 private 的 interface 有什么价值呢？如果你以为 nested private interface 的实现只能是 private 的，那么你就错了。看看 DImp2 就可知，其实现可以是任意访问类型的。
+
+```
+! 后面的这段感觉翻译不过去，模模糊糊，看了中文版，貌似没有相关的章节。。。。汗
+
+but A.DImp2 shows that it can also be implemented as a public class. However,
 A.DImp2 can only be used as itself. You are not allowed to mention the fact that it
 implements the private interface D, so implementing a private interface is a way to force
 the definition of the methods in that interface without adding any type information (that is,
 without allowing any upcasting).
 
-The method getD( ) produces a further quandary concerning the private interface: It’s a
-public method that returns a reference to a private interface. What can you do with the
-return value of this method? In main( ), you can see several attempts to use the return
-value, all of which fail. The only thing that works is if the return value is handed to an object
-that has permission to use it—in this case, another A, via the receiveD( ) method.
+个人理解为 private 接口将接口的实现和定义限制在了定义类里面。而且一般使用的时候都是会返回接口类，像上面的 D getD(), 而 D 又是 private 的，限制了他的使用，这应该就是原文中 'A.DImp2 can only be used as itself' 的意思吧
+```
 
-Interface E shows that interfaces can be nested within each other. However, the rules about
-interfaces—in particular, that all interface elements must be public—are strictly enforced
-here, so an interface nested within another interface is automatically public and cannot be
-made private. 
+`getD()` 方法是 private 修饰的嵌套接口的更特殊的使用方式，在 `main()` 中，我们 comment 了很多对 D 接口的引用，但是这些用法都有编译错误。唯一的使用方式是新建一个 A 对象，调用以 D 为参数的方法。
 
-Nestinglnterfaces shows the various ways that nested interfaces can be implemented. In
-particular, notice that when you implement an interface, you are not required to implement
-any interfaces nested within. Also, private interfaces cannot be implemented outside of
-their defining classes.
+Interface E 的例子想要说明的事，接口内部也能声明接口，但是秉承接口内部元素必须都是规则，内嵌的接口也**必须只能**是 public 的
 
-Initially, these features may seem like they are added strictly for syntactic consistency, but I
-generally find that once you know about a feature, you often discover places where it is
-useful. 
+Nestinglnterfaces 类中给出了嵌套接口更多的实现，当我们实现一个嵌套接口的外部接口(E)时，是不需要我们实现对应的嵌套接口的。
+
+private interface 在外部是不能访问的，只能在声明他的类内部做实现

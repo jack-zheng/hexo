@@ -4,7 +4,7 @@ date: 2020-12-24 16:37:33
 categories:
 - java
 tags:
-- snip
+- snippet
 ---
 
 最近在使用 Class 这个类的时候遇到一些问题，顺便记录一下这个类中方法的使用案例

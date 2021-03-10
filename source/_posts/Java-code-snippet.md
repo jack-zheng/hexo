@@ -4,7 +4,7 @@ date: 2020-08-10 15:19:26
 categories:
 - java
 tags:
-- snip
+- snippet
 ---
 
 记录平时遇到的一些精巧的小代码段

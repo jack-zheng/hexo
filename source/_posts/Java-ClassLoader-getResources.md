@@ -4,7 +4,7 @@ date: 2020-11-06 19:22:08
 categories:
 - java
 tags:
-- snip
+- snippet
 ---
 
 今天突然发现了一个 class loader 的新用法
