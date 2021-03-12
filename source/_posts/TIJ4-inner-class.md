@@ -535,9 +535,9 @@ public class Wrapping {
 // output: 470
 ```
 
-对应 item5: An anonymous class that performs field initialization 你可以在内部类中定义,使用 field, field 如果是作为参数传入,必须是 final 类型的:
+对应 item5: An anonymous class that performs field initialization 你可以在内部类中定义, 使用 field, field 如果是作为参数传入,必须是 final 类型的:
 
-> 再看一遍才发现,他的特殊之处是内部类有一个 field 声明,对应的值是直接从方法参数里面拿的！！这种用法以前没注意到过 （；￣ェ￣）
+> 再看一遍才发现,他的特殊之处是内部类有一个 field 声明, 对应的值是直接从方法参数里面拿的！！这种用法以前没注意到过 （；￣ェ￣）
 
 ```java
 public class Parcel9 {
@@ -600,7 +600,7 @@ public class AnonymousConstructor {
 // In anonymous f()
 ```
 
-上例中 i 作为构造器参数传入,然是并没有在内部类中被直接使用,使用他的是基类的构造函数. 所以不用像前面的 local inner class 那样,使用 final 修饰. 
+上例中 i 作为构造器参数传入, 但是并没有在内部类中被直接使用, 使用他的是基类的构造函数. 所以不用像前面的 local inner class 那样,使用 final 修饰. 
 
 Note that the arguments to destination() must be final since they are used within the anonymous class:
 
@@ -642,7 +642,7 @@ public class Parcel10 {
 
 Look at how much nicer the interfaces/Factories.java example comes out when you use anonymous inner classes:
 
-示例概述:
+示例说明:
 
 通过内部类实现工厂方法, 并且在示例中将 outer 类的构造函数设置成 private, 将新建的动作限制到只能通过 factory 实现, 6 的飞起. 
 
@@ -658,8 +658,7 @@ interface ServiceFactory {
 }
 
 class Implementation1 implements Service {
-    private Implementation1() {
-    }
+    private Implementation1() {}
 
     public void method1() {
         System.out.println("Implementation1 method1");
@@ -677,8 +676,7 @@ class Implementation1 implements Service {
 }
 
 class Implementation2 implements Service {
-    private Implementation2() {
-    }
+    private Implementation2() {}
 
     public void method1() {
         System.out.println("Implementation2 method1");
@@ -716,7 +714,7 @@ public class Factories {
 // Implementation2 method2
 ```
 
-通过为 Factory 提供 inner class 的实现,我们可以将上例中的 Implementation1 和 Implementation2 的构造函数设置成私有,缩小了 Service 实现的作用域. 同时不需要为 工厂 提供具体的实现类. 从语法上这样的解决方案更合理. 
+通过为 Factory 提供 inner class 的实现,我们可以将上例中的 Implementation1 和 Implementation2 的构造函数设置成私有, 缩小了 Service 实现的作用域. 同时不需要为工厂类提供单独的实现. 从语法上这样的解决方案更合理. 
 
 interfaces/Games.java 的例子也可以使用 inner class 做类似的优化:
 
@@ -782,16 +780,16 @@ public class Games {
 
 Remember the advice given at the end of the last chapter: Prefer classes to interfaces. If your design demands an interface, you’ll know it. Otherwise, don’t put it in until you are forced to. 
 
-> 这个建议是从上一章节 Interface 那边出来了,具体得完那一张才知道. 建议就是先用 class, 等你完全定下来再 refactor 成 interface,现在 interface 一般都在被滥用. 
+> 这个建议是从上一章节 Interface 那边出来了, 具体得完那一章才知道. 建议就是先用 class, 等你完全定下来再 refactor 成 interface, 现在 interface 一般都是被滥用的. 
 
 ## Nested classes 
 
-如果你不想要内部类和外部类的关系,你可以把内部类静态化,这种做法叫 nested class(静态内部类). 普通的内部类会持有一个外部类的引用,静态内部类则不会. 静态内部类有如下特点:
+如果你不想要内部类和外部类的关系, 你可以把内部类静态化, 这种做法叫 nested class(静态内部类). 普通的内部类会持有一个外部类的引用, 静态内部类则不会. 静态内部类有如下特点:
 
 1. You don’t need an outer-class object in order to create an object of a nested class. 独立于外部类实例存在
 2. You can’t access a non-static outer-class object from an object of a nested class. 不能通过它访问非静态的外部类
  
-除此之外的区别还有,普通内部类还不能持有静态变量,方法. 
+除此之外的区别还有,普通内部类还不能持有静态变量, 方法. 
 
 ```java
 public class Parcel11 {
@@ -843,11 +841,11 @@ public class Parcel11 {
 }
 ```
 
-由于使用了静态的内部类,外部类也可以使用静态方法返回内部类实例. 在 main() 中调用时就可以直接 call 方法而不用外部类实例了. 
+由于使用了静态的内部类, 外部类也可以使用静态方法返回内部类实例. 在 main() 中调用时就可以直接 call 方法而不用外部类实例了. 
 
 ### Classes inside interfaces 
 
-一般来说,在 interface 里放 class 是不允许的,但是 nested class 是个例外. 任何放到 interface 里的 code 都会有 public 和 static 的属性, 所以下面代码中声明的 class `class Test implements ClassInInterface` 其实就是一个静态内部类. You can even implement the surrounding interface in the inner class, like this: 
+一般来说, 在 interface 里放 class 是不允许的, 但是 nested class 是个例外. 任何放到 interface 里的 code 都会有 public 和 static 的属性, 所以下面代码中声明的 class `class Test implements ClassInInterface` 其实就是一个静态内部类. You can even implement the surrounding interface in the inner class, like this: 
 
 ```java
 public interface ClassInInterface {
@@ -869,7 +867,7 @@ public interface ClassInInterface {
 
 通过这种方式我们可以很方便的在接口使用方分享一些公用代码. 
 
-在这本书的前面几章,有建议说在每个 class 里面加一个 main() 方法来存放测试代码,但是这回增加需要编译的代码量. 这里我们可以将测试放到 nested class 中:
+在这本书的前面几章, 有建议说在每个 class 里面加一个 main() 方法来存放测试代码, 但是这会增加需要编译的代码量. 这里我们可以将测试放到 nested class 中:
 
 ```java
 public class TestBed {
@@ -887,9 +885,9 @@ public class TestBed {
 // output f()
 ```
 
-编译之后测试会放到单独的 class `TestBed$Tester` 中,它可以用来测试,当要部署到产品环境时,可以把这部分代码 exclude 掉. 
+编译之后测试会放到单独的 class `TestBed$Tester` 中, 它可以用来测试, 当要部署到产品环境时, 可以把这部分代码 exclude 掉. 
 
-> 现在应该不用了,我们都是通过在测试 folder 下新建测试 UT 来完成这部分功能的
+> 现在应该不用了, 我们都是通过在测试 folder 下新建测试 UT 来完成这部分功能的
 
 ### Reaching outward from a multiply nested class
 
@@ -929,15 +927,15 @@ public class MultiNestingAccess {
 
 为什么 Java 要支持 inner class 这种语法？
 
-从典型的使用方式上看,内部类会继承 class 或者 实现接口,然后操作外部类的属性. 所以我们可以说**内部类提供了一个外部类的窗口**. 
+从典型的使用方式上看, 内部类会继承 class 或者 实现接口, 然后操作外部类的属性. 所以我们可以说**内部类提供了一个外部类的访问窗口**. 
 
 Inner class 存在的最合理的解释:
 
 > 内部类都可以独立的实现一个继承. 即不管外部类是否已经继承了一个实现这对 inner class 毫无影响. 
 
-换个角度看,inner class 可以看作是多重继承的一种解决方案. 在这方面,interface 可以解决一部分问题,但是 inner class 效率更高. 
+换个角度看, inner class 可以看作是**多重继承**的一种解决方案. 在这方面, interface 可以解决一部分问题, 但是 inner class 效率更高. 
 
-就上面的问题,下面我们举例子来说明,比如我们想要在一个类里实现两个接口,你有两种选择,一个 class + 2*interface 或者 class + inner class + 1*interface
+就上面的问题, 下面我们举例子来说明, 比如我们想要在一个类里实现两个接口, 你有两种选择, 一个 class + 2*interface 或者 class + inner class + 1*interface
 
 ```java
 interface A {}
@@ -969,9 +967,9 @@ public class MultiInterfaces {
 }
 ```
 
-示例中我们有 A, B 两个接口, X 实现两个接口,Y 实现一个接口 + 一个 inner class. X,Y 虽然实现方式不太一样,但是目的都达到了,两个接口都实现了. 
+示例中我们有 A, B 两个接口, X 实现两个接口, Y 实现一个接口 + 一个 inner class. X,Y 虽然实现方式不太一样, 但是目的都达到了, 两个接口都实现了. 
 
-但是,如果是抽象类或者实体类,多重继承就会受到限制. 
+但是, 如果是抽象类或者实体类, 多重继承就会受到限制. 
 
 ```java
 class D {}
@@ -1000,34 +998,34 @@ public class MultiImplementation {
 }
 ```
 
-> 作者这里的继承说的是具有基类的某种能力,而不是限制在继承类的语法表现,这个对我理解继承还是有点启发的. 通过 内部类 我可以得到 基类 的实例,说我继承了它,也说的过去. 
+> 作者这里的继承说的是具有基类的某种能力, 而不是限制在继承类的语法表现, 这个对我理解继承还是有点启发的. 通过**内部类**我可以得到**基类**的实例, 说我继承了它, 也说的过去. 
 
 通过 inner class,你可以具备以下附加功能:
 
-1. 内部类可以有多个实例,并且相互独立,和外部类也相互独立
+1. 内部类可以有多个实例, 并且相互独立, 和外部类也相互独立
 2. In a single outer class you can have several inner classes, each of which implements the same interface or inherits from the same class in a different way. An example of this will be shown shortly.
 3. The point of creation of the inner-class object is not tied to the creation of the outer-class object.  
 4. There is no potentially confusing "is-a" relationship with the inner class; it’s a separate entity. 
 
-就第四点,可以那前面的 `Sequence.java` 为例. Sequence 语义上来说是一个容器,而 Selector 接口代表了选择这种能力. 我们通过内部创建一个 SequenceSelector 实现这中能力,在与以上会更合理. 
+就第四点,可以那前面的 `Sequence.java` 为例. Sequence 语义上来说是一个容器, 而 Selector 接口代表了选择这种能力. 我们通过内部创建一个 SequenceSelector 实现这中能力, 在语义上会更合理. 
 
 ### Closures & callbacks
 
-Closure(闭包) 即一个可调用对象,保留了创建它的作用域的信息. Inner class 就是 OO 概念上的一个闭包,他持有外部类的引用,访问不受限. 
+Closure(闭包) 即一个可调用对象, 保留了创建它的作用域的信息. Inner class 就是 OO 概念上的一个闭包, 他持有外部类的引用, 访问不受限. 
 
-Java 支持部分指针机制,其中之一就是 callback(回调). 在回调中,一些对象给出自身的一部分信息(引用),通过这部分信息,其他对象可以操作这个对象. 
+Java 支持部分指针机制, 其中之一就是 callback(回调). 在回调中, 一些对象给出自身的一部分信息(引用), 通过这部分信息, 其他对象可以操作这个对象. 
 
-inner class 的闭包特性比之与指针,扩展性更强,更安全. 
+inner class 的闭包特性比之与指针, 扩展性更强, 更安全. 
 
 示例说明:
 
-下面这个例子只为了一个目的, 就是凸显出内部类可以拿到外部类的引用(Callee2.this),并且没有任何访问限制. 
+下面这个例子只为了一个目的, 就是凸显出内部类可以拿到外部类的引用(Callee2.this), 并且没有任何访问限制. 
 
 我们声明一个 Incremnentable 接口, 其中有一个方法 `increment()`, Callee1 实现了 Incrementable. 
 
-再声明 MyIncrement 基类, 也有一个 `increment()` 方法, 然后声明 Callee2 继承了 MyIncrement 那么相应的他就自带了 increment() 方法, 无法再实现 Incrementable 接口,这里通过内部类 Closure 实现接口, 在通过 getCallbackReference() 拿到引用, 变相的达到了多重继承的效果. 在主函数中,Caller 通过构造函数统一对 Incrementable 做操作. 
+再声明 MyIncrement 基类, 也有一个 `increment()` 方法, 然后声明 Callee2 继承了 MyIncrement 那么相应的他就自带了 increment() 方法, 无法再实现 Incrementable 接口, 这里通过内部类 Closure 实现接口, 在通过 getCallbackReference() 拿到引用, 变相的达到了多重继承的效果. 在主函数中, Caller 通过构造函数统一对 Incrementable 做操作. 
 
-PS:个人感觉这个例子中 MyIncrement 这个类对说明 callback 这个特性反而起了误导的作用,让整个示例反觉更繁琐了. 整个例子只需要保留 Callee2 + Caller 部分即. 我们可以通过 caller 的 go() 方法调用 Callee2 中的方法, 改变内部变量值. 
+PS:个人感觉这个例子中 MyIncrement 这个类对说明 callback 这个特性反而起了误导的作用, 让整个示例反觉更繁琐了. 整个例子只需要保留 Callee2 + Caller 部分即. 我们可以通过 caller 的 go() 方法调用 Callee2 中的方法, 改变内部变量值. 
 
 PPS: 这个例子确实多余, 这里表现出来的特性不就是 `Outer.this` 这个属性吗, 绕了一大圈. 
 
@@ -1121,9 +1119,9 @@ public class Callbacks {
 
 ### Inner classes & control frameworks
 
-> List<Event> (pronounced "List of Event") 原来带类型的 collection 这么发音的吗,学到了同时感觉很合理
+> List<Event> (pronounced "List of Event") 原来带类型的 collection 这么发音的吗, 学到了同时感觉很合理
 
-> 本章主要例子中用到了 Command pattern 不过我已经忘了那是个什么东西了,又要复习了 （；￣ェ￣）
+> 本章主要例子中用到了 Command pattern 不过我已经忘了那是个什么东西了, 又要复习了 （；￣ェ￣）
 
 control framework 是一种用于处理 event 的应用框架. 下面是书中 GreenHouse 的例子. 我们先创建一个 abstract 的类代表我们要处理的 event
 
@@ -1149,9 +1147,9 @@ public abstract class Event {
 }
 ```
 
-`start()` 单独抽离,方便以后实现 restart 功能, `ready()` 即判断是否已经可以执行事件,`action()` 是我们要执行事件的内容. 
+`start()` 单独抽离, 方便以后实现 restart 功能, `ready()` 即判断是否已经可以执行事件, `action()` 是我们要执行事件的内容. 
 
-以下是 Controller 代码, Controller 实体持有事件列表,然后通过 while 遍历 event 并执行. 处理时将变量 list 备份用来遍历防止动态改变值. 
+以下是 Controller 代码, Controller 实体持有事件列表, 然后通过 while 遍历 event 并执行. 处理时将变量 list 备份以防止动态改变 list 的值. 
 
 ```java
 public class Controller {
@@ -1176,12 +1174,12 @@ public class Controller {
 }
 ```
 
-在遍历 event 时,我们并不知道 event 具体是什么,这正是框架的目的,我们并不关心某个具体的对象. 而这恰恰是 inner class 擅长的地方. 通过使用它我们可以在两方面优化上面的代码. 
+在遍历 event 时, 我们并不知道 event 具体是什么, 这正是框架的目的, 我们并不关心某个具体的对象. 而这恰恰是 inner class 擅长的地方. 通过使用它我们可以在两方面优化上面的代码. 
 
-1. 我们可以把 event 和 controller 合二为一,将各个 event 特有的 action() 封装在内部类中
-2. 内部类让你的实现对外不可见. 
+1. 我们可以把 event 和 controller 合二为一, 将各个 event 特有的 action() 封装在内部类中
+2. 内部类让你的实现对外不可见
 
-使用 内部类 实现代码如下
+使用**内部类**实现代码如下
 
 ```java
 public class GreenhouseControls extends Controller {
@@ -1339,9 +1337,9 @@ public class GreenhouseControls extends Controller {
 }
 ```
 
-代码结构很简单,分别声明了一些事件类型 lightOn/Off, waterOn/Off 等,内部类继承 Event,实现个则的抽象方法即可. 
+代码结构很简单,分别声明了一些事件类型 lightOn/Off, waterOn/Off 等, 内部类继承 Event, 实现个则的抽象方法即可. 
 
-Bell 和 Restart 有别于其他的 event 内部类,它还会调用 Outer class 的其他方法. 
+Bell 和 Restart 有别于其他的 event 内部类, 它还会调用 Outer class 的其他方法. 
 
 以下是 GreenhouseController 执行函数
 
@@ -1379,7 +1377,7 @@ public class GreenhouseController {
 
 ## Inheriting from inner classes
 
-如果想要继承一个内部类,语法稍微有点特殊,由于内部类需要借助外部类才能实例化,所以构造函数中需要调用 `outer.super()` 实例如下:
+如果想要继承一个内部类, 语法稍微有点特殊, 由于内部类需要借助外部类才能实例化, 所以构造函数中需要调用 `outer.super()` 实例如下:
 
 ```java
 class WithInner {
@@ -1400,7 +1398,7 @@ public class InheritInner extends WithInner.Inner {
 }
 ```
 
-InheritInner 继承自内部类,在构造函数中需要外部类实体做参数. 
+InheritInner 继承自内部类,在构造函数中需要外部类实体做参数. 内部类是以外部类为基础的, 所以这样做也挺合理.
 
 ## Can inner classes be overridden?
 
@@ -1439,7 +1437,7 @@ public class BigEgg extends Egg {
 // Egg.Yolk()
 ```
 
-默认的构造函数会在编译时指定调用基类中的 Yolk 对象. 这个例子表明 JVM 在处理内部类时并没有做什么特殊的操作,基类和子类中的内部函数时完全隔离的. 
+默认的构造函数会在编译时指定调用基类中的 Yolk 对象. 这个例子表明 JVM 在处理内部类时并没有做什么特殊的操作, 基类和子类中的内部函数时完全隔离的. 
 
 This example shows that there isn’t any extra inner-class magic going on when you inherit
 from the outer class. The two inner classes are completely separate entities, each in its own
@@ -1501,13 +1499,13 @@ public class BigEgg2 extends Egg2 {
 // BigEgg2.Yolk.f() <- 子类调用 g 方法
 ```
 
-在上面的例子里面,我们显示的指定 BigEgg2 中的 Yolk 继承自 Egg2 中的 Yolk, 然后基类中还提供了一个 `insertYolk()` 来修改基类中内部类的引用. 
+在上面的例子里面, 我们显示的指定 BigEgg2 中的 Yolk 继承自 Egg2 中的 Yolk, 然后基类中还提供了一个 `insertYolk()` 来修改基类中内部类的引用. 
 
 ## Local inner classes
 
-内部类可以创建在代码块中,一般常见的是创建在方法里面. 我们无法访问方法体里面的内部类,因为他并不是 outer class 的一部分. 但是这个内部类还是可以毫无限制的访问外部类的各种信息. 
+内部类可以创建在代码块中, 一般常见的是创建在方法里面. 我们无法访问方法体里面的内部类, 因为他并不是 outer class 的一部分. 但是这个内部类还是可以毫无限制的访问外部类的各种信息. 
 
-下面是 local inner class 和 匿名内部类的对比例子:
+下面是 local inner class 和匿名内部类的对比例子:
 
 ```java
 interface Counter {
@@ -1576,9 +1574,9 @@ public class LocalInnerClass {
 // Anonymous inner 9
 ```
 
-上面的例子中,Counter 接口会依次返回 count 值. local inner class 和 匿名内部类都实现了这个接口. 两个内部类逻辑和功能也都一样,唯一区别是,匿名内部类他是没有构造函数的,需要用代码块代替. 
+上面的例子中, Counter 接口会依次返回 count 值. local inner class 和 匿名内部类都实现了这个接口. 两个内部类逻辑和功能也都一样, 唯一区别是, 匿名内部类他是没有构造函数的, 需要用代码块代替. 
 
-如果你需要创建多个实例的化,你也要使用 local inner class,你用 anonymous 是建不出来多个实例的. 
+如果你需要创建多个实例的话, 你也要使用 local inner class, 你用 anonymous 是建不出来多个实例的. 
 
 ## Inner-class identifiers
 
@@ -1591,8 +1589,8 @@ LocallnnerClassSlLocalCounter.class
 LocallnnerClass.class
 ```
 
-如果是内部匿名类,类名由数字代替. 如果是多层嵌套的内部类,类名间链接多个 `$` 符号. 
+如果是内部匿名类, 类名由数字代替. 如果是多层嵌套的内部类, 类名间链接多个 `$` 符号. 
 
 ## Summary
 
-接口和内部类是 Java 特有的,你在 C++ 中找不到类似的概念,他们帮助我们实现多重继承的问题而且实现上要比 C++ 的优雅. 
+接口和内部类是 Java 特有的, 你在 C++ 中找不到类似的概念, 他们帮助我们实现多重继承的问题而且实现上要比 C++ 的优雅. 
