@@ -2,9 +2,9 @@
 title: 代理模式
 date: 2020-10-12 14:05:30
 categories:
-- 编程
+- design pattern
 tags:
-- 设计模式
+- proxy pattern
 ---
 
 记录一下代理模式的学习路径。代理模式常用的两种形式：静态代理，动态代理。其中，动态代理在两个国民级框架 mybatis 和 spring 中都有用到。

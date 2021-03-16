@@ -2,10 +2,9 @@
 title: 访问者模式
 date: 2020-09-09 15:37:59
 categories:
-- 编程
+- design pattern
 tags:
-- java
-- 设计模式
+- visitor pattern
 ---
 
 > GoF 定义: Allows for one or more operation to be applied to a set of objects at runtime, decoupling the operations from the object structure. 

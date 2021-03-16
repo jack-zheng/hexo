@@ -7,7 +7,7 @@ tags:
 - 优先级
 ---
 
-记录一下工作终于到的操作符优先级的问题，总体的逻辑是：从左到右依次计算
+记录一下工作中遇到的操作符优先级的问题，总体的逻辑是：从左到右依次计算
 
 [Java Operator Precedence](https://docs.oracle.com/javase/tutorial/java/nutsandbolts/operators.html)
 
