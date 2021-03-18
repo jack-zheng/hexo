@@ -95,3 +95,21 @@ public static ListNode reverseList(ListNode head, ListNode result) {
     return reverseList(holder, head);
 }
 ```
+
+搜索了一下单参数的解法
+
+```java
+public static ListNode reverseList(ListNode head) {
+    if (Objects.isNull(head.next))
+        return head;
+
+    ListNode next = head.next; // 拿到后续节点
+    head.next = null; // 打断当前节点
+    ListNode ret = reverseList(next); // 拿到计算结果
+    // 我在想象 链表 的时候总会把它脑补成数组的形象， holder 就体现了这个情况。取名叫 next 会更好，把它想象成一个节点
+    // 第一版单参数答案，我将下面这句写成 ret.next = head; 当时是从两个长度的情况推导的，回头想一下，这个答案肯定有问题，应为这样的话每次返回只替换 ret.next 最后也只有两个长度而已
+    // 不过 next.next 还是不怎么好理解，关键点是在倒数第二层的时候， ret 和 next 是同一个，next.next = head 建立起了连续性
+    next.next = head; 
+    return ret;
+}
+```
