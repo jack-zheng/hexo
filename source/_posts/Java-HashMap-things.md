@@ -16,6 +16,10 @@ tags:
 
 以后对 HashMap 的知识点都可以考虑在这篇中做扩展，做成一个总集篇
 
+有趣的知识点：
+
+* 为什么因子选在 0.75? - 在头部注释中给出了解释，根据统计学的结果，hash 冲突符合泊松分布，在 7-8 之间时冲突概率最低
+
 ## HashMap 图示
 
 ```txt
@@ -198,6 +202,10 @@ final Node<K,V> getNode(int hash, Object key) {
    return null;
 }
 ```
+
+## resize
+
+可以参考这篇内容: https://segmentfault.com/a/1190000015812438 , 现在状态不太好，看不进去。。。
 
 ## Idea 调试优化
 
