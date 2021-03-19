@@ -206,6 +206,100 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/03/19/Java-variable-assignment/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/03/19/Java-variable-assignment/" class="post-title-link" itemprop="url">变量赋值，跌进了坑中</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-03-19 21:24:05 / 修改时间：21:35:11" itemprop="dateCreated datePublished" datetime="2021-03-19T21:24:05+08:00">2021-03-19</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.7k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>今天在修一个 feature 的时候，掉进了一个很初级的坑中而不自觉，debug 了好久才发现的，汗颜</p>
+<h2 id="问题简化"><a href="#问题简化" class="headerlink" title="问题简化"></a>问题简化</h2><p>求解</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Map&lt;String , Integer&gt; map;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Map&lt;String, Integer&gt; <span class="title">getMap</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> map;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestScope</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Person person = <span class="keyword">new</span> Person();</span><br><span class="line"></span><br><span class="line">        Map&lt;String, Integer&gt; tmp = person.getMap();</span><br><span class="line">        System.out.println(tmp); <span class="comment">// null</span></span><br><span class="line">        System.out.println(person.getMap()); <span class="comment">// null</span></span><br><span class="line"></span><br><span class="line">        tmp = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">        tmp.put(<span class="string">&quot;jack&quot;</span>, <span class="number">31</span>);</span><br><span class="line"></span><br><span class="line">        System.out.println(tmp); <span class="comment">// &#123;jack=31&#125;</span></span><br><span class="line">        System.out.println(person.getMap()); <span class="comment">// null</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>debug 的时候还一直纳闷，怎么 person 引用没有被赋值。。。作为对比看下面的例子应该就很清楚了</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Map&lt;String , Integer&gt; map = <span class="keyword">new</span> HashMap&lt;&gt;(); <span class="comment">// 带初始化引用类型的</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Map&lt;String, Integer&gt; <span class="title">getMap</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> map;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestScope</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Person person = <span class="keyword">new</span> Person();</span><br><span class="line"></span><br><span class="line">        Map&lt;String, Integer&gt; tmp = person.getMap();</span><br><span class="line">        System.out.println(tmp); <span class="comment">// &#123;&#125;</span></span><br><span class="line">        System.out.println(person.getMap()); <span class="comment">// &#123;&#125;</span></span><br><span class="line"></span><br><span class="line">        tmp.put(<span class="string">&quot;jack&quot;</span>, <span class="number">31</span>);</span><br><span class="line"></span><br><span class="line">        System.out.println(tmp); <span class="comment">// &#123;jack=31&#125;</span></span><br><span class="line">        System.out.println(person.getMap()); <span class="comment">// &#123;jack=31&#125;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在特殊化一下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestScope</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Person person = <span class="keyword">new</span> Person();</span><br><span class="line"></span><br><span class="line">        Map&lt;String, Integer&gt; tmp = person.getMap();</span><br><span class="line">        System.out.println(tmp); <span class="comment">// &#123;&#125;</span></span><br><span class="line">        System.out.println(person.getMap()); <span class="comment">// &#123;&#125;</span></span><br><span class="line"></span><br><span class="line">        tmp.put(<span class="string">&quot;jack&quot;</span>, <span class="number">31</span>);</span><br><span class="line">        tmp = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">        tmp.put(<span class="string">&quot;jerry&quot;</span>, <span class="number">21</span>);</span><br><span class="line"></span><br><span class="line">        System.out.println(tmp); <span class="comment">// &#123;jack=21&#125;</span></span><br><span class="line">        System.out.println(person.getMap()); <span class="comment">// &#123;jack=31&#125;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>总结一下就是，改变引用类型的值没什么问题，但是如果一开始是 null 的话它就不会随着一起改了</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/03/18/Algorithm-reverse-list/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -229,10 +323,16 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2021-03-18 19:21:42 / 修改时间：21:35:02" itemprop="dateCreated datePublished" datetime="2021-03-18T19:21:42+08:00">2021-03-18</time>
+              <time title="创建时间：2021-03-18 19:21:42" itemprop="dateCreated datePublished" datetime="2021-03-18T19:21:42+08:00">2021-03-18</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-03-19 21:35:11" itemprop="dateModified" datetime="2021-03-19T21:35:11+08:00">2021-03-19</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
@@ -331,7 +431,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-03-18 21:35:02" itemprop="dateModified" datetime="2021-03-18T21:35:02+08:00">2021-03-18</time>
+                <time title="修改时间：2021-03-19 21:35:11" itemprop="dateModified" datetime="2021-03-19T21:35:11+08:00">2021-03-19</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -429,7 +529,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-03-18 21:35:02" itemprop="dateModified" datetime="2021-03-18T21:35:02+08:00">2021-03-18</time>
+                <time title="修改时间：2021-03-19 21:35:11" itemprop="dateModified" datetime="2021-03-19T21:35:11+08:00">2021-03-19</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -524,7 +624,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-03-18 21:35:02" itemprop="dateModified" datetime="2021-03-18T21:35:02+08:00">2021-03-18</time>
+                <time title="修改时间：2021-03-19 21:35:11" itemprop="dateModified" datetime="2021-03-19T21:35:11+08:00">2021-03-19</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -630,7 +730,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-03-18 21:35:02" itemprop="dateModified" datetime="2021-03-18T21:35:02+08:00">2021-03-18</time>
+                <time title="修改时间：2021-03-19 21:35:11" itemprop="dateModified" datetime="2021-03-19T21:35:11+08:00">2021-03-19</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -761,7 +861,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-03-18 21:35:02" itemprop="dateModified" datetime="2021-03-18T21:35:02+08:00">2021-03-18</time>
+                <time title="修改时间：2021-03-19 21:35:11" itemprop="dateModified" datetime="2021-03-19T21:35:11+08:00">2021-03-19</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -860,7 +960,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-03-18 21:35:02" itemprop="dateModified" datetime="2021-03-18T21:35:02+08:00">2021-03-18</time>
+                <time title="修改时间：2021-03-19 21:35:11" itemprop="dateModified" datetime="2021-03-19T21:35:11+08:00">2021-03-19</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -965,7 +1065,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-03-18 21:35:02" itemprop="dateModified" datetime="2021-03-18T21:35:02+08:00">2021-03-18</time>
+                <time title="修改时间：2021-03-19 21:35:11" itemprop="dateModified" datetime="2021-03-19T21:35:11+08:00">2021-03-19</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1309,7 +1409,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-03-18 21:35:02" itemprop="dateModified" datetime="2021-03-18T21:35:02+08:00">2021-03-18</time>
+                <time title="修改时间：2021-03-19 21:35:11" itemprop="dateModified" datetime="2021-03-19T21:35:11+08:00">2021-03-19</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1385,144 +1485,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/01/20/Python-build-and-test-a-cmd-interface-with-poetry-and-click/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/01/20/Python-build-and-test-a-cmd-interface-with-poetry-and-click/" class="post-title-link" itemprop="url">使用 poetry 和 click 自定义终端命令</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-01-20 11:16:09" itemprop="dateCreated datePublished" datetime="2021-01-20T11:16:09+08:00">2021-01-20</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-03-18 21:35:02" itemprop="dateModified" datetime="2021-03-18T21:35:02+08:00">2021-03-18</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/python/" itemprop="url" rel="index">
-                    <span itemprop="name">python</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>3.8k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>3 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>最近打算新加一个命令到项目，突然发现项目启动不了了，查了一下是 <code>setup.py</code> 和 toml 文件的兼容性有问题，找到了解决方案，顺便结合找到的资料，将使用 poetry 和 click 自定义命令重新记录一下。</p>
-<h2 id="版本信息"><a href="#版本信息" class="headerlink" title="版本信息"></a>版本信息</h2><p>Python: 3.7.3<br>pip: 19.3.1<br>OS:       posix</p>
-<h2 id="创建工程"><a href="#创建工程" class="headerlink" title="创建工程"></a>创建工程</h2><p>新建项目 <code>poetry new --name greet --src clickgreet</code>，如过想名字保持一致，那直接 <code>poetry new greet</code> 即可。命令执行完后会在当前目录下生成项目，结构如下</p>
-<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">clickgreet</span><br><span class="line">├── README.rst</span><br><span class="line">├── pyproject.toml</span><br><span class="line">├── src</span><br><span class="line">│   └── greet</span><br><span class="line">│       └── __init__.py</span><br><span class="line">└── tests</span><br><span class="line">    ├── __init__.py</span><br><span class="line">    └── test_greet.py</span><br></pre></td></tr></table></figure>
-
-<p>安装依赖包 <code>poetry add click</code>, 首次运行 add 命令时，poetry 会帮你创建一个虚拟环境，并将包安装进去。安装完后你可以在项目的 toml 文件中看到 <code>tool.poetry.dependencies</code> 下有了 click 的依赖</p>
-<p>在 src/greet 文件夹下新建 <code>greet.py</code> 添加逻辑代码, 代码实现如下功能：接受两个参数 name, count 后在终端输出对应次数的名字</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> click</span><br><span class="line"></span><br><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.option(&#x27;--count&#x27;, default=1, help=&#x27;Number of greetings.&#x27;)</span></span><br><span class="line"><span class="meta">@click.option(&#x27;--name&#x27;, prompt=&#x27;Your name&#x27;,</span></span><br><span class="line">              help=<span class="string">&#x27;The person to greet.&#x27;</span>)</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">greet</span>(<span class="params">count, name</span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;Simple program that greets NAME for a total of COUNT times.&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">for</span> x <span class="keyword">in</span> range(count):</span><br><span class="line">        click.echo(<span class="string">&#x27;Hello %s!&#x27;</span> % name)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    greet()</span><br></pre></td></tr></table></figure>
-
-<p>在 toml 中添加程序入口</p>
-<figure class="highlight toml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[tool.poetry.scripts]</span></span><br><span class="line"><span class="attr">greet</span> = <span class="string">&quot;greet.greet:greet&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>终端输入 <code>poetry install</code> 将代码安装到虚拟环境，之后输入 <code>poetry run greet</code> 试运行脚本，可以看到终端给出提示</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mypc ~/tmp/clickgreet &gt; poetry run greet</span><br><span class="line">Your name: jack</span><br><span class="line">Hello jack!</span><br></pre></td></tr></table></figure>
-
-<p>至此，主题部分结束，下面开始编写测试部分，在目录的 <code>test_greet.py</code> 中添加测试代码如下</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> click.testing <span class="keyword">import</span> CliRunner</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> greet.greet <span class="keyword">import</span> greet</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> greet <span class="keyword">import</span> __version__</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_version</span>():</span></span><br><span class="line">    <span class="keyword">assert</span> __version__ == <span class="string">&#x27;0.1.0&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_greet_cli</span>():</span></span><br><span class="line">    runner = CliRunner()</span><br><span class="line">    result = runner.invoke(greet, [<span class="string">&#x27;--name&#x27;</span>, <span class="string">&#x27;jack&#x27;</span>])</span><br><span class="line">    <span class="keyword">assert</span> result.exit_code == <span class="number">0</span></span><br><span class="line">    <span class="keyword">assert</span> <span class="string">&quot;Hello jack!&quot;</span> <span class="keyword">in</span> result.output</span><br></pre></td></tr></table></figure>
-
-<p>终端输人 <code>poetry run pytest</code> 运行测试用例, 至此教程主体结束。</p>
-<p>PS: 可以在 toml 中添加配置使用 douban 镜像加速下载</p>
-<figure class="highlight toml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[[tool.poetry.source]]</span></span><br><span class="line"><span class="attr">name</span> = <span class="string">&quot;douban&quot;</span></span><br><span class="line"><span class="attr">url</span> = <span class="string">&quot;https://pypi.doubanio.com/simple/&quot;</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="Debug-Click-Command"><a href="#Debug-Click-Command" class="headerlink" title="Debug Click Command"></a>Debug Click Command</h2><p>测试代码，接收 count, name 参数并在终端输出</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> click</span><br><span class="line"></span><br><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.option(&#x27;--count&#x27;, default=1, help=&#x27;Number of greetings.&#x27;)</span></span><br><span class="line"><span class="meta">@click.option(&#x27;--name&#x27;, prompt=&#x27;Your name&#x27;,</span></span><br><span class="line">              help=<span class="string">&#x27;The person to greet.&#x27;</span>)</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello</span>(<span class="params">count, name</span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;Simple program that greets NAME for a total of COUNT times.&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">for</span> x <span class="keyword">in</span> range(count):</span><br><span class="line">        click.echo(<span class="string">&#x27;Hello %s!&#x27;</span> % name)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    hello()</span><br></pre></td></tr></table></figure>
-
-<p>配置 launch.json 运行文件</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;name&quot;</span>: <span class="string">&quot;click&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;python&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;request&quot;</span>: <span class="string">&quot;launch&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;program&quot;</span>: <span class="string">&quot;$&#123;file&#125;&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;console&quot;</span>: <span class="string">&quot;integratedTerminal&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;args&quot;</span>: [</span><br><span class="line">        <span class="string">&quot;--count&quot;</span>, <span class="string">&quot;3&quot;</span>, <span class="string">&quot;--name&quot;</span>, <span class="string">&quot;jaaack&quot;</span></span><br><span class="line">        ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>点击菜单栏的 debug 按钮，选择配置的 ‘click’ run config，点击这个配置<strong>左边</strong>的运行按钮，直接运行即可。需要注意的点：</p>
-<ol>
-<li>别点右上角那个，那个是直接运行当前文件的，不会接收配置的参数！！</li>
-<li>当断点生效时，VSCode 还提供了一个 DEBUG CONSOLE 来给你操作运行时的变量，真是太酷了</li>
-<li>如果你想要输入多行，使用 <code>Shift + Enter</code> 实现换行</li>
-</ol>
-<p>如果要调试带有 argumnet 注解的代码，比如</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@click.command()</span></span><br><span class="line"><span class="meta">@click.argument(&#x27;input&#x27;, type=click.File(&#x27;rb&#x27;))</span></span><br><span class="line"><span class="meta">@click.argument(&#x27;output&#x27;, type=click.File(&#x27;wb&#x27;))</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">inout</span>(<span class="params">input, output</span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;Copy contents of INPUT to OUTPUT.&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">        chunk = input.read(<span class="number">1024</span>)</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> chunk:</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">        output.write(chunk)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    inout([<span class="string">&quot;input_path&quot;</span>, <span class="string">&quot;output_path&quot;</span>])</span><br></pre></td></tr></table></figure>
-
-<p>只需要将 argument 直接写在最后的函数入口中就行了，这里有一个设定不是很理解，在最后一行，按理说我设置的参数列表应该是 <code>&quot;arg1&quot;, &quot;arg2&quot;</code> 才对，但是执行的时候会出问题，设置成 list type 的就没问题。。。</p>
-<h2 id="集成-setup-py"><a href="#集成-setup-py" class="headerlink" title="集成 setup.py"></a>集成 setup.py</h2><p>以上的命令行运行时有一个限制，它必须在对应的文件夹下才能工作，pip 是支持将脚本安装到本地的。如何操作？步骤如下：</p>
-<p>poetry 是没有 setup.py 文件的，运行 <code>poetry add dephell</code> 安装 dephell 来自动生成 setup.py 文件</p>
-<p>toml 文件中添加生成 <code>setup.py</code> 的配置</p>
-<figure class="highlight toml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[tool.dephell.main]</span></span><br><span class="line"><span class="attr">from</span> = &#123;format = <span class="string">&quot;poetry&quot;</span>, path = <span class="string">&quot;pyproject.toml&quot;</span>&#125;</span><br><span class="line"><span class="attr">to</span> = &#123;format = <span class="string">&quot;setuppy&quot;</span>, path = <span class="string">&quot;setup.py&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
-
-<p>同时你还要修改 <code>[build-system]</code> 配置，在 requires 中添加 setuptools 的依赖 <code>requires = [&quot;setuptools&quot;, &quot;poetry&gt;=0.12&quot;]</code>，这是个 pip 的 bug 但是到 2020-1 为止还没有修复</p>
-<p>运行 <code>dephell deps convert</code> 生成 setup.py 然后运行 <code>pip install -E .</code> 安装到本地。<code>cd</code> 到其他目录直接在终端输入 <code>greet</code> 测试通过，脚本正常工作，不需要什么 hack 的代码，棒棒哒 ╮(￣▽￣””)╭</p>
-<h2 id="资料白嫖"><a href="#资料白嫖" class="headerlink" title="资料白嫖"></a>资料白嫖</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://github.com/python-poetry/poetry/discussions/1135">setup.py 安装到本地报错 no module name ‘setuptools’</a></li>
-<li><a target="_blank" rel="noopener" href="https://dev.to/bowmanjd/build-a-command-line-interface-with-python-poetry-and-click-1f5k">poetry + click + UT guide</a></li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1573,7 +1535,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">112</span>
+          <span class="site-state-item-count">113</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1586,7 +1548,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">109</span>
+        <span class="site-state-item-count">110</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1620,12 +1582,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">424k</span>
+    <span title="站点总字数">426k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">6:26</span>
+    <span title="站点阅读时长">6:27</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
