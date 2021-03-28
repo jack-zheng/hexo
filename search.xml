@@ -37,7 +37,7 @@
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * input:  1-&gt;2-&gt;3-&gt;4-&gt;5-&gt;NULL</span></span><br><span class="line"><span class="comment"> * output: 5-&gt;4-&gt;3-&gt;2-&gt;1-&gt;NULL</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ReverseListSample</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ListNode fir = <span class="keyword">new</span> ListNode(<span class="number">1</span>, <span class="keyword">new</span> ListNode(<span class="number">2</span>, <span class="keyword">new</span> ListNode(<span class="number">3</span>, <span class="keyword">new</span> ListNode(<span class="number">4</span>, <span class="keyword">new</span> ListNode(<span class="number">5</span>)))));</span><br><span class="line">        System.out.println(fir.toString());</span><br><span class="line"></span><br><span class="line">        ListNode ret = reverseList(fir);</span><br><span class="line">        System.out.println(ret.toString());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ListNode <span class="title">reverseList</span><span class="params">(ListNode head)</span> </span>&#123;</span><br><span class="line">        ListNode next;</span><br><span class="line">        ListNode pre = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">while</span> (Objects.nonNull(head)) &#123;</span><br><span class="line">            next = head.next;</span><br><span class="line">            head.next = pre;</span><br><span class="line">            pre = head;</span><br><span class="line">            head = next;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> pre;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ListNode</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> val;</span><br><span class="line">    ListNode next;</span><br><span class="line"></span><br><span class="line">    ListNode(<span class="keyword">int</span> val) &#123;</span><br><span class="line">        <span class="keyword">this</span>.val = val;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ListNode(<span class="keyword">int</span> val, ListNode next) &#123;</span><br><span class="line">        <span class="keyword">this</span>.val = val;</span><br><span class="line">        <span class="keyword">this</span>.next = next;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> iterVal(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> String <span class="title">iterVal</span><span class="params">(ListNode node)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (Objects.isNull(node)) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="string">&quot;null&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> node.val + <span class="string">&quot; -&gt; &quot;</span> + iterVal(node.next);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 1 -&gt; 2 -&gt; 3 -&gt; 4 -&gt; 5 -&gt; null</span></span><br><span class="line"><span class="comment">// 5 -&gt; 4 -&gt; 3 -&gt; 2 -&gt; 1 -&gt; null</span></span><br></pre></td></tr></table></figure>
 
 <h2 id="递归法"><a href="#递归法" class="headerlink" title="递归法"></a>递归法</h2><p>核心思想和前面的一致，具体到做表现形式上，我自己想出来的解法需要额外传入一个参数作为结果，貌似有点累赘</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ListNode <span class="title">reverseList</span><span class="params">(ListNode head, ListNode result)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (Objects.isNull(head))</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line"></span><br><span class="line">    ListNode holder = head.next;</span><br><span class="line">    head.next = result;</span><br><span class="line">    <span class="keyword">return</span> reverseList(holder, head);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ListNode <span class="title">reverseList</span><span class="params">(ListNode head, ListNode result)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (Objects.isNull(head))</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line"></span><br><span class="line">    ListNode holder = head.next;</span><br><span class="line">    head.next = result;</span><br><span class="line">    <span class="comment">// 思路还是很清晰的， 先把传入的节点分离出来， 然后在作为 result 的节点前面一次添加分离出来的节点。当所有的节点都处理过后，返回</span></span><br><span class="line">    <span class="keyword">return</span> reverseList(holder, head);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>搜索了一下单参数的解法</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ListNode <span class="title">reverseList</span><span class="params">(ListNode head)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (Objects.isNull(head.next))</span><br><span class="line">        <span class="keyword">return</span> head;</span><br><span class="line"></span><br><span class="line">    ListNode next = head.next; <span class="comment">// 拿到后续节点</span></span><br><span class="line">    head.next = <span class="keyword">null</span>; <span class="comment">// 打断当前节点</span></span><br><span class="line">    ListNode ret = reverseList(next); <span class="comment">// 拿到计算结果</span></span><br><span class="line">    <span class="comment">// 我在想象 链表 的时候总会把它脑补成数组的形象， holder 就体现了这个情况。取名叫 next 会更好，把它想象成一个节点</span></span><br><span class="line">    <span class="comment">// 第一版单参数答案，我将下面这句写成 ret.next = head; 当时是从两个长度的情况推导的，回头想一下，这个答案肯定有问题，应为这样的话每次返回只替换 ret.next 最后也只有两个长度而已</span></span><br><span class="line">    <span class="comment">// 不过 next.next 还是不怎么好理解，关键点是在倒数第二层的时候， ret 和 next 是同一个，next.next = head 建立起了连续性</span></span><br><span class="line">    next.next = head; </span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
@@ -1408,35 +1408,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Hexo 评论功能</title>
-    <url>/hexo/2019/11/18/Hexo%20%E8%AF%84%E8%AE%BA%E5%8A%9F%E8%83%BD/</url>
-    <content><![CDATA[<p>为博客增加评论功能，参考 next 的配置文件，截止 2019-11-18 号为止，next 已经默认支持了 changyan | disqus | disqusjs | gitalk | livere | valine 这些评论系统。这里出于兼容性和可靠性的原则，选择 gitalk 作为评论系统。</p>
-<p>Steps:</p>
-<ol>
-<li>github 创建一个新的 repo 用于存放 comments，比如叫做 hexo-comments</li>
-<li>去到 github 账号的配置页面新建一个 Oauth 授权，<a href="https://github.com/settings/applications/new">点这里快速跳转</a></li>
-<li>填写授权信息 Homepage URL 和 Authorization callback URL 都写自己的博客地址就行了</li>
-<li>确认后跳转到授权信息页面，记下他的 app id 和 secret</li>
-<li>配置 next 的 _config.yml 如下</li>
-<li>提交代码测试</li>
-</ol>
-<p>测试评论，成功。新添加的评论会出现在 hexo-comments 的 issues tab 下面，按这样的操作的话，我觉的可能都不需要自建创建 comments repo 了，直接放在一个 repo 下面就完事了</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">gitalk:</span><br><span class="line">  enable: true</span><br><span class="line">  github_id: jack-zheng # GitHub repo owner</span><br><span class="line">  repo: hexo-comments # 新建的用于存放评论的repo</span><br><span class="line">  client_id: d44xxxxxxe3a # GitHub Application Client ID</span><br><span class="line">  client_secret: 9b3c4xxxxxb708ef # GitHub Application Client Secret</span><br><span class="line">  admin_user: jack-zheng # GitHub repo owner and collaborators, only these guys can initialize gitHub issues</span><br><span class="line">  distraction_free_mode: true # Facebook-like distraction free mode</span><br><span class="line">  # Gitalk&#39;s display language depends on user&#39;s browser or system environment</span><br><span class="line">  # If you want everyone visiting your site to see a uniform language, you can set a force language value</span><br><span class="line">  # Available values: en | es-ES | fr | ru | zh-CN | zh-TW</span><br><span class="line">  language:</span><br></pre></td></tr></table></figure>
-
-<p>PS: 用这种方案的话，默认只有 github 的用户才能评论，不过看这种文章的应该都是github用户，所以问题不大<br>PPS: 网上很多文章都会要你去配置 swig 文件，最新版的 next 已经不需要这个步骤了</p>
-<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><ul>
-<li><a href="https://github.com/gitalk/gitalk">gitalk</a></li>
-<li><a href="https://www.jianshu.com/p/b5f509f25872">简书-Jonzzs</a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>博客</category>
-      </categories>
-      <tags>
-        <tag>hexo</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Hexo 搜索</title>
     <url>/hexo/2020/05/28/Hexo-Search-Plugin/</url>
     <content><![CDATA[<p>Hexo 提供全区搜索功能很方便，在两个 <code>_config.yml</code> 文件下添加配置就行了，一个在 hexo 下，一个在 next 皮肤下。</p>
@@ -1545,6 +1516,35 @@
 <figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Your site is having problems building: The tag fancybox on line 77 in themes/landscape/README.md is not a recognized Liquid tag. For more information, see https://help.github.com/en/github/working-with-github-pages/troubleshooting-jekyll-build-errors-for-github-pages-sites#unknown-tag-error.</span><br></pre></td></tr></table></figure>
 
 <h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><p><a href="https://hexo.io/docs/github-pages">Travis CI 集成 - 官方</a></p>
+]]></content>
+      <categories>
+        <category>博客</category>
+      </categories>
+      <tags>
+        <tag>hexo</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hexo 评论功能</title>
+    <url>/hexo/2019/11/18/Hexo%20%E8%AF%84%E8%AE%BA%E5%8A%9F%E8%83%BD/</url>
+    <content><![CDATA[<p>为博客增加评论功能，参考 next 的配置文件，截止 2019-11-18 号为止，next 已经默认支持了 changyan | disqus | disqusjs | gitalk | livere | valine 这些评论系统。这里出于兼容性和可靠性的原则，选择 gitalk 作为评论系统。</p>
+<p>Steps:</p>
+<ol>
+<li>github 创建一个新的 repo 用于存放 comments，比如叫做 hexo-comments</li>
+<li>去到 github 账号的配置页面新建一个 Oauth 授权，<a href="https://github.com/settings/applications/new">点这里快速跳转</a></li>
+<li>填写授权信息 Homepage URL 和 Authorization callback URL 都写自己的博客地址就行了</li>
+<li>确认后跳转到授权信息页面，记下他的 app id 和 secret</li>
+<li>配置 next 的 _config.yml 如下</li>
+<li>提交代码测试</li>
+</ol>
+<p>测试评论，成功。新添加的评论会出现在 hexo-comments 的 issues tab 下面，按这样的操作的话，我觉的可能都不需要自建创建 comments repo 了，直接放在一个 repo 下面就完事了</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">gitalk:</span><br><span class="line">  enable: true</span><br><span class="line">  github_id: jack-zheng # GitHub repo owner</span><br><span class="line">  repo: hexo-comments # 新建的用于存放评论的repo</span><br><span class="line">  client_id: d44xxxxxxe3a # GitHub Application Client ID</span><br><span class="line">  client_secret: 9b3c4xxxxxb708ef # GitHub Application Client Secret</span><br><span class="line">  admin_user: jack-zheng # GitHub repo owner and collaborators, only these guys can initialize gitHub issues</span><br><span class="line">  distraction_free_mode: true # Facebook-like distraction free mode</span><br><span class="line">  # Gitalk&#39;s display language depends on user&#39;s browser or system environment</span><br><span class="line">  # If you want everyone visiting your site to see a uniform language, you can set a force language value</span><br><span class="line">  # Available values: en | es-ES | fr | ru | zh-CN | zh-TW</span><br><span class="line">  language:</span><br></pre></td></tr></table></figure>
+
+<p>PS: 用这种方案的话，默认只有 github 的用户才能评论，不过看这种文章的应该都是github用户，所以问题不大<br>PPS: 网上很多文章都会要你去配置 swig 文件，最新版的 next 已经不需要这个步骤了</p>
+<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><ul>
+<li><a href="https://github.com/gitalk/gitalk">gitalk</a></li>
+<li><a href="https://www.jianshu.com/p/b5f509f25872">简书-Jonzzs</a></li>
+</ul>
 ]]></content>
       <categories>
         <category>博客</category>
@@ -1930,6 +1930,55 @@
       </categories>
       <tags>
         <tag>collection</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java interview concurrency</title>
+    <url>/hexo/2021/03/26/Java-interview-concurrency/</url>
+    <content><![CDATA[<p>备忘一下多线程相关的面试题</p>
+<h2 id="Java-如何开启线程，怎么保证线程安全"><a href="#Java-如何开启线程，怎么保证线程安全" class="headerlink" title="Java 如何开启线程，怎么保证线程安全"></a>Java 如何开启线程，怎么保证线程安全</h2><p>进程是操作系统分配<strong>资源</strong>的最小系统，线程是系统进行分配<strong>任务</strong>的最小单元，线程隶属于进程。</p>
+<p>如何开启：</p>
+<ol>
+<li>继承 Thread, 重写 run 方法</li>
+<li>实现 Runable 接口，实现 run 方法</li>
+<li>实现 Callable 接口，实现 call 方法。通过 FeatureTask 创建一个线程，获取线程执行返回结果</li>
+<li>通过线程池开启线程</li>
+</ol>
+<p>3，4 有对应的只是储备可以延伸一下，不然就别提了</p>
+<p>为什么要有以上两种方式：Java 采用单继承，多实现的设计模式</p>
+<p>怎么保证线程安全：加锁</p>
+<ol>
+<li>JVM 锁， Synchronized</li>
+<li>JDK 锁， Lock</li>
+</ol>
+<h2 id="Volatile-和-Synchronized-有什么区别？-Volatile-能不能保证线程安全？-DCL-Double-Check-Lock-单例为什么要加-Volatile"><a href="#Volatile-和-Synchronized-有什么区别？-Volatile-能不能保证线程安全？-DCL-Double-Check-Lock-单例为什么要加-Volatile" class="headerlink" title="Volatile 和 Synchronized 有什么区别？ Volatile 能不能保证线程安全？ DCL(Double Check Lock) 单例为什么要加 Volatile?"></a>Volatile 和 Synchronized 有什么区别？ Volatile 能不能保证线程安全？ DCL(Double Check Lock) 单例为什么要加 Volatile?</h2><p>Syncronized 用于加锁。Volatile 只保持变量的线程可见性，通常用于一个线程写，多个线程读取的情况</p>
+<p>Volatile 不能保证线程安全，只保证可见行，不保证原子性</p>
+<p>示例：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">VolatileDemo</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="comment">/**volatile**/</span> <span class="keyword">boolean</span> flag = <span class="keyword">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">            <span class="keyword">while</span> (flag) &#123;</span><br><span class="line">            &#125;</span><br><span class="line">            System.out.println(<span class="string">&quot;-------- End Thread --------&quot;</span>);</span><br><span class="line">        &#125;).start();</span><br><span class="line"></span><br><span class="line">        Thread.sleep(<span class="number">100</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;-------- Set flag to false --------&quot;</span>);</span><br><span class="line">        flag = <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 当注释掉 volatile 时，终端只输出 set flag 提示并挂起</span></span><br><span class="line"><span class="comment">// -------- Set flag to false --------</span></span><br><span class="line"><span class="comment">// 当使用 volatile 时，程序正常结束</span></span><br><span class="line"><span class="comment">// -------- Set flag to false --------</span></span><br><span class="line"><span class="comment">// -------- End Thread --------</span></span><br></pre></td></tr></table></figure>
+
+<p>TODO: 补一张主/从内存 copy 图</p>
+<p>DCL(Double Check Lock) 单例为什么要加 Volatile：防止指令重排，防止高并发下指令重拍导致的线程安全问题。</p>
+<p>DCL 示例：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SingleDemo</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> SingleDemo singleDemo;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">SingleDemo</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> SingleDemo <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> == singleDemo) &#123;</span><br><span class="line">            <span class="keyword">synchronized</span> (SingleDemo.class) &#123;</span><br><span class="line">                <span class="keyword">if</span> (<span class="keyword">null</span> == singleDemo) &#123;</span><br><span class="line">                    singleDemo = <span class="keyword">new</span> SingleDemo();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> singleDemo;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>TODO: 补图</p>
+<h2 id="Java-线程锁机制是什么怎么样的？偏向锁，轻量级锁，重量级锁有什么区别，锁机制如何升级"><a href="#Java-线程锁机制是什么怎么样的？偏向锁，轻量级锁，重量级锁有什么区别，锁机制如何升级" class="headerlink" title="Java 线程锁机制是什么怎么样的？偏向锁，轻量级锁，重量级锁有什么区别，锁机制如何升级"></a>Java 线程锁机制是什么怎么样的？偏向锁，轻量级锁，重量级锁有什么区别，锁机制如何升级</h2><p>和视频给的结果不一样，视频中，只有 markword 不一样，体现出这个标志位表示了锁状态，表示很清楚问什么，难道是平台问题，回去后用 Windows 试一下</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!-- https://mvnrepository.com/artifact/org.openjdk.jol/jol-core --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.openjdk.jol<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>jol-core<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>0.14<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- 可以打印出 Java 对象在内存中的分布情况 --&gt;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.openjdk.jol.info.ClassLayout;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JolDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Object o = <span class="keyword">new</span> Object();</span><br><span class="line">        System.out.println(ClassLayout.parseInstance(o).toPrintable());</span><br><span class="line"></span><br><span class="line">        <span class="keyword">synchronized</span> (o) &#123;</span><br><span class="line">            System.out.println(ClassLayout.parseInstance(o).toPrintable());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// java.lang.Object object internals:</span></span><br><span class="line"><span class="comment">//  OFFSET  SIZE   TYPE DESCRIPTION                               VALUE</span></span><br><span class="line"><span class="comment">//       0     4        (object header)                           01 00 00 00 (00000001 00000000 00000000 00000000) (1)</span></span><br><span class="line"><span class="comment">//       4     4        (object header)                           00 00 00 00 (00000000 00000000 00000000 00000000) (0)</span></span><br><span class="line"><span class="comment">//       8     4        (object header)                           e5 01 00 f8 (11100101 00000001 00000000 11111000) (-134217243)</span></span><br><span class="line"><span class="comment">//      12     4        (loss due to the next object alignment)</span></span><br><span class="line"><span class="comment">// Instance size: 16 bytes</span></span><br><span class="line"><span class="comment">// Space losses: 0 bytes internal + 4 bytes external = 4 bytes total</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// java.lang.Object object internals:</span></span><br><span class="line"><span class="comment">//  OFFSET  SIZE   TYPE DESCRIPTION                               VALUE</span></span><br><span class="line"><span class="comment">//       0     4        (object header)                           d0 a9 41 0d (11010000 10101001 01000001 00001101) (222407120)</span></span><br><span class="line"><span class="comment">//       4     4        (object header)                           00 70 00 00 (00000000 01110000 00000000 00000000) (28672)</span></span><br><span class="line"><span class="comment">//       8     4        (object header)                           e5 01 00 f8 (11100101 00000001 00000000 11111000) (-134217243)</span></span><br><span class="line"><span class="comment">//      12     4        (loss due to the next object alignment)</span></span><br><span class="line"><span class="comment">// Instance size: 16 bytes</span></span><br><span class="line"><span class="comment">// Space losses: 0 bytes internal + 4 bytes external = 4 bytes total</span></span><br></pre></td></tr></table></figure>
+
+<p>Java 的锁就是在对象的 Markword 中记录的一种状态，无锁，偏向锁，轻量级锁，重量级锁 对应标志位的不同状态</p>
+<p>Java 的锁机制就是根据资源竞争的激烈程度不断进行锁升级的过程</p>
+<p>TODO：补图</p>
+<p>JVM 锁优化：休眠 5s 之后对象自带偏向锁</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JolDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        Object o = <span class="keyword">new</span> Object();</span><br><span class="line">        System.out.println(ClassLayout.parseInstance(o).toPrintable());</span><br><span class="line"></span><br><span class="line">        <span class="comment">// -XX:UseBiasedLocking 是否打开偏向所，默认关闭</span></span><br><span class="line">        <span class="comment">// -XX:BiasedLockingStartupDelay 默认开启</span></span><br><span class="line">        Thread.sleep(<span class="number">5000</span>);</span><br><span class="line">        Object o2 = <span class="keyword">new</span> Object();</span><br><span class="line">        System.out.println(ClassLayout.parseInstance(o2).toPrintable());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// java.lang.Object object internals:</span></span><br><span class="line"><span class="comment">//  OFFSET  SIZE   TYPE DESCRIPTION                               VALUE</span></span><br><span class="line"><span class="comment">//       0     4        (object header)                           01 00 00 00 (00000001 00000000 00000000 00000000) (1)</span></span><br><span class="line"><span class="comment">//       4     4        (object header)                           00 00 00 00 (00000000 00000000 00000000 00000000) (0)</span></span><br><span class="line"><span class="comment">//       8     4        (object header)                           e5 01 00 f8 (11100101 00000001 00000000 11111000) (-134217243)</span></span><br><span class="line"><span class="comment">//      12     4        (loss due to the next object alignment)</span></span><br><span class="line"><span class="comment">// Instance size: 16 bytes</span></span><br><span class="line"><span class="comment">// Space losses: 0 bytes internal + 4 bytes external = 4 bytes total</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// java.lang.Object object internals:</span></span><br><span class="line"><span class="comment">//  OFFSET  SIZE   TYPE DESCRIPTION                               VALUE</span></span><br><span class="line"><span class="comment">//       0     4        (object header)                           05 00 00 00 (00000101 00000000 00000000 00000000) (5)</span></span><br><span class="line"><span class="comment">//       4     4        (object header)                           00 00 00 00 (00000000 00000000 00000000 00000000) (0)</span></span><br><span class="line"><span class="comment">//       8     4        (object header)                           e5 01 00 f8 (11100101 00000001 00000000 11111000) (-134217243)</span></span><br><span class="line"><span class="comment">//      12     4        (loss due to the next object alignment)</span></span><br><span class="line"><span class="comment">// Instance size: 16 bytes</span></span><br><span class="line"><span class="comment">// Space losses: 0 bytes internal + 4 bytes external = 4 bytes total</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="谈谈对-AQS-的理解"><a href="#谈谈对-AQS-的理解" class="headerlink" title="谈谈对 AQS 的理解"></a>谈谈对 AQS 的理解</h2><h2 id="有-ABC-三个线程，如何保证三个线程同时执行，如何在并发情况下保证三个线程一次执行，如何保证三个线程有序交错进行"><a href="#有-ABC-三个线程，如何保证三个线程同时执行，如何在并发情况下保证三个线程一次执行，如何保证三个线程有序交错进行" class="headerlink" title="有 ABC 三个线程，如何保证三个线程同时执行，如何在并发情况下保证三个线程一次执行，如何保证三个线程有序交错进行"></a>有 ABC 三个线程，如何保证三个线程同时执行，如何在并发情况下保证三个线程一次执行，如何保证三个线程有序交错进行</h2><h2 id="如何对一个字符串快速进行排序（多线程快排）"><a href="#如何对一个字符串快速进行排序（多线程快排）" class="headerlink" title="如何对一个字符串快速进行排序（多线程快排）"></a>如何对一个字符串快速进行排序（多线程快排）</h2>]]></content>
+      <categories>
+        <category>面试题</category>
+      </categories>
+      <tags>
+        <tag>多线程</tag>
       </tags>
   </entry>
   <entry>
@@ -3988,6 +4037,52 @@
       </tags>
   </entry>
   <entry>
+    <title>代理模式</title>
+    <url>/hexo/2020/10/12/The-proxy-pattern/</url>
+    <content><![CDATA[<p>记录一下代理模式的学习路径。代理模式常用的两种形式：静态代理，动态代理。其中，动态代理在两个国民级框架 mybatis 和 spring 中都有用到。</p>
+<p>代理模式的定义：为其他对象提供一种代理以控制对这个对象的访问。在某些情况下，一个对象不适合或者不能直接引用另一个对象，而代理对象可以在客户端和目标对象之间起到中介的作用。</p>
+<p>通过代理模式我们可以：</p>
+<ol>
+<li>隐藏委托类的具体实现</li>
+<li>客户和委托类解偶，在不改变委托类的情况下添加额外功能</li>
+</ol>
+<p>插入类图 Here…</p>
+<p>这里我们举一个生活中常见的例子，外卖小哥。在这个情境下，外卖小哥就是我们的代理。帮我们执行买餐这个动作。同时作为扩展，它还可以帮我们买烟买水，倒垃圾等。。。虽然我不提倡这种做法，只用于举例，无伤大雅。</p>
+<h2 id="静态代理"><a href="#静态代理" class="headerlink" title="静态代理"></a>静态代理</h2><p>公共接口，用来点单</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Order</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">order</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>客户实现，这个类代表叫外卖的人</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Customer</span> <span class="keyword">implements</span> <span class="title">Order</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">order</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Order and pay money...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>外卖小哥类</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DeliveryGuy</span> <span class="keyword">implements</span> <span class="title">Order</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Customer customer;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DeliveryGuy</span><span class="params">(Customer customer)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.customer = customer;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">order</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        customer.order();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>客户端调用</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Customer customer = <span class="keyword">new</span> Customer();</span><br><span class="line">        Order order = <span class="keyword">new</span> DeliveryGuy(customer);</span><br><span class="line">        order.order();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>优点：</p>
+<ol>
+<li>简单直接</li>
+<li>解偶</li>
+<li>代理类扩展业务方便</li>
+</ol>
+<p>缺点：</p>
+<p>每个业务都需要一个代理类，冗余代码很多</p>
+<h2 id="动态代理"><a href="#动态代理" class="headerlink" title="动态代理"></a>动态代理</h2><p>常见的有两种方式：JDK 原生动态代理和 CGLib 动态代理，这里只介绍第一种。</p>
+<p>JDK 根据代理模式的特性，制定了一套规范，参照他的规范，可以在很方便的在运行时产生代理类代码，而不需要在编译器写源码，更方便，当然代价就是增加了学习成本，代码不像之前那么一目了然了。实现时主要依赖两个 reflect 下的原生类 Proxy 和 InvocationHandler。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LogHandler</span> <span class="keyword">implements</span> <span class="title">InvocationHandler</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Object target;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">LogHandler</span><span class="params">(Object target)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.target = target;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">invoke</span><span class="params">(Object proxy, Method method, Object[] args)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">        before();</span><br><span class="line">        Object obj = method.invoke(target, args);</span><br><span class="line">        after();</span><br><span class="line">        <span class="keyword">return</span> obj;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">before</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;buy something...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">after</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;take out the trash...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        LogHandler logHandler = <span class="keyword">new</span> LogHandler(<span class="keyword">new</span> Customer());</span><br><span class="line">        Order order = (Order) (Proxy.newProxyInstance(Order.class.getClassLoader(), <span class="keyword">new</span> Class[] &#123;Order.class&#125;, logHandler));</span><br><span class="line">        order.order();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>LogHandler 的实现中 invok 的是要要特别注意一下，method.invoke 的参数是<strong>target</strong>。我一开始直接把 proxy 但参数传入了，排查了好久 （；￣ェ￣）</p>
+<p>中的来说没什么难度，最花时间的部分是熟悉这种使用方式，第一次理解起来可能花点时间。</p>
+]]></content>
+      <categories>
+        <category>design pattern</category>
+      </categories>
+      <tags>
+        <tag>proxy pattern</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>生成器/建造者模式</title>
     <url>/hexo/2020/10/13/The-builder-pattern/</url>
     <content><![CDATA[<p>在看 mybatis 源码的 xml 解析部分的时候，发现里面重度使用了生成器模式，特此整理一下。</p>
@@ -4033,52 +4128,6 @@
       </categories>
       <tags>
         <tag>builder pattern</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>代理模式</title>
-    <url>/hexo/2020/10/12/The-proxy-pattern/</url>
-    <content><![CDATA[<p>记录一下代理模式的学习路径。代理模式常用的两种形式：静态代理，动态代理。其中，动态代理在两个国民级框架 mybatis 和 spring 中都有用到。</p>
-<p>代理模式的定义：为其他对象提供一种代理以控制对这个对象的访问。在某些情况下，一个对象不适合或者不能直接引用另一个对象，而代理对象可以在客户端和目标对象之间起到中介的作用。</p>
-<p>通过代理模式我们可以：</p>
-<ol>
-<li>隐藏委托类的具体实现</li>
-<li>客户和委托类解偶，在不改变委托类的情况下添加额外功能</li>
-</ol>
-<p>插入类图 Here…</p>
-<p>这里我们举一个生活中常见的例子，外卖小哥。在这个情境下，外卖小哥就是我们的代理。帮我们执行买餐这个动作。同时作为扩展，它还可以帮我们买烟买水，倒垃圾等。。。虽然我不提倡这种做法，只用于举例，无伤大雅。</p>
-<h2 id="静态代理"><a href="#静态代理" class="headerlink" title="静态代理"></a>静态代理</h2><p>公共接口，用来点单</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Order</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">order</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>客户实现，这个类代表叫外卖的人</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Customer</span> <span class="keyword">implements</span> <span class="title">Order</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">order</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Order and pay money...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>外卖小哥类</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DeliveryGuy</span> <span class="keyword">implements</span> <span class="title">Order</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Customer customer;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DeliveryGuy</span><span class="params">(Customer customer)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.customer = customer;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">order</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        customer.order();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>客户端调用</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Customer customer = <span class="keyword">new</span> Customer();</span><br><span class="line">        Order order = <span class="keyword">new</span> DeliveryGuy(customer);</span><br><span class="line">        order.order();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>优点：</p>
-<ol>
-<li>简单直接</li>
-<li>解偶</li>
-<li>代理类扩展业务方便</li>
-</ol>
-<p>缺点：</p>
-<p>每个业务都需要一个代理类，冗余代码很多</p>
-<h2 id="动态代理"><a href="#动态代理" class="headerlink" title="动态代理"></a>动态代理</h2><p>常见的有两种方式：JDK 原生动态代理和 CGLib 动态代理，这里只介绍第一种。</p>
-<p>JDK 根据代理模式的特性，制定了一套规范，参照他的规范，可以在很方便的在运行时产生代理类代码，而不需要在编译器写源码，更方便，当然代价就是增加了学习成本，代码不像之前那么一目了然了。实现时主要依赖两个 reflect 下的原生类 Proxy 和 InvocationHandler。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LogHandler</span> <span class="keyword">implements</span> <span class="title">InvocationHandler</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Object target;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">LogHandler</span><span class="params">(Object target)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.target = target;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">invoke</span><span class="params">(Object proxy, Method method, Object[] args)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">        before();</span><br><span class="line">        Object obj = method.invoke(target, args);</span><br><span class="line">        after();</span><br><span class="line">        <span class="keyword">return</span> obj;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">before</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;buy something...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">after</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;take out the trash...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        LogHandler logHandler = <span class="keyword">new</span> LogHandler(<span class="keyword">new</span> Customer());</span><br><span class="line">        Order order = (Order) (Proxy.newProxyInstance(Order.class.getClassLoader(), <span class="keyword">new</span> Class[] &#123;Order.class&#125;, logHandler));</span><br><span class="line">        order.order();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>LogHandler 的实现中 invok 的是要要特别注意一下，method.invoke 的参数是<strong>target</strong>。我一开始直接把 proxy 但参数传入了，排查了好久 （；￣ェ￣）</p>
-<p>中的来说没什么难度，最花时间的部分是熟悉这种使用方式，第一次理解起来可能花点时间。</p>
-]]></content>
-      <categories>
-        <category>design pattern</category>
-      </categories>
-      <tags>
-        <tag>proxy pattern</tag>
       </tags>
   </entry>
   <entry>
