@@ -92,6 +92,7 @@ public static ListNode reverseList(ListNode head, ListNode result) {
 
     ListNode holder = head.next;
     head.next = result;
+    // 思路还是很清晰的， 先把传入的节点分离出来， 然后在作为 result 的节点前面一次添加分离出来的节点。当所有的节点都处理过后，返回
     return reverseList(holder, head);
 }
 ```
