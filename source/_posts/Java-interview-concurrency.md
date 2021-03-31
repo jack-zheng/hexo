@@ -1,5 +1,5 @@
 ---
-title: Java interview concurrency
+title: Java 面试之多线程
 date: 2021-03-26 16:23:12
 categories:
 - 面试题
@@ -20,9 +20,52 @@ tags:
 3. 实现 Callable 接口，实现 call 方法。通过 FeatureTask 创建一个线程，获取线程执行返回结果
 4. 通过线程池开启线程
 
-3，4 有对应的只是储备可以延伸一下，不然就别提了
+3，4 有对应的只是储备可以延伸一下，不然就别提了, 这两个都是在 concurrent 包下的，等学习那个包的时候再看
 
 为什么要有以上两种方式：Java 采用单继承，多实现的设计模式
+
+```java
+// extends class 实现
+public class ThreadDemo extends Thread {
+    @Override
+    public void run() {
+        for (int i = 0; i < 1000; i++) {
+            System.out.println("ThreadDemo print count: " + i)
+        }
+
+    }
+
+    public static void main(String[] args) {
+        ThreadDemo threadDemo1 = new ThreadDemo();
+        ThreadDemo threadDemo2 = new ThreadDemo();
+        ThreadDemo threadDemo3 = new ThreadDemo();
+        threadDemo1.start();
+        threadDemo2.start();
+        threadDemo3.start();
+    }
+}
+
+// 也可以用 lambda 简写, 但是 lambda 的形式是不能复用的，一次性产品
+new Thread(() -> System.out.println("ThreadDemo print count: " + i)).start();
+
+// implement class 实现
+public class RunnableDemo implements Runnable {
+    @Override
+    public void run() {
+        for (int i = 0; i < 1000; i++) {
+            System.out.println(Thread.currentThread().getName() + " - RunnableDemo count: " + i);
+        }
+    }
+
+    public static void main(String[] args) {
+        RunnableDemo runnableDemo = new RunnableDemo();
+
+        new Thread(runnableDemo, "1").start();
+        new Thread(runnableDemo, "2").start();
+        new Thread(runnableDemo, "3").start();
+    }
+}
+```
 
 怎么保证线程安全：加锁
 
