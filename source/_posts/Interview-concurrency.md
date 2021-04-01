@@ -111,8 +111,17 @@ DCL(Double Check Lock) 单例为什么要加 Volatile：防止指令重排，防
 DCL 示例：
 
 ```java
+/**
+* 懒汉式 DCL, 懒加载, 只在要用到的时候实例化
+**/
 public class SingleDemo {
-    private static SingleDemo singleDemo;
+    /**
+    * 一定要加 volatile 不然并不安全, 第一次写的时候还错了。 https://www.jianshu.com/p/246e8f72dc9a 解释的挺清楚,
+    * 简而言之，不加的话会有指令重排的可能。
+    * singleDemo = new SingleDemo(); 为代码层面可以分为三步，分配空间，构建实例，实例赋值。重排之后实例赋值可能要比构建实例先执行，
+    * 那么其他线程在判断 null == singleDemo 时就会判断为 true, 但是后续对该实例地址上对象操作时可能由于实例还没有构建完成而出现异常
+     */
+    private volatile static SingleDemo singleDemo; 
 
     private SingleDemo() {}
 
@@ -125,6 +134,20 @@ public class SingleDemo {
             }
         }
         return singleDemo;
+    }
+}
+
+/**
+* 饿汉式 DCL, 类加载即实例化
+**/
+public class Singleton {
+    private static Single single = new Single();
+
+    // 私有化构造函数
+    private Singleton() {}
+
+    public static Single getSingle() {
+        return single;
     }
 }
 ```
