@@ -6,6 +6,7 @@ categories:
 tags:
 - 链表
 - 反转
+- interview
 ---
 
 反转一个单链表。

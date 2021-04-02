@@ -5,6 +5,7 @@ categories:
 - 面试题
 tags:
 - 多线程
+- interview
 ---
 
 备忘一下多线程相关的面试题

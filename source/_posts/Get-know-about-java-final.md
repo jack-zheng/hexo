@@ -32,7 +32,7 @@ public class Test {
 
 由于 name 由 final 修饰，所以要求每个构造函数都要有 name 的初始化，或者声明时直接赋值。不然不就等于允许在运行时改变 name 值了
 
-## statuc + final + attr
+## static + final + attr
 
 这种形式常见于 class 属性，声明时就得赋值，static block 都不好使
 
