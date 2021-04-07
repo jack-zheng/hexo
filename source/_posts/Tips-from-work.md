@@ -83,3 +83,7 @@ Error:
 ## @NonNull 标签
 
 Java 方法的参数列表中加入 @NonNull 并不会在写 code 的时候为你提供 NPE check, 更多的是结合其他框架, 比如 Spring 使用, 本身只起到提示作用。
+
+## Bug track 2021-04-07
+
+今天遇到一个很诡异的问题，在 provisioning 中有一些 saveFeature 的 log 表明有时候 save 的时候会由于缺少 param 信息导致 GetSysConfig 的时候抛异常，而且频率很高。但是当我 manual 去重现这些功能时一切正常。通过查异常的上下文，发现这些有问题的 company 多是用于自动化测试的 instance。然后又仔细对比了手动正常工作时的 log 和出问题的 log 发现当异常产生时，save 的一系列动作都是在一个 transaction 中的，manual 操作是这一系列动作应该时分布在几个 transaction 中的。再结合以前的 auto 经验，这个东西大概率就是有一些 auto case 在调用了自己写的 script 操作 save feature 的时候出了问题，导致了一系列问题。这个问题如果不是对公司现有的技术手段都有所涉及，还真是不好找呢。。。
