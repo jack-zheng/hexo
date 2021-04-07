@@ -59,7 +59,7 @@
 <meta property="og:description" content="深入理解 Java 虚拟机第 12 章Java内存模型与线程笔记 12.3 Java 内存模型Java 内存模型(JMM) 用来屏蔽各种硬件和操作系统的内存访问差异，已实现 Java 程序在各种平台下都能达到一致的内存访问效果。 PS：看起来这就是传说中的一次编译，到处运行的功能吧。 12.3.1 主内存和工作内存JMM 规定，  所有变量都存储在主内存(Main Memory)中 每条线程有自己">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-04-01T10:45:44.000Z">
-<meta property="article:modified_time" content="2021-04-06T12:38:40.361Z">
+<meta property="article:modified_time" content="2021-04-07T12:58:47.261Z">
 <meta property="article:author" content="Jack Zheng">
 <meta property="article:tag" content="并发">
 <meta property="article:tag" content="concurrent">
@@ -240,7 +240,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-06 20:38:40" itemprop="dateModified" datetime="2021-04-06T20:38:40+08:00">2021-04-06</time>
+                <time title="修改时间：2021-04-07 20:58:47" itemprop="dateModified" datetime="2021-04-07T20:58:47+08:00">2021-04-07</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -267,14 +267,14 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>3.2k</span>
+              <span>4.1k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>3 分钟</span>
+              <span>4 分钟</span>
             </span>
 
         </div>
@@ -288,7 +288,7 @@
       
         <p>深入理解 Java 虚拟机第 12 章Java内存模型与线程笔记</p>
 <h2 id="12-3-Java-内存模型"><a href="#12-3-Java-内存模型" class="headerlink" title="12.3 Java 内存模型"></a>12.3 Java 内存模型</h2><p>Java 内存模型(JMM) 用来屏蔽各种硬件和操作系统的内存访问差异，已实现 Java 程序在各种平台下都能达到一致的内存访问效果。 PS：看起来这就是传说中的一次编译，到处运行的功能吧。</p>
-<h2 id="12-3-1-主内存和工作内存"><a href="#12-3-1-主内存和工作内存" class="headerlink" title="12.3.1 主内存和工作内存"></a>12.3.1 主内存和工作内存</h2><p>JMM 规定，</p>
+<h3 id="12-3-1-主内存和工作内存"><a href="#12-3-1-主内存和工作内存" class="headerlink" title="12.3.1 主内存和工作内存"></a>12.3.1 主内存和工作内存</h3><p>JMM 规定，</p>
 <ul>
 <li>所有变量都存储在主内存(Main Memory)中</li>
 <li>每条线程有自己的工作内存(Working Memory)</li>
@@ -298,7 +298,7 @@
 </ul>
 <figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">+-----------+          +-----------+           +-------+                                                                                             </span><br><span class="line">| Java      |  &lt;-----&gt; | Working   |  &lt;-----&gt;  |       |                                                                                             </span><br><span class="line">| Thread    |          | Memory    |           |       |         +---------------+                                                                   </span><br><span class="line">+-----------+          +-----------+           | Save  |         |               |                                                                   </span><br><span class="line">                                               | &amp;     |         |  Main Memory  |                                                                   </span><br><span class="line">+-----------+          +-----------+           | Load  | &lt;-----&gt; |               |                                                                   </span><br><span class="line">| Java      |          | Working   |           |       |         |               |                                                                   </span><br><span class="line">| Thread    |  &lt;-----&gt; | Memory    |  &lt;-----&gt;  |       |         |               |                                                                   </span><br><span class="line">+-----------+          +-----------+           |       |         |               |                                                                   </span><br><span class="line">                                               |       |         |               |                                                                   </span><br><span class="line">+-----------+          +-----------+           |       |         +---------------+                                                                   </span><br><span class="line">| Java      |          | Working   |           |       |                                                                                             </span><br><span class="line">| Thread    |  &lt;-----&gt; | Memory    |  &lt;-----&gt;  |       |                                                                                             </span><br><span class="line">+-----------+          +-----------+           +-------+                                </span><br></pre></td></tr></table></figure>
 
-<h2 id="12-3-2-内存间交互操作"><a href="#12-3-2-内存间交互操作" class="headerlink" title="12.3.2 内存间交互操作"></a>12.3.2 内存间交互操作</h2><p>JMM 规定了主内存和工作内存之间的具体交互协议，定义了 8 中操作，这些操作都要求是原子的，不可再分的(对 double/long 类型的变量来说， laod, store,read,write 操作在某些平台上允许例外)</p>
+<h3 id="12-3-2-内存间交互操作"><a href="#12-3-2-内存间交互操作" class="headerlink" title="12.3.2 内存间交互操作"></a>12.3.2 内存间交互操作</h3><p>JMM 规定了主内存和工作内存之间的具体交互协议，定义了 8 中操作，这些操作都要求是原子的，不可再分的(对 double/long 类型的变量来说， laod, store,read,write 操作在某些平台上允许例外)</p>
 <ul>
 <li>lock - 作用主内存，把变量标识为线程独占</li>
 <li>unlock - 作用主内存，把变量从锁定状态释放</li>
@@ -310,7 +310,7 @@
 <li>write - 作用主内存，把 store 操作传过来的变量放入主内存</li>
 </ul>
 <p>JMM 还对这八种操作做了一些限制，比如 store 和 write 必须顺序执行，不允许一个线程丢弃它最近的 assign 操作等，这些细节这里就不深究了，感觉是很理论的东西，以后真的用到了，再回头看啊。</p>
-<h2 id="12-3-3-对于-volatile-型变量的特殊规则"><a href="#12-3-3-对于-volatile-型变量的特殊规则" class="headerlink" title="12.3.3 对于 volatile 型变量的特殊规则"></a>12.3.3 对于 volatile 型变量的特殊规则</h2><p>volatile 是 JVM 提供的最轻量级的同步机制，JMM 专门为他定义了一些特殊规则。当一个变量定义为 volatile 后，它具备两个特性：</p>
+<h3 id="12-3-3-对于-volatile-型变量的特殊规则"><a href="#12-3-3-对于-volatile-型变量的特殊规则" class="headerlink" title="12.3.3 对于 volatile 型变量的特殊规则"></a>12.3.3 对于 volatile 型变量的特殊规则</h3><p>volatile 是 JVM 提供的最轻量级的同步机制，JMM 专门为他定义了一些特殊规则。当一个变量定义为 volatile 后，它具备两个特性：</p>
 <ol>
 <li>保证变量对所有线程的可见性，当一条线程修改了这个变量的值，新值对于其他线程立即可知</li>
 <li>禁止指令重排序优化 - PS: java 1.5 之前这个关键字有问题，并不能保证可见性</li>
@@ -327,6 +327,13 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* 实验 #2-2</span></span><br><span class="line"><span class="comment">* DCL 双锁检测</span></span><br><span class="line"><span class="comment">**/</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">volatile</span> Singleton instance;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Singleton</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">            syncronized(Singleton.class) &#123;</span><br><span class="line">                <span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">                    <span class="keyword">return</span> <span class="keyword">new</span> Singleton();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Singleton.getInstance();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>本章最后还介绍了 volatile 底层实现和 JMM 中定义的规则，暂时就不深入了。</p>
+<h3 id="12-3-4-针对-long-和-double-型变量的特殊规则"><a href="#12-3-4-针对-long-和-double-型变量的特殊规则" class="headerlink" title="12.3.4 针对 long 和 double 型变量的特殊规则"></a>12.3.4 针对 long 和 double 型变量的特殊规则</h3><p>虚拟机允许将没有被 volatile 修饰的 64 位数据的读写操作分为两次 32 位的操作进行，即不保证 64 位数据类型的 load, store, read, write 的原子性。这就是所谓的 ‘long 和 double 的非原子性协定’， 目前主流商用 64 位虚拟机并不会出现非原子访问。</p>
+<h3 id="12-3-5-原子性，可见性与有序性"><a href="#12-3-5-原子性，可见性与有序性" class="headerlink" title="12.3.5 原子性，可见性与有序性"></a>12.3.5 原子性，可见性与有序性</h3><p><strong>原子性</strong>：JMM 直接保证 read, load, assign, use, store 和 write 操作的原子性，对于一个更大范围的原子性保证，JMM 提供了 lock 和 unlock 这两个操作，反应到字节码就是 monitorenter/monitorexit，Java 代码层面就是 synchronized 关键字了</p>
+<p><strong>可见性</strong>：当一个线程修改了共享变量值时，其他线程能够立即得知这个修改。对于 volatile 类型的数据，JMM 通过修改后立即同步回主内存，在变量读取前刷新变量值以保证可见性，普通变量不是立即执行的。</p>
+<p>出了 volatile 外，synchronized 和 final 也能实现可见性。synchronized 通过规则：在 unlock 之前必须把此变量同步回主内存中(执行 store，write)来达到目的。final 的可见性指：被 final 修饰的字段在构造器中一旦被初始化完成，并且构造器没有吧 this 引用传递出去，那么其他线程就能看到 final 字段的值。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* i， j 都具备可见性，不许同步就可以被其他线程访问</span></span><br><span class="line"><span class="comment">**/</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> i;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">int</span> j;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> &#123;</span><br><span class="line">    i = <span class="number">0</span>;</span><br><span class="line">    <span class="comment">// 后续省略</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 可也以在构造函数中初始化</span></span><br><span class="line">    j = <span class="number">0</span>;</span><br><span class="line">    <span class="comment">// 后续省略</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>有序性</strong>：如果在本线程内观察，所有的操作都是有序的；如果在一个线程中观察另一个线程，所有操作都是无序的。volatile 和 synchronized 关键字可用于保证线程操作之间的有序性，volatile 本省包含禁止指令重排的语义，而 synchronized 则是由 ‘一个变量在同一时刻只允许一条线程对其进行 lock 操作’ 的这条规则决定。</p>
 
     </div>
 
@@ -408,7 +415,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#12-3-Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B"><span class="nav-number">1.</span> <span class="nav-text">12.3 Java 内存模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-3-1-%E4%B8%BB%E5%86%85%E5%AD%98%E5%92%8C%E5%B7%A5%E4%BD%9C%E5%86%85%E5%AD%98"><span class="nav-number">2.</span> <span class="nav-text">12.3.1 主内存和工作内存</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-3-2-%E5%86%85%E5%AD%98%E9%97%B4%E4%BA%A4%E4%BA%92%E6%93%8D%E4%BD%9C"><span class="nav-number">3.</span> <span class="nav-text">12.3.2 内存间交互操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-3-3-%E5%AF%B9%E4%BA%8E-volatile-%E5%9E%8B%E5%8F%98%E9%87%8F%E7%9A%84%E7%89%B9%E6%AE%8A%E8%A7%84%E5%88%99"><span class="nav-number">4.</span> <span class="nav-text">12.3.3 对于 volatile 型变量的特殊规则</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#12-3-Java-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B"><span class="nav-number">1.</span> <span class="nav-text">12.3 Java 内存模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#12-3-1-%E4%B8%BB%E5%86%85%E5%AD%98%E5%92%8C%E5%B7%A5%E4%BD%9C%E5%86%85%E5%AD%98"><span class="nav-number">1.1.</span> <span class="nav-text">12.3.1 主内存和工作内存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#12-3-2-%E5%86%85%E5%AD%98%E9%97%B4%E4%BA%A4%E4%BA%92%E6%93%8D%E4%BD%9C"><span class="nav-number">1.2.</span> <span class="nav-text">12.3.2 内存间交互操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#12-3-3-%E5%AF%B9%E4%BA%8E-volatile-%E5%9E%8B%E5%8F%98%E9%87%8F%E7%9A%84%E7%89%B9%E6%AE%8A%E8%A7%84%E5%88%99"><span class="nav-number">1.3.</span> <span class="nav-text">12.3.3 对于 volatile 型变量的特殊规则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#12-3-4-%E9%92%88%E5%AF%B9-long-%E5%92%8C-double-%E5%9E%8B%E5%8F%98%E9%87%8F%E7%9A%84%E7%89%B9%E6%AE%8A%E8%A7%84%E5%88%99"><span class="nav-number">1.4.</span> <span class="nav-text">12.3.4 针对 long 和 double 型变量的特殊规则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#12-3-5-%E5%8E%9F%E5%AD%90%E6%80%A7%EF%BC%8C%E5%8F%AF%E8%A7%81%E6%80%A7%E4%B8%8E%E6%9C%89%E5%BA%8F%E6%80%A7"><span class="nav-number">1.5.</span> <span class="nav-text">12.3.5 原子性，可见性与有序性</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -471,12 +478,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">435k</span>
+    <span title="站点总字数">436k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">6:36</span>
+    <span title="站点阅读时长">6:37</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
