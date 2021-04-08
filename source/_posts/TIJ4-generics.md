@@ -1,5 +1,5 @@
 ---
-title: Java 泛型读书笔记
+title: TIJ4 泛型
 date: 2020-12-17 17:42:08
 categories:
 - TIJ4

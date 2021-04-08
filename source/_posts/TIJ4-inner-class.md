@@ -1,10 +1,10 @@
 ---
-title: TIJ4 内部类读书笔记
+title: TIJ4 内部类
 date: 2020-12-09 15:32:00
 categories:
 - TIJ4
 tags:
-- inner_class
+- inner class
 ---
 
 - [Intro](#intro)

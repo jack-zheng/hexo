@@ -193,6 +193,12 @@ PS: 在合并 B 分支上的 commit 的时候我并不需要指定分支名字�
                   |                                                        
 ```
 
+## cherry pick revert
+
+```bash
+git reset --hard HEAD^
+```
+
 ### How to drop
 
 如果本地有改动

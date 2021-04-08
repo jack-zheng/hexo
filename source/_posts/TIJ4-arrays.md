@@ -7,8 +7,6 @@ tags:
 - arrays
 ---
 
-Arrays 章节读书笔记
-
 ## 前述
 
 这个章节将深入讲解 Arrays 的使用
