@@ -1,12 +1,11 @@
 ---
-title: GA c4 quicksort
+title: 快速排序
 date: 2021-04-08 12:45:01
 categories:
  - Grokking Algorithms
 tags:
 - 快速排序
 - quick sort
-- 读书笔记
 ---
 
 图解算法第四章 快排 读书笔记

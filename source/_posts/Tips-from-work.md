@@ -107,3 +107,11 @@ if (ojb != Boolean.True) {
 ```
 
 建议的修改更简单明了，哈哈
+
+## 命令行查找目标文件夹(ls)
+
+想要使用 ls 查找当前目录下的某个特定前缀的文件夹，但是 `ls prefix*` 会将对应的文件夹下面的自文件也列出来，不方便查看。可以加 `ls -d prefix*`。
+
+通过 `man ls` 可以看到这个 flag 的作用: -d      Directories are listed as plain files (not searched recursively).
+
+SF 上也给出了其他的解，可以用 `echo prefix*` 达到同样的效果
