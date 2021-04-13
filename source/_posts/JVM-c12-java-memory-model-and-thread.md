@@ -5,6 +5,8 @@ categories:
 - JVM
 tags:
 - 并发
+- JMM
+- 内存模型
 - concurrent
 ---
 
@@ -65,30 +67,27 @@ volatile 是 JVM 提供的最轻量级的同步机制，JMM 专门为他定义�
 
 ```java
 /**
-* 实验 #1
-* 声明一个 volatile 的 int 变量，然后通过多线程进行累加，统计最终计算结果。虽然 volatile 保证了变量的线程可见性，但是由于 race++ 是非原子性的，所以计算结果是错误的。
+* 实验 #1 volatile 虽然是线程可见的，但是多线程同时写操作时依然线程不安全
+*
+* 声明一个 volatile 的 int 变量，给初始值 0，起 20 个线程，每个线程都对变量做 10000 次加 1 操作，统计最终计算结果。
+*
+* 结论：虽然 volatile 保证了变量的线程可见性，但是由于 race++ 是非原子性的。具体情况可能如下：
+* 线程A：进行累加操作，取得计算前的值 100，并进行累加操作
+* 线程B：取得累加前的值 100 进行操作
+* 线程A：完成操作 101 并赋值给主内存
+* 线程B：完成操作 101 并赋值给主内存
+* 所以计算结果总是小于理论值 20 0000
 **/
 public class VolatileTest {
     public static volatile int race = 0;
 
-    public static void increase() {
-        race++;
-    }
-
-    private static final int THREADS_COUNT = 20;
-
     public static void main(String[] args) {
-        Thread[] threads = new Thread[THREADS_COUNT];
-        for (int i = 0; i < THREADS_COUNT; i++) {
-            threads[i] = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    for (int i = 0; i < 10000; i++) {
-                        increase();
-                    }
+        for (int i = 0; i < 20; i++) {
+            new Thread(() -> {
+                for (int i = 0; i < 10000; i++) {
+                    race++;
                 }
-            });
-            threads[i].start();
+            }).start();
         }
 
         /*
@@ -102,7 +101,7 @@ public class VolatileTest {
     }
 }
 
-// 49474
+// 34490
 ```
 
 volatile 只保证可见性，在不符合以下两条规则的运算场景中，还是需要通过加锁保证原子性：
@@ -175,7 +174,7 @@ public class Singleton {
 
 **可见性**：当一个线程修改了共享变量值时，其他线程能够立即得知这个修改。对于 volatile 类型的数据，JMM 通过修改后立即同步回主内存，在变量读取前刷新变量值以保证可见性，普通变量不是立即执行的。
 
-出了 volatile 外，synchronized 和 final 也能实现可见性。synchronized 通过规则：在 unlock 之前必须把此变量同步回主内存中(执行 store，write)来达到目的。final 的可见性指：被 final 修饰的字段在构造器中一旦被初始化完成，并且构造器没有吧 this 引用传递出去，那么其他线程就能看到 final 字段的值。
+除了 volatile 外，synchronized 和 final 也能实现可见性。synchronized 通过规则：在 unlock 之前必须把此变量同步回主内存中(执行 store，write)来达到目的。final 的可见性指：被 final 修饰的字段在构造器中一旦被初始化完成，并且构造器没有吧 this 引用传递出去，那么其他线程就能看到 final 字段的值。
 
 ```java
 /**

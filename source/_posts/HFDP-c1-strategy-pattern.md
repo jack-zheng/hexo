@@ -5,6 +5,7 @@ categories:
 - HFDP 
 tags:
 - strategy pattern
+- 策略模式
 ---
 
 Design Principle: 
@@ -15,7 +16,29 @@ Design Principle:
 
 > The **Strategy Pattern** defines a family of algorithms, encapsulates each one, and makes them interchangeable.  Strategy lets the algorithm vary independently from clients that use it.  
 > 
-> 定义了一族算法，将它和调用方解偶
+> 完成共一个任务往往有多种不同的方法，每一种方法我们称之为策略，我们可以通过不同的条件选择不同的算法完成任务
+
+## UML
+
+```text
++-----------------+                                                                                                                               
+|  Context        |                                                                                                                               
+|---------------- |               +-------------------+                                                                                           
+| - strategy      |<>------------ | <<Interface>>     |                                                                                           
+|---------------- |               |   Strategy        |                                                                                           
+| + setStrategy(s)|               |------------------ |                                                                                           
+| + perfStratecy()|               | algorithm()       |                                                                                           
+|                 |               +-------------------+                                                                                           
+|                 |                 ^                                                                                                             
+|                 |                 |----------------------------------                                                                           
++-----------------+                 |                |                |                                                                           
+                                    |                |                |                                                                           
+                   +-------------------+   +-------------------+      |                                                                           
+                   |ConcreateStrategyA |   |ConcreateStrategyB |      |                                                                           
+                   |------------------ |   |------------------ |     ...                                                                          
+                   | algorithm()       |   | algorithm()       |                                                                                  
+                   +-------------------+   +-------------------+                                                                                  
+```
 
 ## 案例
 
