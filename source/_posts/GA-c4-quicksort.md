@@ -6,9 +6,8 @@ categories:
 tags:
 - 快速排序
 - quick sort
+- 图解算法
 ---
-
-图解算法第四章 快排 读书笔记
 
 分而治之（divide and conquer，D&C）- 种著名的递归式问题解决方法
 
