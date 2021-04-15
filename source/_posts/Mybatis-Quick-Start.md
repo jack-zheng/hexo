@@ -2,7 +2,7 @@
 title: Mybatis 快速上路笔记
 date: 2020-09-16 23:08:01
 categories:
-- 编程
+- 弹射起步
 tags:
 - java
 - mybatis

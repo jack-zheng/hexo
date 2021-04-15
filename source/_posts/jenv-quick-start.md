@@ -2,7 +2,7 @@
 title: jenv 快速上手
 date: 2020-08-25 13:25:21
 categories:
-- 小工具
+- 弹射起步
 tags:
 - jenv
 ---

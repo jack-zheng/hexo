@@ -111,3 +111,7 @@ When IntelliJ starts again the problem should be vanquished.
 默认注释格式会把双斜杠放到最前面，和习惯很不搭配，可以通过 Perferences -> settings -> Editor -> Code style -> java 跳出设置界面
 
 到 Code generic tab 下面，将 Comment Code 选项下的 `Line comment at first coumn` 去掉，下一级的 `Add a space at comment start` 选上即可
+
+## 2021-04-15
+
+升级 Idea 之后，原来的项目在 Idea 里面编译失败，但是终端却可以。由此断定项目肯定是好的。Google 了一下，可以通过 File -> Invalidate caches -> Invalidate and Restart 重启 Idea 解决问题

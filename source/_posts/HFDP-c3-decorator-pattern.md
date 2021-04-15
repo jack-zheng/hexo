@@ -97,6 +97,169 @@ public class DarkRoast extends Beverage {
 
 ## UML
 
+* 每个 Component 可以自己调用自己，也可以被 Decorator 包裹
+* 每个 Decorator 都持有一个 Component 的引用
+* ConcrateComponent 是 Component 的具体实现
+
+```txt
+                    +--------------+                            
+                    |  Component   |                            
+                    |--------------|------------------|         
+                    | +operation() |                  |         
+                    |              |                  |         
+                    +--------------+                  |         
+                    ^             ^                   |         
+                    |             |                   |         
+                    |             |                   |         
++---------------------+          +--------------+     |         
+|  ConcreateComponent |          |  Decorator   |<>---|         
+|---------------------|          |--------------|               
+| +operation()        |          | +operation() |               
+|                     |          |              |               
++---------------------+          +--------------+               
+                                  ^         ^                   
+                                  |         |                   
+                                  |         |                   
+              +---------------------+    +---------------------+
+              | ConcreateDecoratorA |    | ConcreateDecoratorA |
+              |---------------------|    |---------------------|
+              | +operation()        |    | +operation()        |
+              | +addBehavior()      |    | +addBehavior()      |
+              +---------------------+    +---------------------+
+```
+
 ## 实现
 
+```java
+// 基类实现
+public abstract class Beverage {
+    String description = "Unknown Beverage";
+
+    public String getDescription() {
+        return description;
+    }
+
+    public abstract double cost();
+}
+
+// 实例咖啡实现
+public class Espresso extends Beverage {
+    public Espresso() {
+        description = "Espresso";
+    }
+
+    @Override
+    public double cost() {
+        return 1.99;
+    }
+}
+
+// 装饰类的基类
+public abstract class CondimentDecorator extends Beverage {
+    @Override
+    public abstract String getDescription();
+}
+
+// 装饰类实现，装饰类会持有基类引用，并对方法做扩展
+public class Mocha extends CondimentDecorator {
+    Beverage beverage;
+
+    public Mocha(Beverage beverage) {
+        this.beverage = beverage;
+    }
+
+    @Override
+    public double cost() {
+        return beverage.cost() + .20;
+    }
+
+    @Override
+    public String getDescription() {
+        return beverage.getDescription() + ", Mocha";
+    }
+}
+
+public class Soy extends CondimentDecorator {
+    Beverage beverage;
+    public Soy(Beverage beverage) {
+        this.beverage = beverage;
+    }
+
+    @Override
+    public double cost() {
+        return beverage.cost() + .15;
+    }
+
+    @Override
+    public String getDescription() {
+        return beverage.getDescription() + ", Soy";
+    }
+}
+
+// 测试类
+public class Client {
+    public static void main(String[] args) {
+        Beverage myBeverage = new Mocha(new Soy(new Espresso()));
+        System.out.println(myBeverage.cost());
+        System.out.println(myBeverage.getDescription());
+    }
+}
+
+// 2.3400000000000003
+// Espresso, Soy, Mocha
+```
+
+问，我现在如果加了双份的抹茶，description 输出时会现实 Mocha, Mocha。那如果我想要他输出 Double Mocha 的话需要怎么做?
+
+按照装饰模式的思路，可以将 description 的实现改为容器，比如 list, 然后在最外层加入一个 CustomizedDescDecorator 截取 description 做整合
+
 ## 该模式在 JDK 中的应用
+
+Java 的 I/O 包就使用了装饰器模式。IO 分两种，字节流（Input/OutputStream）和字符流（Reader/Writer）。
+
+以输入字节流 InputStream 为例，继承关系如下
+
+```tx
+                                 +-------------+                                                 
+                                 | InputStream |                                                 
+                                 +-------------+                                                 
+                                        ^                                                        
+          ------------------------------|------------------------------------------------------  
+         |                              |              |                       |              |  
+         |                              |              |                       |              |  
+ +-----------------+  +-------------------+  +-------------------+  +----------------------+  |  
+ | FileInputStream |  | FilterInputStream |  | ObjectInputStream |  | ByteArrayInputStream |  ...
+ +-----------------+  +-------------------+  +-------------------+  +----------------------+     
+                                   ^                                                             
+         --------------------------|-----------------------------------------------              
+        |                          |                           |                  |              
+        |                          |                           |                  |              
+ +---------------------+   +---------------------+    +--------------------+      |              
+ | BufferedInputStream |   | DataInputStream     |    | PushbakInputStream |     ...             
+ +---------------------+   +---------------------+    +--------------------+                     
+```
+
+一开始看岔了，把 FilterInputStream 和 FileInputStream 看成同一个了，所以没能把它和装饰模式匹配起来。在 IO 的实现中，FileInputStream, ObjectInputStream 等即对饮了 ConcreateComponent, 是具体实现。
+
+FilterInputStream 对应了 Decorator, 是修饰器的基类，持有了 inputStream 的引用，而 BufferedInputStream 则为装饰器的具体实现，起到包装 Component 的作用。
+
+BufferedInputStream 使用示例如下：
+
+```java
+public class IoDecoratorDemo {
+    public static void main(String[] args) {
+        ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+        InputStream is = classloader.getResourceAsStream("c1_2.xml");
+        try (BufferedInputStream bis = new BufferedInputStream(is)) {
+            byte data;
+            while ((data = (byte) bis.read()) != -1) {
+                System.out.print((char) data);
+            }
+
+            System.out.println("Finish read...");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```

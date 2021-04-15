@@ -1,5 +1,5 @@
 ---
-title: Idea tomcat terminal garbled
+title: Idea tomcat log 乱码
 date: 2020-11-02 16:29:02
 categories:
 - 配置
