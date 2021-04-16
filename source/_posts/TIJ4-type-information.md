@@ -1,5 +1,5 @@
 ---
-title: TIJ4 - Type Information 笔记
+title: TIJ4 - Type Information 类型信息
 date: 2020-12-22 22:18:06
 categories:
 - TIJ4
@@ -83,7 +83,7 @@ public class Shapes {
 
 在 Java 中有一个神奇的类他叫 Class 类，所有创建类实例的行为都和他有关。 Java 的 RTTI 特性也是通过它来实现的。当你编译一个类的时候，JVM 会通过 class 创建一个对应的 Class 类来存储对应的信息。
 
-类加载器可以有一组 class loaders 组成，但是已有一个 primordial class loader，他时 JVM 的一部分，他也被叫做 trusted classes。通常你不需要自己新家 class loader 但是如果由特殊需要，想加也是可以的。
+类加载器由一组 class loaders 组成，但是已有一个 primordial class loader，他是 JVM 的一部分，他会加载所有的 trusted classes，这写 trusted class 包括 Java API classes, 比如本地磁盘上的 classes。通常你不需要自己新加 class loader 但是如果有特殊需要，想加也是可以的。
 
 只有当第一次使用的时候，JVM 才会加载对应的 class。这个行为发生在类第一次关联到 static 实体， 构造函数也是一个特殊的 static method，换句话说，当我们 new 一个对象的时候，加载器就会加载对应的 class。
 
@@ -136,6 +136,8 @@ public class SweetShop {
 ```
 
 当各个类在第一次调用时对应的静态代码块就会被调用，输出我们定制的信息。上例有一个比较特殊的语法 `forName()` 我们可以通过这个方法拿到对应的 Class 引用，当然如果找不到会抛 `ClassNotFoundExcepiton`。如果实体类已经创建了，你也可以通过 Object.getClass() 来拿到对应的类应用。
+
+上例中通过 forName 调用 Gum 类的代码段，按理说是不会报错的，可能是例子中没有给全路径的关系。示例中应该写成连续调用两次，但是 log 只打印一次这样的形式可能更好。
 
 下面这个示例展示了部分 Class 中的常用方法：
 
@@ -229,7 +231,7 @@ public class ToyTest {
 
 ### Class literals(字面量)
 
-出了上面的方法，你还可以通过使用类的字面量来拿到 Class 引用，相比与 forName() 的形式，它更简单，安全，不需要 try-catch 块，效率也更高。
+除了上面的方法，你还可以通过使用类的字面量来拿到 Class 引用，相比与 forName() 的形式，它更简单，安全，不需要 try-catch 块，效率也更高。
 
 普通类，接口，数组和基本数据类型都可以使用这个语法，对于包装类，它内部有一个 TYPE field 可以指向对应的 Class。
 
@@ -251,7 +253,17 @@ public class ToyTest {
 2. Linking. 验证字节码，为静态变量分配空间，解决依赖问题
 3. Initialization. 如果还有父类，父类会先初始化，然后执行静态构造器和代码块
 
-初始化会延期，直到确定第一个到静态方法(构造函数是一个隐式的静态方法)或非常量的静态 field 引用：
+初始化会延期，直到确定第一个静态方法(构造函数是一个隐式的静态方法)或非常量的静态 field 引用：
+
+示例说明：
+
+我们声明了三个 Initabl 类做测试，每个类都包含一个 static 代码段答应测试 log 来显示类初始化是否被执行。
+
+* Initable 包含两个常量，第一个静态常量，第二个是计算后才能得到的值。通过 class 调用变量一时，类不会被初始化。调用第二个变量时，会调用到静态方法，类初始化被触发
+* 在调用 Initable2.staticNonFinal 时，由于他是一个静态非常量，所以初始化被触发
+* Initable3 测试时，通过 forName 调用，初始化必定被触发
+
+final 即 常量
 
 ```java
 package review;
@@ -313,9 +325,9 @@ public class ClassInitialization {
 // 74
 ```
 
-实际上，初始化尽可能完的执行。从 initable 的例子可以看出，调用 '.class' 语法并不会导致一个 Class 的初始化，但是从 initable3 可以看出 Class.forName() 会直接导致初始化。
+实际上，初始化会尽可能晚的执行。从 initable 的例子可以看出，调用 '.class' 语法并不会导致一个 Class 的初始化，但是从 initable3 可以看出 Class.forName() 会直接导致初始化。
 
-如果调用的是 static final 这种编译期常量，如 Initable.staticFinal 所示，那么该值也可以在类为初始化时就可用。就算有 static 和 final 也不能保证不需要初始化 Class，如 Initable.staticFinal2 所示，如果对应的变量不是编译期常量，还是想要初始化 Class 的。
+如果调用的是 static final 这种编译期常量，如 Initable.staticFinal 所示，那么该值也可以在类为初始化时就可用。
 
 如果变量不是 final 类型的，那么在访问之前就需要进行 link 和 initialization 动作，如 Initable2.staticNonFinal 所示。
 

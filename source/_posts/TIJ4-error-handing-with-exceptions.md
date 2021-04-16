@@ -1,5 +1,5 @@
 ---
-title: TIJ4 通过异常处理错误 error handing with exceptions
+title: TIJ4 异常错误 error handing with exceptions
 date: 2021-01-21 13:49:44
 categories:
 - TIJ4

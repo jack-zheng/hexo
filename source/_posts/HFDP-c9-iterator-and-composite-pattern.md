@@ -1,0 +1,308 @@
+---
+title: HFDP c9 iterator and composite pattern
+date: 2021-04-16 17:39:36
+categories:
+- HFDP
+tags:
+- iterator pattern
+- composite pattern
+- 迭代器模式
+- 组合模式
+---
+
+> **The Iterator Pattern** provides a way to access the elements of an aggregate object sequentially without exposing its underlying representation.
+> 迭代器模式可以让我们在不需要知道一个集合的具体实现的情况下，依次访问集合中的各个元素
+
+it also places the task of traveral(遍历) on the iterator object, not on the aggregate, which simplifies the aggregate interface and implementation, and places the responsibility where it should be.
+
+> **Design Principle:** A class should have only one reason to change
+
+## 缘起
+
+现在你是餐饮部的大老板了，上周你刚收购了两家餐厅，现在你要整合他们的业务，将他们的菜单合并以统一的用户体验提供服务，所幸，他们的底层菜品条目是一致的
+
+```java
+public class MenuItem {
+    String name;
+    String description;
+    boolean vegetarian;
+    double price;
+
+    public MenuItem(String name, String description, boolean vegetarian, double price) {
+        this.name = name;
+        this.description = description;
+        this.vegetarian = vegetarian;
+        this.price = price;
+    }
+
+    // getter and setter
+}
+```
+
+两家店铺的菜单实现代码如下
+
+```java
+// 煎饼电，通过 List 来存储菜单
+public class PancakeHouseMenu {
+    ArrayList<MenuItem> menuItems;
+
+    public PancakeHouseMenu() {
+        menuItems = new ArrayList<>();
+        addItem("K & B’s Pancake Breakfast", "Pancakes with scrambled eggs, and toast", true, 2.99);
+        addItem("Regular Pancake Breakfast", "Pancakes with fried eggs, sausage", false, 2.99);
+        addItem("Blueberry Pancakes", "Pancakes made with fresh blueberries", true, 3.49);
+        addItem("Waffles", "Waffles, with your choice of blueberries or strawberries", true, 3.59);
+    }
+
+    public void addItem(String name, String description, boolean vegetarian, double price) {
+        MenuItem menuItem = new MenuItem(name, description, vegetarian, price);
+        menuItems.add(menuItem);
+    }
+
+    public ArrayList<MenuItem> getMenuItems() {
+        return menuItems;
+    }
+}
+
+// 小吃店，通过 Array 存储菜单
+public class DinerMenu {
+    final int MAX_ITEMS = 6;
+    int numberOfItems = 0;
+    MenuItem[] menuItems;
+
+    public DinerMenu() {
+        menuItems = new MenuItem[MAX_ITEMS];
+        addItem("Vegetarian BLT", " (Fakin’)Bacon with lettuce & tomato on whole wheat", true, 2.99);
+        addItem("BLT", "Bacon with lettuce & tomato on whole wheat", false, 2.99);
+        addItem("Soup of the day", "Soup of the day, with a side of potato salad", false, 3.29);
+        addItem("Hotdog", "A hot dog, with saurkraut, relish, onions, topped with cheese", false, 3.05);
+        addItem("Steamed Veggies and Brown Rice", "Steamed vegetables over brown rice", false, 3.99);
+        addItem("Pasta", "Spaghetti with Marinara Sauce, and a slice of sourdough bread", false, 3.89);
+    }
+
+    public void addItem(String name, String description, boolean vegetarian, double price) {
+        MenuItem menuItem = new MenuItem(name, description, vegetarian, price);
+        if (numberOfItems >= MAX_ITEMS) {
+            System.err.println("Sorry, menu is full !Can’t add item to menu");
+        } else {
+            menuItems[numberOfItems] = menuItem;
+            numberOfItems = numberOfItems + 1;
+        }
+    }
+
+    public MenuItem[] getMenuItems() {
+        return menuItems;
+    }
+}
+```
+
+在没有做重构的情况下，每当你想要打印所有的菜单，你就得用两个循环，分别 loop 一下这两家店的菜单, 并且更糟糕的是，下次你再收购店面，你就必须再改一次这部分代码
+
+```java
+public class LoopMenu {
+    public static void main(String[] args) {
+        MenuItem[] dinerMenu = new DinerMenu().getMenuItems();
+        for (MenuItem menu : dinerMenu) {
+            System.out.println(menu);
+        }
+
+        List<MenuItem> menuItemList = new PancakeHouseMenu().getMenuItems();
+        for (MenuItem menuItem : menuItemList) {
+            System.out.println(menuItem);
+        }
+    }
+}
+```
+
+为了解决这个问题，我们新建一个 Iterator 接口来解决这个问题
+
+```java
+public interface Iterator {
+    boolean hasNext();
+    Object next();
+}
+```
+
+为小吃店新建一个 Iterator 实现并在小吃点的菜单中添加返回 Iterator 的方法
+
+```java
+public class DinerMenuIterator implements Iterator {
+    MenuItem[] items;
+    int position = 0;
+
+    public DinerMenuIterator(MenuItem[] items) {
+        this.items = items;
+    }
+
+    @Override
+    public boolean hasNext() {
+        return position < items.length && items[position] != null;
+    }
+
+    @Override
+    public Object next() {
+        MenuItem item = items[position];
+        position++;
+        return item;
+    }
+}
+
+public class DinerMenu {
+    // duplicated before
+
+    public Iterator createIterator() {
+        return new DinerMenuIterator(menuItems);
+    }
+}
+```
+
+对煎饼摊做同样的操作
+
+```java
+public class PancakeHouseMenuIterator implements Iterator {
+    List<MenuItem> menuItemList;
+    int position = 0;
+
+    public PancakeHouseMenuIterator(List<MenuItem> menuItemList) {
+        this.menuItemList = menuItemList;
+    }
+
+    @Override
+    public boolean hasNext() {
+        return position < menuItemList.size();
+    }
+
+    @Override
+    public Object next() {
+        MenuItem item = menuItemList.get(position);
+        position++;
+        return item;
+    }
+}
+
+public class PancakeHouseMenu {
+    // duplicated before
+
+    public Iterator createIterator() {
+        return new PancakeHouseMenuIterator(menuItems);
+    }
+}
+```
+
+答应客户端的代码
+
+```java
+public class IteratorClient {
+    public static void main(String[] args) {
+        Iterator it1 = new PancakeHouseMenu().createIterator();
+        Iterator it2 = new DinerMenu().createIterator();
+
+        System.out.println("MENU\n----\nBREAKFAST");
+        printMenu(it1);
+
+        System.out.println("\nLUNCH");
+        printMenu(it2);
+    }
+
+    private static void printMenu(Iterator it) {
+        while (it.hasNext()) {
+            System.out.println(it.next());
+        }
+    }
+}
+
+// MENU
+// ----
+// BREAKFAST
+// K & B’s Pancake Breakfast, 2.99 -- Pancakes with scrambled eggs, and toast
+// Regular Pancake Breakfast, 2.99 -- Pancakes with fried eggs, sausage
+// Blueberry Pancakes, 3.49 -- Pancakes made with fresh blueberries
+// Waffles, 3.59 -- Waffles, with your choice of blueberries or strawberries
+
+// LUNCH
+// Vegetarian BLT, 2.99 --  (Fakin’)Bacon with lettuce & tomato on whole wheat
+// BLT, 2.99 -- Bacon with lettuce & tomato on whole wheat
+// Soup of the day, 3.29 -- Soup of the day, with a side of potato salad
+// Hotdog, 3.05 -- A hot dog, with saurkraut, relish, onions, topped with cheese
+// Steamed Veggies and Brown Rice, 3.99 -- Steamed vegetables over brown rice
+// Pasta, 3.89 -- Spaghetti with Marinara Sauce, and a slice of sourdough bread
+```
+
+其实 Java util 包下有自己的 Iterator 实现，集合类是这个设计模式的重度使用者，下面我们用官方实现替换我们自己的实现。
+
+代码会更简单，除了在各 class 文件中引入引用外，PancakeHouseMenuIterator 可以删除， 在 PancakeHouseMenu 的 createIterator() 直接返回 List.iterator() 即可。
+
+为了让实现更精简，我们还可以抽象出一个 Menu 类作为基类
+
+```java
+public interface Menu {
+    Iterator<MenuItem> createIterator();
+}
+```
+
+然后两个 Menu 实体类实现这个接口
+
+```java
+public class DinerMenu implements Menu {
+    //...
+}
+public class PancakeHouseMenu implements Menu{
+    //...
+}
+```
+
+客户端中通过 Menu 基类访问
+
+```java
+public class IteratorClient {
+    public static void main(String[] args) {
+        Menu menu1 = new PancakeHouseMenu();
+        Menu menu2 = new DinerMenu();
+
+        System.out.println("MENU\n----\nBREAKFAST");
+        printMenu(menu1);
+
+        System.out.println("\nLUNCH");
+        printMenu(menu2);
+    }
+
+    private static void printMenu(Menu menu) {
+        Iterator<MenuItem> it = menu.createIterator();
+        while (it.hasNext()) {
+            System.out.println(it.next());
+        }
+    }
+}
+```
+
+这样最大的好处是，客户端只和接口做交互，不需要关心具体实现，这就是传说中的 面向接口编程
+
+## UML
+
+图示说明：
+
+* interface 到实例之间是 虚线空心三角，表示接口实现
+* ConcreateAggregate 到 ConcreateIterator 是实线普通三角，表示拥有，回想一下 DinerHouse 是需要返回 DinerHouseMenuIterator 来做遍历的
+* Client 对两个 interface 也是 实线普通三角，也是表示拥有
+
+```txt
++------------------+                              +--------------------+                                                                             
+|  <<interface>>   |         +-----------+        |   <<interface>>    |                                                                             
+|    Aggregate     |<--------|  Client   |------> |      Iterator      |                                                                             
+|------------------|         |           |        |--------------------|                                                                             
+| createIterator() |         +-----------+        | hasNext()          |                                                                             
+|                  |                              | next()             |                                                                             
++------------------+                              | remove()           |                                                                             
+        ^                                         +--------------------+                                                                             
+        |                                                     ^                                                                                      
+        |                                                     |                                                                                      
+        |                                                     |                                                                                      
+        |                                                     |                                                                                      
++--------------------+                            +--------------------+                                                                             
+| ConcreateAggregate |--------------------------->| ConcreateIterator  |                                                                             
+|--------------------|                            |--------------------|                                                                             
+| createIterator()   |                            | hasNext()          |                                                                             
+|                    |                            | next()             |                                                                             
++--------------------+                            | remove()           |                                                                             
+                                                  +--------------------+                                                                             
+```
