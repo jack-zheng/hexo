@@ -60,7 +60,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://jack-zheng.github.io/hexo/2021/04/08/GA-c4-quicksort/c4_01.png">
 <meta property="article:published_time" content="2021-04-08T04:45:01.000Z">
-<meta property="article:modified_time" content="2021-04-16T12:21:12.601Z">
+<meta property="article:modified_time" content="2021-04-19T12:47:33.853Z">
 <meta property="article:author" content="Jack Zheng">
 <meta property="article:tag" content="快速排序">
 <meta property="article:tag" content="quick sort">
@@ -243,7 +243,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-16 20:21:12" itemprop="dateModified" datetime="2021-04-16T20:21:12+08:00">2021-04-16</time>
+                <time title="修改时间：2021-04-19 20:47:33" itemprop="dateModified" datetime="2021-04-19T20:47:33+08:00">2021-04-19</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -270,14 +270,14 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>1.1k</span>
+              <span>2.1k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
+              <span>2 分钟</span>
             </span>
 
         </div>
@@ -310,7 +310,14 @@
 <p><img src="c4_01.png" alt="常见大O运行时间"></p>
 <h3 id="4-3-2-平均情况和最糟情况"><a href="#4-3-2-平均情况和最糟情况" class="headerlink" title="4.3.2  平均情况和最糟情况"></a>4.3.2  平均情况和最糟情况</h3><p>当最糟情况时，n 个元素的数组，每层分析 n 次，栈深为 n, O(n) x O(n) = O(n<sup>2</sup>)</p>
 <p>平均情况时，n 个元素的数组，每层分析 n 次，栈深为 log<sup>n</sup>, 时间复杂度为 O(n) x O(log<sup>n</sup>) = O(nlog<sup>n</sup>)</p>
+<h2 id="Java-中的快排实现"><a href="#Java-中的快排实现" class="headerlink" title="Java 中的快排实现"></a>Java 中的快排实现</h2><p>Java 中快排的实现思路和 Python 中的是一样的，但是可能由于语法支持上的不同，感觉上，Java 的实现要比 Python 的实现复杂了很多</p>
+<p>示例说明：</p>
+<p>以第一个元素为基准，先遍历一遍数组将数组分为 [小于等于 pivot] + [pivot] + [大于 pivot] 三部分, 然后再对大于和小于的两部分做同样的算法</p>
+<p>参考 <a target="_blank" rel="noopener" href="https://blog.csdn.net/Holmofy/article/details/71168530">CSDN</a> 讲解的很详细，难点集中在分组的算法上，这里使用的是 挖坑法。</p>
+<p>先把第一个元素拿出来当 pivot，然后从数组两端开始扫描。先从右向左找 小于 pivot 的值和 i 位置上的元素交换。再从左向右扫描找大于 pivot 的元素和 j 位置交换，直到 i&gt;=j 停止，完成 partition 的操作。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">QsortInJava</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] sample = <span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">10</span>];</span><br><span class="line">        Random random = <span class="keyword">new</span> Random();</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; i++) &#123;</span><br><span class="line">            sample[i] = random.nextInt(<span class="number">100</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        qsort(sample, <span class="number">0</span>, sample.length - <span class="number">1</span>);</span><br><span class="line">        System.out.println(Arrays.toString(sample));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">qsort</span><span class="params">(<span class="keyword">int</span>[] arr, <span class="keyword">int</span> start, <span class="keyword">int</span> end)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (start &gt;= end)</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// partition part</span></span><br><span class="line">        <span class="keyword">int</span> pivot = arr[start];</span><br><span class="line">        <span class="keyword">int</span> i = start, j = end;</span><br><span class="line">        <span class="keyword">while</span> (i &lt; j) &#123;</span><br><span class="line">            <span class="keyword">while</span> (arr[j] &gt; pivot &amp;&amp; i &lt; j) &#123;</span><br><span class="line">                j--;</span><br><span class="line">            &#125;</span><br><span class="line">            arr[i] = arr[j];</span><br><span class="line">            <span class="keyword">while</span> (arr[i] &lt;= pivot &amp;&amp; i &lt; j) &#123;</span><br><span class="line">                i++;</span><br><span class="line">            &#125;</span><br><span class="line">            arr[j] = arr[i];</span><br><span class="line">        &#125;</span><br><span class="line">        arr[i] = pivot;</span><br><span class="line"></span><br><span class="line">        qsort(arr, start, i);</span><br><span class="line">        qsort(arr, i + <span class="number">1</span>, end);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// [13, 40, 60, 68, 78, 82, 91, 92, 96, 99]</span></span><br></pre></td></tr></table></figure>
 
+<h2 id="Arrays-sort-实现"><a href="#Arrays-sort-实现" class="headerlink" title="Arrays.sort 实现"></a>Arrays.sort 实现</h2>
     </div>
 
     
@@ -395,7 +402,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-%E5%88%86%E8%80%8C%E6%B2%BB%E4%B9%8B"><span class="nav-number">1.</span> <span class="nav-text">4.1 分而治之</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BF%AB%E9%80%9F%E6%8E%92%E5%BA%8F"><span class="nav-number">2.</span> <span class="nav-text">快速排序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-3-%E5%86%8D%E8%B0%88%E5%A4%A7O%E8%A1%A8%E7%A4%BA%E6%B3%95"><span class="nav-number">3.</span> <span class="nav-text">4.3 再谈大O表示法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-2-%E5%B9%B3%E5%9D%87%E6%83%85%E5%86%B5%E5%92%8C%E6%9C%80%E7%B3%9F%E6%83%85%E5%86%B5"><span class="nav-number">3.1.</span> <span class="nav-text">4.3.2  平均情况和最糟情况</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-%E5%88%86%E8%80%8C%E6%B2%BB%E4%B9%8B"><span class="nav-number">1.</span> <span class="nav-text">4.1 分而治之</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BF%AB%E9%80%9F%E6%8E%92%E5%BA%8F"><span class="nav-number">2.</span> <span class="nav-text">快速排序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-3-%E5%86%8D%E8%B0%88%E5%A4%A7O%E8%A1%A8%E7%A4%BA%E6%B3%95"><span class="nav-number">3.</span> <span class="nav-text">4.3 再谈大O表示法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-2-%E5%B9%B3%E5%9D%87%E6%83%85%E5%86%B5%E5%92%8C%E6%9C%80%E7%B3%9F%E6%83%85%E5%86%B5"><span class="nav-number">3.1.</span> <span class="nav-text">4.3.2  平均情况和最糟情况</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Java-%E4%B8%AD%E7%9A%84%E5%BF%AB%E6%8E%92%E5%AE%9E%E7%8E%B0"><span class="nav-number">4.</span> <span class="nav-text">Java 中的快排实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Arrays-sort-%E5%AE%9E%E7%8E%B0"><span class="nav-number">5.</span> <span class="nav-text">Arrays.sort 实现</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -411,7 +418,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">121</span>
+          <span class="site-state-item-count">122</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -458,12 +465,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">469k</span>
+    <span title="站点总字数">494k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">7:06</span>
+    <span title="站点阅读时长">7:29</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>

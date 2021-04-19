@@ -53,21 +53,19 @@
 
   <meta name="description" content="The Iterator Pattern provides a way to access the elements of an aggregate object sequentially without exposing its underlying representation.迭代器模式可以让我们在不需要知道一个集合的具体实现的情况下，依次访问集合中的各个元素  it also place">
 <meta property="og:type" content="article">
-<meta property="og:title" content="HFDP c9 iterator and composite pattern">
-<meta property="og:url" content="https://jack-zheng.github.io/hexo/2021/04/16/HFDP-c9-iterator-and-composite-pattern/index.html">
+<meta property="og:title" content="迭代器模式">
+<meta property="og:url" content="https://jack-zheng.github.io/hexo/2021/04/16/HFDP-c9-iterator-pattern/index.html">
 <meta property="og:site_name" content="Jackpot">
 <meta property="og:description" content="The Iterator Pattern provides a way to access the elements of an aggregate object sequentially without exposing its underlying representation.迭代器模式可以让我们在不需要知道一个集合的具体实现的情况下，依次访问集合中的各个元素  it also place">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-04-16T09:39:36.000Z">
-<meta property="article:modified_time" content="2021-04-16T12:21:12.605Z">
+<meta property="article:modified_time" content="2021-04-19T12:47:33.853Z">
 <meta property="article:author" content="Jack Zheng">
 <meta property="article:tag" content="iterator pattern">
-<meta property="article:tag" content="composite pattern">
 <meta property="article:tag" content="迭代器模式">
-<meta property="article:tag" content="组合模式">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="https://jack-zheng.github.io/hexo/2021/04/16/HFDP-c9-iterator-and-composite-pattern/">
+<link rel="canonical" href="https://jack-zheng.github.io/hexo/2021/04/16/HFDP-c9-iterator-pattern/">
 
 
 <script id="page-configurations">
@@ -81,7 +79,7 @@
   };
 </script>
 
-  <title>HFDP c9 iterator and composite pattern | Jackpot</title>
+  <title>迭代器模式 | Jackpot</title>
   
 
 
@@ -212,7 +210,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/04/16/HFDP-c9-iterator-and-composite-pattern/">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/04/16/HFDP-c9-iterator-pattern/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/hexo/images/jack.jpg">
@@ -225,7 +223,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          HFDP c9 iterator and composite pattern
+          迭代器模式
         </h1>
 
         <div class="post-meta">
@@ -234,10 +232,16 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2021-04-16 17:39:36 / 修改时间：20:21:12" itemprop="dateCreated datePublished" datetime="2021-04-16T17:39:36+08:00">2021-04-16</time>
+              <time title="创建时间：2021-04-16 17:39:36" itemprop="dateCreated datePublished" datetime="2021-04-16T17:39:36+08:00">2021-04-16</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-19 20:47:33" itemprop="dateModified" datetime="2021-04-19T20:47:33+08:00">2021-04-19</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
@@ -263,14 +267,14 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>7.4k</span>
+              <span>10k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>7 分钟</span>
+              <span>9 分钟</span>
             </span>
 
         </div>
@@ -322,6 +326,16 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">IteratorClient</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Menu menu1 = <span class="keyword">new</span> PancakeHouseMenu();</span><br><span class="line">        Menu menu2 = <span class="keyword">new</span> DinerMenu();</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;MENU\n----\nBREAKFAST&quot;</span>);</span><br><span class="line">        printMenu(menu1);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;\nLUNCH&quot;</span>);</span><br><span class="line">        printMenu(menu2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">printMenu</span><span class="params">(Menu menu)</span> </span>&#123;</span><br><span class="line">        Iterator&lt;MenuItem&gt; it = menu.createIterator();</span><br><span class="line">        <span class="keyword">while</span> (it.hasNext()) &#123;</span><br><span class="line">            System.out.println(it.next());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>这样最大的好处是，客户端只和接口做交互，不需要关心具体实现，这就是传说中的 面向接口编程</p>
+<p>时隔半个月，你又收购了一家咖啡店，是时候测试一下你的策略是否好使了。咖啡店菜单如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CafeMenu</span> </span>&#123;</span><br><span class="line">    Hashtable menuItems = <span class="keyword">new</span> Hashtable();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">CafeMenu</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        addItem(<span class="string">&quot;Veggie Burger and Air Fries&quot;</span>, <span class="string">&quot;Veggie burger on a whole wheat bun, lettuce, tomato, and fries&quot;</span>, <span class="keyword">true</span>, <span class="number">3.99</span>);</span><br><span class="line">        addItem(<span class="string">&quot;Soup of the day&quot;</span>, <span class="string">&quot;A cup of the soup of the day, with a side salad&quot;</span>, <span class="keyword">false</span>, <span class="number">3.69</span>);</span><br><span class="line">        addItem(<span class="string">&quot;Burrito&quot;</span>, <span class="string">&quot;A large burrito, with whole pinto beans, salsa, guacamole&quot;</span>, <span class="keyword">true</span>, <span class="number">4.29</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addItem</span><span class="params">(String name, String description, <span class="keyword">boolean</span> vegetarian, <span class="keyword">double</span> price)</span> </span>&#123;</span><br><span class="line">        MenuItem menuItem = <span class="keyword">new</span> MenuItem(name, description, vegetarian, price);</span><br><span class="line">        menuItems.put(menuItem.getName(), menuItem);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Hashtable <span class="title">getItems</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> menuItems;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们按照之前的重构方案，让他实现 Menu 接口并提对应的方法实现</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CafeMenu</span> <span class="keyword">implements</span> <span class="title">Menu</span></span>&#123;</span><br><span class="line">    Hashtable&lt;String, MenuItem&gt; menuItems = <span class="keyword">new</span> Hashtable&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">CafeMenu</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        addItem(<span class="string">&quot;Veggie Burger and Air Fries&quot;</span>, <span class="string">&quot;Veggie burger on a whole wheat bun, lettuce, tomato, and fries&quot;</span>, <span class="keyword">true</span>, <span class="number">3.99</span>);</span><br><span class="line">        addItem(<span class="string">&quot;Soup of the day&quot;</span>, <span class="string">&quot;A cup of the soup of the day, with a side salad&quot;</span>, <span class="keyword">false</span>, <span class="number">3.69</span>);</span><br><span class="line">        addItem(<span class="string">&quot;Burrito&quot;</span>, <span class="string">&quot;A large burrito, with whole pinto beans, salsa, guacamole&quot;</span>, <span class="keyword">true</span>, <span class="number">4.29</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addItem</span><span class="params">(String name, String description, <span class="keyword">boolean</span> vegetarian, <span class="keyword">double</span> price)</span> </span>&#123;</span><br><span class="line">        MenuItem menuItem = <span class="keyword">new</span> MenuItem(name, description, vegetarian, price);</span><br><span class="line">        menuItems.put(menuItem.getName(), menuItem);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Hashtable&lt;String, MenuItem&gt; <span class="title">getItems</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> menuItems;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Iterator&lt;MenuItem&gt; <span class="title">createIterator</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> menuItems.values().iterator();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后在 IteratorClient 中添加对应的调用</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">IteratorClient</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Menu menu1 = <span class="keyword">new</span> PancakeHouseMenu();</span><br><span class="line">        Menu menu2 = <span class="keyword">new</span> DinerMenu();</span><br><span class="line">        Menu menu3 = <span class="keyword">new</span> CafeMenu();</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;MENU\n----\nBREAKFAST&quot;</span>);</span><br><span class="line">        printMenu(menu1);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;\nLUNCH&quot;</span>);</span><br><span class="line">        printMenu(menu2);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;\n DRINK&quot;</span>);</span><br><span class="line">        printMenu(menu3);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">printMenu</span><span class="params">(Menu menu)</span> </span>&#123;</span><br><span class="line">        Iterator&lt;MenuItem&gt; it = menu.createIterator();</span><br><span class="line">        <span class="keyword">while</span> (it.hasNext()) &#123;</span><br><span class="line">            System.out.println(it.next());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// MENU</span></span><br><span class="line"><span class="comment">// ----</span></span><br><span class="line"><span class="comment">// BREAKFAST</span></span><br><span class="line"><span class="comment">// K &amp; B’s Pancake Breakfast, 2.99 -- Pancakes with scrambled eggs, and toast</span></span><br><span class="line"><span class="comment">// Regular Pancake Breakfast, 2.99 -- Pancakes with fried eggs, sausage</span></span><br><span class="line"><span class="comment">// Blueberry Pancakes, 3.49 -- Pancakes made with fresh blueberries</span></span><br><span class="line"><span class="comment">// Waffles, 3.59 -- Waffles, with your choice of blueberries or strawberries</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// LUNCH</span></span><br><span class="line"><span class="comment">// Vegetarian BLT, 2.99 --  (Fakin’)Bacon with lettuce &amp; tomato on whole wheat</span></span><br><span class="line"><span class="comment">// BLT, 2.99 -- Bacon with lettuce &amp; tomato on whole wheat</span></span><br><span class="line"><span class="comment">// Soup of the day, 3.29 -- Soup of the day, with a side of potato salad</span></span><br><span class="line"><span class="comment">// Hotdog, 3.05 -- A hot dog, with saurkraut, relish, onions, topped with cheese</span></span><br><span class="line"><span class="comment">// Steamed Veggies and Brown Rice, 3.99 -- Steamed vegetables over brown rice</span></span><br><span class="line"><span class="comment">// Pasta, 3.89 -- Spaghetti with Marinara Sauce, and a slice of sourdough bread</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//  DRINK</span></span><br><span class="line"><span class="comment">// Soup of the day, 3.69 -- A cup of the soup of the day, with a side salad</span></span><br><span class="line"><span class="comment">// Burrito, 4.29 -- A large burrito, with whole pinto beans, salsa, guacamole</span></span><br></pre></td></tr></table></figure>
+
+<p>一切和预期的一样 ╮(￣▽￣””)╭</p>
 <h2 id="UML"><a href="#UML" class="headerlink" title="UML"></a>UML</h2><p>图示说明：</p>
 <ul>
 <li>interface 到实例之间是 虚线空心三角，表示接口实现</li>
@@ -329,6 +343,7 @@
 <li>Client 对两个 interface 也是 实线普通三角，也是表示拥有</li>
 </ul>
 <figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">+------------------+                              +--------------------+                                                                             </span><br><span class="line">|  &lt;&lt;interface&gt;&gt;   |         +-----------+        |   &lt;&lt;interface&gt;&gt;    |                                                                             </span><br><span class="line">|    Aggregate     |&lt;--------|  Client   |------&gt; |      Iterator      |                                                                             </span><br><span class="line">|------------------|         |           |        |--------------------|                                                                             </span><br><span class="line">| createIterator() |         +-----------+        | hasNext()          |                                                                             </span><br><span class="line">|                  |                              | next()             |                                                                             </span><br><span class="line">+------------------+                              | remove()           |                                                                             </span><br><span class="line">        ^                                         +--------------------+                                                                             </span><br><span class="line">        |                                                     ^                                                                                      </span><br><span class="line">        |                                                     |                                                                                      </span><br><span class="line">        |                                                     |                                                                                      </span><br><span class="line">        |                                                     |                                                                                      </span><br><span class="line">+--------------------+                            +--------------------+                                                                             </span><br><span class="line">| ConcreateAggregate |---------------------------&gt;| ConcreateIterator  |                                                                             </span><br><span class="line">|--------------------|                            |--------------------|                                                                             </span><br><span class="line">| createIterator()   |                            | hasNext()          |                                                                             </span><br><span class="line">|                    |                            | next()             |                                                                             </span><br><span class="line">+--------------------+                            | remove()           |                                                                             </span><br><span class="line">                                                  +--------------------+                                                                             </span><br></pre></td></tr></table></figure>
+
     </div>
 
     
@@ -343,7 +358,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="https://jack-zheng.github.io/hexo/2021/04/16/HFDP-c9-iterator-and-composite-pattern/" title="HFDP c9 iterator and composite pattern">https://jack-zheng.github.io/hexo/2021/04/16/HFDP-c9-iterator-and-composite-pattern/</a>
+    <a href="https://jack-zheng.github.io/hexo/2021/04/16/HFDP-c9-iterator-pattern/" title="迭代器模式">https://jack-zheng.github.io/hexo/2021/04/16/HFDP-c9-iterator-pattern/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/null" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -355,9 +370,7 @@
       <footer class="post-footer">
           <div class="post-tags">
               <a href="/hexo/tags/iterator-pattern/" rel="tag"># iterator pattern</a>
-              <a href="/hexo/tags/composite-pattern/" rel="tag"># composite pattern</a>
               <a href="/hexo/tags/%E8%BF%AD%E4%BB%A3%E5%99%A8%E6%A8%A1%E5%BC%8F/" rel="tag"># 迭代器模式</a>
-              <a href="/hexo/tags/%E7%BB%84%E5%90%88%E6%A8%A1%E5%BC%8F/" rel="tag"># 组合模式</a>
           </div>
 
         
@@ -372,6 +385,9 @@
             <span class="post-nav-divider"></span>
 
             <div class="post-nav-prev post-nav-item">
+                <a href="/hexo/2021/04/19/HFDP-c9-composite-pattern/" rel="prev" title="组合模式">
+                  组合模式 <i class="fa fa-chevron-right"></i>
+                </a>
             </div>
           </div>
       </footer>
@@ -427,7 +443,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">121</span>
+          <span class="site-state-item-count">122</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -474,12 +490,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">469k</span>
+    <span title="站点总字数">494k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">7:06</span>
+    <span title="站点阅读时长">7:29</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
@@ -578,7 +594,7 @@
       repo: 'hexo-comments',
       owner: 'jack-zheng',
       admin: ['jack-zheng'],
-      id: '4fe96cab7f43df792a74f5e7de5cbf53',
+      id: '2d791524d08a59488ea041d78c204442',
         language: '',
       distractionFreeMode: 'true'
     });
