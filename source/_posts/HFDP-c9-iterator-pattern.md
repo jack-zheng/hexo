@@ -1,13 +1,11 @@
 ---
-title: HFDP c9 iterator and composite pattern
+title: 迭代器模式
 date: 2021-04-16 17:39:36
 categories:
 - HFDP
 tags:
 - iterator pattern
-- composite pattern
 - 迭代器模式
-- 组合模式
 ---
 
 > **The Iterator Pattern** provides a way to access the elements of an aggregate object sequentially without exposing its underlying representation.
@@ -276,6 +274,107 @@ public class IteratorClient {
 ```
 
 这样最大的好处是，客户端只和接口做交互，不需要关心具体实现，这就是传说中的 面向接口编程
+
+时隔半个月，你又收购了一家咖啡店，是时候测试一下你的策略是否好使了。咖啡店菜单如下
+
+```java
+public class CafeMenu {
+    Hashtable menuItems = new Hashtable();
+
+    public CafeMenu() {
+        addItem("Veggie Burger and Air Fries", "Veggie burger on a whole wheat bun, lettuce, tomato, and fries", true, 3.99);
+        addItem("Soup of the day", "A cup of the soup of the day, with a side salad", false, 3.69);
+        addItem("Burrito", "A large burrito, with whole pinto beans, salsa, guacamole", true, 4.29);
+    }
+
+    public void addItem(String name, String description, boolean vegetarian, double price) {
+        MenuItem menuItem = new MenuItem(name, description, vegetarian, price);
+        menuItems.put(menuItem.getName(), menuItem);
+    }
+
+    public Hashtable getItems() {
+        return menuItems;
+    }
+}
+```
+
+我们按照之前的重构方案，让他实现 Menu 接口并提对应的方法实现
+
+```java
+public class CafeMenu implements Menu{
+    Hashtable<String, MenuItem> menuItems = new Hashtable<>();
+
+    public CafeMenu() {
+        addItem("Veggie Burger and Air Fries", "Veggie burger on a whole wheat bun, lettuce, tomato, and fries", true, 3.99);
+        addItem("Soup of the day", "A cup of the soup of the day, with a side salad", false, 3.69);
+        addItem("Burrito", "A large burrito, with whole pinto beans, salsa, guacamole", true, 4.29);
+    }
+
+    public void addItem(String name, String description, boolean vegetarian, double price) {
+        MenuItem menuItem = new MenuItem(name, description, vegetarian, price);
+        menuItems.put(menuItem.getName(), menuItem);
+    }
+
+    public Hashtable<String, MenuItem> getItems() {
+        return menuItems;
+    }
+
+    @Override
+    public Iterator<MenuItem> createIterator() {
+        return menuItems.values().iterator();
+    }
+}
+```
+
+然后在 IteratorClient 中添加对应的调用
+
+```java
+public class IteratorClient {
+    public static void main(String[] args) {
+        Menu menu1 = new PancakeHouseMenu();
+        Menu menu2 = new DinerMenu();
+        Menu menu3 = new CafeMenu();
+
+        System.out.println("MENU\n----\nBREAKFAST");
+        printMenu(menu1);
+
+        System.out.println("\nLUNCH");
+        printMenu(menu2);
+
+        System.out.println("\n DRINK");
+        printMenu(menu3);
+    }
+
+    private static void printMenu(Menu menu) {
+        Iterator<MenuItem> it = menu.createIterator();
+        while (it.hasNext()) {
+            System.out.println(it.next());
+        }
+    }
+}
+
+// MENU
+// ----
+// BREAKFAST
+// K & B’s Pancake Breakfast, 2.99 -- Pancakes with scrambled eggs, and toast
+// Regular Pancake Breakfast, 2.99 -- Pancakes with fried eggs, sausage
+// Blueberry Pancakes, 3.49 -- Pancakes made with fresh blueberries
+// Waffles, 3.59 -- Waffles, with your choice of blueberries or strawberries
+
+// LUNCH
+// Vegetarian BLT, 2.99 --  (Fakin’)Bacon with lettuce & tomato on whole wheat
+// BLT, 2.99 -- Bacon with lettuce & tomato on whole wheat
+// Soup of the day, 3.29 -- Soup of the day, with a side of potato salad
+// Hotdog, 3.05 -- A hot dog, with saurkraut, relish, onions, topped with cheese
+// Steamed Veggies and Brown Rice, 3.99 -- Steamed vegetables over brown rice
+// Pasta, 3.89 -- Spaghetti with Marinara Sauce, and a slice of sourdough bread
+
+//  DRINK
+// Soup of the day, 3.69 -- A cup of the soup of the day, with a side salad
+// Burrito, 4.29 -- A large burrito, with whole pinto beans, salsa, guacamole
+```
+
+一切和预期的一样 ╮(￣▽￣"")╭
 
 ## UML
 

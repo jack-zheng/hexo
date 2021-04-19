@@ -79,3 +79,57 @@ def qsort(list):
 当最糟情况时，n 个元素的数组，每层分析 n 次，栈深为 n, O(n) x O(n) = O(n<sup>2</sup>)
 
 平均情况时，n 个元素的数组，每层分析 n 次，栈深为 log<sup>n</sup>, 时间复杂度为 O(n) x O(log<sup>n</sup>) = O(nlog<sup>n</sup>)
+
+## Java 中的快排实现
+
+Java 中快排的实现思路和 Python 中的是一样的，但是可能由于语法支持上的不同，感觉上，Java 的实现要比 Python 的实现复杂了很多
+
+示例说明：
+
+以第一个元素为基准，先遍历一遍数组将数组分为 [小于等于 pivot] + [pivot] + [大于 pivot] 三部分, 然后再对大于和小于的两部分做同样的算法
+
+参考 [CSDN](https://blog.csdn.net/Holmofy/article/details/71168530) 讲解的很详细，难点集中在分组的算法上，这里使用的是 挖坑法。
+
+先把第一个元素拿出来当 pivot，然后从数组两端开始扫描。先从右向左找 小于 pivot 的值和 i 位置上的元素交换。再从左向右扫描找大于 pivot 的元素和 j 位置交换，直到 i>=j 停止，完成 partition 的操作。
+
+```java
+public class QsortInJava {
+    public static void main(String[] args) {
+        int[] sample = new int[10];
+        Random random = new Random();
+        for (int i = 0; i < 10; i++) {
+            sample[i] = random.nextInt(100);
+        }
+
+        qsort(sample, 0, sample.length - 1);
+        System.out.println(Arrays.toString(sample));
+    }
+
+    private static void qsort(int[] arr, int start, int end) {
+        if (start >= end)
+            return;
+
+        // partition part
+        int pivot = arr[start];
+        int i = start, j = end;
+        while (i < j) {
+            while (arr[j] > pivot && i < j) {
+                j--;
+            }
+            arr[i] = arr[j];
+            while (arr[i] <= pivot && i < j) {
+                i++;
+            }
+            arr[j] = arr[i];
+        }
+        arr[i] = pivot;
+
+        qsort(arr, start, i);
+        qsort(arr, i + 1, end);
+    }
+}
+
+// [13, 40, 60, 68, 78, 82, 91, 92, 96, 99]
+```
+
+## Arrays.sort 实现
