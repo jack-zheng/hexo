@@ -2,9 +2,9 @@
 title: Java 中 C 语言风格的参数声明
 date: 2020-08-13 14:21:39
 categories:
-- 编程
-tags:
 - java
+tags:
+- 语法
 ---
 
 最近在调查一个 build issue 的时候发现有一段函数声明大致如下

@@ -2,7 +2,8 @@
 title: 策略模式
 date: 2021-04-09 12:39:57
 categories:
-- HFDP 
+- 设计模式
+- HFDP
 tags:
 - strategy pattern
 - 策略模式

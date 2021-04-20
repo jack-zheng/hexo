@@ -2,9 +2,10 @@
 title: 生成器/建造者模式
 date: 2020-10-13 10:05:37
 categories:
-- design pattern
+- 设计模式
 tags:
 - builder pattern
+- 构造器模式
 ---
 
 在看 mybatis 源码的 xml 解析部分的时候，发现里面重度使用了生成器模式，特此整理一下。

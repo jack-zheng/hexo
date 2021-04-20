@@ -2,6 +2,7 @@
 title: 装饰器模式
 date: 2021-04-13 19:58:44
 categories:
+- 设计模式
 - HFDP 
 tags:
 - decorator pattern

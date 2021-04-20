@@ -3,6 +3,7 @@ title: 组合模式
 date: 2021-04-19 19:00:00
 categories:
 - HFDP
+- 设计模式
 tags:
 - composite pattern
 - 组合模式
@@ -685,7 +686,29 @@ public class CompositeClient {
 
 图示说明：
 
+* client 到 Component 为 实线 + 普通箭头，表示含有
+* leaf, composite 到 Component 为 实线 + 空心箭头，表示实现接口
+* Composite 到 Component 为 实线 + 普通箭头，表示 1 对 n 的对应关系
 
-```txt
-                                                                    
+```txt                                                                                                                                         
+                           +----------------+                                                                                                       
++---------+                |   Component    | 1..n                                                                                                  
+| Client  |--------------> |----------------|<--------                                                                                              
++---------+                | + operation()  |        |                                                                                              
+                           | + add(child)   |        |                                                                                              
+                           | + remve(child) |        |                                                                                              
+                           | + getChild()   |        |                                                                                              
+                           +----------------+        |                                                                                              
+                                    ^                |                                                                                              
+             ---------------------- |                |                                                                                              
+            |                       |                |                                                                                              
+            |                       |                |                                                                                              
+    +---------------+       +----------------+       |                                                                                              
+    |   Leaf        |       |   Composite    |       |                                                                                              
+    |---------------|       |----------------|<>-----|                                                                                              
+    | +operation()  |       | + operation()  |                                                                                                      
+    +---------------+       | + add(child)   |                                                                                                      
+                            | + remve(child) |                                                                                                      
+                            | + getChild()   |                                                                                                      
+                            +----------------+                                                                                                                                                               
 ```
