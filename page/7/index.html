@@ -206,6 +206,445 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/09/08/Spring5-note/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2020/09/08/Spring5-note/" class="post-title-link" itemprop="url">Spring5 视频笔记</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-09-08 21:28:47" itemprop="dateCreated datePublished" datetime="2020-09-08T21:28:47+08:00">2020-09-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-20 14:13:56" itemprop="dateModified" datetime="2021-04-20T14:13:56+08:00">2021-04-20</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/spring/" itemprop="url" rel="index">
+                    <span itemprop="name">spring</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>6.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>6 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1WE411d7Dv">B 站狂神 Spring5 教程笔记</a></p>
+<h2 id="Spring-基本概念"><a href="#Spring-基本概念" class="headerlink" title="Spring 基本概念"></a>Spring 基本概念</h2><p>七大组成</p>
+<ol>
+<li>AOP</li>
+<li>ORM</li>
+<li>Web</li>
+<li>DAO</li>
+<li>Context</li>
+<li>Web MVC</li>
+<li>Core</li>
+</ol>
+<ul>
+<li>Spring Boot<ul>
+<li>快速开发脚手架</li>
+<li>快速开发单个微服务</li>
+<li>约定大于配置</li>
+</ul>
+</li>
+<li>Spring Cloud<ul>
+<li>基于 SpringBoot 实现的</li>
+</ul>
+</li>
+</ul>
+<p>弊端：发展太久，违背原来的理念。配置繁琐，人称 ‘配置地狱’</p>
+<p>Spring 和 SpringMVC 的区别：都是容器，spring 用来管理 dao 和 service，springmvc 用来管理 controller</p>
+<h2 id="IoC-理论推导-（Inversion-of-Control）"><a href="#IoC-理论推导-（Inversion-of-Control）" class="headerlink" title="IoC 理论推导 （Inversion of Control）"></a>IoC 理论推导 （Inversion of Control）</h2><p>原来的实现</p>
+<ol>
+<li>UserDao 接口</li>
+<li>UserDaoImpl 实现类</li>
+<li>UserService 业务接口</li>
+<li>UserServiceImpl 业务实现类</li>
+</ol>
+<p>用户的需求可能影响到原来的代码，我们需要根据用户需求修改源代码（修改 UserDaoImpl 中的 Dao 生成）</p>
+<p>通过 set 方法注入后，实现被动接受对象，需求由外部决定。不在管理对象创建，专注于扩展业务。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// UserServiceImpl 中对 UserDao 的引用</span></span><br><span class="line"><span class="keyword">private</span> UserDao userDao;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 利用 set 动态注入实现</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setUserDao</span><span class="params">(UserDao userDao)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.userDao = userDao;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="IoC-的本质"><a href="#IoC-的本质" class="headerlink" title="IoC 的本质"></a>IoC 的本质</h2><p>控制反转是一种<strong>设计思想</strong>，DI（Dependency Injection） 是 IoC 的一种实现方式，将对象的创建交给第三方，获取对象的方式的反转。</p>
+<p>Spring 是一种实现控制反转的 IoC 容器，常见的有两种对象控制方式，XML 和 注解。XML 配置 Bean, 定义和实现是分离的。注解方式则把两者结合在了一起，从而达到零配置。</p>
+<p><a target="_blank" rel="noopener" href="https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#beans-factory-metadata">Spring Framework 官方文档</a></p>
+<h2 id="IoC创建对象的方式"><a href="#IoC创建对象的方式" class="headerlink" title="IoC创建对象的方式"></a>IoC创建对象的方式</h2><ol>
+<li>默认使用无参构造创建对象</li>
+<li>通过 constructor-arg 标签实现带参构造器功能</li>
+</ol>
+<p>在 xml 加载完后，配置的对象就已经被创建了</p>
+<h2 id="Spring-配置说明"><a href="#Spring-配置说明" class="headerlink" title="Spring 配置说明"></a>Spring 配置说明</h2><ol>
+<li>alias 别名，和 bean 的 name 属性重复，而且 name 更灵活</li>
+<li>bean 对象生成配置</li>
+<li>import 合并多个 xml 配置文件</li>
+</ol>
+<h2 id="DI-依赖注入"><a href="#DI-依赖注入" class="headerlink" title="DI - 依赖注入"></a>DI - 依赖注入</h2><ol>
+<li>构造器注入</li>
+<li>Set方式注入 - 即依赖注入</li>
+<li>其他注入</li>
+</ol>
+<p>依赖： bean 对象的创建依赖容器<br>注入： bean 对象的所有属性由容器来注入</p>
+<h2 id="P-C命名空间注入"><a href="#P-C命名空间注入" class="headerlink" title="P/C命名空间注入"></a>P/C命名空间注入</h2><p>在 xml 中导入约束即可使用</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">xmlns:p=&quot;http://www.springframework.org/schema/p&quot;</span><br><span class="line"> xmlns:c=&quot;http://www.springframework.org/schema/c&quot;</span><br></pre></td></tr></table></figure>
+
+<p>P 可以扩展属性注入，一个 tag 解决，不用嵌套xml了</p>
+<p>C 可以扩展构造器</p>
+<h2 id="Bean-的-作用域-scope"><a href="#Bean-的-作用域-scope" class="headerlink" title="Bean 的 作用域(scope)"></a>Bean 的 作用域(scope)</h2><ol>
+<li>singleton - 默认域</li>
+<li>prototype - 每次取 bean 都会产生新对象</li>
+</ol>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;accountService&quot;</span> <span class="attr">class</span>=<span class="string">&quot;com.something.DefaultAccountService&quot;</span> <span class="attr">scope</span>=<span class="string">&quot;singleton&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;accountService&quot;</span> <span class="attr">class</span>=<span class="string">&quot;com.something.DefaultAccountService&quot;</span> <span class="attr">scope</span>=<span class="string">&quot;prototype&quot;</span>/&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="Bean-的自动装配"><a href="#Bean-的自动装配" class="headerlink" title="Bean 的自动装配"></a>Bean 的自动装配</h2><ul>
+<li>自动装配是 Spring 满足 bean 依赖的一种方式</li>
+<li>Spring 在上下文中自动寻找，并自动给 bean 装配属性</li>
+</ul>
+<p>Spring 三种装配方式：</p>
+<ol>
+<li>xml</li>
+<li>注解</li>
+<li>隐式的自动装配 bean</li>
+</ol>
+<h2 id="使用注解开发"><a href="#使用注解开发" class="headerlink" title="使用注解开发"></a>使用注解开发</h2><p>Spring4 之后，要使用注解需要保证 AOP 包已经导入。XML 也需要添加特殊的约束 <code>&lt;context:annotation-config/&gt;</code></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">beans</span> <span class="attr">xmlns</span>=<span class="string">&quot;http://www.springframework.org/schema/beans&quot;</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:xsi</span>=<span class="string">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:context</span>=<span class="string">&quot;http://www.springframework.org/schema/context&quot;</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xsi:schemaLocation</span>=<span class="string">&quot;http://www.springframework.org/schema/beans</span></span></span><br><span class="line"><span class="tag"><span class="string">        https://www.springframework.org/schema/beans/spring-beans.xsd</span></span></span><br><span class="line"><span class="tag"><span class="string">        http://www.springframework.org/schema/context</span></span></span><br><span class="line"><span class="tag"><span class="string">        https://www.springframework.org/schema/context/spring-context.xsd&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- 设置扫描路径 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">context:component-scan</span> <span class="attr">base-package</span>=<span class="string">&quot;com.jzheng.pojo&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">context:annotation-config</span>/&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>bean - @Component</li>
+<li>属性 - @Value</li>
+<li>衍生的注解 - @Repository - for dao/@Service - for service/@Controller - for controller 作用都是将对象注入到容器</li>
+<li>自动装配<ol>
+<li>@Autowired 通过类型，名字装配。如果不能自动装配属性，可以通过 @Qualifier(value=”xxx)</li>
+<li>@Nullable，允许为空</li>
+<li>@Resource，通过名字，类型装配</li>
+</ol>
+</li>
+<li>作用域 - @Scope</li>
+<li>小结: XML 更加万能，使用任何场合；注解只能在自己的class 里使用。</li>
+</ol>
+<p>推荐做法：XML 用来管理 Bean，注解只用来注入属性</p>
+<h2 id="使用-Java-的方式配置-Spring"><a href="#使用-Java-的方式配置-Spring" class="headerlink" title="使用 Java 的方式配置 Spring"></a>使用 Java 的方式配置 Spring</h2><p>JavaConfig 是 Spring 一个子项目， Spring4 之后成为核心项目。通过 @Configuration 注解来实现，可以代替 xml。也有像 Import 这样的东西，可以包含其他配置类。</p>
+<h2 id="代理模式"><a href="#代理模式" class="headerlink" title="代理模式"></a>代理模式</h2><p>Spring 必问题 - SpringAOP 和 SpringMVC</p>
+<p>代理模式分类</p>
+<ul>
+<li>静态代理</li>
+<li>动态代理</li>
+</ul>
+<h3 id="静态代理"><a href="#静态代理" class="headerlink" title="静态代理"></a>静态代理</h3><p>角色分析</p>
+<ul>
+<li>抽象角色：一般是接口或抽象类</li>
+<li>真实角色：被代理的角色</li>
+<li>代理角色：代理真实角色，代理后做一些操作</li>
+<li>客户：访问代理对象的人</li>
+</ul>
+<p>优点：</p>
+<ul>
+<li>使真实对象操作更纯粹，不用去关注公共业务</li>
+<li>公共业务交给代理，业务分工</li>
+<li>公共业务扩展方便</li>
+</ul>
+<p>缺点： 一个真实角色产生一个代理角色，代码量翻倍</p>
+<h3 id="动态代理"><a href="#动态代理" class="headerlink" title="动态代理"></a>动态代理</h3><ul>
+<li>动态代理和静态代理角色一样</li>
+<li>动态代理的代理类使动态生成，不是直接写好的</li>
+<li>动态代理分两大类：基于接口的动态代理/基于类的动态代理<ul>
+<li>接口 - JDK动态代理</li>
+<li>类 - cglib</li>
+<li>java字节码 - javasist</li>
+</ul>
+</li>
+</ul>
+<p>两个类： Proxy / InvocationHandler</p>
+<p>Proxy: 在 handler 中被调用，产生代理的实例</p>
+<p>InvocationHandler: 自定义调用过程，返回执行结果</p>
+<p>优点：静态的有点 + 一个动态代理类代理的使一个接口，一般对应一类业务</p>
+<h2 id="AOP-横向扩展功能"><a href="#AOP-横向扩展功能" class="headerlink" title="AOP - 横向扩展功能"></a>AOP - 横向扩展功能</h2><h3 id="配置实现01"><a href="#配置实现01" class="headerlink" title="配置实现01"></a>配置实现01</h3><p>目标业务点：pointcut, 需要额外添加的附属动作：adviser(MethodBeforeAdvice/AfterReturningAdvice)</p>
+<p>然后添加配置文件</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;userService&quot;</span> <span class="attr">class</span>=<span class="string">&quot;com.jzheng.service.UserServiceImpl&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;log&quot;</span> <span class="attr">class</span>=<span class="string">&quot;com.jzheng.log.Log&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;afterLog&quot;</span> <span class="attr">class</span>=<span class="string">&quot;com.jzheng.log.AfterLog&quot;</span>/&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!--config AOP --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">aop:config</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- point cut --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">aop:pointcut</span> <span class="attr">id</span>=<span class="string">&quot;pointcut&quot;</span> <span class="attr">expression</span>=<span class="string">&quot;execution(* com.jzheng.service.UserServiceImpl.*(..))&quot;</span>/&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 执行环绕增强 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">aop:advisor</span> <span class="attr">advice-ref</span>=<span class="string">&quot;log&quot;</span> <span class="attr">pointcut-ref</span>=<span class="string">&quot;pointcut&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">aop:advisor</span> <span class="attr">advice-ref</span>=<span class="string">&quot;afterLog&quot;</span> <span class="attr">pointcut-ref</span>=<span class="string">&quot;pointcut&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">aop:config</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="配置实现02"><a href="#配置实现02" class="headerlink" title="配置实现02"></a>配置实现02</h3><p>也可以用自定义类，使用更简单，但是功能比之前的弱，不能操作 Method 之类的属性</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DiyPointCut</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">before</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;----------&gt; before method&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">after</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;-----------&gt; after method&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;diy&quot;</span> <span class="attr">class</span>=<span class="string">&quot;com.jzheng.diy.DiyPointCut&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">aop:config</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 自定义切面 ref 要引用的类--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">aop:aspect</span> <span class="attr">ref</span>=<span class="string">&quot;diy&quot;</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!-- 切入点 --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">aop:pointcut</span> <span class="attr">id</span>=<span class="string">&quot;point&quot;</span> <span class="attr">expression</span>=<span class="string">&quot;execution(* com.jzheng.service.UserServiceImpl.*(..))&quot;</span>/&gt;</span></span><br><span class="line">        <span class="comment">&lt;!-- 通知 --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">aop:before</span> <span class="attr">method</span>=<span class="string">&quot;before&quot;</span> <span class="attr">pointcut-ref</span>=<span class="string">&quot;point&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">aop:after</span> <span class="attr">method</span>=<span class="string">&quot;after&quot;</span> <span class="attr">pointcut-ref</span>=<span class="string">&quot;point&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">aop:aspect</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">aop:config</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="注解实现"><a href="#注解实现" class="headerlink" title="注解实现"></a>注解实现</h3><p>类添加 Aspect 注解， 在方法上添加注解， 方法注解中可以指定切点。执行顺序：环绕前 -&gt; 方法前 -&gt; 方法 -&gt; 环绕后 -&gt; 方法后</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Aspect</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AnnotationPointCut</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Before(&quot;execution(* com.jzheng.service.UserServiceImpl.*(..))&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">before</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;-------------&gt; before [Anno type]&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@After(&quot;execution(* com.jzheng.service.UserServiceImpl.*(..))&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">after</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;-------------&gt; after [Anno type]&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Around(&quot;execution(* com.jzheng.service.UserServiceImpl.*(..))&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">around</span><span class="params">(ProceedingJoinPoint proceedingJoinPoint)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;-------------&gt; around before [Anno type]&quot;</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;Signature: &quot;</span> + proceedingJoinPoint.getSignature());</span><br><span class="line">        Object proceed = proceedingJoinPoint.proceed();</span><br><span class="line">        System.out.println(<span class="string">&quot;-------------&gt; around after [Anno type]&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 方式3， 注解方式 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;annotationPointCut&quot;</span> <span class="attr">class</span>=<span class="string">&quot;com.jzheng.diy.AnnotationPointCut&quot;</span>/&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- 开启注解支持 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">aop:aspectj-autoproxy</span>/&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="整合-Mybatis"><a href="#整合-Mybatis" class="headerlink" title="整合 Mybatis"></a>整合 Mybatis</h2><ol>
+<li>导入包<ol>
+<li>junit</li>
+<li>mybatis</li>
+<li>mysql数据库</li>
+<li>spring相关的jar</li>
+<li>aop织入</li>
+<li>mybatis-spring [new]</li>
+</ol>
+</li>
+<li>编写配置文件</li>
+<li>测试</li>
+</ol>
+<h2 id="Mybatis"><a href="#Mybatis" class="headerlink" title="Mybatis"></a>Mybatis</h2><p>学到第 23 课，跳出去先把 Mybatis 看完再回来。。。。</p>
+<ol>
+<li>导包<ul>
+<li>junit</li>
+<li>mybatis</li>
+<li>mysql</li>
+<li>spring</li>
+<li>aop织入</li>
+<li>mybatis-spring</li>
+</ul>
+</li>
+<li>配置文件</li>
+<li>写测试</li>
+</ol>
+<h3 id="mybatis-回忆"><a href="#mybatis-回忆" class="headerlink" title="mybatis 回忆"></a>mybatis 回忆</h3><ol>
+<li>编写实体类</li>
+<li>编写核心配置文件</li>
+<li>编写接口</li>
+<li>编写 Mapper.xml</li>
+<li>测试</li>
+</ol>
+<h3 id="mybatis-spring"><a href="#mybatis-spring" class="headerlink" title="mybatis-spring"></a>mybatis-spring</h3><ol>
+<li>编写数据源配置</li>
+<li>sqlSessionFactory</li>
+<li>sqlSessionTemplate</li>
+</ol>
+<h2 id="事务回顾"><a href="#事务回顾" class="headerlink" title="事务回顾"></a>事务回顾</h2><ul>
+<li>要么都成功，要么都失败</li>
+<li>十分重要，涉及一致性，不能马虎</li>
+<li>确保完整性和一致性</li>
+</ul>
+<p>事务 ACID 原则：</p>
+<ul>
+<li>原子性</li>
+<li>一致性</li>
+<li>隔离性，多个业务可能操作一个资源，防止数据损坏</li>
+<li>持久性，十五一旦提交，无论系统发生什么问题，结果都不会被影响，被持久化的写到存储器中</li>
+</ul>
+<h3 id="spring-中的事务管理"><a href="#spring-中的事务管理" class="headerlink" title="spring 中的事务管理"></a>spring 中的事务管理</h3><ul>
+<li>声明式事务 - AOP</li>
+<li>编程式事务 - 需要在代码中进行事务管理，侵入性太强，不推荐</li>
+</ul>
+<p>为什么需要事务：</p>
+<ol>
+<li>不添加事务管理，可能存在事务提交不一致</li>
+<li>如果不在 spring 中配置声明式事务，我们就需要在代码中手动配置事务</li>
+<li>在项目的开发中十分重要，涉及到数据的一致性</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/09/07/ASM-quick-guide/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2020/09/07/ASM-quick-guide/" class="post-title-link" itemprop="url">ASM 快速入门</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-09-07 15:29:05" itemprop="dateCreated datePublished" datetime="2020-09-07T15:29:05+08:00">2020-09-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-20 14:13:56" itemprop="dateModified" datetime="2021-04-20T14:13:56+08:00">2021-04-20</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E5%BC%B9%E5%B0%84%E8%B5%B7%E6%AD%A5/" itemprop="url" rel="index">
+                    <span itemprop="name">弹射起步</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>17k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>16 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>通过本次实验对 ASM 这个字节码框架有一个基本的了解。实验必须是简单明了，方便重现的。引用一段话很好的概括了 ASM 的功能</p>
+<blockquote>
+<p>可以负责任的告诉大家，ASM只不过是通过 “Visitor” 模式将 “.class” 类文件的内容从头到尾扫描一遍。因此如果你抱着任何更苛刻的要求最后都将失望而归。</p>
+</blockquote>
+<p>实验平台信息：<br>    MacOS + IDEA + ASM Bytecode Outline 插件</p>
+<h2 id="输出-Class-方法"><a href="#输出-Class-方法" class="headerlink" title="输出 Class 方法"></a>输出 Class 方法</h2><p>准备测试用 class，通过 ASM 输出 class 中的方法名称</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">MyInterface01</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">MyInterface02</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SayHello</span> <span class="keyword">implements</span> <span class="title">MyInterface01</span>, <span class="title">MyInterface02</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">say</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        String name = <span class="string">&quot;Jack&quot;</span>;</span><br><span class="line">        System.out.println(<span class="string">&quot;Hello&quot;</span> + name);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>右键准备的测试文件，选中 ‘Show bytecode outline’ 选项，点击 Bytecode tab, 查看内容可以看到字节码如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; class version 52.0 (52)</span><br><span class="line">&#x2F;&#x2F; access flags 0x21</span><br><span class="line">public class sorra&#x2F;tracesonar&#x2F;mytest&#x2F;SayHello implements sorra&#x2F;tracesonar&#x2F;mytest&#x2F;MyInterface01 sorra&#x2F;tracesonar&#x2F;mytest&#x2F;MyInterface02  &#123;</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; compiled from: SayHello.java</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; access flags 0x1</span><br><span class="line">  public &lt;init&gt;()V</span><br><span class="line">   L0</span><br><span class="line">    LINENUMBER 3 L0</span><br><span class="line">    ALOAD 0</span><br><span class="line">    INVOKESPECIAL java&#x2F;lang&#x2F;Object.&lt;init&gt; ()V</span><br><span class="line">    RETURN</span><br><span class="line">   L1</span><br><span class="line">    LOCALVARIABLE this Lsorra&#x2F;tracesonar&#x2F;mytest&#x2F;SayHello; L0 L1 0</span><br><span class="line">    MAXSTACK &#x3D; 1</span><br><span class="line">    MAXLOCALS &#x3D; 1</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; access flags 0x1</span><br><span class="line">  public say()V</span><br><span class="line">   L0</span><br><span class="line">    LINENUMBER 5 L0</span><br><span class="line">    LDC &quot;Jack&quot;</span><br><span class="line">    ASTORE 1</span><br><span class="line">   L1</span><br><span class="line">    LINENUMBER 6 L1</span><br><span class="line">    GETSTATIC java&#x2F;lang&#x2F;System.out : Ljava&#x2F;io&#x2F;PrintStream;</span><br><span class="line">    NEW java&#x2F;lang&#x2F;StringBuilder</span><br><span class="line">    DUP</span><br><span class="line">    INVOKESPECIAL java&#x2F;lang&#x2F;StringBuilder.&lt;init&gt; ()V</span><br><span class="line">    LDC &quot;Hello&quot;</span><br><span class="line">    INVOKEVIRTUAL java&#x2F;lang&#x2F;StringBuilder.append (Ljava&#x2F;lang&#x2F;String;)Ljava&#x2F;lang&#x2F;StringBuilder;</span><br><span class="line">    ALOAD 1</span><br><span class="line">    INVOKEVIRTUAL java&#x2F;lang&#x2F;StringBuilder.append (Ljava&#x2F;lang&#x2F;String;)Ljava&#x2F;lang&#x2F;StringBuilder;</span><br><span class="line">    INVOKEVIRTUAL java&#x2F;lang&#x2F;StringBuilder.toString ()Ljava&#x2F;lang&#x2F;String;</span><br><span class="line">    INVOKEVIRTUAL java&#x2F;io&#x2F;PrintStream.println (Ljava&#x2F;lang&#x2F;String;)V</span><br><span class="line">   L2</span><br><span class="line">    LINENUMBER 7 L2</span><br><span class="line">    RETURN</span><br><span class="line">   L3</span><br><span class="line">    LOCALVARIABLE this Lsorra&#x2F;tracesonar&#x2F;mytest&#x2F;SayHello; L0 L3 0</span><br><span class="line">    LOCALVARIABLE name Ljava&#x2F;lang&#x2F;String; L1 L3 1</span><br><span class="line">    MAXSTACK &#x3D; 3</span><br><span class="line">    MAXLOCALS &#x3D; 2</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>测试用例</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ASMTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;--- START ---&quot;</span>);</span><br><span class="line">        ClassReader cr = <span class="keyword">new</span> ClassReader(SayHello.class.getName());</span><br><span class="line">        cr.accept(<span class="keyword">new</span> DemoClassVisitor(), <span class="number">0</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;--- END ---&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DemoClassVisitor</span> <span class="keyword">extends</span> <span class="title">ClassVisitor</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DemoClassVisitor</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(Opcodes.ASM5);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Called when access file header, so it will called only once for each class</span></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">    * access: 方法的 modifier, 就是 public/private 的那些修饰词</span></span><br><span class="line"><span class="comment">    * name: class name</span></span><br><span class="line"><span class="comment">    * signature: 不是很确定，但是好像不重要</span></span><br><span class="line"><span class="comment">    * superName: 父类的名字，该例子中是 object</span></span><br><span class="line"><span class="comment">    * interfaces: 实现的接口</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visit</span><span class="params">(<span class="keyword">int</span> version, <span class="keyword">int</span> access, String name, String signature, String superName, String[] interfaces)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.visit(version, access, name, signature, superName, interfaces);</span><br><span class="line">        System.out.println(<span class="string">&quot;invoke visit method, params: &quot;</span> + version + <span class="string">&quot;, &quot;</span> + access + <span class="string">&quot;, &quot;</span> + name + <span class="string">&quot;, &quot;</span> + signature + <span class="string">&quot;, &quot;</span> + superName + <span class="string">&quot;, &quot;</span> + Arrays.toString(interfaces));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Called when access method</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> MethodVisitor <span class="title">visitMethod</span><span class="params">(<span class="keyword">int</span> access, String name, String desc, String signature, String[] exceptions)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;at Method &quot;</span> + name);</span><br><span class="line">        <span class="comment">//</span></span><br><span class="line">        MethodVisitor superMV = <span class="keyword">super</span>.visitMethod(access, name, desc, signature, exceptions);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> DemoMethodVisitor(superMV, name);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DemoMethodVisitor</span> <span class="keyword">extends</span> <span class="title">MethodVisitor</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> String methodName;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DemoMethodVisitor</span><span class="params">(MethodVisitor mv, String methodName)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(Opcodes.ASM5, mv);</span><br><span class="line">        <span class="keyword">this</span>.methodName = methodName;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visitCode</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;at Method ‘&quot;</span> + methodName + <span class="string">&quot;’ Begin...&quot;</span>);</span><br><span class="line">        <span class="keyword">super</span>.visitCode();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visitLocalVariable</span><span class="params">(String name, String desc, String signature, Label start, Label end, <span class="keyword">int</span> index)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.visitLocalVariable(name, desc, signature, start, end, index);</span><br><span class="line">        System.out.println(<span class="string">&quot;Params in visitLocalVariable: &quot;</span> + name + <span class="string">&quot;, &quot;</span> + desc + <span class="string">&quot;, &quot;</span> + signature + <span class="string">&quot;, &quot;</span> + start + <span class="string">&quot;, &quot;</span> + end + <span class="string">&quot;, &quot;</span> + index);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visitEnd</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;at Method ‘&quot;</span> + methodName + <span class="string">&quot;’End.&quot;</span>);</span><br><span class="line">        <span class="keyword">super</span>.visitEnd();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>终端输出</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">--- START ---</span><br><span class="line">invoke visit method, params: 52, 33, sorra/tracesonar/mytest/SayHello, null, java/lang/Object, [sorra/tracesonar/mytest/MyInterface01, sorra/tracesonar/mytest/MyInterface02]</span><br><span class="line">at Method &lt;init&gt;</span><br><span class="line">at Method ‘&lt;init&gt;’ Begin...</span><br><span class="line">Params in visitLocalVariable: this, Lsorra/tracesonar/mytest/SayHello;, null, L662441761, L1618212626, 0</span><br><span class="line">at Method ‘&lt;init&gt;’End.</span><br><span class="line">at Method say</span><br><span class="line">at Method ‘say’ Begin...</span><br><span class="line">Params in visitLocalVariable: this, Lsorra/tracesonar/mytest/SayHello;, null, L1129670968, L1023714065, 0</span><br><span class="line">Params in visitLocalVariable: name, Ljava/lang/String;, null, L2051450519, L1023714065, 1</span><br><span class="line">at Method ‘say’End.</span><br><span class="line">--- END ---</span><br></pre></td></tr></table></figure>
+
+<p>想要理解 ASM 运行方式，需要结合前面的 bytecode 内容。比如 <code>visitLocalVariable</code> 方法其实就是将 bytecode 里面对应的 LOCALVARIABLE 信息打印出来。</p>
+<h2 id="MethodVisitor-的-visitMethodInsn-方法简单例子"><a href="#MethodVisitor-的-visitMethodInsn-方法简单例子" class="headerlink" title="MethodVisitor 的 visitMethodInsn 方法简单例子"></a>MethodVisitor 的 visitMethodInsn 方法简单例子</h2><h3 id="基本使用"><a href="#基本使用" class="headerlink" title="基本使用"></a>基本使用</h3><p>根据查到的资料，该方法可以知道当前的方法调用了其他类的什么方法，设计用例如下: Class A 有 method a, Class B 有 method b, a 中包含对 b 的调用，使用 visitMethodInsn 解析 a 方法是应该可以拿到这层关系</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ClassA</span> </span>&#123;</span><br><span class="line">    ClassB b = <span class="keyword">new</span> ClassB();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">methodA</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        b.methodB();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ClassB</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">methodB</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Method B called...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>class A 的 bytecode 显示如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; class version 52.0 (52)</span><br><span class="line">&#x2F;&#x2F; access flags 0x21</span><br><span class="line">public class com&#x2F;jzheng&#x2F;asmtest&#x2F;ClassA &#123;</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; compiled from: ClassA.java</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; access flags 0x0</span><br><span class="line">  Lcom&#x2F;jzheng&#x2F;asmtest&#x2F;ClassB; b</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; access flags 0x1</span><br><span class="line">  public &lt;init&gt;()V</span><br><span class="line">   L0</span><br><span class="line">    LINENUMBER 3 L0</span><br><span class="line">    ALOAD 0</span><br><span class="line">    INVOKESPECIAL java&#x2F;lang&#x2F;Object.&lt;init&gt; ()V</span><br><span class="line">   L1</span><br><span class="line">    LINENUMBER 4 L1</span><br><span class="line">    ALOAD 0</span><br><span class="line">    NEW com&#x2F;jzheng&#x2F;asmtest&#x2F;ClassB</span><br><span class="line">    DUP</span><br><span class="line">    INVOKESPECIAL com&#x2F;jzheng&#x2F;asmtest&#x2F;ClassB.&lt;init&gt; ()V</span><br><span class="line">    PUTFIELD com&#x2F;jzheng&#x2F;asmtest&#x2F;ClassA.b : Lcom&#x2F;jzheng&#x2F;asmtest&#x2F;ClassB;</span><br><span class="line">    RETURN</span><br><span class="line">   L2</span><br><span class="line">    LOCALVARIABLE this Lcom&#x2F;jzheng&#x2F;asmtest&#x2F;ClassA; L0 L2 0</span><br><span class="line">    MAXSTACK &#x3D; 3</span><br><span class="line">    MAXLOCALS &#x3D; 1</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F; access flags 0x1</span><br><span class="line">  public methodA()V</span><br><span class="line">   L0</span><br><span class="line">    LINENUMBER 7 L0</span><br><span class="line">    ALOAD 0</span><br><span class="line">    GETFIELD com&#x2F;jzheng&#x2F;asmtest&#x2F;ClassA.b : Lcom&#x2F;jzheng&#x2F;asmtest&#x2F;ClassB;</span><br><span class="line">    INVOKEVIRTUAL com&#x2F;jzheng&#x2F;asmtest&#x2F;ClassB.methodB ()V</span><br><span class="line">   L1</span><br><span class="line">    LINENUMBER 8 L1</span><br><span class="line">    RETURN</span><br><span class="line">   L2</span><br><span class="line">    LOCALVARIABLE this Lcom&#x2F;jzheng&#x2F;asmtest&#x2F;ClassA; L0 L2 0</span><br><span class="line">    MAXSTACK &#x3D; 1</span><br><span class="line">    MAXLOCALS &#x3D; 1</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到在 <code>methodA()V</code> block 里有对 ClassB 的方法调用说明 <code>INVOKEVIRTUAL com/jzheng/asmtest/ClassB.methodB ()V</code>，通过它我们可以知道当前方法对其他类方法的调用</p>
+<p>测试用例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ASMTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;--- START ---&quot;</span>);</span><br><span class="line">        ClassReader cr = <span class="keyword">new</span> ClassReader(ClassA.class.getName());</span><br><span class="line">        cr.accept(<span class="keyword">new</span> DemoClassVisitor(), <span class="number">0</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;--- END ---&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DemoClassVisitor</span> <span class="keyword">extends</span> <span class="title">ClassVisitor</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DemoClassVisitor</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(Opcodes.ASM5);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Called when access method</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> MethodVisitor <span class="title">visitMethod</span><span class="params">(<span class="keyword">int</span> access, String name, String desc, String signature, String[] exceptions)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;at Method &quot;</span> + name);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">super</span>.visitMethod(access, name, desc, signature, exceptions);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> MethodVisitor(Opcodes.ASM5) &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visitMethodInsn</span><span class="params">(<span class="keyword">int</span> opcode, String owner, String name, String desc, <span class="keyword">boolean</span> itf)</span> </span>&#123;</span><br><span class="line">                <span class="keyword">super</span>.visitMethodInsn(opcode, owner, name, desc, itf);</span><br><span class="line">                System.out.println(String.format(<span class="string">&quot;opcode: %s, owner: %s, name: %s, desc: %s, itf: %s&quot;</span>, opcode, owner, name, desc, itf));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// output:</span></span><br><span class="line"><span class="comment">// --- START ---</span></span><br><span class="line"><span class="comment">// at Method &lt;init&gt;</span></span><br><span class="line"><span class="comment">// opcode: 183, owner: java/lang/Object, name: &lt;init&gt;, desc: ()V, itf: false</span></span><br><span class="line"><span class="comment">// opcode: 183, owner: com/jzheng/asmtest/ClassB, name: &lt;init&gt;, desc: ()V, itf: false</span></span><br><span class="line"><span class="comment">// at Method methodA</span></span><br><span class="line"><span class="comment">// opcode: 182, owner: com/jzheng/asmtest/ClassB, name: methodB, desc: ()V, itf: false</span></span><br><span class="line"><span class="comment">// --- END ---</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="测试-itf-参数"><a href="#测试-itf-参数" class="headerlink" title="测试 itf 参数"></a>测试 itf 参数</h2><p>visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf)</p>
+<ul>
+<li>desc: 方法参数和返回值类型，<code>()</code> 内为参数，外面是返回值</li>
+<li>itf 方法是否来自接口，如下面所示的例子，当子类实现接口，通过子类调用方法时，值为 false，当强转为接口时值为 true。 值的注意的是，继承的方法也是 false。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.objectweb.asm.ClassReader;</span><br><span class="line"><span class="keyword">import</span> org.objectweb.asm.ClassVisitor;</span><br><span class="line"><span class="keyword">import</span> org.objectweb.asm.MethodVisitor;</span><br><span class="line"><span class="keyword">import</span> org.objectweb.asm.Opcodes;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Scenario:</span></span><br><span class="line"><span class="comment"> * &lt;p&gt;</span></span><br><span class="line"><span class="comment"> * &#123;<span class="doctag">@link</span> org.objectweb.asm.MethodVisitor#visitMethodInsn(int, String, String, String, boolean)&#125;, 测试方法是继承自父类或者接口时该接口中的参数表现形式</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestVisitMethodInsn</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;--- START ---&quot;</span>);</span><br><span class="line">        ClassReader cr = <span class="keyword">new</span> ClassReader(Client.class.getName());</span><br><span class="line">        cr.accept(<span class="keyword">new</span> DemoClassVisitor(), <span class="number">0</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;--- END ---&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    Sub sub = <span class="keyword">new</span> Sub();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        sub.methodOfSuper();</span><br><span class="line">        sub.methodOfInterface();</span><br><span class="line">        ((Super)sub).methodOfSuper();</span><br><span class="line">        ((MyInterface)sub).methodOfInterface();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">Super</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">methodOfSuper</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">MyInterface</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">methodOfInterface</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Sub</span> <span class="keyword">extends</span> <span class="title">Super</span> <span class="keyword">implements</span> <span class="title">MyInterface</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">methodOfSuper</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">methodOfInterface</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DemoClassVisitor</span> <span class="keyword">extends</span> <span class="title">ClassVisitor</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DemoClassVisitor</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(Opcodes.ASM5);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Called when access method</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> MethodVisitor <span class="title">visitMethod</span><span class="params">(<span class="keyword">int</span> access, String name, String desc, String signature, String[] exceptions)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;In Method &quot;</span> + name);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">super</span>.visitMethod(access, name, desc, signature, exceptions);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> MethodVisitor(Opcodes.ASM5) &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visitMethodInsn</span><span class="params">(<span class="keyword">int</span> opcode, String owner, String name, String desc, <span class="keyword">boolean</span> itf)</span> </span>&#123;</span><br><span class="line">                <span class="keyword">super</span>.visitMethodInsn(opcode, owner, name, desc, itf);</span><br><span class="line">                System.out.println(String.format(<span class="string">&quot;opcode: %s, owner: %s, name: %s, desc: %s, itf: %s&quot;</span>, opcode, owner, name, desc, itf));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="visitInvokeDynamicInsn-用以检测-lambda-表达式"><a href="#visitInvokeDynamicInsn-用以检测-lambda-表达式" class="headerlink" title="visitInvokeDynamicInsn 用以检测 lambda 表达式"></a>visitInvokeDynamicInsn 用以检测 lambda 表达式</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Scenario:</span></span><br><span class="line"><span class="comment"> * &#123;<span class="doctag">@link</span> org.objectweb.asm.MethodVisitor#visitInvokeDynamicInsn(String, String, Handle, Object...)&#125;, 这个方法可以用来检测动态生成的方法，比如 lambada 表达式</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestVisitInvokeDynamicInsn</span> <span class="keyword">extends</span> <span class="title">ClassVisitor</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">TestVisitInvokeDynamicInsn</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(Opcodes.ASM5);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> MethodVisitor <span class="title">visitMethod</span><span class="params">(<span class="keyword">int</span> access, String name, String desc, String signature, String[] exceptions)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Parse Method: &quot;</span> + name);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">super</span>.visitMethod(access, name, desc, signature, exceptions);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> MethodVisitor(Opcodes.ASM5) &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visitInvokeDynamicInsn</span><span class="params">(String name, String desc, Handle bsm, Object... bsmArgs)</span> </span>&#123;</span><br><span class="line">                <span class="keyword">for</span> (Object sub : bsmArgs) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (sub <span class="keyword">instanceof</span> Handle) &#123;</span><br><span class="line">                        System.out.println(<span class="string">&quot;Handle info: &quot;</span> + sub);</span><br><span class="line">                        System.out.printf(<span class="string">&quot;name: %s, desc: %s, owner: %s, tag: %s%n&quot;</span>, ((Handle) sub).getName(), ((Handle) sub).getDesc(), ((Handle) sub).getOwner(), ((Handle) sub).getTag() );</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">super</span>.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);</span><br><span class="line">                System.out.printf(<span class="string">&quot;Output from [visitInvokeDynamicInsn]%nname: %s%n desc: %s%n bsm: %s%n bsmArgs: %s%n&quot;</span>, name, desc, bsm, Arrays.asList(bsmArgs));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;--- START ---&quot;</span>);</span><br><span class="line">        ClassReader cr = <span class="keyword">new</span> ClassReader(Client02.class.getName());</span><br><span class="line">        cr.accept(<span class="keyword">new</span> TestVisitInvokeDynamicInsn(), <span class="number">0</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;--- END ---&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Client02</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        String[] names = <span class="keyword">new</span> String[]&#123;<span class="string">&quot;A&quot;</span>, <span class="string">&quot;B&quot;</span>&#125;;</span><br><span class="line">        Arrays.stream(names).forEach(System.out::println);</span><br><span class="line"></span><br><span class="line">        BinaryOperator&lt;Long&gt; addLongs = Long::sum;</span><br><span class="line">        addLongs.apply(<span class="number">1L</span>,<span class="number">2L</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// --- START ---</span></span><br><span class="line"><span class="comment">// Parse Method: &lt;init&gt;</span></span><br><span class="line"><span class="comment">// Parse Method: test</span></span><br><span class="line"><span class="comment">// Handle info: java/io/PrintStream.println(Ljava/lang/String;)V (5)</span></span><br><span class="line"><span class="comment">// name: println, desc: (Ljava/lang/String;)V, owner: java/io/PrintStream, tag: 5</span></span><br><span class="line"><span class="comment">// Output from [visitInvokeDynamicInsn]</span></span><br><span class="line"><span class="comment">// name: accept</span></span><br><span class="line"><span class="comment">//  desc: (Ljava/io/PrintStream;)Ljava/util/function/Consumer;</span></span><br><span class="line"><span class="comment">//  bsm: java/lang/invoke/LambdaMetafactory.metafactory(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite; (6)</span></span><br><span class="line"><span class="comment">//  bsmArgs: [(Ljava/lang/Object;)V, java/io/PrintStream.println(Ljava/lang/String;)V (5), (Ljava/lang/String;)V]</span></span><br><span class="line"><span class="comment">// Handle info: java/lang/Long.sum(JJ)J (6)</span></span><br><span class="line"><span class="comment">// name: sum, desc: (JJ)J, owner: java/lang/Long, tag: 6</span></span><br><span class="line"><span class="comment">// Output from [visitInvokeDynamicInsn]</span></span><br><span class="line"><span class="comment">// name: apply</span></span><br><span class="line"><span class="comment">//  desc: ()Ljava/util/function/BinaryOperator;</span></span><br><span class="line"><span class="comment">//  bsm: java/lang/invoke/LambdaMetafactory.metafactory(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite; (6)</span></span><br><span class="line"><span class="comment">//  bsmArgs: [(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;, java/lang/Long.sum(JJ)J (6), (Ljava/lang/Long;Ljava/lang/Long;)Ljava/lang/Long;]</span></span><br><span class="line"><span class="comment">// --- END ---</span></span><br></pre></td></tr></table></figure>
+
+<p>注意参数列表中的 bsmArgs, 其中的 Handle 可能是你想要的， 列表中的 bsm 是一个固定值，看着像是 lambda 的指代</p>
+<h2 id="修改方法"><a href="#修改方法" class="headerlink" title="修改方法"></a>修改方法</h2><p>实验内容：准备一个 HelloWorld.class 可以打印出 ‘Hello World’ 字样。通过 ASM 框架使他在打印之前和之后都输出一些 debug 信息，调用时可以使用反射简化实验。</p>
+<p>测试用 class</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloWorld</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sayHello</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Hello World...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>测试用例，通过反射拿到测试方法并调用查看输出。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.lang.reflect.Method;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">main</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Class cls = Class.forName(<span class="string">&quot;sorra.tracesonar.main.aopsample.HelloWorld&quot;</span>);</span><br><span class="line">        </span><br><span class="line">        Method sayHello = cls.getDeclaredMethod(<span class="string">&quot;sayHello&quot;</span>);</span><br><span class="line">        sayHello.invoke(cls.newInstance());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// run and get output:</span></span><br><span class="line"><span class="comment">// Hello World...</span></span><br></pre></td></tr></table></figure>
+
+<p>预期目标：通过 ASM 修改目标 class 使得输出为 ‘Test start \n Hello World… \n Test end’，对应的 java code:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Expected</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sayHello</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Test start&quot;</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;Hello World...&quot;</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;Test end&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>选中 java 文件，右键 -&gt; Show Bytecode Outline 选中 ASMifield tab 可以看到转化后的代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> asm.sorra.tracesonar.main.aopsample;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.objectweb.asm.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExpectedDump</span> <span class="keyword">implements</span> <span class="title">Opcodes</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">byte</span>[] dump() <span class="keyword">throws</span> Exception &#123;</span><br><span class="line"></span><br><span class="line">        ClassWriter cw = <span class="keyword">new</span> ClassWriter(<span class="number">0</span>);</span><br><span class="line">        FieldVisitor fv;</span><br><span class="line">        MethodVisitor mv;</span><br><span class="line">        AnnotationVisitor av0;</span><br><span class="line"></span><br><span class="line">        cw.visit(<span class="number">52</span>, ACC_PUBLIC + ACC_SUPER, <span class="string">&quot;sorra/tracesonar/main/aopsample/Expected&quot;</span>, <span class="keyword">null</span>, <span class="string">&quot;java/lang/Object&quot;</span>, <span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line">        cw.visitSource(<span class="string">&quot;Expected.java&quot;</span>, <span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line">        &#123;</span><br><span class="line">            mv = cw.visitMethod(ACC_PUBLIC, <span class="string">&quot;&lt;init&gt;&quot;</span>, <span class="string">&quot;()V&quot;</span>, <span class="keyword">null</span>, <span class="keyword">null</span>);</span><br><span class="line">            mv.visitCode();</span><br><span class="line">            Label l0 = <span class="keyword">new</span> Label();</span><br><span class="line">            mv.visitLabel(l0);</span><br><span class="line">            mv.visitLineNumber(<span class="number">3</span>, l0);</span><br><span class="line">            mv.visitVarInsn(ALOAD, <span class="number">0</span>);</span><br><span class="line">            mv.visitMethodInsn(INVOKESPECIAL, <span class="string">&quot;java/lang/Object&quot;</span>, <span class="string">&quot;&lt;init&gt;&quot;</span>, <span class="string">&quot;()V&quot;</span>, <span class="keyword">false</span>);</span><br><span class="line">            mv.visitInsn(RETURN);</span><br><span class="line">            Label l1 = <span class="keyword">new</span> Label();</span><br><span class="line">            mv.visitLabel(l1);</span><br><span class="line">            mv.visitLocalVariable(<span class="string">&quot;this&quot;</span>, <span class="string">&quot;Lsorra/tracesonar/main/aopsample/Expected;&quot;</span>, <span class="keyword">null</span>, l0, l1, <span class="number">0</span>);</span><br><span class="line">            mv.visitMaxs(<span class="number">1</span>, <span class="number">1</span>);</span><br><span class="line">            mv.visitEnd();</span><br><span class="line">        &#125;</span><br><span class="line">        &#123;</span><br><span class="line">            mv = cw.visitMethod(ACC_PUBLIC, <span class="string">&quot;sayHello&quot;</span>, <span class="string">&quot;()V&quot;</span>, <span class="keyword">null</span>, <span class="keyword">null</span>);</span><br><span class="line">            mv.visitCode();</span><br><span class="line">            Label l0 = <span class="keyword">new</span> Label();</span><br><span class="line">            mv.visitLabel(l0);</span><br><span class="line">            mv.visitLineNumber(<span class="number">5</span>, l0);</span><br><span class="line">            mv.visitFieldInsn(GETSTATIC, <span class="string">&quot;java/lang/System&quot;</span>, <span class="string">&quot;out&quot;</span>, <span class="string">&quot;Ljava/io/PrintStream;&quot;</span>);</span><br><span class="line">            mv.visitLdcInsn(<span class="string">&quot;Test start&quot;</span>);</span><br><span class="line">            mv.visitMethodInsn(INVOKEVIRTUAL, <span class="string">&quot;java/io/PrintStream&quot;</span>, <span class="string">&quot;println&quot;</span>, <span class="string">&quot;(Ljava/lang/String;)V&quot;</span>, <span class="keyword">false</span>);</span><br><span class="line">            Label l1 = <span class="keyword">new</span> Label();</span><br><span class="line">            mv.visitLabel(l1);</span><br><span class="line">            mv.visitLineNumber(<span class="number">6</span>, l1);</span><br><span class="line">            mv.visitFieldInsn(GETSTATIC, <span class="string">&quot;java/lang/System&quot;</span>, <span class="string">&quot;out&quot;</span>, <span class="string">&quot;Ljava/io/PrintStream;&quot;</span>);</span><br><span class="line">            mv.visitLdcInsn(<span class="string">&quot;Hello World...&quot;</span>);</span><br><span class="line">            mv.visitMethodInsn(INVOKEVIRTUAL, <span class="string">&quot;java/io/PrintStream&quot;</span>, <span class="string">&quot;println&quot;</span>, <span class="string">&quot;(Ljava/lang/String;)V&quot;</span>, <span class="keyword">false</span>);</span><br><span class="line">            Label l2 = <span class="keyword">new</span> Label();</span><br><span class="line">            mv.visitLabel(l2);</span><br><span class="line">            mv.visitLineNumber(<span class="number">7</span>, l2);</span><br><span class="line">            mv.visitFieldInsn(GETSTATIC, <span class="string">&quot;java/lang/System&quot;</span>, <span class="string">&quot;out&quot;</span>, <span class="string">&quot;Ljava/io/PrintStream;&quot;</span>);</span><br><span class="line">            mv.visitLdcInsn(<span class="string">&quot;Test end&quot;</span>);</span><br><span class="line">            mv.visitMethodInsn(INVOKEVIRTUAL, <span class="string">&quot;java/io/PrintStream&quot;</span>, <span class="string">&quot;println&quot;</span>, <span class="string">&quot;(Ljava/lang/String;)V&quot;</span>, <span class="keyword">false</span>);</span><br><span class="line">            Label l3 = <span class="keyword">new</span> Label();</span><br><span class="line">            mv.visitLabel(l3);</span><br><span class="line">            mv.visitLineNumber(<span class="number">8</span>, l3);</span><br><span class="line">            mv.visitInsn(RETURN);</span><br><span class="line">            Label l4 = <span class="keyword">new</span> Label();</span><br><span class="line">            mv.visitLabel(l4);</span><br><span class="line">            mv.visitLocalVariable(<span class="string">&quot;this&quot;</span>, <span class="string">&quot;Lsorra/tracesonar/main/aopsample/Expected;&quot;</span>, <span class="keyword">null</span>, l0, l4, <span class="number">0</span>);</span><br><span class="line">            mv.visitMaxs(<span class="number">2</span>, <span class="number">1</span>);</span><br><span class="line">            mv.visitEnd();</span><br><span class="line">        &#125;</span><br><span class="line">        cw.visitEnd();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> cw.toByteArray();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中类似如下的代码使一些行号和变量的处理，可以删掉不要，不影响结果</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Label l0 = <span class="keyword">new</span> Label();</span><br><span class="line">mv.visitLabel(l0);</span><br><span class="line">mv.visitLineNumber(<span class="number">3</span>, l0);</span><br><span class="line">...</span><br><span class="line">Label l4 = <span class="keyword">new</span> Label();</span><br><span class="line">mv.visitLabel(l4);</span><br><span class="line">mv.visitLocalVariable(<span class="string">&quot;this&quot;</span>, <span class="string">&quot;Lsorra/tracesonar/main/aopsample/Expected;&quot;</span>, <span class="keyword">null</span>, l0, l4, <span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+
+<p>将自动生成的文件里的冗余语句删掉，加一个 main 方法，生成文件并存放到根目录下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExpectedDump</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">byte</span>[] dump() <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">        ...</span><br><span class="line">        <span class="keyword">return</span> cw.toByteArray();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">byte</span>[] updated = dump();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> (FileOutputStream fos = <span class="keyword">new</span> FileOutputStream(<span class="string">&quot;Expected.class&quot;</span>)) &#123;</span><br><span class="line">            fos.write(updated);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(<span class="string">&quot;Write success...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行该 Java 文件，可以看到 project 的根目录下有生成一个名为 ‘Expected.class’ 的文件，在 IDEA 里面浏览它，编辑器会自动给出反编译结果，可以发现，在目标语句前后已经加上了我们要的 ‘Test Start/End’ 的 debug 语句了。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/08/25/jenv-quick-start/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +676,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-19 20:47:33" itemprop="dateModified" datetime="2021-04-19T20:47:33+08:00">2021-04-19</time>
+                <time title="修改时间：2021-04-20 14:13:56" itemprop="dateModified" datetime="2021-04-20T14:13:56+08:00">2021-04-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -328,7 +767,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-19 20:47:33" itemprop="dateModified" datetime="2021-04-19T20:47:33+08:00">2021-04-19</time>
+                <time title="修改时间：2021-04-20 14:13:56" itemprop="dateModified" datetime="2021-04-20T14:13:56+08:00">2021-04-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -432,7 +871,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-19 20:47:33" itemprop="dateModified" datetime="2021-04-19T20:47:33+08:00">2021-04-19</time>
+                <time title="修改时间：2021-04-20 14:13:56" itemprop="dateModified" datetime="2021-04-20T14:13:56+08:00">2021-04-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -492,7 +931,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/08/13/C-Style-Declaration-in-Java/">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/08/13/Java-C-Style-Declaration/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/hexo/images/jack.jpg">
@@ -506,7 +945,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
           
-            <a href="/hexo/2020/08/13/C-Style-Declaration-in-Java/" class="post-title-link" itemprop="url">Java 中 C 语言风格的参数声明</a>
+            <a href="/hexo/2020/08/13/Java-C-Style-Declaration/" class="post-title-link" itemprop="url">Java 中 C 语言风格的参数声明</a>
         </h1>
 
         <div class="post-meta">
@@ -523,7 +962,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-19 20:47:33" itemprop="dateModified" datetime="2021-04-19T20:47:33+08:00">2021-04-19</time>
+                <time title="修改时间：2021-04-20 14:13:56" itemprop="dateModified" datetime="2021-04-20T14:13:56+08:00">2021-04-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -531,8 +970,8 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
-                    <span itemprop="name">编程</span>
+                  <a href="/hexo/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
                   </a>
                 </span>
             </span>
@@ -617,7 +1056,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-19 20:47:33" itemprop="dateModified" datetime="2021-04-19T20:47:33+08:00">2021-04-19</time>
+                <time title="修改时间：2021-04-20 14:13:56" itemprop="dateModified" datetime="2021-04-20T14:13:56+08:00">2021-04-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -712,7 +1151,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-19 20:47:33" itemprop="dateModified" datetime="2021-04-19T20:47:33+08:00">2021-04-19</time>
+                <time title="修改时间：2021-04-20 14:13:56" itemprop="dateModified" datetime="2021-04-20T14:13:56+08:00">2021-04-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -855,7 +1294,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-19 20:47:33" itemprop="dateModified" datetime="2021-04-19T20:47:33+08:00">2021-04-19</time>
+                <time title="修改时间：2021-04-20 14:13:56" itemprop="dateModified" datetime="2021-04-20T14:13:56+08:00">2021-04-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -946,7 +1385,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-19 20:47:33" itemprop="dateModified" datetime="2021-04-19T20:47:33+08:00">2021-04-19</time>
+                <time title="修改时间：2021-04-20 14:13:56" itemprop="dateModified" datetime="2021-04-20T14:13:56+08:00">2021-04-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -988,247 +1427,6 @@
           <p>问题记录：</p>
 <p>在做项目重构的时候遇到如下问题，repo1 下有 class A, 重构时我们在 repo1 中抽象出一个 interface FA 实现 A 的所有的方法，然后修改外部引用使 A 解偶。其中发现一个很有趣的现象，原先 repo2 使用 A 编译出来的 jar, 不做任何修改还是可以和 FA 源码进行编译，但是使用 repo2 的源码和 FA 源码进行编译会抛 mismatch 的 exception。猜测和 Java 编译规则有关系，难道是编译后的文件其实是一样的，所以原来的 jar 可以通用，但是源码的话和编译规则有冲突会挂。</p>
 <p>本地试了下，并不能重现，不清楚是重现的不对还是公司的项目有什么特殊的处理方式，有机会再看看把 ╮(￣▽￣””)╭</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/08/05/Get-Know-About-Java-Annotation/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2020/08/05/Get-Know-About-Java-Annotation/" class="post-title-link" itemprop="url">Get Know About Java Annotation</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-08-05 17:45:41" itemprop="dateCreated datePublished" datetime="2020-08-05T17:45:41+08:00">2020-08-05</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-19 20:47:33" itemprop="dateModified" datetime="2021-04-19T20:47:33+08:00">2021-04-19</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
-                    <span itemprop="name">编程</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.3k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>记录一下 Java 注解的学习过程</p>
-<h2 id="快速入门"><a href="#快速入门" class="headerlink" title="快速入门"></a>快速入门</h2><p>设计一个测试案例，创建一个名为 Marked 的注解类，该注解可以添加在 method 上用来表示方法是否被标记过。在测试用力中遍历被标记的类并打印信息</p>
-<p>测试类：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Person</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> age;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">boolean</span> isSelected;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Getter/Setter methods</span></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Marked</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Marked(value = true)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getAge</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> age;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>自己创建的注解类：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> Marked &#123;</span><br><span class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">value</span><span class="params">()</span> <span class="keyword">default</span> <span class="keyword">false</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>测试用例：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test_print_by_anno</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Method[] methods = Person.class.getDeclaredMethods();</span><br><span class="line">    <span class="keyword">for</span> (Method m : methods) &#123;</span><br><span class="line">        Marked myAnno = m.getAnnotation(Marked.class);</span><br><span class="line">        <span class="keyword">if</span> (myAnno != <span class="keyword">null</span>) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Method: &quot;</span> + m.getName() + <span class="string">&quot; has marked annotation.&quot;</span>);</span><br><span class="line">            System.out.println(<span class="string">&quot;Marked value: &quot;</span> + myAnno.value());</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Method: &quot;</span> + m.getName() + <span class="string">&quot; don&#x27;t has marked annotation.&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>终端打印：</p>
-<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Method: getName has marked annotation.</span><br><span class="line">Marked value: false</span><br><span class="line">Method: setName don&#x27;t has marked annotation.</span><br><span class="line">Method: getAge has marked annotation.</span><br><span class="line">Marked value: true</span><br><span class="line">Method: setAge don&#x27;t has marked annotation.</span><br><span class="line">Method: isSelected don&#x27;t has marked annotation.</span><br><span class="line">Method: setSelected don&#x27;t has marked annotation.</span><br></pre></td></tr></table></figure>
-
-<p>从这个例子可以看出来，Annotation 都是处理 class level 的问题的，和类延伸出来的实例基本没关系了</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/08/03/New-OS-Setup/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2020/08/03/New-OS-Setup/" class="post-title-link" itemprop="url">新系统初始化设置</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-08-03 14:51:07" itemprop="dateCreated datePublished" datetime="2020-08-03T14:51:07+08:00">2020-08-03</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-19 20:47:33" itemprop="dateModified" datetime="2021-04-19T20:47:33+08:00">2021-04-19</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E5%B0%8F%E5%B7%A5%E5%85%B7/" itemprop="url" rel="index">
-                    <span itemprop="name">小工具</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>6.6k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>6 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>记录一下新系统常用配置和软件安装</p>
-<h2 id="MacOS-显示隐藏文件"><a href="#MacOS-显示隐藏文件" class="headerlink" title="MacOS 显示隐藏文件"></a>MacOS 显示隐藏文件</h2><p><code>cmd + shift + .</code></p>
-<h2 id="Homebrew"><a href="#Homebrew" class="headerlink" title="Homebrew"></a>Homebrew</h2><p>官网推荐的通过 curl raw 文件安装，本地没有 proxy 的话 pass，基本不动。可以直接通过 <code>git clone https://github.com/Homebrew/install</code> 这个 repo 然后 <code>cd</code> 到 install 文件夹下执行 <code>/bin/bash -c ./install.sh</code> 来触发任务</p>
-<h3 id="速度测试"><a href="#速度测试" class="headerlink" title="速度测试"></a>速度测试</h3><p>运行如下命令，查看是哪个步骤速度比较慢</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">brew update --verbose</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">jack@PC /usr/<span class="built_in">local</span>/Homebrew/stable brew update --verbose</span><br><span class="line">Checking <span class="keyword">if</span> we need to fetch /usr/<span class="built_in">local</span>/Homebrew...</span><br><span class="line">Checking <span class="keyword">if</span> we need to fetch /usr/<span class="built_in">local</span>/Homebrew/Library/Taps/homebrew/homebrew-cask...</span><br><span class="line">Fetching /usr/<span class="built_in">local</span>/Homebrew...</span><br><span class="line">Checking <span class="keyword">if</span> we need to fetch /usr/<span class="built_in">local</span>/Homebrew/Library/Taps/homebrew/homebrew-core...</span><br><span class="line">Checking <span class="keyword">if</span> we need to fetch /usr/<span class="built_in">local</span>/Homebrew/Library/Taps/homebrew/homebrew-services...</span><br><span class="line">Fetching /usr/<span class="built_in">local</span>/Homebrew/Library/Taps/homebrew/homebrew-core...</span><br><span class="line">Fetching /usr/<span class="built_in">local</span>/Homebrew/Library/Taps/homebrew/homebrew-cask...</span><br><span class="line">remote: Counting objects: 5806, <span class="keyword">done</span>.</span><br><span class="line">remote: Compressing objects: 100% (2626/2626), <span class="keyword">done</span>.</span><br><span class="line">remote: Total 5806 (delta 4179), reused 4564 (delta 3087)</span><br><span class="line">Receiving objects: 100% (5806/5806), 1.30 MiB | 203.00 KiB/s, <span class="keyword">done</span>.</span><br><span class="line">Resolving deltas: 100% (4179/4179), completed with 375 <span class="built_in">local</span> objects.</span><br><span class="line">From https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew</span><br><span class="line">   7b67ac5e3..a4d7bb64a  master     -&gt; origin/master</span><br><span class="line"> * [new tag]             2.1.10     -&gt; 2.1.10</span><br><span class="line"> * [new tag]             2.1.11     -&gt; 2.1.11</span><br><span class="line"> * [new tag]             2.1.12     -&gt; 2.1.12</span><br><span class="line"> * [new tag]             2.1.13     -&gt; 2.1.13</span><br><span class="line"> * [new tag]             2.1.14     -&gt; 2.1.14</span><br><span class="line"> * [new tag]             2.1.15     -&gt; 2.1.15</span><br><span class="line"> * [new tag]             2.1.16     -&gt; 2.1.16</span><br><span class="line"> * [new tag]             2.1.3      -&gt; 2.1.3</span><br><span class="line"> * [new tag]             2.1.4      -&gt; 2.1.4</span><br><span class="line"> * [new tag]             2.1.5      -&gt; 2.1.5</span><br><span class="line"> * [new tag]             2.1.6      -&gt; 2.1.6</span><br><span class="line"> * [new tag]             2.1.7      -&gt; 2.1.7</span><br><span class="line"> * [new tag]             2.1.8      -&gt; 2.1.8</span><br><span class="line"> * [new tag]             2.1.9      -&gt; 2.1.9</span><br><span class="line">remote: Counting objects: 71830, <span class="keyword">done</span>.</span><br><span class="line">remote: Compressing objects: 100% (27226/27226), <span class="keyword">done</span>.</span><br><span class="line">remote: Total 71830 (delta 53303), reused 62922 (delta 44592)</span><br><span class="line">Receiving objects: 100% (71830/71830), 21.95 MiB | 11.70 MiB/s, <span class="keyword">done</span>.</span><br><span class="line">Resolving deltas: 100% (53303/53303), completed with 4020 <span class="built_in">local</span> objects.</span><br><span class="line">From https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/homebrew-core</span><br><span class="line">   ea056b500e..6ec9c907ea master     -&gt; origin/master</span><br><span class="line">remote: Enumerating objects: 235987, <span class="keyword">done</span>.</span><br><span class="line">remote: Counting objects: 100% (215906/215906), <span class="keyword">done</span>.</span><br><span class="line">remote: Compressing objects: 100% (58941/58941), <span class="keyword">done</span>.</span><br><span class="line">Receiving objects:  45% (92674/205138), 23.64 MiB | 345.00 KiB/s</span><br></pre></td></tr></table></figure>
-
-<h3 id="更新-Brew-配置"><a href="#更新-Brew-配置" class="headerlink" title="更新 Brew 配置"></a>更新 Brew 配置</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 替换brew.git:</span></span><br><span class="line"><span class="built_in">cd</span> <span class="string">&quot;<span class="subst">$(brew --repo)</span>&quot;</span></span><br><span class="line">git remote <span class="built_in">set</span>-url origin https://mirrors.ustc.edu.cn/brew.git</span><br><span class="line"></span><br><span class="line"><span class="comment"># 替换homebrew-core.git:</span></span><br><span class="line"><span class="built_in">cd</span> <span class="string">&quot;<span class="subst">$(brew --repo)</span>/Library/Taps/homebrew/homebrew-core&quot;</span></span><br><span class="line">git remote <span class="built_in">set</span>-url origin https://mirrors.ustc.edu.cn/homebrew-core.git</span><br><span class="line"></span><br><span class="line"><span class="comment"># 替换homebrew-cask.git:</span></span><br><span class="line"><span class="built_in">cd</span> <span class="string">&quot;<span class="subst">$(brew --repo)</span>&quot;</span>/Library/Taps/homebrew/homebrew-cask</span><br><span class="line">git remote <span class="built_in">set</span>-url origin https://mirrors.ustc.edu.cn/homebrew-cask.git</span><br><span class="line"></span><br><span class="line"><span class="comment"># 替换 homebrew bottles 源, zsh 用户:</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles&#x27;</span> &gt;&gt; ~/.zshrc</span><br><span class="line"><span class="built_in">source</span> ~/.zshrc</span><br><span class="line"></span><br><span class="line"><span class="comment"># 替换 homebrew bottles 源, bash 用户:</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles&#x27;</span> &gt;&gt; ~/.bash_profile</span><br><span class="line"><span class="built_in">source</span> ~/.bash_profile</span><br></pre></td></tr></table></figure>
-
-<p>如果这个源挂了可以试试清华的</p>
-<h2 id="update-warning"><a href="#update-warning" class="headerlink" title="update warning"></a>update warning</h2><p>brew update 抛 warning</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Updating /usr/<span class="built_in">local</span>/Homebrew/Library/Taps/homebrew/homebrew-core...</span><br><span class="line">fatal: It seems that there is already a rebase-apply directory, and</span><br><span class="line">I wonder <span class="keyword">if</span> you are <span class="keyword">in</span> the middle of another rebase.  If that is the</span><br><span class="line"><span class="keyword">case</span>, please try</span><br><span class="line">    git rebase (--<span class="built_in">continue</span> | --abort | --skip)</span><br><span class="line">If that is not the <span class="keyword">case</span>, please</span><br><span class="line">    rm -fr <span class="string">&quot;.git/rebase-apply&quot;</span></span><br><span class="line">and run me again.  I am stopping <span class="keyword">in</span> <span class="keyword">case</span> you still have something</span><br><span class="line">valuable there.</span><br></pre></td></tr></table></figure>
-
-<p>存在 <code>/usr/local/Homebrew/Library/Taps/homebrew/homebrew-core/.git/rebase-apply</code> 这样的备份文件，通过 <code>rm -rf rebase-apply</code> 删掉就好了</p>
-<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><ul>
-<li><a target="_blank" rel="noopener" href="https://www.raydbg.com/2019/Homebrew-Update-Slow/">RayDBG</a></li>
-<li><a target="_blank" rel="noopener" href="https://lug.ustc.edu.cn/wiki/mirrors/help/brew.git">USTC Guide</a></li>
-</ul>
-<h2 id="Iterm2"><a href="#Iterm2" class="headerlink" title="Iterm2"></a>Iterm2</h2><ul>
-<li>最大化窗口：CMD + Ctrl + F</li>
-<li>Item2 最大化终端：CMD + Enter</li>
-</ul>
-<p>可以通过下载 <a target="_blank" rel="noopener" href="https://www.iterm2.com/downloads.html">官方 zip</a> 包离线安装，也可以通过 brew 安装 <code>brew cask install iterm2</code>。brew 会比较慢</p>
-<p>修改提示符 </p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">prompt_context</span></span> () &#123;</span><br><span class="line">    prompt_segment black default <span class="string">&quot;Jack&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="配置-solarized-配色方案"><a href="#配置-solarized-配色方案" class="headerlink" title="配置 solarized 配色方案"></a>配置 solarized 配色方案</h3><p>最新版的系统已经默认支持这个配色方案了，打开 iterm2 终端，<code>cmd + ,</code> 打开配置窗口。 Preferences -&gt; Profiles -&gt; Colors -&gt; Color Presets -&gt; Solarized Dark</p>
-<h2 id="oh-my-zsh"><a href="#oh-my-zsh" class="headerlink" title="oh-my-zsh"></a>oh-my-zsh</h2><p>官方 <a target="_blank" rel="noopener" href="https://github.com/ohmyzsh/ohmyzsh">git</a> 地址， 应为网络原因选择 clone repo 安装: <code>git clone https://github.com/ohmyzsh/ohmyzsh.git</code> + <code>sh -c &#39;./install.sh</code></p>
-<p>重启后终端抛出 warning</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">Last login: Mon Aug  3 18:08:08 on ttys000</span><br><span class="line">[oh-my-zsh] Insecure completion-dependent directories detected:</span><br><span class="line">drwxrwxr-x  3 jack  admin   96 Aug  3 13:18 /usr/<span class="built_in">local</span>/share/zsh</span><br><span class="line">drwxrwxr-x  4 jack  admin  128 Aug  3 13:22 /usr/<span class="built_in">local</span>/share/zsh/site-functions</span><br><span class="line"></span><br><span class="line">[oh-my-zsh] For safety, we will not load completions from these directories until</span><br><span class="line">[oh-my-zsh] you fix their permissions and ownership and restart zsh.</span><br><span class="line">[oh-my-zsh] See the above list <span class="keyword">for</span> directories with group or other writability.</span><br><span class="line"></span><br><span class="line">[oh-my-zsh] To fix your permissions you can <span class="keyword">do</span> so by disabling</span><br><span class="line">[oh-my-zsh] the write permission of <span class="string">&quot;group&quot;</span> and <span class="string">&quot;others&quot;</span> and making sure that the</span><br><span class="line">[oh-my-zsh] owner of these directories is either root or your current user.</span><br><span class="line">[oh-my-zsh] The following <span class="built_in">command</span> may <span class="built_in">help</span>:</span><br><span class="line">[oh-my-zsh]     compaudit | xargs chmod g-w,o-w</span><br><span class="line"></span><br><span class="line">[oh-my-zsh] If the above didn<span class="string">&#x27;t help or you want to skip the verification of</span></span><br><span class="line"><span class="string">[oh-my-zsh] insecure directories you can set the variable ZSH_DISABLE_COMPFIX to</span></span><br><span class="line"><span class="string">[oh-my-zsh] &quot;true&quot; before oh-my-zsh is sourced in your zshrc file.</span></span><br></pre></td></tr></table></figure>
-
-<p>运行如下 cmd 修复</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">chmod 755 /usr/<span class="built_in">local</span>/share/zsh</span><br><span class="line">chmod 755 /usr/<span class="built_in">local</span>/share/zsh/site-functions</span><br></pre></td></tr></table></figure>
-
-<p>配置命令高亮: <code>brew install zsh-syntax-highlighting</code> 并在 .zshrc 中添加配置行 <code>source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh</code></p>
-<p>配置命令自动补全提示: <code>git clone https://github.com/zsh-users/zsh-autosuggestions ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions</code> 添加 .zshrc 配置 <code>plugins=(zsh-autosuggestions)</code></p>
-<p>为提示插件绑定快捷键: 在 zshrc 文件中添加配置 <code>bindkey &#39;^ &#39; autosuggest-accept</code>, MacOS 下这个快捷键和系统默认的输入法切换冲突，在 System Preferences -&gt; keyboard -&gt; shortcuts -&gt; input sources 下将 select the previous input source 和 selet the next input soure menue 的勾选去掉就行了</p>
-<p>PS: 这个快捷键在 VSCode 的 terminal 上不能 work, 试着把 vscode 自带的 <code>ctrl + space</code> 都改掉还是没效果(´Д`) 先凑合着用把，干</p>
-<p>PPS: 想要重新绑定 <code>shift + space</code> 为补全，不过找不到对应的 zsh code， 擦擦擦。在 linux 下有款终端工具叫 showkey 的貌似可以解决这个问题， 也可以试试终端输入 cat 回车，按键他就会打印出来键符，不过 shift 貌似没给提示。。。</p>
-<p>solarized dark 配色和 zsh-autosuggestion 自动提示配色有冲突，会看不到，参考 <a target="_blank" rel="noopener" href="https://github.com/zsh-users/zsh-autosuggestions/issues/416#issuecomment-486516333">issue</a>。我本地直接把配色改成系统自带的 Tango Dark 了</p>
-<h3 id="设置字体"><a href="#设置字体" class="headerlink" title="设置字体"></a>设置字体</h3><p>使用 <code>agnoster</code> 主题时需要加载一个字体，不然很多箭头之类的表示符会显示乱码。下载字体：<code>git clone https://github.com/powerline/fonts.git</code>, 找到 <code>fonts/Meslo Slashed/Meslo LG M Regular for Powerline.ttf</code> 双击安装。 然后打开 iTerm2，按 <code>Command + ,</code> 键，打开 Preferences 配置界面，然后Profiles -&gt; Text -&gt; Font -&gt; Chanage Font，选择 Meslo LG M Regular for Powerline 字体。</p>
-<h3 id="VSCode"><a href="#VSCode" class="headerlink" title="VSCode"></a>VSCode</h3><p>打开 VSCode, <code>CMD + SHIFT + P</code>, 选择 <code>Shell Command: Install &#39;code&#39; command in PATH</code> 命令，应用会自动安装好，在终端输入 <code>code</code> 测试</p>
-<p>配置完 zsh 之后，VSCode 的终端会显示乱码，<code>cmd + shift + p</code> 搜索 ‘Preferences: Open Settings(JSON)’ 添加配置 <code>&#123; &quot;terminal.integrated.fontFamily&quot;: &quot;Meslo LG M for Powerline&quot; &#125;</code> 即可修复，保存后可以看到效果。</p>
-<p>VSCode 在终端安装 code 命令之后每次重启都会失效，应该是因为我只是把它放在 Document, Download 文件夹下面了。把它放到 Application 下再安装一下 shell 继承命令就可以了。顺带着之前 <code>zsh-autosuggestion</code> 不能补全也是这个原因！！！</p>
-<h3 id="安装-VirtualBox"><a href="#安装-VirtualBox" class="headerlink" title="安装 VirtualBox"></a>安装 VirtualBox</h3><p>MacOS 10.15.6 Catalina 安装 VirtualBox 的时候报错，安装失败，是应为 MacOS 默认设置是禁止安装 Oracle 公司产品的，你可以去 System Preference -&gt; Security &amp; Privacy 页面点一下左下方的小锁，允许安装 Oracle 相关软件。再重新安装一下，就行了。</p>
-<h2 id="使用-IDEA-的快捷键时跳出窗口"><a href="#使用-IDEA-的快捷键时跳出窗口" class="headerlink" title="使用 IDEA 的快捷键时跳出窗口"></a>使用 IDEA 的快捷键时跳出窗口</h2><p>窗口内容： “No manual entry for <command>“， Refer to <a target="_blank" rel="noopener" href="https://intellij-support.jetbrains.com/hc/en-us/articles/360005137400-Cmd-Shift-A-hotkey-opens-Terminal-with-apropos-search-instead-of-the-Find-Action-dialog">Official IDEA Support</a></p>
-<p>MacOS since 10.14, 官方定义了这个快捷键，和 IDEA 冲突了，Keyboard -&gt; shortcut -&gt; service -&gt; search man page index in terminal 把这个选项 disable 掉，或者替换掉</p>
 
       
     </div>
@@ -1294,20 +1492,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">122</span>
+          <span class="site-state-item-count">124</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/hexo/categories/">
           
-        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-count">22</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">132</span>
+        <span class="site-state-item-count">137</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1341,12 +1539,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">494k</span>
+    <span title="站点总字数">497k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">7:29</span>
+    <span title="站点阅读时长">7:32</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
