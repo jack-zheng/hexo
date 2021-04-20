@@ -35,6 +35,10 @@ public class MenuItem {
     }
 
     // getter and setter
+    @Override
+    public String toString() {
+        return name + ", desc:'" + description + '\'' +  ", vegetarian:" + vegetarian + ", price:" + price;
+    }
 }
 ```
 
@@ -135,6 +139,7 @@ public class DinerMenuIterator implements Iterator {
 
     @Override
     public boolean hasNext() {
+        // position 这里不用做 +1 处理，拿长度为 1 的 arr 做例子。初始化后，调用 hasNext()，0 < 1 && obj != null 返回 true
         return position < items.length && items[position] != null;
     }
 

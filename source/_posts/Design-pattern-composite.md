@@ -135,8 +135,8 @@ public class Menu extends MenuComponent {
 
     public void print() {
         System.out.print("\n" + getName());
-        System.out.println(", " + getDescription());
-        System.out.println("-------------------- -");
+        System.out.println(", " + getDesc());
+        System.out.print("---------------------\n");
 
         // 打印完自己的信息后，还需要循环答应子节点信息
         Iterator iterator = menuComponents.iterator();
@@ -181,43 +181,31 @@ public class CompositeClient {
     }
 }
 // ALL MENUS, All menus combined
-// -------------------- -
+// ---------------------
 
 // PANCAKE HOUSE MENU, Breakfast
-// -------------------- -
-//   K & B’s Pancake Breakfast (v), 2.99
-// -- Pancakes with scrambled eggs, and toast
-//   Regular Pancake Breakfast, 2.99
-// -- Pancakes with fried eggs, sausage
-//   Blueberry Pancakes (v), 3.49
-// -- Pancakes made with fresh blueberries
-//   Waffles (v), 3.59
-// -- Waffles, with your choice of blueberries or strawberries
+// ---------------------
+//   K & B’s Pancake Breakfast, desc:'Pancakes with scrambled eggs, and toast' (v) , price:2.99
+//   Regular Pancake Breakfast, desc:'Pancakes with fried eggs, sausage' , price:2.99
+//   Blueberry Pancakes, desc:'Pancakes made with fresh blueberries' (v) , price:3.49
+//   Waffles, desc:'Waffles, with your choice of blueberries or strawberries' (v) , price:3.59
 
 // DINER MENU, Lunch
-// -------------------- -
-//   Pasta (v), 3.89
-// -- Spaghetti with Marinara Sauce, and a slice of sourdough bread
-//   Vegetarian BLT (v), 2.99
-// --  (Fakin’)Bacon with lettuce & tomato on whole wheat
-//   BLT, 2.99
-// -- Bacon with lettuce & tomato on whole wheat
-//   Soup of the day, 3.29
-// -- Soup of the day, with a side of potato salad
+// ---------------------
+//   Pasta, desc:'Spaghetti with Marinara Sauce, and a slice of sourdough bread' (v) , price:3.89
+//   Vegetarian BLT, desc:' (Fakin’)Bacon with lettuce & tomato on whole wheat' (v) , price:2.99
+//   BLT, desc:'Bacon with lettuce & tomato on whole wheat' , price:2.99
+//   Soup of the day, desc:'Soup of the day, with a side of potato salad' , price:3.29
 
 // DESSERT MENU, Dessert of course !
-// -------------------- -
-//   Apple Pie (v), 1.59
-// -- Apple pie with a flakey crust, topped with vanilla icecream
+// ---------------------
+//   Apple Pie, desc:'Apple pie with a flakey crust, topped with vanilla icecream' (v) , price:1.59
 
 // CAFE MENU, Dinner
-// -------------------- -
-//   Veggie Burger and Air Fries (v), 3.99
-// -- Veggie burger on a whole wheat bun, lettuce, tomato, and fries
-//   Soup of the day, 3.69
-// -- A cup of the soup of the day, with a side salad
-//   Burrito (v), 4.29
-// -- A large burrito, with whole pinto beans, salsa, guacamole
+// ---------------------
+//   Veggie Burger and Air Fries, desc:'Veggie burger on a whole wheat bun, lettuce, tomato, and fries' (v) , price:3.99
+//   Soup of the day, desc:'A cup of the soup of the day, with a side salad' , price:3.69
+//   Burrito, desc:'A large burrito, with whole pinto beans, salsa, guacamole' (v) , price:4.29
 ```
 
 上面这种 print 用了内部 Iterator 的方法，简单了很多， 那么如何实现一个外部的 Iterator 呢
@@ -234,37 +222,42 @@ public class MenuComponent {
 
 然后声明一个 Composite 的 Iterator 的具体实现类, 并让 Composite 实现类返回它
 
+CompositeIterator 说明：
+
+这个 Iterator 说实话不是很容易看懂。我们最好结合下面的 printVegetarianMenu() 方法的使用情况一起来看。由下面的方法调用，我们可以反推出这个 Iterator 实现类的作用。
+
+每次调用 hasNext() 时，CompositeIterator 会返回一个 MenuCompoment 类型的对象。有可能是 Menu, 也有可能是 MenuItem。
+
+而且就算返回的是 Menu, 他之后还是会把这个 Menu 的 MenuItem 在下一次返回。由此我们可以推测出，在 next() 反 Menu 之后，还有一个隐式的将 Menu 子节点 push 到 stack 中的动作。
+
 ```java
-import java.util.Iterator;
-import java.util.Stack;
+public class CompositeIterator implements Iterator<MenuComponent> {
+    private Stack<Iterator<MenuComponent>> stack = new Stack<>();
 
-public class CompositeIterator implements Iterator {
-    Stack stack = new Stack();
-
-    public CompositeIterator(Iterator iterator) {
-        stack.push(iterator);
+    public CompositeIterator(Iterator<MenuComponent> it) {
+        stack.push(it);
     }
 
     @Override
     public boolean hasNext() {
-        if (stack.empty()) {
+        if(stack.empty()) {
             return false;
         } else {
-            Iterator iterator = (Iterator) stack.peek();
-            if (!iterator.hasNext()) {
+            Iterator<MenuComponent> it = stack.peek();
+            if (it.hasNext()) {
+                return true;
+            } else {
                 stack.pop();
                 return hasNext();
-            } else {
-                return true;
             }
         }
     }
 
     @Override
-    public Object next() {
+    public MenuComponent next() {
         if (hasNext()) {
-            Iterator iterator = (Iterator) stack.peek();
-            MenuComponent component = (MenuComponent) iterator.next();
+            Iterator<MenuComponent> it = stack.peek();
+            MenuComponent component = it.next();
             if (component instanceof Menu) {
                 stack.push(component.createIterator());
             }
@@ -277,13 +270,9 @@ public class CompositeIterator implements Iterator {
 
 public class Menu extends MenuComponent {
     // dup...
-    Iterator iterator = null;
     @Override
-    public Iterator createIterator() {
-        if (iterator == null) {
-            iterator = new CompositeIterator(menuComponents.iterator());
-        }
-        return iterator;
+    public Iterator<MenuComponent> createIterator() {
+        return new CompositeIterator(nodes.iterator());
     }
 }
 ```
@@ -315,8 +304,7 @@ public class MenuItem extends MenuComponent {
 测试代码
 
 ```java
-public class CompositeClient {
-
+public class Client {
     public static void main(String[] args) {
         MenuComponent pancakeHouseMenu = new Menu("PANCAKE HOUSE MENU", "Breakfast");
         MenuComponent dinerMenu = new Menu("DINER MENU", "Lunch");
@@ -345,340 +333,35 @@ public class CompositeClient {
         cafeMenu.add(new MenuItem("Soup of the day", "A cup of the soup of the day, with a side salad", false, 3.69));
         cafeMenu.add(new MenuItem("Burrito", "A large burrito, with whole pinto beans, salsa, guacamole", true, 4.29));
 
-        printVegetarianMenu(allMenus);
+        Iterator<MenuComponent> it = allMenus.createIterator();
+        printVegetarianMenu(it);
     }
 
-    private static void printVegetarianMenu(MenuComponent menuComponent) {
-        Iterator iterator = menuComponent.createIterator();
-        System.out.println("\nVEGETARIAN MENU \n---");
-        while (iterator.hasNext()) {
-            MenuComponent component = (MenuComponent) iterator.next();
+    private static void printVegetarianMenu(Iterator<MenuComponent> it) {
+        System.out.println("Vegetarian Menu\n----------");
+        while (it.hasNext()) {
+            MenuComponent menuComponent = it.next();
             try {
-                if (component.isVegetarian()) {
+                if (menuComponent.isVegetarian()) {
                     menuComponent.print();
                 }
-            } catch (UnsupportedOperationException e) {
+            } catch (UnsupportedOperationException ignored) {
             }
         }
     }
 }
-
-// VEGETARIAN MENU
-
-// --- ALL MENUS, All menus combined
-// -------------------- -
-
-// PANCAKE HOUSE MENU, Breakfast
-// -------------------- -
-//   K & B’s Pancake Breakfast (v), 2.99
-// -- Pancakes with scrambled eggs, and toast
-//   Regular Pancake Breakfast, 2.99
-// -- Pancakes with fried eggs, sausage
-//   Blueberry Pancakes (v), 3.49
-// -- Pancakes made with fresh blueberries
-//   Waffles (v), 3.59
-// -- Waffles, with your choice of blueberries or strawberries
-
-// DINER MENU, Lunch
-// -------------------- -
-//   Pasta (v), 3.89
-// -- Spaghetti with Marinara Sauce, and a slice of sourdough bread
-//   Vegetarian BLT (v), 2.99
-// --  (Fakin’)Bacon with lettuce & tomato on whole wheat
-//   BLT, 2.99
-// -- Bacon with lettuce & tomato on whole wheat
-//   Soup of the day, 3.29
-// -- Soup of the day, with a side of potato salad
-
-// DESSERT MENU, Dessert of course !
-// -------------------- -
-//   Apple Pie (v), 1.59
-// -- Apple pie with a flakey crust, topped with vanilla icecream
-
-// CAFE MENU, Dinner
-// -------------------- -
-//   Veggie Burger and Air Fries (v), 3.99
-// -- Veggie burger on a whole wheat bun, lettuce, tomato, and fries
-//   Soup of the day, 3.69
-// -- A cup of the soup of the day, with a side salad
-//   Burrito (v), 4.29
-// -- A large burrito, with whole pinto beans, salsa, guacamole
-
-// ALL MENUS, All menus combined
-// -------------------- -
-
-// PANCAKE HOUSE MENU, Breakfast
-// -------------------- -
-//   K & B’s Pancake Breakfast (v), 2.99
-// -- Pancakes with scrambled eggs, and toast
-//   Regular Pancake Breakfast, 2.99
-// -- Pancakes with fried eggs, sausage
-//   Blueberry Pancakes (v), 3.49
-// -- Pancakes made with fresh blueberries
-//   Waffles (v), 3.59
-// -- Waffles, with your choice of blueberries or strawberries
-
-// DINER MENU, Lunch
-// -------------------- -
-//   Pasta (v), 3.89
-// -- Spaghetti with Marinara Sauce, and a slice of sourdough bread
-//   Vegetarian BLT (v), 2.99
-// --  (Fakin’)Bacon with lettuce & tomato on whole wheat
-//   BLT, 2.99
-// -- Bacon with lettuce & tomato on whole wheat
-//   Soup of the day, 3.29
-// -- Soup of the day, with a side of potato salad
-
-// DESSERT MENU, Dessert of course !
-// -------------------- -
-//   Apple Pie (v), 1.59
-// -- Apple pie with a flakey crust, topped with vanilla icecream
-
-// CAFE MENU, Dinner
-// -------------------- -
-//   Veggie Burger and Air Fries (v), 3.99
-// -- Veggie burger on a whole wheat bun, lettuce, tomato, and fries
-//   Soup of the day, 3.69
-// -- A cup of the soup of the day, with a side salad
-//   Burrito (v), 4.29
-// -- A large burrito, with whole pinto beans, salsa, guacamole
-
-// ALL MENUS, All menus combined
-// -------------------- -
-
-// PANCAKE HOUSE MENU, Breakfast
-// -------------------- -
-//   K & B’s Pancake Breakfast (v), 2.99
-// -- Pancakes with scrambled eggs, and toast
-//   Regular Pancake Breakfast, 2.99
-// -- Pancakes with fried eggs, sausage
-//   Blueberry Pancakes (v), 3.49
-// -- Pancakes made with fresh blueberries
-//   Waffles (v), 3.59
-// -- Waffles, with your choice of blueberries or strawberries
-
-// DINER MENU, Lunch
-// -------------------- -
-//   Pasta (v), 3.89
-// -- Spaghetti with Marinara Sauce, and a slice of sourdough bread
-//   Vegetarian BLT (v), 2.99
-// --  (Fakin’)Bacon with lettuce & tomato on whole wheat
-//   BLT, 2.99
-// -- Bacon with lettuce & tomato on whole wheat
-//   Soup of the day, 3.29
-// -- Soup of the day, with a side of potato salad
-
-// DESSERT MENU, Dessert of course !
-// -------------------- -
-//   Apple Pie (v), 1.59
-// -- Apple pie with a flakey crust, topped with vanilla icecream
-
-// CAFE MENU, Dinner
-// -------------------- -
-//   Veggie Burger and Air Fries (v), 3.99
-// -- Veggie burger on a whole wheat bun, lettuce, tomato, and fries
-//   Soup of the day, 3.69
-// -- A cup of the soup of the day, with a side salad
-//   Burrito (v), 4.29
-// -- A large burrito, with whole pinto beans, salsa, guacamole
-
-// ALL MENUS, All menus combined
-// -------------------- -
-
-// PANCAKE HOUSE MENU, Breakfast
-// -------------------- -
-//   K & B’s Pancake Breakfast (v), 2.99
-// -- Pancakes with scrambled eggs, and toast
-//   Regular Pancake Breakfast, 2.99
-// -- Pancakes with fried eggs, sausage
-//   Blueberry Pancakes (v), 3.49
-// -- Pancakes made with fresh blueberries
-//   Waffles (v), 3.59
-// -- Waffles, with your choice of blueberries or strawberries
-
-// DINER MENU, Lunch
-// -------------------- -
-//   Pasta (v), 3.89
-// -- Spaghetti with Marinara Sauce, and a slice of sourdough bread
-//   Vegetarian BLT (v), 2.99
-// --  (Fakin’)Bacon with lettuce & tomato on whole wheat
-//   BLT, 2.99
-// -- Bacon with lettuce & tomato on whole wheat
-//   Soup of the day, 3.29
-// -- Soup of the day, with a side of potato salad
-
-// DESSERT MENU, Dessert of course !
-// -------------------- -
-//   Apple Pie (v), 1.59
-// -- Apple pie with a flakey crust, topped with vanilla icecream
-
-// CAFE MENU, Dinner
-// -------------------- -
-//   Veggie Burger and Air Fries (v), 3.99
-// -- Veggie burger on a whole wheat bun, lettuce, tomato, and fries
-//   Soup of the day, 3.69
-// -- A cup of the soup of the day, with a side salad
-//   Burrito (v), 4.29
-// -- A large burrito, with whole pinto beans, salsa, guacamole
-
-// ALL MENUS, All menus combined
-// -------------------- -
-
-// PANCAKE HOUSE MENU, Breakfast
-// -------------------- -
-//   K & B’s Pancake Breakfast (v), 2.99
-// -- Pancakes with scrambled eggs, and toast
-//   Regular Pancake Breakfast, 2.99
-// -- Pancakes with fried eggs, sausage
-//   Blueberry Pancakes (v), 3.49
-// -- Pancakes made with fresh blueberries
-//   Waffles (v), 3.59
-// -- Waffles, with your choice of blueberries or strawberries
-
-// DINER MENU, Lunch
-// -------------------- -
-//   Pasta (v), 3.89
-// -- Spaghetti with Marinara Sauce, and a slice of sourdough bread
-//   Vegetarian BLT (v), 2.99
-// --  (Fakin’)Bacon with lettuce & tomato on whole wheat
-//   BLT, 2.99
-// -- Bacon with lettuce & tomato on whole wheat
-//   Soup of the day, 3.29
-// -- Soup of the day, with a side of potato salad
-
-// DESSERT MENU, Dessert of course !
-// -------------------- -
-//   Apple Pie (v), 1.59
-// -- Apple pie with a flakey crust, topped with vanilla icecream
-
-// CAFE MENU, Dinner
-// -------------------- -
-//   Veggie Burger and Air Fries (v), 3.99
-// -- Veggie burger on a whole wheat bun, lettuce, tomato, and fries
-//   Soup of the day, 3.69
-// -- A cup of the soup of the day, with a side salad
-//   Burrito (v), 4.29
-// -- A large burrito, with whole pinto beans, salsa, guacamole
-
-// ALL MENUS, All menus combined
-// -------------------- -
-
-// PANCAKE HOUSE MENU, Breakfast
-// -------------------- -
-//   K & B’s Pancake Breakfast (v), 2.99
-// -- Pancakes with scrambled eggs, and toast
-//   Regular Pancake Breakfast, 2.99
-// -- Pancakes with fried eggs, sausage
-//   Blueberry Pancakes (v), 3.49
-// -- Pancakes made with fresh blueberries
-//   Waffles (v), 3.59
-// -- Waffles, with your choice of blueberries or strawberries
-
-// DINER MENU, Lunch
-// -------------------- -
-//   Pasta (v), 3.89
-// -- Spaghetti with Marinara Sauce, and a slice of sourdough bread
-//   Vegetarian BLT (v), 2.99
-// --  (Fakin’)Bacon with lettuce & tomato on whole wheat
-//   BLT, 2.99
-// -- Bacon with lettuce & tomato on whole wheat
-//   Soup of the day, 3.29
-// -- Soup of the day, with a side of potato salad
-
-// DESSERT MENU, Dessert of course !
-// -------------------- -
-//   Apple Pie (v), 1.59
-// -- Apple pie with a flakey crust, topped with vanilla icecream
-
-// CAFE MENU, Dinner
-// -------------------- -
-//   Veggie Burger and Air Fries (v), 3.99
-// -- Veggie burger on a whole wheat bun, lettuce, tomato, and fries
-//   Soup of the day, 3.69
-// -- A cup of the soup of the day, with a side salad
-//   Burrito (v), 4.29
-// -- A large burrito, with whole pinto beans, salsa, guacamole
-
-// ALL MENUS, All menus combined
-// -------------------- -
-
-// PANCAKE HOUSE MENU, Breakfast
-// -------------------- -
-//   K & B’s Pancake Breakfast (v), 2.99
-// -- Pancakes with scrambled eggs, and toast
-//   Regular Pancake Breakfast, 2.99
-// -- Pancakes with fried eggs, sausage
-//   Blueberry Pancakes (v), 3.49
-// -- Pancakes made with fresh blueberries
-//   Waffles (v), 3.59
-// -- Waffles, with your choice of blueberries or strawberries
-
-// DINER MENU, Lunch
-// -------------------- -
-//   Pasta (v), 3.89
-// -- Spaghetti with Marinara Sauce, and a slice of sourdough bread
-//   Vegetarian BLT (v), 2.99
-// --  (Fakin’)Bacon with lettuce & tomato on whole wheat
-//   BLT, 2.99
-// -- Bacon with lettuce & tomato on whole wheat
-//   Soup of the day, 3.29
-// -- Soup of the day, with a side of potato salad
-
-// DESSERT MENU, Dessert of course !
-// -------------------- -
-//   Apple Pie (v), 1.59
-// -- Apple pie with a flakey crust, topped with vanilla icecream
-
-// CAFE MENU, Dinner
-// -------------------- -
-//   Veggie Burger and Air Fries (v), 3.99
-// -- Veggie burger on a whole wheat bun, lettuce, tomato, and fries
-//   Soup of the day, 3.69
-// -- A cup of the soup of the day, with a side salad
-//   Burrito (v), 4.29
-// -- A large burrito, with whole pinto beans, salsa, guacamole
-
-// ALL MENUS, All menus combined
-// -------------------- -
-
-// PANCAKE HOUSE MENU, Breakfast
-// -------------------- -
-//   K & B’s Pancake Breakfast (v), 2.99
-// -- Pancakes with scrambled eggs, and toast
-//   Regular Pancake Breakfast, 2.99
-// -- Pancakes with fried eggs, sausage
-//   Blueberry Pancakes (v), 3.49
-// -- Pancakes made with fresh blueberries
-//   Waffles (v), 3.59
-// -- Waffles, with your choice of blueberries or strawberries
-
-// DINER MENU, Lunch
-// -------------------- -
-//   Pasta (v), 3.89
-// -- Spaghetti with Marinara Sauce, and a slice of sourdough bread
-//   Vegetarian BLT (v), 2.99
-// --  (Fakin’)Bacon with lettuce & tomato on whole wheat
-//   BLT, 2.99
-// -- Bacon with lettuce & tomato on whole wheat
-//   Soup of the day, 3.29
-// -- Soup of the day, with a side of potato salad
-
-// DESSERT MENU, Dessert of course !
-// -------------------- -
-//   Apple Pie (v), 1.59
-// -- Apple pie with a flakey crust, topped with vanilla icecream
-
-// CAFE MENU, Dinner
-// -------------------- -
-//   Veggie Burger and Air Fries (v), 3.99
-// -- Veggie burger on a whole wheat bun, lettuce, tomato, and fries
-//   Soup of the day, 3.69
-// -- A cup of the soup of the day, with a side salad
-//   Burrito (v), 4.29
-// -- A large burrito, with whole pinto beans, salsa, guacamole
+// Vegetarian Menu
+// ----------
+//   K & B’s Pancake Breakfast, desc:'Pancakes with scrambled eggs, and toast' (v) , price:2.99
+//   Blueberry Pancakes, desc:'Pancakes made with fresh blueberries' (v) , price:3.49
+//   Waffles, desc:'Waffles, with your choice of blueberries or strawberries' (v) , price:3.59
+//   Pasta, desc:'Spaghetti with Marinara Sauce, and a slice of sourdough bread' (v) , price:3.89
+//   Vegetarian BLT, desc:' (Fakin’)Bacon with lettuce & tomato on whole wheat' (v) , price:2.99
+//   Apple Pie, desc:'Apple pie with a flakey crust, topped with vanilla icecream' (v) , price:1.59
+//   Apple Pie, desc:'Apple pie with a flakey crust, topped with vanilla icecream' (v) , price:1.59
+//   Veggie Burger and Air Fries, desc:'Veggie burger on a whole wheat bun, lettuce, tomato, and fries' (v) , price:3.99
+//   Burrito, desc:'A large burrito, with whole pinto beans, salsa, guacamole' (v) , price:4.29
 ```
-
-输出有很大问题，我回头还要再检查一遍，感觉上这个套路应该没问题才对。
 
 上面用的是外部 Iterator 的方式，需要自己控制当前节点位置，所以实现上比内部的那种要复杂很多。
 
