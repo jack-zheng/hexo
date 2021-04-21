@@ -59,7 +59,7 @@
 <meta property="og:description" content="The Composite Pattern allows you to compose objects into tree structures to represent part-whole hierarchies. Composite lets clients treat individual objects and compositions of objects uniformly.组合模">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-04-19T11:00:00.000Z">
-<meta property="article:modified_time" content="2021-04-20T13:29:32.945Z">
+<meta property="article:modified_time" content="2021-04-21T13:03:06.280Z">
 <meta property="article:author" content="Jack Zheng">
 <meta property="article:tag" content="composite pattern">
 <meta property="article:tag" content="组合模式">
@@ -240,7 +240,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-20 21:29:32" itemprop="dateModified" datetime="2021-04-20T21:29:32+08:00">2021-04-20</time>
+                <time title="修改时间：2021-04-21 21:03:06" itemprop="dateModified" datetime="2021-04-21T21:03:06+08:00">2021-04-21</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -312,6 +312,7 @@
 <p>这个 Iterator 说实话不是很容易看懂。我们最好结合下面的 printVegetarianMenu() 方法的使用情况一起来看。由下面的方法调用，我们可以反推出这个 Iterator 实现类的作用。</p>
 <p>每次调用 hasNext() 时，CompositeIterator 会返回一个 MenuCompoment 类型的对象。有可能是 Menu, 也有可能是 MenuItem。</p>
 <p>而且就算返回的是 Menu, 他之后还是会把这个 Menu 的 MenuItem 在下一次返回。由此我们可以推测出，在 next() 反 Menu 之后，还有一个隐式的将 Menu 子节点 push 到 stack 中的动作。</p>
+<p>PS: 这段代码的关键点是，stack 中存储的是 Iterator 对象。当这个对象里面没有值的时候，需要做 pop 操作弹出 it, 这里有点绕</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CompositeIterator</span> <span class="keyword">implements</span> <span class="title">Iterator</span>&lt;<span class="title">MenuComponent</span>&gt; </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Stack&lt;Iterator&lt;MenuComponent&gt;&gt; stack = <span class="keyword">new</span> Stack&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">CompositeIterator</span><span class="params">(Iterator&lt;MenuComponent&gt; it)</span> </span>&#123;</span><br><span class="line">        stack.push(it);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">hasNext</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(stack.empty()) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            Iterator&lt;MenuComponent&gt; it = stack.peek();</span><br><span class="line">            <span class="keyword">if</span> (it.hasNext()) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                stack.pop();</span><br><span class="line">                <span class="keyword">return</span> hasNext();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> MenuComponent <span class="title">next</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (hasNext()) &#123;</span><br><span class="line">            Iterator&lt;MenuComponent&gt; it = stack.peek();</span><br><span class="line">            MenuComponent component = it.next();</span><br><span class="line">            <span class="keyword">if</span> (component <span class="keyword">instanceof</span> Menu) &#123;</span><br><span class="line">                stack.push(component.createIterator());</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> component;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Menu</span> <span class="keyword">extends</span> <span class="title">MenuComponent</span> </span>&#123;</span><br><span class="line">    <span class="comment">// dup...</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Iterator&lt;MenuComponent&gt; <span class="title">createIterator</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> CompositeIterator(nodes.iterator());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>由于叶子节点是不需要迭代的，我们返回一个空的 iterator， 每次调用 hasNext() 都返回 false</p>
@@ -370,8 +371,8 @@
             <span class="post-nav-divider"></span>
 
             <div class="post-nav-prev post-nav-item">
-                <a href="/hexo/2021/04/20/Algorithm-insertion-sort/" rel="prev" title="Algorithm insertion sort">
-                  Algorithm insertion sort <i class="fa fa-chevron-right"></i>
+                <a href="/hexo/2021/04/20/Algorithm-insertion-sort/" rel="prev" title="插入排序">
+                  插入排序 <i class="fa fa-chevron-right"></i>
                 </a>
             </div>
           </div>
@@ -428,7 +429,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">124</span>
+          <span class="site-state-item-count">125</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -475,12 +476,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">499k</span>
+    <span title="站点总字数">506k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">7:34</span>
+    <span title="站点阅读时长">7:40</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
