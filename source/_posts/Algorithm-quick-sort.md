@@ -90,26 +90,44 @@ Java 中快排的实现思路和 Python 中的是一样的，但是可能由于�
 
 参考 [CSDN](https://blog.csdn.net/Holmofy/article/details/71168530) 讲解的很详细，难点集中在分组的算法上，这里使用的是 挖坑法。
 
-先把第一个元素拿出来当 pivot，然后从数组两端开始扫描。先从右向左找 小于 pivot 的值和 i 位置上的元素交换。再从左向右扫描找大于 pivot 的元素和 j 位置交换，直到 i>=j 停止，完成 partition 的操作。
+那数组的第一个元素作为 pivot，分别记录起止点下标i，j. 先从右向左找**小于**pivot的元素, 找到了就和 i 做交换。然后从左向右找**大于**pivot的元素，和j 做交换，知道 i >= j结束。
+
+完了将 pivot 的值赋给 i 位置。这个时候 i 和 j 是相等的。经过这一次遍历，数组被分为以 pivot 为界的两个自数组，元素分别小于和大于 pivot。
+
+PS: 必须先从右向左扫描，不然我们就丢失了 j 的初始值引用了
 
 ```java
-public class QsortInJava {
+import java.util.Arrays;
+import java.util.Random;
+
+public class QuickSortDemo {
     public static void main(String[] args) {
-        int[] sample = new int[10];
-        Random random = new Random();
-        for (int i = 0; i < 10; i++) {
-            sample[i] = random.nextInt(100);
-        }
+        int[] sample = new Random().ints(0, 100).limit(10).toArray();
+        System.out.println("Origin: " + Arrays.toString(sample));
 
         qsort(sample, 0, sample.length - 1);
-        System.out.println(Arrays.toString(sample));
+        System.out.println("After:  " + Arrays.toString(sample));
     }
 
     private static void qsort(int[] arr, int start, int end) {
-        if (start >= end)
+        if (start >= end) {
             return;
+        }
 
-        // partition part
+        int pivot_index = partition(arr, start, end);
+        qsort(arr, start, pivot_index - 1);
+        qsort(arr, pivot_index + 1, end);
+    }
+
+    /**
+     * 以第一个元素为基准，对数组排序，排序完之后，格式为 [小于pivot + pivot + 大于pivot]
+     *
+     * @param arr
+     * @param start
+     * @param end
+     * @return pivot index
+     */
+    private static int partition(int[] arr, int start, int end) {
         int pivot = arr[start];
         int i = start, j = end;
         while (i < j) {
@@ -123,9 +141,7 @@ public class QsortInJava {
             arr[j] = arr[i];
         }
         arr[i] = pivot;
-
-        qsort(arr, start, i);
-        qsort(arr, i + 1, end);
+        return i;
     }
 }
 

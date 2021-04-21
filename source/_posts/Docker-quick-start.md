@@ -336,3 +336,133 @@ docker attach contain_id # 进去容器，为当前正在执行的终端
 docker cp container_id:path 目的主机路径 # sample: docker cp 247d2a88573f:/test.java .
 ```
 
+## Nginx
+
+```bash
+docker search nginx # 搜索镜像
+docker pull nginx # 下载镜像
+
+# -d : 后台运行
+# --name: 自定义容器名称
+# -p: 指定端口号
+docker run -d --name nginx01 -p 3344:80 nginx 
+curl localhost:3344 
+# 访问 nginx 测试是否成功启动, 返回页面如下
+# <!DOCTYPE html>
+# <html>
+# <head>
+# <title>Welcome to nginx!</title>
+# <style>
+#     body {
+#         width: 35em;
+#         margin: 0 auto;
+#         font-family: Tahoma, Verdana, Arial, sans-serif;
+#     }
+# </style>
+# </head>
+# <body>
+# <h1>Welcome to nginx!</h1>
+# <p>If you see this page, the nginx web server is successfully installed and
+# working. Further configuration is required.</p>
+
+# <p>For online documentation and support please refer to
+# <a href="http://nginx.org/">nginx.org</a>.<br/>
+# Commercial support is available at
+# <a href="http://nginx.com/">nginx.com</a>.</p>
+
+# <p><em>Thank you for using nginx.</em></p>
+# </body>
+# </html>
+
+docker exec -it nginx01 /bin/bash # 进入容器
+whereis nginx # 查看配置
+```
+
+## Tomcat 练习
+
+```bash
+# --rm: 一般用于测试，用完即删除
+docker run -it --rm tomcat:9.0
+
+docker run -d -p 3355:8080 --name tomcat01 tomcat
+curl localhost:3355
+# 访问失败
+# <!doctype html><html lang="en"><head><title>HTTP Status 404 – Not Found</title><style type="text/css">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 404 – Not Found</h1><hr class="line" /><p><b>Type</b> Status Report</p><p><b>Description</b> The origin server did not find a current representation for the target resource or is not willing to disclose that one exists.</p><hr class="line" /><h3>Apache Tomcat/9.0.45</h3></body></html>
+
+# 进入容器查看原因
+docker exec -it tomcat01 /bin/bash
+
+# ls 发现 webapps 目录下没有文件，官方打镜像的时候把对应的文件放到 webapps.dist 下了。拷贝一下，问题解决
+cp -r webapps.dist/* webapps
+```
+
+## 部署 EC + kibana
+
+* ES 暴露的接口多
+* ES 十分耗内存
+* ES 数据需要备份
+
+```bash
+# docker run -d --name elasticsearch --net somenetwork -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" elasticsearch:tag
+# --net somenetwork?
+docker run -d --name elasticsearch -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" elasticsearch:7.6.2
+
+# 查看服务状态
+docker stats
+# CONTAINER ID   NAME                          CPU %     MEM USAGE / LIMIT     MEM %     NET I/O           BLOCK I/O         PIDS
+# 4d87cd0d4ff6   elasticsearch                 0.78%     1.26GiB / 15.64GiB    8.06%     936B / 0B         0B / 729kB        45
+# d3119daeed2c   bizx-docker-dev_kafka_1       1.36%     437.9MiB / 1.562GiB   27.37%    1.43MB / 2.08MB   1.25MB / 32.8kB   80
+# 24fe744a20ea   bizx-docker-dev_zookeeper_1   0.31%     101.8MiB / 768MiB     13.26%    2.92MB / 2MB      50.5MB / 0B       50
+# f9b12d209a07   hana2_hana2_1                 4.27%     3.714GiB / 15.64GiB   23.75%    823MB / 3.53GB    1.69GB / 1.08GB   291
+
+# 发送请求测试, 成功
+curl localhost:9200
+# {
+#   "name" : "4d87cd0d4ff6",
+#   "cluster_name" : "docker-cluster",
+#   "cluster_uuid" : "ojWX85pITJyL7WkVnoKZcA",
+#   "version" : {
+#     "number" : "7.6.2",
+#     "build_flavor" : "default",
+#     "build_type" : "docker",
+#     "build_hash" : "ef48eb35cf30adf4db14086e8aabd07ef6fb113f",
+#     "build_date" : "2020-03-26T06:34:37.794943Z",
+#     "build_snapshot" : false,
+#     "lucene_version" : "8.4.0",
+#     "minimum_wire_compatibility_version" : "6.8.0",
+#     "minimum_index_compatibility_version" : "6.0.0-beta1"
+#   },
+#   "tagline" : "You Know, for Search"
+# }
+
+## 停止服务，修改内存配置 -e ES_JAVA_OPTS="-Xms64m -Xmx512m" 修改内存配置
+docker run -d --name elasticsearch -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e ES_JAVA_OPTS="-Xms64m -Xmx512m" elasticsearch:7.6.2
+```
+
+## 可视化
+
+* Portainer - 图形化管理工具
+* Rancher - CI/CD
+
+```bash
+# 访问 localhost:9000 可见页面
+docker run -d -p 8000:8000 -p 9000:9000 --name=portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce
+```
+
+## Docker 镜像加载原理
+
+UnionFS 联合文件系统，分层，轻量级且高性能。
+
+## 制作镜像
+
+```bash
+# -a: 作者
+# -m: commit 信息
+# 630bab3ed5c2：container sha
+# tomcat02:1.0：镜像名称 + 版本号
+docker commit -a='jzheng' -m='add webapps' 630bab3ed5c2 tomcat02:1.0
+docker images
+# REPOSITORY                                          TAG            IMAGE ID       CREATED         SIZE
+# tomcat02                                            1.0            67be5e0517c6   7 seconds ago   672MB
+# mysql                                               latest         0627ec6901db   42 hours ago    556MB
+```

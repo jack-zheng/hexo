@@ -230,6 +230,8 @@ CompositeIterator 说明：
 
 而且就算返回的是 Menu, 他之后还是会把这个 Menu 的 MenuItem 在下一次返回。由此我们可以推测出，在 next() 反 Menu 之后，还有一个隐式的将 Menu 子节点 push 到 stack 中的动作。
 
+PS: 这段代码的关键点是，stack 中存储的是 Iterator 对象。当这个对象里面没有值的时候，需要做 pop 操作弹出 it, 这里有点绕
+
 ```java
 public class CompositeIterator implements Iterator<MenuComponent> {
     private Stack<Iterator<MenuComponent>> stack = new Stack<>();
