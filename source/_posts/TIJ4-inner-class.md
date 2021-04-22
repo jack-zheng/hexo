@@ -26,45 +26,56 @@ tags:
 - [Local inner classes](#local-inner-classes)
 - [Inner-class identifiers](#inner-class-identifiers)
 - [Summary](#summary)
+- [实践出真知](#实践出真知)
 
-最近在看 Spring Core 文档的以后,刚好遇到一个 Inner Class 相关的问题,回忆以下突然发现对他基本没有什么很深入的理解,特此重新阅读一下 Think in Java 4th 相关章节看看能不能有什么特别的收获. 
+最近在看 Spring Core 文档, 刚好遇到一个 Inner Class 相关的问题, 回忆一下突然发现对他基本没有什么很深入的理解, 特此重新阅读一下 Think in Java 4th 相关章节看看能不能有什么特别的收获. 
 
 想要解决的问题:
 
-- [x] 什么是内部类 - 将 class 定义嵌入另一个 class 的一种语法
-- [x] 静态/非静态内部类有什么区别 - 前者可以单独使用, 或者需要 enclosing class 的实例才能使用
+- [x] 什么是内部类 - 将 class 定义嵌入另一个 class 内部, 我们就得到了一个内部类
+- [x] 静态/非静态内部类有什么区别 - 前者可以单独使用, 后者需要持有外部类(enclosing class)的实例才能使用
 - [x] 内部类有什么用 - 更好的闭包
-- [x] 字节码层面是怎么表现的 - class 分别编译, 外侧会持有内层的 class reference
+- [x] 字节码层面是怎么表现的 - class 分别编译, 外层会持有内层的 class reference
 
 ## Intro
 
 Java 语法是支持在一个 class 内部再放入另一个 class 的定义的, 这种做法叫做 内部类(Inner Class). 
 
-Inner class 是一个很有价值的功能, 他让你可以把两个逻辑上共存的 class 放到一起, 并让他们之间有了一层可见性控制的功能. 
+Inner class 是一个很有价值的功能, 他让你可以把两个逻辑上共存的 class 放到一起, 并让他们之间有可见性控制的特性. 
 
 ## Creating inner classes
 
-创建内部类的做法只需要直接将内部类定义放到外部类里面就行了, 很直接了当. 外部类一般会有一些方法用来返回内部类引用, 比如下面例子中的 `to()` 和 `contents()` 方法. 如果是 `非静态` 内部类, 你需要先新建外部类,然后才能创建内部类. 如果是 **静态** 内部类, 则你可以直接通过 class 引用创建内部类对象. 
+如果想要创建一个内部类你只需要直接将内部类的定义放到外部类里面就行了. 外部类一般会有一些方法用来返回内部类引用, 比如下面例子中的 `to()` 和 `contents()` 方法. 如果是 `非静态` 内部类, 你需要先新建外部类, 然后才能创建内部类. 如果是 **静态** 内部类, 则你可以直接通过 class 引用创建内部类对象. 
 
-注意内部类创建的声明方式举例:
+示例说明:
+
+创建静态/非静态内部类
 
 ```java
-// 静态内部类的情况
-Surrounding.Inner inner = surrounddingInstance.method();
+// 类结构
+public class OuterClass {
+    public static class NestedClass {}
+    public class InnerClass {}
+}
 
-// 非静态内部类的情况
-Surrounding surrounding = new Surrounding();
-Surrounding.Inner inner = surrounding.new Inner();
+public class TestInner {
+    public static void main(String[] args) {
+        // 静态内部类的情况
+        OuterClass.NestedClass nestedClass = new OuterClass.NestedClass();
 
-// 或者合二为一
-Surrounding.Inner inner = new Surrounding().new Inner();
+        // 非静态内部类的情况
+        OuterClass outer = new OuterClass();
+        OuterClass.InnerClass innerClass = outer.new InnerClass();
+
+        // 或者合二为一
+        OuterClass.InnerClass innerClass2 = new OuterClass().new InnerClass();
+    }
+}
 ```
 
-官方示例说明:
+示例说明:
 
-parcel: 包裹
-
-该示例以包裹运输为场景, 用包裹数量, 目的地等属性展示了内部类的应用
+parcel = 包裹, 该示例以包裹运输为场景, 用包裹数量, 目的地等属性展示了内部类的应用
 
 ```java
 public class Parcel2 {
@@ -140,14 +151,16 @@ public class Outer {
 我们声明了一个接口 Selector, 它定义了三个方法, 表示类似游标的能力, 这个接口可以让我们
 
 1. 得到当前量
-2. 判断是不是已经是最后一个元素了
+2. 判断是不是最后一个元素
 3. 移动到下一个元素
 
-Sequence(次序) 是一个可变长的数组容器, 只实现了构造函数和 add() 方法.  通过构造函数我们可以指定他的容量, 通过 add() 方法可以向容器中添加元素. 
+Sequence(次序) 是一个可变长的数组容器, 实现了构造函数和 add() 方法. 通过构造函数我们可以指定他的容量, 通过 add() 方法可以向容器中添加元素. 
 
-Sequence 中我们声明了一个内部类 SequenceSelector 实现了 Selector 接口. 通过这种组合方式, 我们把删选能力和容器分隔开, 避免了直接用 Sequence 直接实现 Selector 这种做法在语义上的累赘. 
+Sequence 中我们声明了一个内部类 SequenceSelector 实现了 Selector 接口. 通过这种组合方式, 我们把删选能力和容器分隔开, 避免让 Sequence 直接实现 Selector 这种在语义上有歧义的做法. 
 
-重点:SequenceSelector **可以访问** Sequence 的**私有**变量而不受限制
+重点: SequenceSelector **可以访问** Sequence 的**私有**变量而不受限制
+
+PS: 看了上面的这些描述, 这绝逼就是 Iterator 的概念, Iterator Pattern 章节的内容还历历在目 (●°u°●)​ 」
 
 ```java
 interface Selector {
@@ -229,7 +242,7 @@ public class Outer {
 
 ## Using .this and .new
 
-内部类中,你可以使用 `外部类.this` 的方式得到外部类的引用. 下面的例子中, inner class 的 `outer()` 通过 `DotThis.this` 返回了外部类的引用,并调用 `f()` 打印结果. 
+内部类中, 你可以使用 `外部类.this` 的方式得到外部类的引用. 下面的例子中, inner class 的 `outer()` 通过 `DotThis.this` 返回了外部类的引用, 并调用 `f()` 打印结果. 
 
 这个例子中的调用链有点别扭, 但是主旨是为了说明我们可以通过 `outer.this` 这个关键字拿到外部类的引用, 仅此而已. 
 
@@ -260,9 +273,9 @@ public class DotThis {
 // output: DotThis.f()
 ```
 
-如果你想创建内部类,那么你可以通过 `外部类实例.new` 的形式创建. 
+如果你想创建内部类, 那么你可以通过 `外部类实例.new` 的形式创建. 
 
-创建时你不需要为 `Inner()` 指定前缀 class,这个挺方便的. 本来还以为需要用 `dn.new DotNew.Inner();` 的语法,后来试过发现编译会报错. 
+创建时你不需要为 `Inner()` 指定前缀 class, 这个挺方便的. 本来还以为需要用 `dn.new DotNew.Inner();` 的语法, 后来试过发现编译会报错. 
 
 ```java
 public class DotNew {
@@ -275,7 +288,7 @@ public class DotNew {
 }
 ```
 
-PS: \[Attention\] 书上将非静态内部类叫做 inner class,静态内部类叫做 nested class 或 static inner class, 有点意思
+PS: \[Attention\] 书上将非静态内部类叫做 inner class, 静态内部类叫做 nested class 或 static inner class, 有点意思
 
 想要创建内部类你必须要先创建外部类, 这是因为**创建内部类需要外部类的引用**, 这更像是一个先决条件. 如果想脱钩, 可以使用 nested class(静态内部类). 
 
@@ -367,7 +380,7 @@ class Outer8 {
 
 ## Inner classes in methods and scopes
 
-前面那些例子都很直白易懂,但是 Inner class 还有一些变种, 格式很放飞自我, 该变种适用如下情况
+前面那些例子都很直白易懂, 但是 Inner class 还有一些变种, 格式很放飞自我, 该变种适用如下情况
 
 1. 你只是想要实现某个接口, 并返回这个接口引用
 2. 你在解决某个复杂问题时, 临时需要创建一个 class 以解决问题, 但是不想暴露它的实现
@@ -407,7 +420,7 @@ public class Parcel5 {
 }
 ```
 
-PDestination 在 destination() 方法内而不在 Parcels 内,所以 PDestination 只在方法体 destination() 内可见. 这种用法还允许你在这个类的其他方法中创建**同名**的内部类而没有冲突. 
+PDestination 在 destination() 方法内而不在 Parcels 内, 所以 PDestination 只在方法体 destination() 内可见. 这种用法还允许你在这个类的其他方法中创建**同名**的内部类而没有冲突. 
 
 对应 item2: A class defined within a scope inside a method, 在方法内更小的 scope 中创建内部类:  
 
@@ -474,7 +487,7 @@ public class Parcel7 {
 }
 ```
 
-`contents()` 将类定义和 return 结合在了一起. 除此之外,该类还是匿名的, 返回时该类自动转换为基类类型. 上面的实现和下面的是等价的, 不过上面的更简洁. 
+`contents()` 将类定义和 return 结合在了一起. 除此之外, 该类还是匿名的, 返回时该类自动转换为基类类型. 上面的实现和下面的是等价的, 不过上面的更简洁. 
 
 ```java
 public class Parcel7b {
@@ -499,7 +512,7 @@ public class Parcel7b {
 
 看文章顺序这个应该是对应 item4: An anonymous class extending a class that has a non-default constructor 的但是总感觉他这种说法不贴切, 可能是我笔记有问题, 按理说, 下面的 instance initialization 更贴切才对. 
 
-上面例子中,内部类使用默认构造函数实例化,如果你需要一个特殊的构造函数,你可以参考下面的例子. Wrapping 是一个普通的类, 我们在 Parcel8 中的 wrapping 方法中调用了 Wrapping 的带参构造函数, 并且返回时重写了其中的 value 方法. 和之前的那些返回内部类的方式异曲同工. 
+上面例子中, 内部类使用默认构造函数实例化, 如果你需要一个特殊的构造函数, 你可以参考下面的例子. Wrapping 是一个普通的类, 我们在 Parcel8 中的 wrapping 方法中调用了 Wrapping 的带参构造函数, 并且返回时重写了其中的 value 方法. 和之前的那些返回内部类的方式异曲同工. 
 
 ```java
 public class Parcel8 {
@@ -535,9 +548,9 @@ public class Wrapping {
 // output: 470
 ```
 
-对应 item5: An anonymous class that performs field initialization 你可以在内部类中定义, 使用 field, field 如果是作为参数传入,必须是 final 类型的:
+对应 item5: An anonymous class that performs field initialization 你可以在内部类中定义, 使用 field, field 如果是作为参数传入, 必须是 final 类型的:
 
-> 再看一遍才发现,他的特殊之处是内部类有一个 field 声明, 对应的值是直接从方法参数里面拿的！！这种用法以前没注意到过 （；￣ェ￣）
+> 再看一遍才发现, 他的特殊之处是内部类有一个 field 声明, 对应的值是直接从方法参数里面拿的！！这种用法以前没注意到过 （；￣ェ￣）
 
 ```java
 public class Parcel9 {
@@ -562,9 +575,9 @@ public class Parcel9 {
 
 If you’re defining an anonymous inner class and want to use an object that’s defined outside the anonymous inner class, the compiler requires that the argument reference be **final**, as you see in the argument to destination(). If you forget, you’ll get a compile-time error message. 
 
-内部匿名类会调用基类的构造器,但是如果你在实例里需要定制一些行为,但是由于你没有名字,没有自己的构造器,那该怎么办？
+内部匿名类会调用基类的构造器, 但是如果你在实例里需要定制一些行为, 但是由于你没有名字, 没有自己的构造器, 那该怎么办？
 
-对应 item6: An anonymous class that performs construction using instance initialization, 这种情况下,你可以使用 构造代码块(instance initializaiton) 实现通用的功能. 
+对应 item6: An anonymous class that performs construction using instance initialization, 这种情况下, 你可以使用 构造代码块(instance initializaiton) 实现通用的功能. 
 
 ```java
 abstract class Base {
@@ -600,7 +613,7 @@ public class AnonymousConstructor {
 // In anonymous f()
 ```
 
-上例中 i 作为构造器参数传入, 但是并没有在内部类中被直接使用, 使用他的是基类的构造函数. 所以不用像前面的 local inner class 那样,使用 final 修饰. 
+上例中 i 作为构造器参数传入, 但是并没有在内部类中被直接使用, 使用他的是基类的构造函数. 所以不用像前面的 local inner class 那样, 使用 final 修饰. 
 
 Note that the arguments to destination() must be final since they are used within the anonymous class:
 
@@ -634,11 +647,11 @@ public class Parcel10 {
 
 在内部类的使用中, 代码块可以看作是内部类的构造函数
 
-和其他普通的类相比, 你可以使用匿名内部类来扩展类或接口,但只能选其一,而且数量只能是一个. 
+和其他普通的类相比, 你可以使用匿名内部类来扩展类或接口, 但只能选其一, 而且数量只能是一个. 
 
 ### Factory Method revisited
 
-> 这部分是使用 inner class 重构之前 factory/interface 相关的代码,有机会回头再瞅一眼
+> 这部分是使用 inner class 重构之前 factory/interface 相关的代码, 有机会回头再瞅一眼
 
 Look at how much nicer the interfaces/Factories.java example comes out when you use anonymous inner classes:
 
@@ -714,7 +727,7 @@ public class Factories {
 // Implementation2 method2
 ```
 
-通过为 Factory 提供 inner class 的实现,我们可以将上例中的 Implementation1 和 Implementation2 的构造函数设置成私有, 缩小了 Service 实现的作用域. 同时不需要为工厂类提供单独的实现. 从语法上这样的解决方案更合理. 
+通过为 Factory 提供 inner class 的实现, 我们可以将上例中的 Implementation1 和 Implementation2 的构造函数设置成私有, 缩小了 Service 实现的作用域. 同时不需要为工厂类提供单独的实现. 从语法上这样的解决方案更合理. 
 
 interfaces/Games.java 的例子也可以使用 inner class 做类似的优化:
 
@@ -789,7 +802,7 @@ Remember the advice given at the end of the last chapter: Prefer classes to inte
 1. You don’t need an outer-class object in order to create an object of a nested class. 独立于外部类实例存在
 2. You can’t access a non-static outer-class object from an object of a nested class. 不能通过它访问非静态的外部类
  
-除此之外的区别还有,普通内部类还不能持有静态变量, 方法. 
+除此之外的区别还有, 普通内部类还不能持有静态变量, 方法. 
 
 ```java
 public class Parcel11 {
@@ -891,7 +904,7 @@ public class TestBed {
 
 ### Reaching outward from a multiply nested class
 
-不管 inner class 嵌套的有多深,内部类都可以不受限制的访问外部类,如下:
+不管 inner class 嵌套的有多深, 内部类都可以不受限制的访问外部类, 如下:
 
 ```java
 class MNA {
@@ -921,7 +934,7 @@ public class MultiNestingAccess {
 } 
 ```
 
-上例中MNAAB 可以访问外部的私有方法 g(), f(). 同时也演示了,在 main() 中你如果要新建内部类,需要先实例化他的外部类. 
+上例中MNAAB 可以访问外部的私有方法 g(), f(). 同时也演示了, 在 main() 中你如果要新建内部类, 需要先实例化他的外部类. 
 
 ## Why inner classes?
 
@@ -967,7 +980,7 @@ public class MultiInterfaces {
 }
 ```
 
-示例中我们有 A, B 两个接口, X 实现两个接口, Y 实现一个接口 + 一个 inner class. X,Y 虽然实现方式不太一样, 但是目的都达到了, 两个接口都实现了. 
+示例中我们有 A, B 两个接口, X 实现两个接口, Y 实现一个接口 + 一个 inner class. X, Y 虽然实现方式不太一样, 但是目的都达到了, 两个接口都实现了. 
 
 但是, 如果是抽象类或者实体类, 多重继承就会受到限制. 
 
@@ -1000,14 +1013,14 @@ public class MultiImplementation {
 
 > 作者这里的继承说的是具有基类的某种能力, 而不是限制在继承类的语法表现, 这个对我理解继承还是有点启发的. 通过**内部类**我可以得到**基类**的实例, 说我继承了它, 也说的过去. 
 
-通过 inner class,你可以具备以下附加功能:
+通过 inner class, 你可以具备以下附加功能:
 
 1. 内部类可以有多个实例, 并且相互独立, 和外部类也相互独立
 2. In a single outer class you can have several inner classes, each of which implements the same interface or inherits from the same class in a different way. An example of this will be shown shortly.
 3. The point of creation of the inner-class object is not tied to the creation of the outer-class object.  
 4. There is no potentially confusing "is-a" relationship with the inner class; it’s a separate entity. 
 
-就第四点,可以那前面的 `Sequence.java` 为例. Sequence 语义上来说是一个容器, 而 Selector 接口代表了选择这种能力. 我们通过内部创建一个 SequenceSelector 实现这中能力, 在语义上会更合理. 
+就第四点, 可以那前面的 `Sequence.java` 为例. Sequence 语义上来说是一个容器, 而 Selector 接口代表了选择这种能力. 我们通过内部创建一个 SequenceSelector 实现这中能力, 在语义上会更合理. 
 
 ### Closures & callbacks
 
@@ -1337,7 +1350,7 @@ public class GreenhouseControls extends Controller {
 }
 ```
 
-代码结构很简单,分别声明了一些事件类型 lightOn/Off, waterOn/Off 等, 内部类继承 Event, 实现个则的抽象方法即可. 
+代码结构很简单, 分别声明了一些事件类型 lightOn/Off, waterOn/Off 等, 内部类继承 Event, 实现个则的抽象方法即可. 
 
 Bell 和 Restart 有别于其他的 event 内部类, 它还会调用 Outer class 的其他方法. 
 
@@ -1351,11 +1364,11 @@ public class GreenhouseController {
         // configuration information from a text file here:
         gc.addEvent(gc.new Bell(900));
         Event[] eventList = {
-                gc.new ThermostatNight(0),
-                gc.new LightOn(200),
-                gc.new LightOff(400),
-                gc.new WaterOn(600),
-                gc.new WaterOff(800),
+                gc.new ThermostatNight(0), 
+                gc.new LightOn(200), 
+                gc.new LightOff(400), 
+                gc.new WaterOn(600), 
+                gc.new WaterOff(800), 
                 gc.new ThermostatDay(1400)
         };
         gc.addEvent(gc.new Restart(2000, eventList));
@@ -1398,11 +1411,11 @@ public class InheritInner extends WithInner.Inner {
 }
 ```
 
-InheritInner 继承自内部类,在构造函数中需要外部类实体做参数. 内部类是以外部类为基础的, 所以这样做也挺合理.
+InheritInner 继承自内部类, 在构造函数中需要外部类实体做参数. 内部类是以外部类为基础的, 所以这样做也挺合理.
 
 ## Can inner classes be overridden?
 
-内部类并不能像方法那样被重写. 我们准备一个 class Egg, 里面声明一个内部类 Yolk 并在构造函数中调用它. 我们再新建一个类 GigEgg 继承 Egg, 在里面声明一个同名的内部类,试图用类似方法重写的方式覆盖他. 示例如下:
+内部类并不能像方法那样被重写. 我们准备一个 class Egg, 里面声明一个内部类 Yolk 并在构造函数中调用它. 我们再新建一个类 GigEgg 继承 Egg, 在里面声明一个同名的内部类, 试图用类似方法重写的方式覆盖他. 示例如下:
 
 ```java
 class Egg {
@@ -1492,7 +1505,7 @@ public class BigEgg2 extends Egg2 {
 }
 
 // output
-// Egg2.Yolk() <- 初始化子类时调用基类构造,先初始化基类中的 field
+// Egg2.Yolk() <- 初始化子类时调用基类构造, 先初始化基类中的 field
 // New Egg2() <- 基类构造
 // Egg2.Yolk() <- 子类 new Yolk() 先调用 基类 中的 Yolk 构造
 // BigEgg2.Yolk() <- 子类构造调用
@@ -1550,7 +1563,7 @@ public class LocalInnerClass {
     public static void main(String[] args) {
         LocalInnerClass lic = new LocalInnerClass();
         Counter
-                c1 = lic.getCounter("Local inner "),
+                c1 = lic.getCounter("Local inner "), 
                 c2 = lic.getCounter2("Anonymous inner ");
         for (int i = 0; i < 5; i++)
             System.out.println(c1.next());
@@ -1580,7 +1593,7 @@ public class LocalInnerClass {
 
 ## Inner-class identifiers
 
-每个类在编译后都会生成一个 `.class` 文件保存对应的类信息. 内部类也一样,格式为 `外部类$内部类` 下面是 LocalInnerClass.java 编译后的文件:
+每个类在编译后都会生成一个 `.class` 文件保存对应的类信息. 内部类也一样, 格式为 `外部类$内部类` 下面是 LocalInnerClass.java 编译后的文件:
 
 ```txt
 Counter.class
@@ -1594,3 +1607,32 @@ LocallnnerClass.class
 ## Summary
 
 接口和内部类是 Java 特有的, 你在 C++ 中找不到类似的概念, 他们帮助我们实现多重继承的问题而且实现上要比 C++ 的优雅. 
+
+## 实践出真知
+
+> 2021-04-22 想要在代码中使用简化版的 Builder 模式，但是发现 nested static class 中声明的对象不能调用 set method. 为啥？
+
+```java
+public class Person {
+    private String name;
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public static class Builder {
+        Person p = new Person();
+        //? p.name = "jack"; 不能操作
+
+        public Builder setName(String name) {
+            p.name = name;   // 可操作
+            // p.setName(name); 可操作
+            return this;
+        }
+
+        public Person build() {
+            return p;
+        }
+    }
+}
+```

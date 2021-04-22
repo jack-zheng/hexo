@@ -1,5 +1,5 @@
 ---
-title: Java random int
+title: Java 生成随机数
 date: 2021-04-21 11:14:00
 categories:
 - java

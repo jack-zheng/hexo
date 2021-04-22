@@ -466,3 +466,194 @@ docker images
 # tomcat02                                            1.0            67be5e0517c6   7 seconds ago   672MB
 # mysql                                               latest         0627ec6901db   42 hours ago    556MB
 ```
+
+## 容器数据卷
+
+删除容器，数据一起丢失
+
+Docker 容器中产生的数据，同步到本地
+
+目录挂载，将容器内的目录挂载到宿主机上
+
+容器的持久化和同步操作，容器间也是可以数据共享的
+
+```bash
+# sample: docker run -it -v /Users/id/tmp/mount:/home centos /bin/bash
+docker run -it -v host_addr:container_addr
+
+docker inspect container_id
+# 通过 inspect 可以看到具体的挂载信息
+# ...
+# "Mounts": [
+#             {
+#                 "Type": "bind",
+#                 "Source": "/Users/id/tmp/mount",
+#                 "Destination": "/home",
+#                 "Mode": "",
+#                 "RW": true,
+#                 "Propagation": "rprivate"
+#             }
+#         ]
+# ...
+
+# home 目录下新建文件，内容会同步到外边
+
+停止容器，修改宿主机下的同步文件夹内容，容器启动后改动会同步到容器中
+```
+
+## 安装 MySQL
+
+```bash
+docker pull mysql:5.7
+
+# 启动并挂载
+# 启动 mysql 需要配置密码, 加入 -e MYSQL_ROOT_PASSWORD=my-secret-pw 参数，查看官方镜像文档了解详细信息
+docker run -d -p 3306:3306 -v /Users/id/tmp/mysql/conf:/etc/mysql/conf.d -v /Users/id/tmp/mysql/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 --name=mysql01 mysql:5.7
+
+# 测试, 遇到一些小波折。。。
+启动 DBeaver，链接数据库，报错：`Unable to load authentication plugin 'caching_sha2_password'.`
+
+搜索之后，发现是 mysql 驱动有跟新，需要修稿客户端的 pom, 升级到 8.x 就行。DBeaver 直接就在创建选项里给了方案，选 8.x 那个就行 [GitIssue](https://github.com/dbeaver/dbeaver/issues/4691)
+
+使用高版本的 Mysql connection 还是有问题，不过 msg 变了：`Public Key Retrieval is not allowed`
+
+再查一下，说是还要该配置, connection setting -> Driver properties -> 'allowPlblicKeyRetrieval' 改为 true
+
+还有问题。。。继续抛错：`Access denied for user 'root'@'localhost' (using password: YES)`
+
+先用 docker exec -it mysql01 /bin/bash 进去容器，输入 `mysql -u root -p` 尝试登陆，成功。推测是链接客户端的问题。。。
+
+再用 `ps -ef | grep mysql` 查看了一下，突然想起来，本地我也有安装 mysql 可能有冲突。果断将之前安装的 docker mysql 删除，重新指定一个新的端口，用 DBeaver 链接，成功！
+
+通过客户端创建一个新的数据库 new_test, 再本地映射的 data 目录下 ls 一下，可以看到新数据库文件生产出来了
+
+# > ~/tmp/mydb/data ls
+# auto.cnf           ca.pem             client-key.pem     ib_logfile0        ibdata1            mysql              performance_schema public_key.pem     server-key.pem
+# ca-key.pem         client-cert.pem    ib_buffer_pool     ib_logfile1        ibtmp1             new_test           private_key.pem    server-cert.pem    sys
+
+# 删除容器，本地文件依然存在
+```
+
+## 具名挂载 Vs 匿名挂载
+
+```bash
+# 匿名挂载: -v 不指定宿主机挂载目录
+docker run -d -P --name nginx01 -v /ect/nginx nginx
+
+# 查看卷情况
+docker volume ls
+# DRIVER    VOLUME NAME
+# local     125a67b4291a80270d9839b62abbc7143f05fa133bf2e48c1057a4c9476ad591 <- 没有指定路径，宿主机上没有具体的挂载点，即匿名挂载
+# local     portainer_data
+
+# 具名挂载
+# juming-nginx 即卷名
+docker run -d -P --name nginx02 -v juming-nginx:/ect/nginx nginx
+# DRIVER    VOLUME NAME
+# local     125a67b4291a80270d9839b62abbc7143f05fa133bf2e48c1057a4c9476ad591
+# local     juming-nginx
+# local     portainer_data
+
+# 使用 inspect 查看具体信息
+docker volume inspect juming-nginx
+[
+    {
+        "CreatedAt": "2021-04-22T12:22:21Z",
+        "Driver": "local",
+        "Labels": null,
+        "Mountpoint": "/var/lib/docker/volumes/juming-nginx/_data",
+        "Name": "juming-nginx",
+        "Options": null,
+        "Scope": "local"
+    }
+]
+
+-v 容器内路径 # 匿名挂载
+-v 卷名:容器内路径 # 具名挂载
+-v /宿主机路径:容器内路径 # 指定路径挂载
+
+# -v /宿主机路径:容器内路径:ro/rw
+ro: read only, 只能通过宿主机改变，容器内部不能改变
+rw: read and write 
+```
+
+## 初识 Dockerfile
+
+用来构建 docker 镜像的构建文件
+
+```dockerfile
+# 新建文件写入如下内容
+FROM centos
+
+VOLUME ["volume01", "volume02"]
+
+CMD echo "-----end-----"
+CMD /bin/bash
+```
+```bash
+docker build -f dfile -t my/centos:1.0 .
+# docker images 查看自建的镜像
+docker images
+# REPOSITORY                                          TAG            IMAGE ID       CREATED         SIZE
+# ...
+# my/centos                                           1.0            f75a47123694   4 months ago    209MB
+# ...
+
+# 启动测试
+docker run -it f75a47123694  /bin/bash
+# ls 查看挂载卷
+# drwxr-xr-x   2 root root 4096 Apr 22 12:42 volume01
+# drwxr-xr-x   2 root root 4096 Apr 22 12:42 volume02
+
+# 在 volume1 中新建文件 echo "new" >> new_file.txt
+docker inspect 3996ebe1b343
+# "Mounts": [
+#             {
+#                 "Type": "volume",
+#                 "Name": "4c0081e951fc91397280afa09c9f5928115850f9ccaa17468b301c4aedc00bca",
+#                 "Source": "/var/lib/docker/volumes/4c0081e951fc91397280afa09c9f5928115850f9ccaa17468b301c4aedc00bca/_data",
+#                 "Destination": "volume02",
+#                 "Driver": "local",
+#                 "Mode": "",
+#                 "RW": true,
+#                 "Propagation": ""
+#             },
+#             {
+#                 "Type": "volume",
+#                 "Name": "33e8e61250b705ab4c2fba0972be84a541647c5aa327e5e3055431be836054b9",
+#                 "Source": "/var/lib/docker/volumes/33e8e61250b705ab4c2fba0972be84a541647c5aa327e5e3055431be836054b9/_data",
+#                 "Destination": "volume01",
+#                 "Driver": "local",
+#                 "Mode": "",
+#                 "RW": true,
+#                 "Propagation": ""
+#             }
+#         ]
+```
+
+## 数据卷容器
+
+多个容器之间同步数据
+
+```bash
+# 启动自制容器作为父容器
+ocker run -it --name docker01 my/centos:1.0
+# 启动子容器
+docker run -it --name docker02 --volumes-from docker01 my/centos:1.0
+# docker01 下的 volume01 中新建文件，docker02 下的对应目录也有这个文件
+# [root@d8c3cdf6d43b volume01]# echo "123" >> new_in_01.txt
+# [root@d8c3cdf6d43b volume01]# ls
+# new_in_01.txt
+#
+# [root@aee652f1fda3 /]# cd volume01
+# [root@aee652f1fda3 volume01]# ls
+# new_in_01.txt
+# 重复以上操作新建的镜像都会同步文件
+
+# 删除父容器，自容器中同步的文件依旧存在
+docker rm -f docker01
+```
+
+结论：
+* 容器之间配置信息传递，数据卷容器的生命周期一直持续到没有容器使用为止
+* 一旦持久化到本地，本地数据是不会删除的
