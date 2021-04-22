@@ -206,6 +206,132 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/04/08/Algorithm-quick-sort/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/04/08/Algorithm-quick-sort/" class="post-title-link" itemprop="url">快速排序</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-04-08 12:45:01" itemprop="dateCreated datePublished" datetime="2021-04-08T12:45:01+08:00">2021-04-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-22 21:14:20" itemprop="dateModified" datetime="2021-04-22T21:14:20+08:00">2021-04-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E7%AE%97%E6%B3%95/" itemprop="url" rel="index">
+                    <span itemprop="name">算法</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E7%AE%97%E6%B3%95/%E7%AE%97%E6%B3%95%E5%9B%BE%E8%A7%A3/" itemprop="url" rel="index">
+                    <span itemprop="name">算法图解</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>分而治之（divide and conquer，D&amp;C）- 种著名的递归式问题解决方法</p>
+<h2 id="4-1-分而治之"><a href="#4-1-分而治之" class="headerlink" title="4.1 分而治之"></a>4.1 分而治之</h2><p>练习1: 有一块 1680 x 640 的土地，将它等分成一个个正方形，那么正方形面积最大时，边长为多少？</p>
+<p>解决方案，根据 欧几里得 算法，我们先将长方形分解成 640x640 + 640x640 + 640x400，然后再将 640x400 的长方形按照同样的方式分解，到最后分解为正方形时就是我们要的答案了</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">getSquar</span>(<span class="params">length, width</span>):</span> </span><br><span class="line">    <span class="keyword">if</span> length%width == <span class="number">0</span>: </span><br><span class="line">        <span class="keyword">return</span> width </span><br><span class="line">    <span class="keyword">else</span>: </span><br><span class="line">        <span class="keyword">return</span> getSquar(width, length%width) </span><br><span class="line"></span><br><span class="line">getSquar(<span class="number">1680</span>, <span class="number">640</span>) </span><br><span class="line"><span class="comment"># 80</span></span><br></pre></td></tr></table></figure>
+
+<p>重申一下D&amp;C的工作原理：</p>
+<ol>
+<li>找出简单的基线条件</li>
+<li>确定如何缩小问题的规模，使其符合基线条件</li>
+</ol>
+<p>练习2: 使用 D&amp;C 的思路计算一个数组的和, sum = first + sum(sec…end)</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">list = [sub <span class="keyword">for</span> sub <span class="keyword">in</span> range(<span class="number">1</span>, <span class="number">10</span>)]</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">sum</span>(<span class="params">list</span>):</span></span><br><span class="line">    <span class="keyword">if</span> list:</span><br><span class="line">        <span class="keyword">return</span> list[<span class="number">0</span>] + sum(list[<span class="number">1</span>:])</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span></span><br><span class="line"></span><br><span class="line">sum(list)</span><br><span class="line"><span class="comment"># 45</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="快速排序"><a href="#快速排序" class="headerlink" title="快速排序"></a>快速排序</h2><p>练习：准备一个无序数组，使用快排重新排序</p>
+<p>快排原理：随机从数组中选择一个数作为基准，然后将数组分为 大于基准的数 + 基准 + 小于基准的数，在按照同样的思路对两堆数进行同样的排序，直到堆的 len &lt; 2 为止排序结束</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">list = random.sample(range(<span class="number">0</span>, <span class="number">100</span>), <span class="number">10</span>)</span><br><span class="line"><span class="comment"># [71, 70, 99, 91, 12, 5, 80, 61, 17, 24]</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">qsort</span>(<span class="params">list</span>):</span> </span><br><span class="line">    <span class="keyword">if</span> len(list) &gt; <span class="number">2</span>: </span><br><span class="line">        pivot = list[<span class="number">0</span>] </span><br><span class="line">        small_partition = [sub <span class="keyword">for</span> sub <span class="keyword">in</span> list[<span class="number">1</span>:] <span class="keyword">if</span> sub &lt; pivot] </span><br><span class="line">        big_partition = [sub <span class="keyword">for</span> sub <span class="keyword">in</span> list[<span class="number">1</span>:] <span class="keyword">if</span> sub &gt;= pivot] </span><br><span class="line">        <span class="keyword">return</span> qsort(small_partition) + [pivot] + qsort(big_partition) </span><br><span class="line">    <span class="keyword">return</span> list</span><br><span class="line"></span><br><span class="line"><span class="comment"># [5, 12, 17, 24, 61, 70, 71, 91, 80, 99]</span></span><br><span class="line"><span class="comment"># 看了下书上的答案基本一致 (●°u°●)​ 」</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="4-3-再谈大O表示法"><a href="#4-3-再谈大O表示法" class="headerlink" title="4.3 再谈大O表示法"></a>4.3 再谈大O表示法</h2><p>常见大O运行时间</p>
+<p><img src="c4_01.png" alt="常见大O运行时间"></p>
+<h3 id="4-3-2-平均情况和最糟情况"><a href="#4-3-2-平均情况和最糟情况" class="headerlink" title="4.3.2  平均情况和最糟情况"></a>4.3.2  平均情况和最糟情况</h3><p>当最糟情况时，n 个元素的数组，每层分析 n 次，栈深为 n, O(n) x O(n) = O(n<sup>2</sup>)</p>
+<p>平均情况时，n 个元素的数组，每层分析 n 次，栈深为 log<sup>n</sup>, 时间复杂度为 O(n) x O(log<sup>n</sup>) = O(nlog<sup>n</sup>)</p>
+<h2 id="Java-中的快排实现"><a href="#Java-中的快排实现" class="headerlink" title="Java 中的快排实现"></a>Java 中的快排实现</h2><p>Java 中快排的实现思路和 Python 中的是一样的，但是可能由于语法支持上的不同，感觉上，Java 的实现要比 Python 的实现复杂了很多</p>
+<p>示例说明：</p>
+<p>以第一个元素为基准，先遍历一遍数组将数组分为 [小于等于 pivot] + [pivot] + [大于 pivot] 三部分, 然后再对大于和小于的两部分做同样的算法</p>
+<p>参考 <a target="_blank" rel="noopener" href="https://blog.csdn.net/Holmofy/article/details/71168530">CSDN</a> 讲解的很详细，难点集中在分组的算法上，这里使用的是 挖坑法。</p>
+<p>那数组的第一个元素作为 pivot，分别记录起止点下标i，j. 先从右向左找<strong>小于</strong>pivot的元素, 找到了就和 i 做交换。然后从左向右找<strong>大于</strong>pivot的元素，和j 做交换，知道 i &gt;= j结束。</p>
+<p>完了将 pivot 的值赋给 i 位置。这个时候 i 和 j 是相等的。经过这一次遍历，数组被分为以 pivot 为界的两个自数组，元素分别小于和大于 pivot。</p>
+<p>PS: 必须先从右向左扫描，不然我们就丢失了 j 的初始值引用了</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"><span class="keyword">import</span> java.util.Random;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">QuickSortDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] sample = <span class="keyword">new</span> Random().ints(<span class="number">0</span>, <span class="number">100</span>).limit(<span class="number">10</span>).toArray();</span><br><span class="line">        System.out.println(<span class="string">&quot;Origin: &quot;</span> + Arrays.toString(sample));</span><br><span class="line"></span><br><span class="line">        qsort(sample, <span class="number">0</span>, sample.length - <span class="number">1</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;After:  &quot;</span> + Arrays.toString(sample));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">qsort</span><span class="params">(<span class="keyword">int</span>[] arr, <span class="keyword">int</span> start, <span class="keyword">int</span> end)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (start &gt;= end) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span> pivot_index = partition(arr, start, end);</span><br><span class="line">        qsort(arr, start, pivot_index - <span class="number">1</span>);</span><br><span class="line">        qsort(arr, pivot_index + <span class="number">1</span>, end);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 以第一个元素为基准，对数组排序，排序完之后，格式为 [小于pivot + pivot + 大于pivot]</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> arr</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> start</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> end</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> pivot index</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">partition</span><span class="params">(<span class="keyword">int</span>[] arr, <span class="keyword">int</span> start, <span class="keyword">int</span> end)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> pivot = arr[start];</span><br><span class="line">        <span class="keyword">int</span> i = start, j = end;</span><br><span class="line">        <span class="keyword">while</span> (i &lt; j) &#123;</span><br><span class="line">            <span class="keyword">while</span> (arr[j] &gt; pivot &amp;&amp; i &lt; j) &#123;</span><br><span class="line">                j--;</span><br><span class="line">            &#125;</span><br><span class="line">            arr[i] = arr[j];</span><br><span class="line">            <span class="keyword">while</span> (arr[i] &lt;= pivot &amp;&amp; i &lt; j) &#123;</span><br><span class="line">                i++;</span><br><span class="line">            &#125;</span><br><span class="line">            arr[j] = arr[i];</span><br><span class="line">        &#125;</span><br><span class="line">        arr[i] = pivot;</span><br><span class="line">        <span class="keyword">return</span> i;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// [13, 40, 60, 68, 78, 82, 91, 92, 96, 99]</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="Arrays-sort-实现"><a href="#Arrays-sort-实现" class="headerlink" title="Arrays.sort 实现"></a>Arrays.sort 实现</h2><p>Arrays 在进行 sort 排序的时候可能会采用 插入排序，双轴快排 或 归并排序。具体判断流出如下</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">+--------------+                                                                                                                                      </span><br><span class="line">| Arrays.sort()|                                                                                                                                      </span><br><span class="line">+--------------+                                                                                                                                      </span><br><span class="line">        |                                                                                                                                             </span><br><span class="line">        |                                                                                                                                             </span><br><span class="line">        |                                                                                                                                             </span><br><span class="line">        |                                                                                                                                             </span><br><span class="line">        v                                                                                                                                             </span><br><span class="line"> +-------------+      N          +----------------------------+                                                                                       </span><br><span class="line"> |length &lt; 286 |---------------&gt; | check if arr nearly sorted |                                                                                       </span><br><span class="line"> +-------------+                 +----------------------------+                                                                                       </span><br><span class="line">        |             N                         |                                                                                                     </span><br><span class="line">        |&lt;--------------------------------------|                                                                                                     </span><br><span class="line">        |                                       |                                                                                                     </span><br><span class="line">        v                                       |                                                                                                     </span><br><span class="line"> +-------------+      N                         |                                                                                                     </span><br><span class="line"> |length &lt; 47  |--------------                  |Y                                                                                                    </span><br><span class="line"> +-------------+             |                  |                                                                                                     </span><br><span class="line">        |                    |                  |                                                                                                     </span><br><span class="line">        |Y                   |                  |                                                                                                     </span><br><span class="line">        |                    |                  |                                                                                                     </span><br><span class="line">        v                    v                  v                                                                                                     </span><br><span class="line">+----------------+     +------------+     +------------+                                                                                              </span><br><span class="line">| insertion sort |     | quick sort |     | merge sort |                                                                                              </span><br><span class="line">+----------------+     +------------+     +------------+                                                                                              </span><br><span class="line">        |                    |                  |                                                                                                     </span><br><span class="line">        |                    |                  |                                                                                                     </span><br><span class="line">        v                    |                  |                                                                                                     </span><br><span class="line">  +-------------+            |                  |                                                                                                     </span><br><span class="line">  | finish sort | &lt;------------------------------                                                                                                     </span><br><span class="line">  +-------------+                                                                                                                                     </span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/04/01/JVM-c12-java-memory-model-and-thread/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +363,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-21 21:03:06" itemprop="dateModified" datetime="2021-04-21T21:03:06+08:00">2021-04-21</time>
+                <time title="修改时间：2021-04-22 21:14:20" itemprop="dateModified" datetime="2021-04-22T21:14:20+08:00">2021-04-22</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -374,7 +500,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-21 21:03:06" itemprop="dateModified" datetime="2021-04-21T21:03:06+08:00">2021-04-21</time>
+                <time title="修改时间：2021-04-22 21:14:20" itemprop="dateModified" datetime="2021-04-22T21:14:20+08:00">2021-04-22</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -503,7 +629,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-21 21:03:06" itemprop="dateModified" datetime="2021-04-21T21:03:06+08:00">2021-04-21</time>
+                <time title="修改时间：2021-04-22 21:14:20" itemprop="dateModified" datetime="2021-04-22T21:14:20+08:00">2021-04-22</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -603,7 +729,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-21 21:03:06" itemprop="dateModified" datetime="2021-04-21T21:03:06+08:00">2021-04-21</time>
+                <time title="修改时间：2021-04-22 21:14:20" itemprop="dateModified" datetime="2021-04-22T21:14:20+08:00">2021-04-22</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -715,7 +841,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-21 21:03:06" itemprop="dateModified" datetime="2021-04-21T21:03:06+08:00">2021-04-21</time>
+                <time title="修改时间：2021-04-22 21:14:20" itemprop="dateModified" datetime="2021-04-22T21:14:20+08:00">2021-04-22</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -813,7 +939,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-21 21:03:06" itemprop="dateModified" datetime="2021-04-21T21:03:06+08:00">2021-04-21</time>
+                <time title="修改时间：2021-04-22 21:14:20" itemprop="dateModified" datetime="2021-04-22T21:14:20+08:00">2021-04-22</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -908,7 +1034,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-21 21:03:06" itemprop="dateModified" datetime="2021-04-21T21:03:06+08:00">2021-04-21</time>
+                <time title="修改时间：2021-04-22 21:14:20" itemprop="dateModified" datetime="2021-04-22T21:14:20+08:00">2021-04-22</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1041,7 +1167,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-21 21:03:06" itemprop="dateModified" datetime="2021-04-21T21:03:06+08:00">2021-04-21</time>
+                <time title="修改时间：2021-04-22 21:14:20" itemprop="dateModified" datetime="2021-04-22T21:14:20+08:00">2021-04-22</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1172,7 +1298,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-21 21:03:06" itemprop="dateModified" datetime="2021-04-21T21:03:06+08:00">2021-04-21</time>
+                <time title="修改时间：2021-04-22 21:14:20" itemprop="dateModified" datetime="2021-04-22T21:14:20+08:00">2021-04-22</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1222,111 +1348,6 @@
 <p>Note that even in MULTILINE mode, re.match() will only match at the beginning of the string and not at the beginning of each line.</p>
 <p>If you want to locate a match anywhere in string, use search() instead (see also search() vs. match()).</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">re.match(<span class="string">r&#x27;[\d]+&#x27;</span>, <span class="string">&#x27;aaa123aaa&#x27;</span>)</span><br><span class="line"><span class="comment"># null</span></span><br><span class="line"></span><br><span class="line">re.match(<span class="string">r&#x27;[\d]+&#x27;</span>, <span class="string">&#x27;123aaa&#x27;</span>) </span><br><span class="line">&lt;re.Match object; span=(<span class="number">0</span>, <span class="number">3</span>), match=<span class="string">&#x27;123&#x27;</span>&gt;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/02/25/Configuration-for-chrome-and-switchyomega/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/02/25/Configuration-for-chrome-and-switchyomega/" class="post-title-link" itemprop="url">Chrome + SwitchyOmega 配置方案</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-02-25 16:20:40" itemprop="dateCreated datePublished" datetime="2021-02-25T16:20:40+08:00">2021-02-25</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-21 21:03:06" itemprop="dateModified" datetime="2021-04-21T21:03:06+08:00">2021-04-21</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E9%85%8D%E7%BD%AE/" itemprop="url" rel="index">
-                    <span itemprop="name">配置</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>518</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>Chrome + SwitchyOmega 已经配置了无数遍了，抽出来单独写一篇详细教程</p>
-<h2 id="配置步骤"><a href="#配置步骤" class="headerlink" title="配置步骤"></a>配置步骤</h2><p>外网限制，安装 Chrome 扩展极度不便。所有的第一步是安装 SwithyOmega 的扩展来翻墙。</p>
-<ol>
-<li>去 <a target="_blank" rel="noopener" href="https://github.com/FelisCatus/SwitchyOmega">SwitchyOmega</a> 官网下载 crx 文件。</li>
-<li>重命名，将后缀改为 zip，然后直接拖到浏览器 - <strong>直接将 crx 文件拖进去会报错 <code>CRX_HEADER_INVALID</code></strong></li>
-<li>左键点击插件 icon -&gt; Options -&gt; New profile 添加 Profile Proxy 类型配置文件</li>
-<li>Protocol, Server, Port 一次填入 SOCKS5, 127.0.0.1, 1086</li>
-<li>选择 auto switch, <code>Rule List Config</code> 下选择 AutoProxy 类型</li>
-<li><code>Rule List URL</code> 填入 <code>https://raw.githubusercontent.com/gfwlist/gfwlist/master/gfwlist.txt</code> 点击下载更新文件</li>
-<li>Apply Change, 打完收工</li>
-</ol>
-<p>PS: 公司里面有提供 PAC 解决方案，很方便，规则都给你定好了 New Profile 选择 PAC 类型，填入指定的 URL, 再点击 download 即可</p>
-<h2 id="Resources"><a href="#Resources" class="headerlink" title="Resources"></a>Resources</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://github.com/FelisCatus/SwitchyOmega/wiki/GFWList">GFWList 配置教程 - 官方</a></li>
-<li><a target="_blank" rel="noopener" href="https://github.com/gfwlist/gfwlist">GFW 规则主页</a></li>
-</ul>
-
       
     </div>
 
@@ -1391,7 +1412,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-count">126</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1404,7 +1425,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">137</span>
+        <span class="site-state-item-count">138</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1438,12 +1459,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">506k</span>
+    <span title="站点总字数">512k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">7:40</span>
+    <span title="站点阅读时长">7:45</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
