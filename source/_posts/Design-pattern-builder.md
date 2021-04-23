@@ -3,25 +3,68 @@ title: 生成器/建造者模式
 date: 2020-10-13 10:05:37
 categories:
 - 设计模式
+- DHSJMS
+- EJ3
 tags:
 - builder pattern
-- 构造器模式
+- 生成器模式
 ---
 
-在看 mybatis 源码的 xml 解析部分的时候，发现里面重度使用了生成器模式，特此整理一下。
+> Builder Pattern: 将一个复杂对象的构建与它的表示分离, 使得同样的构建过程可以创建不同的表示. 建造者模式是一种对象创建型模式.
 
-定义：将一个复杂对象的构建与它的表示分离，使得同样的构建过程可以创建不同的表示。建造者模式是一种对象创建型模式。
+关键词: 构建过程, 表示
 
-适用场景：构造函数多，且参数可选的情况下，建议使用。
+## UML
 
-案例，创建一个有五个属性的 computer 对象
+图示说明:
+
+* Client 到 Director 为 实线普通箭头, 表示拥有
+* Client 到 ConcreateBuilder 为 虚线普通箭头, 表示使用关系, Java 中表现为局部变量
+* Director 到 Builder 为 空心菱形 + 实线 + 普通箭头, 表示聚合, 整体和局部的关系
+
+```txt
+                     +--------+                                                                                                                       
+        -------------| Client |-----------------                                                                                                      
+       |             +--------+                 |                                                                                                     
+       |                                        |                                                                                                     
+       |                                        |                                                                                                     
+       v                                        |                                                                                                     
++-----------------+                             |                                                                                                     
+|    Director     |        +---------------+    |                                                                                                     
+|-----------------|<>----->|    Builder    |    |                                                                                                     
+| builder:Builder |        |---------------|    |                                                                                                     
+|-----------------|        |+ buildPart()  |    |                                                                                                     
+| construct()     |        +---------------+    |                                                                                                     
+|                 |              ^              |                                                                                                     
++-----------------+              |              |                                                                                                     
+                                 |              |                                                                                                     
+                                 |              v                                                                                                     
+                           +----------------------+                                                                                                   
+                           |   ConcreateBuilder   |                                                                                                   
+                           |----------------------|                                                                                                   
+                           |+ buildPart()         |                                                                                                   
+                           |+ getResult():Product |                                                                                                   
+                           +----------------------+                                                                                                   
+                                             |                                                                                                        
+                                             |                                                                                                        
+                                             |                                                                                                        
+                                        +----v----+                                                                                                   
+                                        | Product |                                                                                                   
+                                        +---------+                                                                                                   
+```
+
+## 大话设计模式 13 章摘录
+
+
 
 ## Java 简化版
 
-创建方案有两种：
+案例, 创建一个有五个属性的 computer 对象
+
+创建方案有两种:
 
 ```java
-// 方案一， 重载构造函数
+// 方案一, 重载构造函数
 public class Computer {
     public Computer(String cpu, String ram) {
         this(cpu, ram, 0);
@@ -45,7 +88,7 @@ public class Computer {
     //...
 }
 
-// 方案二， 使用 new + set
+// 方案二, 使用 new + set
 public class Computer {
     public void setCpu(String cpu) {
         this.cpu = cpu;
@@ -54,15 +97,15 @@ public class Computer {
 }
 ```
 
-1. 使用构造函数 - 弊端：参数过多，增加阅读，调用复杂度
-2. 使用 new + set - 弊端：不连续，可能少设置属性什么的
+1. 使用构造函数 - 弊端: 参数过多, 增加阅读, 调用复杂度
+2. 使用 new + set - 弊端: 不连续, 可能少设置属性什么的
 
-Java 简化版方案：
+Java 简化版方案:
 
 1. 在对象内部创建一个 public 的内部静态类 Builder
 2. 复制一份对象的属性到 Builder 中
 3. Builder 提供 set 方法
-4. 在对象内部添加一个私有的构造函数，参数为 Builder
+4. 在对象内部添加一个私有的构造函数, 参数为 Builder
 5. 通过链式调用 Builder 创建对象
 
 ```java
@@ -120,14 +163,14 @@ public class Computer {
 
 {% asset_img builder_pattern.png builder_pattern UML %}
 
-涉及到的角色：
+涉及到的角色:
 
-* Builder: 抽象接口，定义了一系列需要实现的接口
+* Builder: 抽象接口, 定义了一系列需要实现的接口
 * ConcreateBuilder: 具体的 Builder 实现类
-* Production：生成的产品
-* Director：具体 Builder 调用方法顺序的类
+* Production: 生成的产品
+* Director: 具体 Builder 调用方法顺序的类
 
-和上面的 Java 简化版相比，传统模式只不过是把类内部的 Builder 实现独立出来了而已，并没有什么其他很骚的操作。不过相比于简单的版本，它提供了 Builder 的扩展性，在这个实现里， ConcreateBuilder 可以有多个版本的实现，客户端可以根据实际需求调用所需要的 Builder。
+和上面的 Java 简化版相比, 传统模式只不过是把类内部的 Builder 实现独立出来了而已, 并没有什么其他很骚的操作. 不过相比于简单的版本, 它提供了 Builder 的扩展性, 在这个实现里, ConcreateBuilder 可以有多个版本的实现, 客户端可以根据实际需求调用所需要的 Builder.
 
 
 
@@ -180,7 +223,7 @@ public interface ComputerBuilder {
     Computer getComputer();
 }
 
-// 具体实现类，分别组装两种品牌的电脑
+// 具体实现类, 分别组装两种品牌的电脑
 public class MacBuilder implements ComputerBuilder {
     private Computer computer;
 
@@ -270,6 +313,8 @@ public void test_builder() {
 ## 建造者模式在 StringBuilder 中的应用
 
 TODO
+
+## Effective Java item 2 摘录
 
 ## 参考文档
 

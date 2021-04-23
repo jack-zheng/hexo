@@ -657,3 +657,273 @@ docker rm -f docker01
 结论：
 * 容器之间配置信息传递，数据卷容器的生命周期一直持续到没有容器使用为止
 * 一旦持久化到本地，本地数据是不会删除的
+
+## Dockerfile
+
+构建 Docker 镜像的文件，包含命令参数的脚本
+
+步骤：
+
+1. 创建 Dockerfile 文件
+2. docker build 构建镜像
+3. docker run 运行镜像
+4. docker push 发布镜像
+
+## Dockerfile 构建过程
+
+1. 每个保留关键字都必须是大写的字母
+2. 执行顺序从上倒下
+3. `#` 表示注释
+4. 每个指令都会创建提交一个新的镜像层，并提交
+
+## Dockerfile 指令
+
+```Dockerfile
+FROM  # 基础镜像，起点
+MAINTAINER # 作者
+RUN # 镜像构建的时候需要运行的命令
+ADD # 步骤，比如添加tomcat 压缩包
+WORKDIR # 镜像工作目录
+VOLUME # 挂载目录
+EXPOSE # 暴露端口
+CMD # 指定容器启动的时候运行的命令，只有最后一个会生效，可被替代
+ENTRYPOINT # 指定容器启动时运行的命令，可以追加命令
+ONBUILD # 当构建一个被继承的 Dockerfile 就会运行 ONBUILD指令，触发指令
+COPY # 类似 ADD， 将文件拷贝到镜像中
+ENV # 设置环境变量
+```
+
+测试：
+
+构建自己的 centos
+
+编写 dockerfile
+
+```dockerfile
+FROM centos
+MAINTAINER jzheng<jzheng@my.com>
+
+ENV MYPATH /usr/local
+WORKDIR $MYPATH
+
+RUN yum -y install vim
+RUN yum -y install net-tools
+
+EXPOSE 80
+
+CMD echo $MYPATH
+CMD echo "----end----"
+CMD /bin/bash
+```
+
+运行构建命令
+
+```txt
+> docker build -f mydockerfile -t mycentos:0.1 .
+[+] Building 22.6s (8/8) FINISHED                                                                                                              
+ => [internal] load build definition from mydockerfile                                                                                    0.0s
+ => => transferring dockerfile: 250B                                                                                                      0.0s
+ => [internal] load .dockerignore                                                                                                         0.0s
+ => => transferring context: 2B                                                                                                           0.0s
+ => [internal] load metadata for docker.io/library/centos:latest                                                                          0.0s
+ => CACHED [1/4] FROM docker.io/library/centos                                                                                            0.0s
+ => [2/4] WORKDIR /usr/local                                                                                                              0.0s
+ => [3/4] RUN yum -y install vim                                                                                                         19.3s
+ => [4/4] RUN yum -y install net-tools                                                                                                    2.8s
+ => exporting to image                                                                                                                    0.4s 
+ => => exporting layers                                                                                                                   0.4s 
+ => => writing image sha256:1fa2eebe33e71576555379a1f113cdc8a7a4023f1c0004f9a2b988540fcaa738                                              0.0s 
+ => => naming to docker.io/library/mycentos:0.1                                                                                           0.0s 
+```
+
+运行测试
+
+```bash
+> docker run -it  --name osfromfile01 mycentos:0.1
+# [root@b0ae777b8acf local]# pwd
+# /usr/local
+# 起始目录已经和设定的一样发生了变化
+# 输入 ifconfig 和 vim 也能正常运行
+```
+
+查看 image 构建历史, 可以查看热门 image 学习构建过程
+
+```txt
+> docker history mycentos:0.1
+IMAGE          CREATED          CREATED BY                                      SIZE      COMMENT
+1fa2eebe33e7   13 minutes ago   CMD ["/bin/sh" "-c" "/bin/bash"]                0B        buildkit.dockerfile.v0
+<missing>      13 minutes ago   CMD ["/bin/sh" "-c" "echo \"----end----\""]     0B        buildkit.dockerfile.v0
+<missing>      13 minutes ago   CMD ["/bin/sh" "-c" "echo $MYPATH"]             0B        buildkit.dockerfile.v0
+<missing>      13 minutes ago   EXPOSE map[80/tcp:{}]                           0B        buildkit.dockerfile.v0
+<missing>      13 minutes ago   RUN /bin/sh -c yum -y install net-tools # bu…   14.4MB    buildkit.dockerfile.v0
+<missing>      13 minutes ago   RUN /bin/sh -c yum -y install vim # buildkit    58.1MB    buildkit.dockerfile.v0
+<missing>      14 minutes ago   WORKDIR /usr/local                              0B        buildkit.dockerfile.v0
+<missing>      14 minutes ago   ENV MYPATH=/usr/local                           0B        buildkit.dockerfile.v0
+<missing>      14 minutes ago   MAINTAINER jzheng<jzheng@sap.com>               0B        buildkit.dockerfile.v0
+<missing>      4 months ago     /bin/sh -c #(nop)  CMD ["/bin/bash"]            0B        
+<missing>      4 months ago     /bin/sh -c #(nop)  LABEL org.label-schema.sc…   0B        
+<missing>      4 months ago     /bin/sh -c #(nop) ADD file:bd7a2aed6ede423b7…   209MB  
+```
+
+## CMD Vs ENTRYPOINT
+
+CMD 只有最后一个命令会生效 由下面的 file 构建的 image, run 时只会输出 2
+
+```dockerfile
+FROM centos
+CMD echo "1"
+CMD echo "2"
+```
+
+```dockerfile
+# filename: t_cmd, 测试 cmd
+FROM centos
+CMD ["ls", "-a"]
+```
+
+构建运行, run 之后终端输出 `ls -a`
+```txt
+> docker build -f t_cmd  -t cmdtest .     
+
+[+] Building 0.1s (5/5) FINISHED                                                                                                                 
+ => [internal] load build definition from t_cmd                                                                                             0.0s
+ => => transferring dockerfile: 65B                                                                                                         0.0s
+ => [internal] load .dockerignore                                                                                                           0.0s
+ => => transferring context: 2B                                                                                                             0.0s
+ => [internal] load metadata for docker.io/library/centos:latest                                                                            0.0s
+ => CACHED [1/1] FROM docker.io/library/centos                                                                                              0.0s
+ => exporting to image                                                                                                                      0.0s
+ => => exporting layers                                                                                                                     0.0s
+ => => writing image sha256:be8cf7de876380f7f60e83475b483161f43687087acd253990789c607f3b9848                                                0.0s
+ => => naming to docker.io/library/cmdtest                                                                                                  0.0s
+
+> docker run be8cf7de8                                     
+.
+..
+.dockerenv
+bin
+dev
+etc
+home
+...
+```
+
+如果想要追加 `l` 给出 `ls -al` 的效果怎么办？直接在 run 后接参数会报错
+
+```txt
+> docker run be8cf7de8 -l 
+docker: Error response from daemon: OCI runtime create failed: container_linux.go:370: starting container process caused: exec: "-l": executable file not found in $PATH: unknown.
+ERRO[0000] error waiting for container: context canceled
+```
+
+需要输入全命令 `docker run be8cf7de8 ls -al` 才行
+
+如果想要直接接命令参数，可以用 ENTRYPOINT
+
+```dockerfile
+FROM centos
+ENTRYPOINT ["ls", "-a"]
+```
+构建镜像并运行 `docker run 5198b187e -l` 追加命令成功, 直接拼接在 entrypoint 后
+
+## 实战： 制作 Tomcat 镜像
+
+1. 准备镜像文件 + tomcat压缩包 + JDK压缩包
+2. 编写 dockerfile 文件
+
+Google 搜索名字可直接下载压缩包 `jdk-8u202-linux-x64.tar.gz` + `apache-tomcat-9.0.22.tar.gz`
+
+```dockerfile
+FROM centos
+
+LABEL maintainer="jzheng@aa.com"
+
+COPY readme.txt /usr/local/readme.txt
+
+ADD jdk-8u202-linux-x64.tar.gz /usr/local/
+
+ADD apache-tomcat-9.0.22.tar.gz /usr/local/
+
+RUN yum -y install vim
+
+ENV MYPATH /usr/local
+WORKDIR $MYPATH
+
+ENV JAVA_HOME /usr/local/jdk1.8.0_11
+ENV CLASSPATH $JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+ENV CATALINA_HOME /usr/local/apache-tomcat-9.0.22
+ENV CATALINA_BASH /usr/local/apache-tomcat-9.0.22
+ENV PATH $PATH:$JAVA_HOME/bin:$CATALINA_HOME/lib:$CATALINA_HOME/bin
+
+EXPOSE 8080
+
+CMD /usr/local/apache-tomcat-9.0.22/bin/startup.sh && tail -F /usr/local/apache-tomcat-9.0.22/bin/logs/catalina.out
+```
+
+构建镜像 `docker build -t diytomcat .`, 由于使用官方标准的名字 Dockerfile 就不需要用 -f 参数了, 构建 log 如下
+
+```txt
+[+] Building 119.9s (11/11) FINISHED                                                                                                             
+ => [internal] load build definition from Dockerfile                                                                                        0.0s
+ => => transferring dockerfile: 677B                                                                                                        0.0s
+ => [internal] load .dockerignore                                                                                                           0.0s
+ => => transferring context: 2B                                                                                                             0.0s
+ => [internal] load metadata for docker.io/library/centos:latest                                                                            0.0s
+ => [internal] load build context                                                                                                           3.6s
+ => => transferring context: 205.02MB                                                                                                       3.6s
+ => CACHED [1/6] FROM docker.io/library/centos                                                                                              0.0s
+ => [2/6] COPY readme.txt /usr/local/readme.txt                                                                                             0.3s
+ => [3/6] ADD jdk-8u202-linux-x64.tar.gz /usr/local/                                                                                        4.8s
+ => [4/6] ADD apache-tomcat-9.0.22.tar.gz /usr/local/                                                                                       0.4s
+ => [5/6] RUN yum -y install vim                                                                                                          109.1s
+ => [6/6] WORKDIR /usr/local                                                                                                                0.0s
+ => exporting to image                                                                                                                      1.7s
+ => => exporting layers                                                                                                                     1.7s
+ => => writing image sha256:4be1d03815380be7ca336c90e33b928890b5c604d646646b6087303385b0c8c0                                                0.0s 
+ => => naming to docker.io/library/diytomcat                                                                                                0.0s 
+```
+
+启动镜像，并为之挂载节点 `docker run -d -p 9090:8080 --name mytomcat -v /Users/i306454/tmp/tmount/test:/usr/local/apache-tomcat-9.0.22/webapps/test -v /Users/i306454/tmp/tmount/tomcatlogs:/usr/local/apache-tomcat-9.0.22/logs diytomcat`
+
+查看本地 logs 文件，报错
+
+```txt
+> cat catalina.out 
+/usr/local/apache-tomcat-9.0.22/bin/catalina.sh: line 464: /usr/local/jdk1.8.0_11/bin/java: No such file or directory
+```
+
+检查后发现我下载的是 `jdk-8u202-linux-x64` 和视频上的不一样，很多地方变量都错了，改了重新 build 一下
+
+突发奇想：虽然配置错了，但是我其实是可以直接进到终端重新配置使 Java 生效的，但是回头整个 follow 过了一下，发现还是不行，无法暴露端口。。。
+
+再次查看 logs 日志，并访问 localhost:9090 tomcat 启动成功 (●°u°●)​ 」
+
+在本地 test 目录下创建测试用页面
+
+```txt
+.
+├── WEB-INF
+│   └── web.xml
+└── index.jsp
+
+// index.jsp 内容如下
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<title>hello, docker</title>
+<body>
+<h2>Hello World!</h2>
+ <%System.out.println("-------my test web logs--------");%>
+</body>
+
+// web.xml 内容如下
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="2.4" 
+    xmlns="http://java.sun.com/xml/ns/j2ee" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee 
+        http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+</web-app>
+```
+
+直接访问 localhost:9090/test 可以看到新写的页面显示成功, logs 下的 catalina.out 会输出 jsp 里的打印信息
+
