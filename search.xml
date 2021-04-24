@@ -6939,6 +6939,18 @@
 <p>测试运行</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 第一次忘了加 -P 导致容器端口没有暴露出来，直接就不能访问了</span></span><br><span class="line">docker run -d -P --name spapp myspringapp</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看映射地址</span></span><br><span class="line">docker ps</span><br><span class="line"><span class="comment"># CONTAINER ID   IMAGE         COMMAND                  CREATED         STATUS         PORTS                     NAMES</span></span><br><span class="line"><span class="comment"># 0b4da52a4593   myspringapp   &quot;java -jar /app.jar …&quot;   3 seconds ago   Up 2 seconds   0.0.0.0:55010-&gt;8080/tcp   spapp</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 访问测试</span></span><br><span class="line">curl localhost:55010/hello</span><br><span class="line"><span class="comment"># Hello from springboot.</span></span><br></pre></td></tr></table></figure>
 
+<h2 id="Docker-Compose"><a href="#Docker-Compose" class="headerlink" title="Docker Compose"></a>Docker Compose</h2><p>Dockerfile 单个容器，Docker Compose 定义运行多个容器</p>
+<p>Using Compose is basically a three-step process:</p>
+<ol>
+<li>Define your app’s environment with a Dockerfile so it can be reproduced anywhere.</li>
+<li>Define the services that make up your app in <code>docker-compose.yml</code> so they can be run together in an isolated environment.</li>
+<li>Run <code>docker compose up</code> and the Docker compose command starts and runs your entire app. You can alternatively run docker-compose up using the docker-compose binary.</li>
+</ol>
+<p>重要概念：</p>
+<ul>
+<li>服务 services, 容器，应用（web, redis…）</li>
+<li>项目 project，一组关联的容器</li>
+</ul>
 <h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>Q: 在最后的 spring 项目实战的 dockerfile 中我明明写了 EXPOSE 8080 为什么我在 run 的时候还要加 p 参数？<br>A: 查看了一下文档，发现这个 EXPOSE 只是起说明作用， run 的时候并不会自动暴露，但是他有一个好处，就是你写了之后，如果用 P 随机的模式的话，他会自动暴露</p>
 <p>官方定义如下</p>
 <figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">EXPOSE 指令是声明容器运行时提供服务的端口，这只是一个声明，在容器运行时并不会因为这个声明应用就会开启这个端口的服务。在 Dockerfile 中写入这样的声明有两个好处，一个是帮助镜像使用者理解这个镜像服务的守护端口，以方便配置映射；</span><br><span class="line"></span><br><span class="line">另一个用处则是在运行时使用随机端口映射时，也就是 docker run -P 时，会自动随机映射 EXPOSE 的端口。</span><br><span class="line">要将 EXPOSE 和在运行时使用 -p &lt;宿主端口&gt;:&lt;容器端口&gt; 区分开来。-p，是映射宿主端口和容器端口，换句话说，就是将容器的对应端口服务公开给外界访问，而 EXPOSE 仅仅是声明容器打算使用什么端口而已，并不会自动在宿主进行端口映射。</span><br></pre></td></tr></table></figure>
