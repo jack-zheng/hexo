@@ -927,3 +927,629 @@ CMD /usr/local/apache-tomcat-9.0.22/bin/startup.sh && tail -F /usr/local/apache-
 
 直接访问 localhost:9090/test 可以看到新写的页面显示成功, logs 下的 catalina.out 会输出 jsp 里的打印信息
 
+## Docker 网络详解
+
+ip addr
+
+lo: 本机回环地址
+eh0: 阿里云内网地址
+docker0: docker0地址
+
+启动测试容器
+
+docker run -d -P --name tomcat01 tomcat
+
+输入 ip addr 查看网络配置, 容器启动时会得到 eth0@if65 的 IP 地址
+
+```txt
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+2: tunl0@NONE: <NOARP> mtu 1480 qdisc noop state DOWN group default qlen 1000
+    link/ipip 0.0.0.0 brd 0.0.0.0
+3: ip6tnl0@NONE: <NOARP> mtu 1452 qdisc noop state DOWN group default qlen 1000
+    link/tunnel6 :: brd ::
+64: eth0@if65: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default 
+    link/ether 02:42:ac:11:00:02 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet 172.17.0.2/16 brd 172.17.255.255 scope global eth0
+       valid_lft forever preferred_lft forever
+```
+
+ping 172.17.0.2 测试, mac 不能 ping 通，不过视频用的 Linux 可以，应该时 OS 差异导致的
+
+docker0 ip 为 172.17.0.1
+
+原理
+
+1. 我们每启动一个 docker 容器，docker 就会给 docker 容器分配一个 ip，我们只要安装了 docker 就会有一个 docker0，采用桥接模式，使用 veth-pair 技术。
+
+再次宿主机终端输入 ip addr 可以看到有一个新的网卡 vethcxxx@ifxx 的网卡
+
+新建容器生产的网卡都是成对出现的，这里采用 veth-pair 技术，一端连着协议，一端彼此相连
+
+veth-pair 充当一个桥梁，链接各种虚拟网络设备
+
+起两个 tomcat 容器也可以互相 ping 通
+
+docker0 相当于一个虚拟路由器, 通信模型如下
+
+![docker network](docker_network.png)
+
+tomcat01 和 tomcat02 都是公用一个路由 - docker0, 所有容器不指定网络的情况下，都是 docker0 路由，docker 会给我们的容器分配默认可用 ip
+
+255.255.0.1/16: 16 表示前 16 为同一个网络
+
+![docker network02](docker_network01.png)
+
+Docker 中所有的网络接口都是虚拟的，虚拟的转发效率高
+
+> 思考：我们编写一个微服务， database url=ip...，项目不重启，数据库 ip 换掉了，配置就失效了。我们是否可以通过指定名字进行访问 --link
+
+默认通过 name 是不能 ping 通的
+
+```txt
+> docker exec -it tomcat01 ping tomcat02
+ping: tomcat02: Name or service not known
+```
+
+启动容器时加入 --link 参数即可实现上述效果
+
+```txt
+> docker run -d -P --name tomcat03 --link tomcat02 tomcat
+4ccaa4545718ec75ba1d9c1a9d1941f3185502b4e754a6c6f940db353ea99d1c
+
+> docker exec -it tomcat03 ping tomcat02                
+PING tomcat02 (172.17.0.3) 56(84) bytes of data.
+64 bytes from tomcat02 (172.17.0.3): icmp_seq=1 ttl=64 time=0.348 ms
+64 bytes from tomcat02 (172.17.0.3): icmp_seq=2 ttl=64 time=0.282 ms
+
+# 但是反向是 ping 不通的！！?
+> docker exec -it tomcat02 ping tomcat03                
+ping: tomcat03: Name or service not known
+```
+
+使用 docker network ls 查看当前网络配置
+
+```txt
+> docker network ls
+
+NETWORK ID     NAME                      DRIVER    SCOPE
+a6af0500c961   bizx-docker-dev_default   bridge    local
+39a92d7cce05   bridge                    bridge    local
+301b50497bc1   hana2_bizxdev             bridge    local
+28c768cdf8c2   host                      host      local
+3da61f734ed6   none                      null      local
+```
+
+查看桥接网卡信息
+
+```bash
+docker network inspect 39a92d7cce05
+
+[
+    {
+        "Name": "bridge",
+        "Id": "39a92d7cce055ead7bd2ba06365c5ad20a381730cba57137850e619eccdb993b",
+        "Created": "2021-04-22T11:01:08.474840175Z",
+        "Scope": "local",
+        "Driver": "bridge",
+        "EnableIPv6": false,
+        "IPAM": {
+            "Driver": "default",
+            "Options": null,
+            "Config": [
+                {
+                    "Subnet": "172.17.0.0/16", <- 最多 255*255 个地址
+                    "Gateway": "172.17.0.1" <- 默认网关 docker0
+                }
+            ]
+        },
+        "Internal": false,
+        "Attachable": false,
+        "Ingress": false,
+        "ConfigFrom": {
+            "Network": ""
+        },
+        "ConfigOnly": false,
+        "Containers": { <- 新建容器 tomcat01-03 信息
+            "3bf7596cfde91a8a668621c750f744df4163aa4a3d836b7c3779f5cbe292e8ed": {
+                "Name": "tomcat01",
+                "EndpointID": "bc46d41fdbade310124ee65b5a1e1e8959d51ecb05f4441339a1da6cebd9daaa",
+                "MacAddress": "02:42:ac:11:00:02",
+                "IPv4Address": "172.17.0.2/16",
+                "IPv6Address": ""
+            },
+            "4ccaa4545718ec75ba1d9c1a9d1941f3185502b4e754a6c6f940db353ea99d1c": {
+                "Name": "tomcat03",
+                "EndpointID": "64bffe5af0e30814d0b947edf3fe27d27db1f82cb2288b22ed1f2f3af60e38a9",
+                "MacAddress": "02:42:ac:11:00:04",
+                "IPv4Address": "172.17.0.4/16",
+                "IPv6Address": ""
+            },
+            "c5012b3643975869e49facb62d6d68f1c5153ea3cfa3f4a5fa36b91073aae07a": {
+                "Name": "tomcat02",
+                "EndpointID": "8c9fef294e0fd087ebb440f071d41440375c04603d4575b6eeece0e91e733dac",
+                "MacAddress": "02:42:ac:11:00:03",
+                "IPv4Address": "172.17.0.3/16",
+                "IPv6Address": ""
+            }
+        },
+        "Options": {
+            "com.docker.network.bridge.default_bridge": "true",
+            "com.docker.network.bridge.enable_icc": "true",
+            "com.docker.network.bridge.enable_ip_masquerade": "true",
+            "com.docker.network.bridge.host_binding_ipv4": "0.0.0.0",
+            "com.docker.network.bridge.name": "docker0",
+            "com.docker.network.driver.mtu": "1500"
+        },
+        "Labels": {}
+    }
+]
+```
+
+查看 tomcat03 的 host 配置
+
+```bash
+docker exec -it tomcat03 cat /etc/hosts
+
+# 127.0.0.1       localhost
+# ::1     localhost ip6-localhost ip6-loopback
+# fe00::0 ip6-localnet
+# ff00::0 ip6-mcastprefix
+# ff02::1 ip6-allnodes
+# ff02::2 ip6-allrouters
+# 172.17.0.3      tomcat02 c5012b364397 < host 中直接指定的 ip - host 的对应关系，域名劫持
+# 172.17.0.4      4ccaa4545718
+
+docker ps
+
+# CONTAINER ID   IMAGE     COMMAND             CREATED             STATUS             PORTS                     NAMES
+# 4ccaa4545718   tomcat    "catalina.sh run"   15 minutes ago      Up 15 minutes      0.0.0.0:55004->8080/tcp   tomcat03
+# c5012b364397   tomcat    "catalina.sh run"   17 minutes ago      Up 17 minutes      0.0.0.0:55003->8080/tcp   tomcat02
+# 3bf7596cfde9   tomcat    "catalina.sh run"   About an hour ago   Up About an hour   0.0.0.0:55002->8080/tcp   tomcat01
+```
+
+本质：--link 就是在 hosts 中增加了一个域名劫持效果，但是现在这种做法已经**不推荐了！！！**
+
+## 自定义网络
+
+容器互联
+
+```bash
+> docker network ls     
+
+NETWORK ID     NAME                      DRIVER    SCOPE
+a6af0500c961   bizx-docker-dev_default   bridge    local
+39a92d7cce05   bridge                    bridge    local
+301b50497bc1   hana2_bizxdev             bridge    local
+28c768cdf8c2   host                      host      local
+3da61f734ed6   none                      null      local
+```
+
+网络模式
+
+* brige: 桥接模式 - 默认
+* none: 不配置
+* host: 和宿主机共享网络
+* container: 容器网络连通 - 用的少，局限大
+
+cmd: `docker run -d -P --name tomcat01 tomcat` 其实是默认带有 `--net bridge` 的参数的
+
+```bash
+# 创建自定义网络
+# --driver bridge 桥接模式
+# --subnet 192.168.0.0/16 子网掩码
+# --gateway 192.168.0.1 网关
+docker network create --driver bridge --subnet 192.168.0.0/16 --gateway 192.168.0.1 mynet
+# 7751a2b22fafcf8d7c4b5080cc15e46cb798f137f469826a547dd4bcf68f79d7
+
+docker network ls                                                                        
+# NETWORK ID     NAME                      DRIVER    SCOPE
+# ...
+# 28c768cdf8c2   host                      host      local
+# 7751a2b22faf   mynet                     bridge    local
+# ...
+
+docker network inspect mynet       
+# [
+#     {
+#         "Name": "mynet",
+#         "Id": "7751a2b22fafcf8d7c4b5080cc15e46cb798f137f469826a547dd4bcf68f79d7",
+#         "Created": "2021-04-24T08:43:56.4363152Z",
+#         "Scope": "local",
+#         "Driver": "bridge",
+#         "EnableIPv6": false,
+#         "IPAM": {
+#             "Driver": "default",
+#             "Options": {},
+#             "Config": [
+#                 {
+#                     "Subnet": "192.168.0.0/16",
+#                     "Gateway": "192.168.0.1"
+#                 }
+#             ]
+#         },
+#         "Internal": false,
+#         "Attachable": false,
+#         "Ingress": false,
+#         "ConfigFrom": {
+#             "Network": ""
+#         },
+#         "ConfigOnly": false,
+#         "Containers": {},
+#         "Options": {},
+#         "Labels": {}
+#     }
+# ]
+
+# 添加容器到自定义网络
+docker run -d -P --name tomcat01 --net mynet tomcat         
+docker run -d -P --name tomcat02 --net mynet tomcat
+
+# 再次查看 mynet 信息可以看到新建容器已经加入到网络中
+docker network inspect mynet                       
+# [
+#  ...   
+# "Containers": {
+#     "063c3bfb96d0328c67fb411944ca650cc2f1e4fac7ec00137bc35306f2da76ed": {
+#         "Name": "tomcat01",
+#         "EndpointID": "3fee6c414247c987f5f17dea54def8c3b162615f5d78c9fdaa81d7697057e9c4",
+#         "MacAddress": "02:42:c0:a8:00:02",
+#         "IPv4Address": "192.168.0.2/16",
+#         "IPv6Address": ""
+#     },
+#     "163204a683461fef05b51b5eedd871dd9829fe5a78824e934edcdff2b83b31e7": {
+#         "Name": "tomcat02",
+#         "EndpointID": "2cc8c11a10b6bf3afedc8f31ee01576407cb1c1885ab5834465ca08d7af2f4b7",
+#         "MacAddress": "02:42:c0:a8:00:03",
+#         "IPv4Address": "192.168.0.3/16",
+#         "IPv6Address": ""
+#     }
+# }
+# ...
+# ]
+
+# 重复之前 --link 的实验，容器间通过 name 互相 ping. 自建网络虽然没有特殊设置，但是可以直接 ping 通
+docker exec -it tomcat02 ping tomcat01 
+# PING tomcat01 (192.168.0.2) 56(84) bytes of data.
+# 64 bytes from tomcat01.mynet (192.168.0.2): icmp_seq=1 ttl=64 time=0.206 ms
+# 64 bytes from tomcat01.mynet (192.168.0.2): icmp_seq=2 ttl=64 time=0.294 ms
+
+docker exec -it tomcat01 ping tomcat02
+# PING tomcat02 (192.168.0.3) 56(84) bytes of data.
+# 64 bytes from tomcat02.mynet (192.168.0.3): icmp_seq=1 ttl=64 time=0.170 ms
+# 64 bytes from tomcat02.mynet (192.168.0.3): icmp_seq=2 ttl=64 time=0.290 ms
+
+# 自定义网络 docker 已经帮我们维护好了对应关系，推荐使用
+# 比如 redis, mysql 集群网络互相隔离，保证集群的安全和健康
+```
+
+## 网络联通
+
+如果让一个容器连接到另一个网络，比如 docker0 中的 容器连接到 mynet
+
+```bash
+# 默认 docker0 网络下新建测试容器 tomcat03
+docker run -d -P --name tomcat03 tomcat 
+
+docker network --help 
+# Usage:  docker network COMMAND
+
+# Manage networks
+
+# Commands:
+#   connect     Connect a container to a network <- 我们想要的命令
+#   create      Create a network
+#   disconnect  Disconnect a container from a network
+#   inspect     Display detailed information on one or more networks
+#   ls          List networks
+#   prune       Remove all unused networks
+#   rm          Remove one or more networks
+
+# Run 'docker network COMMAND --help' for more information on a command.
+
+# 使用方法
+docker network connect --help 
+# Usage:  docker network connect [OPTIONS] NETWORK CONTAINER
+
+# Connect a container to a network
+
+# Options:
+#       --alias strings           Add network-scoped alias for the container
+#       --driver-opt strings      driver options for the network
+#       --ip string               IPv4 address (e.g., 172.30.100.104)
+#       --ip6 string              IPv6 address (e.g., 2001:db8::33)
+#       --link list               Add link to another container
+#       --link-local-ip strings   Add a link-local address for the container
+
+docker network connect mynet tomcat03
+
+# 再次查看 mynet 信息，可以看到 tomcat3 已经加入网络，这个就是一个容器两个地址
+docker network inspect mynet
+# "Containers": {
+#     "063c3bfb96d0328c67fb411944ca650cc2f1e4fac7ec00137bc35306f2da76ed": {
+#         "Name": "tomcat01",
+#         "EndpointID": "3fee6c414247c987f5f17dea54def8c3b162615f5d78c9fdaa81d7697057e9c4",
+#         "MacAddress": "02:42:c0:a8:00:02",
+#         "IPv4Address": "192.168.0.2/16",
+#         "IPv6Address": ""
+#     },
+#     "163204a683461fef05b51b5eedd871dd9829fe5a78824e934edcdff2b83b31e7": {
+#         "Name": "tomcat02",
+#         "EndpointID": "2cc8c11a10b6bf3afedc8f31ee01576407cb1c1885ab5834465ca08d7af2f4b7",
+#         "MacAddress": "02:42:c0:a8:00:03",
+#         "IPv4Address": "192.168.0.3/16",
+#         "IPv6Address": ""
+#     },
+#     "ca3d7a33b27b4c02392059c4505c9b4b73eeb3fbe16d28483400c60b5ea17643": {
+#         "Name": "tomcat03",
+#         "EndpointID": "b0de06f6bac08115b9df8cea1c08de53f675ec80ea675be9f3b1164bd4d069e2",
+#         "MacAddress": "02:42:c0:a8:00:04",
+#         "IPv4Address": "192.168.0.4/16",
+#         "IPv6Address": ""
+#     }
+# }
+
+# tomcat01, 03 互 ping 测试
+docker exec -it tomcat01 ping tomcat03                              
+# PING tomcat03 (192.168.0.4) 56(84) bytes of data.
+# 64 bytes from tomcat03.mynet (192.168.0.4): icmp_seq=1 ttl=64 time=0.131 ms
+# 64 bytes from tomcat03.mynet (192.168.0.4): icmp_seq=2 ttl=64 time=0.123 ms
+
+docker exec -it tomcat03 ping tomcat01
+# PING tomcat01 (192.168.0.2) 56(84) bytes of data.
+# 64 bytes from tomcat01.mynet (192.168.0.2): icmp_seq=1 ttl=64 time=0.085 ms
+```
+
+## 实战：部署 Redis 集群
+
+我 redis 的环境还没有搞好，等看过 redis 的课程之后回头再看把
+
+部署三主三从节点
+
+![redis](redis.png)
+
+```bash
+# 创建网络
+docker network create redis --subnet 172.38.0.0/16
+
+# 脚本创建六个 redis 配置
+# mac 环境下一些命令支持有问题，文件内容没有塞进去...
+for port in $(seq 1 6); \
+do \
+mkdir -p /Users/i306454/tmp/mydata/redis/node-${port}/conf
+touch /Users/i306454/tmp/mydata/redis/node-${port}/conf/redis.conf
+cat  EOF /Users/i306454/tmp/mydata/redis/node-${port}/conf/redis.conf
+port 6379 
+bind 0.0.0.0
+cluster-enabled yes 
+cluster-config-file nodes.conf
+cluster-node-timeout 5000
+cluster-announce-ip 172.38.0.1${port}
+cluster-announce-port 6379
+cluster-announce-bus-port 16379
+appendonly yes
+EOF
+done
+
+# 创建 redis 节点
+docker run -p 6371:6379 -p 16371:16379 --name redis-1 \
+-v /Users/i306454/tmp/mydata/redis/node-1/data:/data \
+-v /Users/i306454/tmp/mydata/redis/node-1/conf/redis.conf:/etc/redis/redis.conf \
+-d --net redis --ip 172.38.0.11 redis:5.0.9-alpine3.11 redis-server /etc/redis/redis.conf
+
+# 依次创建 2-6 节点
+docker run -p 637${n}:6379 -p 1637${n}:16379 --name redis-${n} \
+-v /Users/i306454/tmp/mydata/redis/node-${n}/data:/data \
+-v /Users/i306454/tmp/mydata/redis/node-${n}/conf/redis.conf:/etc/redis/redis.conf \
+-d --net redis --ip 172.38.0.1${n} redis:5.0.9-alpine3.11 redis-server /etc/redis/redis.conf
+
+# 进入 redis 容器
+docker exec -it redis-1 /bin/sh
+
+# 创建集群
+redis-cli --cluster create 172.38.0.11:6379 172.38.0.12:6379 172.38.0.13:6379 172.38.0.14:6379 172.38.0.15:6379 172.38.0.16:6379 --cluster-replicas 1
+# >>> Performing hash slots allocation on 6 nodes...
+# Master[0] -> Slots 0 - 5460
+# Master[1] -> Slots 5461 - 10922
+# Master[2] -> Slots 10923 - 16383
+# Adding replica 172.38.0.15:6379 to 172.38.0.11:6379
+# Adding replica 172.38.0.16:6379 to 172.38.0.12:6379
+# Adding replica 172.38.0.14:6379 to 172.38.0.13:6379
+# M: 4abbca8e1511fc4a04e8b410e35a93af1392bc62 172.38.0.11:6379
+#    slots:[0-5460] (5461 slots) master
+# M: 6ff00ea4f03e997b831c2e7d3150c7399c5fb44c 172.38.0.12:6379
+#    slots:[5461-10922] (5462 slots) master
+# M: 0d6d16438bcb68bf89109b2e91dc6b71208ea113 172.38.0.13:6379
+#    slots:[10923-16383] (5461 slots) master
+# S: c47e77a26e9c1186b489003c00f1a9c647e913c2 172.38.0.14:6379
+#    replicates 0d6d16438bcb68bf89109b2e91dc6b71208ea113
+# S: 69fa6ac41672b325cfce023353ea3a35181ca873 172.38.0.15:6379
+#    replicates 4abbca8e1511fc4a04e8b410e35a93af1392bc62
+# S: c7b681f08fbbe568c5fcb2bddf88660ec3d217bf 172.38.0.16:6379
+#    replicates 6ff00ea4f03e997b831c2e7d3150c7399c5fb44c
+Can I set the above configuration? (type 'yes' to accept): yes
+# >>> Nodes configuration updated
+# >>> Assign a different config epoch to each node
+# >>> Sending CLUSTER MEET messages to join the cluster
+# Waiting for the cluster to join
+# ....
+# >>> Performing Cluster Check (using node 172.38.0.11:6379)
+# M: 4abbca8e1511fc4a04e8b410e35a93af1392bc62 172.38.0.11:6379
+#    slots:[0-5460] (5461 slots) master
+#    1 additional replica(s)
+# S: c47e77a26e9c1186b489003c00f1a9c647e913c2 172.38.0.14:6379
+#    slots: (0 slots) slave
+#    replicates 0d6d16438bcb68bf89109b2e91dc6b71208ea113
+# M: 0d6d16438bcb68bf89109b2e91dc6b71208ea113 172.38.0.13:6379
+#    slots:[10923-16383] (5461 slots) master
+#    1 additional replica(s)
+# M: 6ff00ea4f03e997b831c2e7d3150c7399c5fb44c 172.38.0.12:6379
+#    slots:[5461-10922] (5462 slots) master
+#    1 additional replica(s)
+# S: 69fa6ac41672b325cfce023353ea3a35181ca873 172.38.0.15:6379
+#    slots: (0 slots) slave
+#    replicates 4abbca8e1511fc4a04e8b410e35a93af1392bc62
+# S: c7b681f08fbbe568c5fcb2bddf88660ec3d217bf 172.38.0.16:6379
+#    slots: (0 slots) slave
+#    replicates 6ff00ea4f03e997b831c2e7d3150c7399c5fb44c
+# [OK] All nodes agree about slots configuration.
+# >>> Check for open slots...
+# >>> Check slots coverage...
+# [OK] All 16384 slots covered.
+
+# 查看集群信息
+redis-cli -c 
+# 127.0.0.1:6379> cluster info
+# cluster_state:ok
+# cluster_slots_assigned:16384
+# cluster_slots_ok:16384
+# cluster_slots_pfail:0
+# cluster_slots_fail:0
+# cluster_known_nodes:6
+# cluster_size:3
+# cluster_current_epoch:6
+# cluster_my_epoch:1
+# cluster_stats_messages_ping_sent:203
+# cluster_stats_messages_pong_sent:201
+# cluster_stats_messages_sent:404
+# cluster_stats_messages_ping_received:196
+# cluster_stats_messages_pong_received:203
+# cluster_stats_messages_meet_received:5
+# cluster_stats_messages_received:404
+
+127.0.0.1:6379> cluster noes 
+# (error) ERR Unknown subcommand or wrong number of arguments for 'noes'. Try CLUSTER HELP.
+# 127.0.0.1:6379> cluster nodes 
+# c47e77a26e9c1186b489003c00f1a9c647e913c2 172.38.0.14:6379@16379 slave 0d6d16438bcb68bf89109b2e91dc6b71208ea113 0 1619257734941 4 connected
+# 0d6d16438bcb68bf89109b2e91dc6b71208ea113 172.38.0.13:6379@16379 master - 0 1619257736000 3 connected 10923-16383
+# 6ff00ea4f03e997b831c2e7d3150c7399c5fb44c 172.38.0.12:6379@16379 master - 0 1619257736471 2 connected 5461-10922
+# 4abbca8e1511fc4a04e8b410e35a93af1392bc62 172.38.0.11:6379@16379 myself,master - 0 1619257734000 1 connected 0-5460
+# 69fa6ac41672b325cfce023353ea3a35181ca873 172.38.0.15:6379@16379 slave 4abbca8e1511fc4a04e8b410e35a93af1392bc62 0 1619257735453 5 connected
+# c7b681f08fbbe568c5fcb2bddf88660ec3d217bf 172.38.0.16:6379@16379 slave 6ff00ea4f03e997b831c2e7d3150c7399c5fb44c 0 1619257735554 6 connected
+
+127.0.0.1:6379> set a b
+# -> Redirected to slot [15495] located at 172.38.0.13:6379
+# OK
+# 从 log 看出，值存到了 13 节点中，下面将 13 节点容器 stop, 通过 get 测试备份是否生效
+
+# 开启一个新的终端，查看 13 节点信息
+docker inspect redis
+# "59ceffe5a78c6d013f62e44bd78b3e0b30b9716766bfe0d2944c3d4e55ad730a": {
+#     "Name": "redis-3",
+#     "EndpointID": "4e28b437aa3d725661616200271dab68152ebb3bf93b5e6d66af23e5f44710d6",
+#     "MacAddress": "02:42:ac:26:00:0d",
+#     "IPv4Address": "172.38.0.13/16",
+#     "IPv6Address": ""
+# }
+
+docker stop redis-3
+docker ps
+# CONTAINER ID   IMAGE                    COMMAND                  CREATED          STATUS          PORTS                                              NAMES
+# c0ea4cc5bfc6   redis:5.0.9-alpine3.11   "docker-entrypoint.s…"   11 minutes ago   Up 11 minutes   0.0.0.0:6376->6379/tcp, 0.0.0.0:16376->16379/tcp   redis-6
+# 4a89995a1cad   redis:5.0.9-alpine3.11   "docker-entrypoint.s…"   12 minutes ago   Up 12 minutes   0.0.0.0:6375->6379/tcp, 0.0.0.0:16375->16379/tcp   redis-5
+# 32da42a0d210   redis:5.0.9-alpine3.11   "docker-entrypoint.s…"   12 minutes ago   Up 12 minutes   0.0.0.0:6374->6379/tcp, 0.0.0.0:16374->16379/tcp   redis-4
+# d7d7751dc13d   redis:5.0.9-alpine3.11   "docker-entrypoint.s…"   14 minutes ago   Up 14 minutes   0.0.0.0:6372->6379/tcp, 0.0.0.0:16372->16379/tcp   redis-2
+# 71fa6b723afd   redis:5.0.9-alpine3.11   "docker-entrypoint.s…"   17 minutes ago   Up 17 minutes   0.0.0.0:6371->6379/tcp, 0.0.0.0:16371->16379/tcp   redis-1
+
+# 回到原来的终端进行 get 操作
+172.38.0.13:6379> get a
+Error: Operation timed out
+# 好像他默认直接从原来的 13 节点拿了，服务停了，回到了 11 节点的 data 目录，再通过 redis-cli -c 进去集群终端 get a 信息从 14 节点，备份节点返回
+/data # redis-cli -c 
+127.0.0.1:6379> get a
+# -> Redirected to slot [15495] located at 172.38.0.14:6379
+# "b"
+
+# 通过 nodes 命令查看节点信息可以看到 13 挂了 172.38.0.13:6379@16379 master,fail, slave 直接翻身农奴把歌唱
+172.38.0.14:6379> cluster nodes 
+# 6ff00ea4f03e997b831c2e7d3150c7399c5fb44c 172.38.0.12:6379@16379 master - 0 1619258378445 2 connected 5461-10922
+# 0d6d16438bcb68bf89109b2e91dc6b71208ea113 172.38.0.13:6379@16379 master,fail - 1619258032356 1619258031341 3 connected
+# c47e77a26e9c1186b489003c00f1a9c647e913c2 172.38.0.14:6379@16379 myself,master - 0 1619258377000 7 connected 10923-16383
+# 4abbca8e1511fc4a04e8b410e35a93af1392bc62 172.38.0.11:6379@16379 master - 0 1619258377432 1 connected 0-5460
+# c7b681f08fbbe568c5fcb2bddf88660ec3d217bf 172.38.0.16:6379@16379 slave 6ff00ea4f03e997b831c2e7d3150c7399c5fb44c 0 1619258377533 6 connected
+# 69fa6ac41672b325cfce023353ea3a35181ca873 172.38.0.15:6379@16379 slave 4abbca8e1511fc4a04e8b410e35a93af1392bc62 0 1619258376415 5 connected
+```
+
+## SpringBoot 微服务打包 Docker 镜像
+
+1. 构建 springboot 的 helloword 项目
+2. 打包应用
+3. 编写 dockerfile
+4. 构建镜像
+5. 发布运行
+
+到 Spring Initializr 去打包一个 Hello Word demo 进行测试
+
+Application 同级建一个 controller 文件夹，其下创建 HelloController
+
+```java
+@RestController
+public class HelloController {
+    @RequestMapping("hello")
+    public String hello() {
+        return "Hello from springboot.";
+    }
+}
+```
+
+右键运行 application，访问 localhost:8080/hello 得到字符串
+
+maven task -> Lifecycle -> package 打包工程, jar 包会生成在 target 目录下
+
+右键 open in terminal, 运行 `java -jar demo-0.0.1-SNAPSHOT.jar` 测试 jar 包是否能正常工作
+
+在 target 目录下新建 Dockerfile
+
+```Dockerfile
+FROM java:8
+
+COPY *.jar /app.jar
+
+CMD ["--server.port=8080"]
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-jar", "/app.jar"]
+```
+
+在 target 目录下 build image `docker build -t myspringapp .`
+
+等待结束后查看新建是否成功
+
+```bash
+docker images 
+# REPOSITORY                                          TAG                IMAGE ID       CREATED              SIZE
+# myspringapp                                         latest             8b39ad3c5928   About a minute ago   660MB
+```
+
+测试运行
+
+```bash
+# 第一次忘了加 -P 导致容器端口没有暴露出来，直接就不能访问了
+docker run -d -P --name spapp myspringapp
+
+# 查看映射地址
+docker ps
+# CONTAINER ID   IMAGE         COMMAND                  CREATED         STATUS         PORTS                     NAMES
+# 0b4da52a4593   myspringapp   "java -jar /app.jar …"   3 seconds ago   Up 2 seconds   0.0.0.0:55010->8080/tcp   spapp
+
+# 访问测试
+curl localhost:55010/hello
+# Hello from springboot.
+```
+
+## 问题
+
+Q: 在最后的 spring 项目实战的 dockerfile 中我明明写了 EXPOSE 8080 为什么我在 run 的时候还要加 p 参数？
+A: 查看了一下文档，发现这个 EXPOSE 只是起说明作用， run 的时候并不会自动暴露，但是他有一个好处，就是你写了之后，如果用 P 随机的模式的话，他会自动暴露
+
+官方定义如下
+
+```txt
+EXPOSE 指令是声明容器运行时提供服务的端口，这只是一个声明，在容器运行时并不会因为这个声明应用就会开启这个端口的服务。在 Dockerfile 中写入这样的声明有两个好处，一个是帮助镜像使用者理解这个镜像服务的守护端口，以方便配置映射；
+
+另一个用处则是在运行时使用随机端口映射时，也就是 docker run -P 时，会自动随机映射 EXPOSE 的端口。
+要将 EXPOSE 和在运行时使用 -p <宿主端口>:<容器端口> 区分开来。-p，是映射宿主端口和容器端口，换句话说，就是将容器的对应端口服务公开给外界访问，而 EXPOSE 仅仅是声明容器打算使用什么端口而已，并不会自动在宿主进行端口映射。
+```
