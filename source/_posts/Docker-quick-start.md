@@ -1540,6 +1540,21 @@ curl localhost:55010/hello
 # Hello from springboot.
 ```
 
+## Docker Compose
+
+Dockerfile 单个容器，Docker Compose 定义运行多个容器
+
+Using Compose is basically a three-step process:
+
+1. Define your app’s environment with a Dockerfile so it can be reproduced anywhere.
+2. Define the services that make up your app in `docker-compose.yml` so they can be run together in an isolated environment.
+3. Run `docker compose up` and the Docker compose command starts and runs your entire app. You can alternatively run docker-compose up using the docker-compose binary.
+
+重要概念：
+
+* 服务 services, 容器，应用（web, redis...）
+* 项目 project，一组关联的容器
+
 ## 问题
 
 Q: 在最后的 spring 项目实战的 dockerfile 中我明明写了 EXPOSE 8080 为什么我在 run 的时候还要加 p 参数？
