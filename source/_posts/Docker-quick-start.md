@@ -396,7 +396,7 @@ docker exec -it tomcat01 /bin/bash
 cp -r webapps.dist/* webapps
 ```
 
-## 部署 EC + kibana
+## 部署 ES + kibana
 
 * ES 暴露的接口多
 * ES 十分耗内存
@@ -1554,6 +1554,264 @@ Using Compose is basically a three-step process:
 
 * 服务 services, 容器，应用（web, redis...）
 * 项目 project，一组关联的容器
+
+## 安装
+
+Mac 的 docker-compose 工具集是和客户端整合在一起的，所以不需要单独安装，直接可以使用
+
+```bash
+docker-compose version
+# docker-compose version 1.28.5, build c4eb3a1f
+# docker-py version: 4.4.4
+# CPython version: 3.9.0
+# OpenSSL version: OpenSSL 1.1.1h  22 Sep 202
+```
+
+## 官方起步教程
+
+1. 写应用 app
+2. Dockerfile 应用打包为镜像
+3. Docker-compose yaml 文件整合所有 services
+4. 启动 compose 项目(docker-compose up .)
+
+```txt
+docker-compose up
+
+# 创建网络
+Creating network "composetest_default" with the default driver
+
+# 根据 compose 文件构建
+Building web
+[+] Building 19.7s (13/13) FINISHED                                                                                  
+ => [internal] load build definition from Dockerfile                                                            0.0s
+ => => transferring dockerfile: 324B                                                                            0.0s
+ => [internal] load .dockerignore                                                                               0.0s
+ => => transferring context: 2B                                                                                 0.0s
+ => resolve image config for docker.io/docker/dockerfile:1                                                      3.6s
+ => docker-image://docker.io/docker/dockerfile:1@sha256:e2a8561e419ab1ba6b2fe6cbdf49fd92b95912df1cf7d313c3e2230a333fdbcc                                          1.5s
+ => => resolve docker.io/docker/dockerfile:1@sha256:e2a8561e419ab1ba6b2fe6cbdf49fd92b95912df1cf7d313c3e2230a333fdbcc                                              0.0s
+ => => sha256:e2a8561e419ab1ba6b2fe6cbdf49fd92b95912df1cf7d313c3e2230a333fdbcc 1.69kB / 1.69kB                  0.0s
+ => => sha256:e3ee2e6b536452d876b1c5aa12db9bca51b8f52b2505178cae6d13e33daeed2b 528B / 528B                      0.0s
+ => => sha256:86e43bba076d67c1a890cbc07813806b11eca53843dc643202d939b986c8c332 1.21kB / 1.21kB                  0.0s
+ => => sha256:3cc8e449ce9f6e0752ede8f50a7334bf0c7b2d24d76da2ffae7aa6a729dd1da4 9.64MB / 9.64MB                  0.8s
+ => => extracting sha256:3cc8e449ce9f6e0752ede8f50a7334bf0c7b2d24d76da2ffae7aa6a729dd1da4                       0.3s
+ => [internal] load metadata for docker.io/library/python:3.7-alpine                                            2.7s
+ => [1/6] FROM docker.io/library/python:3.7-alpine@sha256:3b0e1a61106a4c73d1253a86b7765b41d87d1122eb70f99c6de06f0b64edc434                                        2.2s
+ => => resolve docker.io/library/python:3.7-alpine@sha256:3b0e1a61106a4c73d1253a86b7765b41d87d1122eb70f99c6de06f0b64edc434                                        0.0s
+ => => sha256:a7ad1a75a9998a18ceb4b3e77ebc933525c48a5e9b1dd6abf258e86f537a7fbf 281.27kB / 281.27kB              0.6s
+ => => sha256:37ce6546d5dd0143d2fd48adccb48cd0f46c5c2587ce49a53fbd9bd1c5816665 10.57MB / 10.57MB                1.1s
+ => => sha256:3b0e1a61106a4c73d1253a86b7765b41d87d1122eb70f99c6de06f0b64edc434 1.65kB / 1.65kB                  0.0s
+ => => sha256:d7c477920ed69ca5744ae133810c519a5ea72ab2da3edf542375d48e10742720 1.37kB / 1.37kB                  0.0s
+ => => sha256:c46f62f378d72f9a78c4fb150000c479f2bf9095f5616b9f85a8387437e7592c 7.85kB / 7.85kB                  0.0s
+ => => sha256:540db60ca9383eac9e418f78490994d0af424aab7bf6d0e47ac8ed4e2e9bcbba 2.81MB / 2.81MB                  0.5s
+ => => extracting sha256:540db60ca9383eac9e418f78490994d0af424aab7bf6d0e47ac8ed4e2e9bcbba                       0.2s
+ => => sha256:ec9e91bed5a295437fbb8a07b8af46fd69d7dd5beb7ac009c839292454bb3d31 234B / 234B                      1.0s
+ => => sha256:c629b5f73da8f1113e9c8257d16fc65a95b812483506f56e418183e0d618f07e 2.16MB / 2.16MB                  1.3s
+ => => extracting sha256:a7ad1a75a9998a18ceb4b3e77ebc933525c48a5e9b1dd6abf258e86f537a7fbf                       0.1s
+ => => extracting sha256:37ce6546d5dd0143d2fd48adccb48cd0f46c5c2587ce49a53fbd9bd1c5816665                       0.5s
+ => => extracting sha256:ec9e91bed5a295437fbb8a07b8af46fd69d7dd5beb7ac009c839292454bb3d31                       0.0s
+ => => extracting sha256:c629b5f73da8f1113e9c8257d16fc65a95b812483506f56e418183e0d618f07e                       0.2s
+ => [internal] load build context                                                                               0.0s
+ => => transferring context: 1.08kB                                                                             0.0s
+ => [2/6] WORKDIR /code                                                                                         0.1s
+ => [3/6] RUN apk add --no-cache gcc musl-dev linux-headers                                                     3.8s
+ => [4/6] COPY requirements.txt requirements.txt                                                                0.0s
+ => [5/6] RUN pip install -r requirements.txt                                                                   4.7s
+ => [6/6] COPY . .                                                                                              0.0s
+ => exporting to image                                                                                          0.7s
+ => => exporting layers                                                                                         0.7s
+ => => writing image sha256:fa0cb4f4c056d1b79ddddb5ec6e21659cb3d84cad4a28d361775161cbe281811                    0.0s
+ => => naming to docker.io/library/composetest_web                                                              0.0s
+Successfully built fa0cb4f4c056d1b79ddddb5ec6e21659cb3d84cad4a28d361775161cbe281811
+WARNING: Image for service web was built because it did not already exist. To rebuild this image you must use `docker-compose build` or `docker-compose up --build`.
+Pulling redis (redis:alpine)...
+alpine: Pulling from library/redis
+540db60ca938: Already exists
+29712d301e8c: Pull complete
+8173c12df40f: Pull complete
+0be901b3c77d: Pull complete
+c33773bf45b4: Pull complete
+6eeb0c30f7e7: Pull complete
+Digest: sha256:f9577ac6e68c70b518e691406f2bebee49d8db22118fc87bad3b39c16a1cb46e
+Status: Downloaded newer image for redis:alpine
+Creating composetest_web_1   ... done
+Creating composetest_redis_1 ... done
+Attaching to composetest_redis_1, composetest_web_1
+redis_1  | 1:C 25 Apr 2021 06:45:13.848 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+redis_1  | 1:C 25 Apr 2021 06:45:13.848 # Redis version=6.2.2, bits=64, commit=00000000, modified=0, pid=1, just started
+redis_1  | 1:C 25 Apr 2021 06:45:13.848 # Warning: no config file specified, using the default config. In order to specify a config file use redis-server /path/to/redis.conf
+redis_1  | 1:M 25 Apr 2021 06:45:13.849 * monotonic clock: POSIX clock_gettime
+redis_1  | 1:M 25 Apr 2021 06:45:13.849 * Running mode=standalone, port=6379.
+redis_1  | 1:M 25 Apr 2021 06:45:13.849 # WARNING: The TCP backlog setting of 511 cannot be enforced because /proc/sys/net/core/somaxconn is set to the lower value of 128.
+redis_1  | 1:M 25 Apr 2021 06:45:13.849 # Server initialized
+redis_1  | 1:M 25 Apr 2021 06:45:13.850 * Ready to accept connections
+web_1    |  * Serving Flask app "app.py"
+web_1    |  * Environment: production
+web_1    |    WARNING: This is a development server. Do not use it in a production deployment.
+web_1    |    Use a production WSGI server instead.
+web_1    |  * Debug mode: off
+web_1    |  * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+web_1    | 172.20.0.1 - - [25/Apr/2021 06:45:42] "GET / HTTP/1.1" 200 -
+web_1    | 172.20.0.1 - - [25/Apr/2021 06:45:42] "GET /favicon.ico HTTP/1.1" 404 -
+web_1    | 172.20.0.1 - - [25/Apr/2021 06:45:46] "GET / HTTP/1.1" 200 -
+```
+
+```bash
+docker ps
+# CONTAINER ID   IMAGE             COMMAND                  CREATED         STATUS         PORTS                    NAMES
+# 621dc8726fe9   composetest_web   "flask run"              8 minutes ago   Up 8 minutes   0.0.0.0:5000->5000/tcp   composetest_web_1
+# 6945405369e2   redis:alpine      "docker-entrypoint.s…"   8 minutes ago   Up 8 minutes   6379/tcp                 composetest_redis_1
+
+docker network ls
+# NETWORK ID     NAME                      DRIVER    SCOPE
+# 39a92d7cce05   bridge                    bridge    local
+# f713400ac914   composetest_default       bridge    local <- compose 启动之后会创建一个对应的网络，和之前的 log 匹配
+
+docker network inspect composetest_default
+# "Containers": {
+#     "621dc8726fe93265134ead255af6cd572f7a6d82a802a97edd53780248f749dd": {
+#         "Name": "composetest_web_1",
+#         "EndpointID": "000a2b25cc2ffc6b1d86eca556dd06cac05ff6bb70a2cd37d5cce4054559c993",
+#         "MacAddress": "02:42:ac:14:00:02",
+#         "IPv4Address": "172.20.0.2/16",
+#         "IPv6Address": ""
+#     },
+#     "6945405369e252c5537743244ed60a7c740f713c20d1df4e0318cf929411f169": {
+#         "Name": "composetest_redis_1",
+#         "EndpointID": "857a5962c8220bd8972e6793c5ff521503b6e293d31155b8268a8949bfb4bb72",
+#         "MacAddress": "02:42:ac:14:00:03",
+#         "IPv4Address": "172.20.0.3/16",
+#         "IPv6Address": ""
+#     }
+# },
+```
+
+注意点：app 中 redis 是通过域名绑定的 `cache = redis.Redis(host='redis', port=6379)` 并不是指定 IP，这里已经用到了 docker 里面的网络了
+
+## YAML 规则
+
+```txt
+# 3层
+
+version: '' # 版本
+services: # 服务
+    服务1: web
+        # 服务配置
+        images
+        build
+        network
+        ...
+    服务2: redis
+        ...
+    服务2: redis
+        ...
+# 其他配置 网络/卷，全局规则
+volumes:
+network:
+```
+
+## 实战
+
+仿照官方的计数器，写一个 Java 版本的并 compose 启动
+
+1. 写项目代码
+2. dockerfile 构建镜像
+3. docker-compose.yml 整合项目
+4. 上传服务器 docker-compose up . 启动
+
+
+通过 spring initializr 下载模版，将 spring web + spring data reactive redis 加入依赖
+
+新建 controller 层代码, 目录结构如下
+
+```txt
+.
+├── CounterApplication.java
+└── controller
+    └── HelloController.java
+```
+
+```java
+@RestController
+public class HelloController {
+
+    @Autowired
+    StringRedisTemplate redisTemplate;
+
+    @GetMapping("/hello")
+    public String hello() {
+        Long views = redisTemplate.opsForValue().increment("views");
+        return "hello, counter views: " + views;
+    }
+}
+```
+
+配置端口，由于配置的是 redis，所以本地启动的时候 redis 是会出问题的，docker 里才 OK
+
+```application.properties
+server.port=8080
+spring.redis.host=redis
+```
+
+maven -> counter -> Lifecycle -> package 打包到 target folder 下
+
+在 target 下新建 Dockerfile 和 docker-compose.yml
+
+```Dockerfile
+FROM java:8
+
+COPY *.jar /app.jar
+
+CMD ["--server.port=8080"]
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-jar", "/app.jar"]
+```
+
+```yml
+version: '3.8'
+services:
+  counterapp:
+    build: .
+    image: counterapp
+    depends_on:
+      - redis
+    ports:
+      - "8080:8080"
+  redis:
+    image: "library/redis:alpine"
+```
+
+这个有一个东西很奇怪，其实在上面的 Dockerfile 里我是没有指定 docker image 叫什么， 但是下面的 compose file 里直接就拿到了。可能是下面的 `build .` 的意思是用但前文件加下的 Dockerfile 构建，并取名叫 counterapp 
+
+由于我本机就有环境，直接运行即可
+
+```bash
+cd target
+docker-compose up
+
+# network 下会显示 folder 前缀的新网络
+docker network ls
+# c2b31f70eead   target_default            bridge    local
+```
+
+log 输出正常，访问页面正常
+
+`docker-compose --build` 重新构建
+
+## Docker Swarm
+
+## Raft 协议
+
+保证大多数节点存活才可用，只要 >1， 集群则要求 > 3
+
+## 搭建集群
+
+* docker run 容器启动，不能扩容
+* docker service 服务，可扩容
+
+## 以后还要学 Go
 
 ## 问题
 
