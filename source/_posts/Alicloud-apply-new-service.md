@@ -5,6 +5,7 @@ categories:
 - 配置
 tags:
 - 阿里云
+- docker
 ---
 
 阿里云购买云服务，本地通过终端连接使用，终端工具，弹幕各种推荐 Mobaxtream, 打算试用一下
@@ -58,7 +59,7 @@ chkconfig docker on # 设置开机运行
 
 控制台界面搜索 容器镜像服务 -> 镜像工具 -> 镜像加速器
 
-他会根据账号给出加速地址和配置方法，很直观， 对于 CentOS 可以通过修改daemon配置文件/etc/docker/daemon.json来使用加速器
+他会根据账号给出加速地址和配置方法，很直观， 对于 CentOS 可以通过修改 daemon 配置文件/etc/docker/daemon.json来使用加速器
 
 sudo mkdir -p /etc/docker
 sudo tee /etc/docker/daemon.json <<-'EOF'

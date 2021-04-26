@@ -7,434 +7,286 @@ tags:
 - docker
 ---
 
+- [学后总结](#学后总结)
+- [虚拟机 Vs 容器](#虚拟机-vs-容器)
+- [常用命令](#常用命令)
+- [Nginx 镜像操作实践](#nginx-镜像操作实践)
+- [Tomcat 镜像操作实践](#tomcat-镜像操作实践)
+- [部署 ES + kibana 操作实践](#部署-es--kibana-操作实践)
+- [可视化](#可视化)
+- [Docker 镜像加载原理](#docker-镜像加载原理)
+- [制作镜像](#制作镜像)
+- [数据卷](#数据卷)
+- [安装 MySQL 操作实践](#安装-mysql-操作实践)
+- [具名挂载 Vs 匿名挂载](#具名挂载-vs-匿名挂载)
+- [初识 Dockerfile](#初识-dockerfile)
+- [数据卷容器](#数据卷容器)
+- [Dockerfile](#dockerfile)
+- [Dockerfile 构建过程](#dockerfile-构建过程)
+- [Dockerfile 指令](#dockerfile-指令)
+- [CMD Vs ENTRYPOINT](#cmd-vs-entrypoint)
+- [实战： 制作 Tomcat 镜像](#实战-制作-tomcat-镜像)
+- [Docker 网络详解](#docker-网络详解)
+- [自定义网络](#自定义网络)
+- [网络联通](#网络联通)
+- [实战：部署 Redis 集群](#实战部署-redis-集群)
+- [SpringBoot 微服务打包 Docker 镜像](#springboot-微服务打包-docker-镜像)
+- [Docker Compose](#docker-compose)
+- [安装](#安装)
+- [官方起步教程](#官方起步教程)
+- [YAML 规则](#yaml-规则)
+- [实战](#实战)
+- [Docker Swarm](#docker-swarm)
+- [Raft 协议](#raft-协议)
+- [搭建集群](#搭建集群)
+- [以后还要学 Go](#以后还要学-go)
+- [问题](#问题)
+
+## 学后总结
+
+* 基本了解了 docker 相关的整个生态的基本情况
+* 熟悉了 docker 的基本用法
+* 有机会要学一下 Go 语言
+
 ## 虚拟机 Vs 容器
 
 * 虚拟机运行整个系统，在系统上安装运行软件
 * 容器内的应用直接运行在宿主机内，容器没有自己的内核，也没有虚拟硬件
-* 每个容器互相隔离，都有属于自己的文件系统，互不影响
-
-## DevOps
-
-应用更快速的交付和部署
-
-传统：一堆帮助文件，安装程序
-Docker: 打包镜像发布测试，一键运行
-
-更便捷的升级扩容
-
-更简单的系统运维
-
-更高效的计算资源利用：docker 是内核级别的虚拟化，可以在一个乌力吉上运行多个实例，性能压榨到极致
-
-## 当你输入 docker run hello-word 时发生了什么
-
-拉镜像的 flow
-
-## 底层原理
-
-client 和 server 交互模型
-
-## Docker 为什么比 VM 快
-
-1. Docker 有比虚拟机更少的抽象出
-2. Docker 利用的是宿主机内核，VM 需要自己加载操作系统
 
 ## 常用命令
 
 ```bash
-# Docker 相关
-docker version # 版本信息
-docker info # 系统信息，container 数量，操纵系统等
-docker --help
+# docker client 信息显示
+docker version  # docker engin, api 等的版本信息
+docker info     # docker 环境信息，包括 image, container 数量，内核版本等
+docker --help   # 帮助
 
-# 镜像相关
-# docker pull image_name[:tag]
-Host> docker pull mysql   # 没有指定 tag 就默认下载 latest 版本
-Using default tag: latest
-latest: Pulling from library/mysql
-f7ec5a41d630: Already exists 
-9444bb562699: Pull complete  # 分层下载， docker image 的核心，联合文件系统
-6a4207b96940: Pull complete 
-181cefd361ce: Pull complete 
-8a2090759d8a: Pull complete 
-15f235e0d7ee: Pull complete 
-d870539cd9db: Pull complete 
-493aaa84617a: Pull complete 
-bfc0e534fc78: Pull complete 
-fae20d253f9d: Pull complete 
-9350664305b3: Pull complete 
-e47da95a5aab: Pull complete 
-Digest: sha256:04ee7141256e83797ea4a84a4d31b1f1bc10111c8d1bc1879d52729ccd19e20a # 签名
-Status: Downloaded newer image for mysql:latest
-docker.io/library/mysql:latest # 真实地址，等价 docker pull docker.io/library/mysql:latest
-
-docker rmi -f img_id # 删除镜像
-docker rmi -f $(docker images -aq) # 删除全部镜像
-
-# 容器相关
-docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
+# 镜像相关命令
+docker pull [OPTIONS] NAME[:TAG|@DIGEST]    # 拉镜像
+# Host> docker pull mysql                   # 没有指定 tag 就默认下载 latest 版本
+# Using default tag: latest
+# latest: Pulling from library/mysql
+# f7ec5a41d630: Already exists 
+# 9444bb562699: Pull complete               # 分层下载， docker image 的核心，联合文件系统
+# ...
+# e47da95a5aab: Pull complete 
+# Digest: sha256:04ee7141256e83797ea4a84a4d31b1f1bc10111c8d1bc1879d52729ccd19e20a # 签名
+# Status: Downloaded newer image for mysql:latest
+# docker.io/library/mysql:latest            # 真实地址，等价于 docker pull docker.io/library/mysql:latest
 
 # 常用参数
---name="my_name" 指定容器名字
--d 后台运行
--it 交互方式运行，进去容器查看
--p 指定端口
-    -p ip:主机端口:容器端口
-    -p 主机端口:容器端口
-    -p 容器端口
-    容器端口
--P 随机指定端口
+# -f: 强制删除
+docker rmi [OPTIONS] IMAGE [IMAGE...]               # 删除镜像
+docker rmi -f $(docker images -aq)                  # 组合命令，删除全部镜像
 
-docker run -it centos /bin/bash # 启动并进入容器
-docker ps # 运行中的容器
-docker ps -a # 所有容器
-docker ps -n=2 # 最近创建的2个容器
-
-ctrl + p + q # 交互模式下推出容器并后台运行。mac 也是这个命令
-
-docker rm container_id # 删除容器，不能删除正在运行的容器，除非加 -f
-docker rm -f $(docker ps -qa) # 删除所有
-docker ps -aq | xargs docker rm # 删除所有
-
-docker start container_id
-docker restart container_id
-docker stop container_id
-docker kill container_id # stop 报错了可以用这个强制杀进程
-
-docker run -d centos # 后台运行
-# 常见坑：docker 容器使用后台运行，必须要给一个前台进程，dock儿 发现没有应用就会自动停止
-# nginx 容器启动后发现自己没有提供服务，就会立刻停止，ps 就看不见了
-
-# 删除某个 image 的 containers, 这里有个小技巧，可以先通过 docker ps 输出一下，避免误删
-docker ps -aq --filter ancestor=nginx
-docker rm -f $(docker ps -aq --filter ancestor=nginx)
+# 容器相关
+# 常用参数
+# --name="my_name"          # 指定容器名字
+# -d                        # 后台运行
+# -it                       # 交互方式运行，进去容器查看, 示例: docker run -it centos /bin/bash
+# -p                        # 指定端口
+#   -p ip:主机端口:容器端口
+#   -p 主机端口:容器端口
+#   -p 容器端口
+# -P                        # 随机指定端口
+# 常见坑：docker 容器使用后台运行，必须要给一个前台进程，如果 docker 发现没有应用就会自动停止
+# 比如启动 nginx 容器，如果没有 -it 参数，容器就会立刻停止，ps 之后不会显示这个容器，加 -a 可以
+docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
 
 # 生成临时 log
 docker run -d centos /bin/sh -c "while true;do echo testlog;sleep 1;done"
-# -t 时间戳
-# -f 一直打印
-# --tail num 输出n条
-docker logs -tf --tail 10 contains_id
 
-docker top comtainer_id # 显示容器中的进程
+# -t                # 时间戳
+# -f                # 持续打印
+# --tail num        # 输出n条
+# sample: docker logs -tf --tail 10 627b379be47a
+docker logs [OPTIONS] CONTAINER         # 输出 console log
 
-docker inspect contains_id # 显示容器底层信息
-[
-    {
-        "Id": "247d2a88573fdb2893a90a3d35275bfaa2889f7fa450d875456646ed684643d4",
-        "Created": "2021-04-20T13:06:45.2632089Z",
-        "Path": "/bin/sh",
-        "Args": [
-            "-c",
-            "while true;do echo testlog;sleep 1;done"
-        ],
-        "State": {
-            "Status": "running",
-            "Running": true,
-            "Paused": false,
-            "Restarting": false,
-            "OOMKilled": false,
-            "Dead": false,
-            "Pid": 72857,
-            "ExitCode": 0,
-            "Error": "",
-            "StartedAt": "2021-04-20T13:06:45.5636259Z",
-            "FinishedAt": "0001-01-01T00:00:00Z"
-        },
-        "Image": "sha256:300e315adb2f96afe5f0b2780b87f28ae95231fe3bdd1e16b9ba606307728f55",
-        "ResolvConfPath": "/var/lib/docker/containers/247d2a88573fdb2893a90a3d35275bfaa2889f7fa450d875456646ed684643d4/resolv.conf",
-        "HostnamePath": "/var/lib/docker/containers/247d2a88573fdb2893a90a3d35275bfaa2889f7fa450d875456646ed684643d4/hostname",
-        "HostsPath": "/var/lib/docker/containers/247d2a88573fdb2893a90a3d35275bfaa2889f7fa450d875456646ed684643d4/hosts",
-        "LogPath": "/var/lib/docker/containers/247d2a88573fdb2893a90a3d35275bfaa2889f7fa450d875456646ed684643d4/247d2a88573fdb2893a90a3d35275bfaa2889f7fa450d875456646ed684643d4-json.log",
-        "Name": "/elastic_newton",
-        "RestartCount": 0,
-        "Driver": "overlay2",
-        "Platform": "linux",
-        "MountLabel": "",
-        "ProcessLabel": "",
-        "AppArmorProfile": "",
-        "ExecIDs": null,
-        "HostConfig": {
-            "Binds": null,
-            "ContainerIDFile": "",
-            "LogConfig": {
-                "Type": "json-file",
-                "Config": {}
-            },
-            "NetworkMode": "default",
-            "PortBindings": {},
-            "RestartPolicy": {
-                "Name": "no",
-                "MaximumRetryCount": 0
-            },
-            "AutoRemove": false,
-            "VolumeDriver": "",
-            "VolumesFrom": null,
-            "CapAdd": null,
-            "CapDrop": null,
-            "CgroupnsMode": "host",
-            "Dns": [],
-            "DnsOptions": [],
-            "DnsSearch": [],
-            "ExtraHosts": null,
-            "GroupAdd": null,
-            "IpcMode": "private",
-            "Cgroup": "",
-            "Links": null,
-            "OomScoreAdj": 0,
-            "PidMode": "",
-            "Privileged": false,
-            "PublishAllPorts": false,
-            "ReadonlyRootfs": false,
-            "SecurityOpt": null,
-            "UTSMode": "",
-            "UsernsMode": "",
-            "ShmSize": 67108864,
-            "Runtime": "runc",
-            "ConsoleSize": [
-                0,
-                0
-            ],
-            "Isolation": "",
-            "CpuShares": 0,
-            "Memory": 0,
-            "NanoCpus": 0,
-            "CgroupParent": "",
-            "BlkioWeight": 0,
-            "BlkioWeightDevice": [],
-            "BlkioDeviceReadBps": null,
-            "BlkioDeviceWriteBps": null,
-            "BlkioDeviceReadIOps": null,
-            "BlkioDeviceWriteIOps": null,
-            "CpuPeriod": 0,
-            "CpuQuota": 0,
-            "CpuRealtimePeriod": 0,
-            "CpuRealtimeRuntime": 0,
-            "CpusetCpus": "",
-            "CpusetMems": "",
-            "Devices": [],
-            "DeviceCgroupRules": null,
-            "DeviceRequests": null,
-            "KernelMemory": 0,
-            "KernelMemoryTCP": 0,
-            "MemoryReservation": 0,
-            "MemorySwap": 0,
-            "MemorySwappiness": null,
-            "OomKillDisable": false,
-            "PidsLimit": null,
-            "Ulimits": null,
-            "CpuCount": 0,
-            "CpuPercent": 0,
-            "IOMaximumIOps": 0,
-            "IOMaximumBandwidth": 0,
-            "MaskedPaths": [
-                "/proc/asound",
-                "/proc/acpi",
-                "/proc/kcore",
-                "/proc/keys",
-                "/proc/latency_stats",
-                "/proc/timer_list",
-                "/proc/timer_stats",
-                "/proc/sched_debug",
-                "/proc/scsi",
-                "/sys/firmware"
-            ],
-            "ReadonlyPaths": [
-                "/proc/bus",
-                "/proc/fs",
-                "/proc/irq",
-                "/proc/sys",
-                "/proc/sysrq-trigger"
-            ]
-        },
-        "GraphDriver": {
-            "Data": {
-                "LowerDir": "/var/lib/docker/overlay2/80783254f01fcdde559ac63ff7503d2dc317929d0328fb1c66846f9e519d98df-init/diff:/var/lib/docker/overlay2/548d80e0e272a3497edbc439f2a231886f5e890933f8f804c28080c2ecd64172/diff",
-                "MergedDir": "/var/lib/docker/overlay2/80783254f01fcdde559ac63ff7503d2dc317929d0328fb1c66846f9e519d98df/merged",
-                "UpperDir": "/var/lib/docker/overlay2/80783254f01fcdde559ac63ff7503d2dc317929d0328fb1c66846f9e519d98df/diff",
-                "WorkDir": "/var/lib/docker/overlay2/80783254f01fcdde559ac63ff7503d2dc317929d0328fb1c66846f9e519d98df/work"
-            },
-            "Name": "overlay2"
-        },
-        "Mounts": [],
-        "Config": {
-            "Hostname": "247d2a88573f",
-            "Domainname": "",
-            "User": "",
-            "AttachStdin": false,
-            "AttachStdout": false,
-            "AttachStderr": false,
-            "Tty": false,
-            "OpenStdin": false,
-            "StdinOnce": false,
-            "Env": [
-                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-            ],
-            "Cmd": [
-                "/bin/sh",
-                "-c",
-                "while true;do echo testlog;sleep 1;done"
-            ],
-            "Image": "centos",
-            "Volumes": null,
-            "WorkingDir": "",
-            "Entrypoint": null,
-            "OnBuild": null,
-            "Labels": {
-                "org.label-schema.build-date": "20201204",
-                "org.label-schema.license": "GPLv2",
-                "org.label-schema.name": "CentOS Base Image",
-                "org.label-schema.schema-version": "1.0",
-                "org.label-schema.vendor": "CentOS"
-            }
-        },
-        "NetworkSettings": {
-            "Bridge": "",
-            "SandboxID": "39c3e27c519197bb099217f5f767fd806ccc7705d4afca44e044df7def928c1b",
-            "HairpinMode": false,
-            "LinkLocalIPv6Address": "",
-            "LinkLocalIPv6PrefixLen": 0,
-            "Ports": {},
-            "SandboxKey": "/var/run/docker/netns/39c3e27c5191",
-            "SecondaryIPAddresses": null,
-            "SecondaryIPv6Addresses": null,
-            "EndpointID": "aa43be83ff078d4c2dbdff62a2e69217ef2e17c0585edfecdcda030dca3aef0f",
-            "Gateway": "172.17.0.1",
-            "GlobalIPv6Address": "",
-            "GlobalIPv6PrefixLen": 0,
-            "IPAddress": "172.17.0.2",
-            "IPPrefixLen": 16,
-            "IPv6Gateway": "",
-            "MacAddress": "02:42:ac:11:00:02",
-            "Networks": {
-                "bridge": {
-                    "IPAMConfig": null,
-                    "Links": null,
-                    "Aliases": null,
-                    "NetworkID": "2fbb6bb1ed5e760a8350664377ea726ffbf35fab4794d45926ab9f9f9bd28d8a",
-                    "EndpointID": "aa43be83ff078d4c2dbdff62a2e69217ef2e17c0585edfecdcda030dca3aef0f",
-                    "Gateway": "172.17.0.1",
-                    "IPAddress": "172.17.0.2",
-                    "IPPrefixLen": 16,
-                    "IPv6Gateway": "",
-                    "GlobalIPv6Address": "",
-                    "GlobalIPv6PrefixLen": 0,
-                    "MacAddress": "02:42:ac:11:00:02",
-                    "DriverOpts": null
-                }
-            }
-        }
-    }
-]
+# -a                # 所有容器, 包括已经停止的
+# -aq               # 只显示容器 id
+# -n=2 or -n 2      # 最近创建的2个容器
+docker ps [OPTIONS] # 显示容器信息
 
-docker exec -it contain_id /bin/bash # 进入容器，开启一个新的终端
-docker attach contain_id # 进去容器，为当前正在执行的终端
+ctrl + p + q        # 交互模式下推出容器并后台运行。mac 也是这个命令，不过 vscode 里不好使，应该是快捷键冲突
 
-# 拷贝文件到主机
-docker cp container_id:path 目的主机路径 # sample: docker cp 247d2a88573f:/test.java .
+# -f                                                    # 强制移除
+# sample: docker rm -f $(docker ps -qa)                 # 删除所有
+# sample: docker ps -aq | xargs docker rm               # 通过 Linux pip 方式删除所有
+docker rm [OPTIONS] CONTAINER [CONTAINER...]            # 删除容器，不能删除正在运行的容器，除非加 -f
+
+# 删除由某个 image 生成的所有 containers
+# 这里有个小技巧，先通过 docker ps 打印一下，避免误删：docker ps -a --filter ancestor=nginx
+docker rm -f $(docker ps -aq --filter ancestor=nginx)
+
+docker start [OPTIONS] CONTAINER [CONTAINER...]         # 启动停止的容器
+docker restart [OPTIONS] CONTAINER [CONTAINER...]       # 重启容器
+docker stop [OPTIONS] CONTAINER [CONTAINER...]          # 停止容器
+docker docker kill [OPTIONS] CONTAINER [CONTAINER...]   # stop 报错了可以用这个强制杀进程
+
+docker top CONTAINER [ps OPTIONS]                       # 显示容器中的进程, 如下显示志之前 log 例子的 top 信息
+# docker top 627b379be47a
+# UID          PID          PPID         C            STIME               TTY          TIME         CMD
+# root         12866         12840       0            10:29               ?            00:00:00     /bin/bash -c while true; do echo testlog; sleep 1; done
+
+docker inspect [OPTIONS] NAME|ID [NAME|ID...]           # 显示容器底层信息, 包括 id, image, 共享卷，网络等信息
+# [
+#     {
+#         "Id": "247d2a88573fdb2893a90a3d35275bfaa2889f7fa450d875456646ed684643d4",
+#         "Created": "2021-04-20T13:06:45.2632089Z",
+#         "Path": "/bin/sh",
+#         "Args": [
+#             "-c",
+#             "while true;do echo testlog;sleep 1;done"
+#         ],
+#         "State": {
+#             "Status": "running",
+#             ...
+#         },
+#         "Image": "sha256:300e315adb2f96afe5f0b2780b87f28ae95231fe3bdd1e16b9ba606307728f55",
+#         ...
+#         "GraphDriver": {
+#             "Data": {
+#                 "WorkDir": "/var/lib/docker/overlay2/80783254f01fcdde559ac63ff7503d2dc317929d0328fb1c66846f9e519d98df/work"
+#                 ...
+#             },
+#             "Name": "overlay2"
+#         },
+#         "Mounts": [],
+#         "Config": {
+#             ...
+#             "Cmd": [
+#                 "/bin/sh",
+#                 "-c",
+#                 "while true;do echo testlog;sleep 1;done"
+#             ],
+#             "Image": "centos",
+#             "Volumes": null,
+#             "WorkingDir": "",
+#             "Entrypoint": null,
+#             "OnBuild": null,
+#             "Labels": {
+#                 "org.label-schema.build-date": "20201204",
+#                 ...
+#             }
+#         },
+#         "NetworkSettings": {
+#             "Bridge": "",
+#             ...
+#             "MacAddress": "02:42:ac:11:00:02",
+#             "Networks": {
+#                 "bridge": {
+#                     "IPAMConfig": null,
+#                     "Links": null,
+#                     "Aliases": null,
+#                     "NetworkID": "2fbb6bb1ed5e760a8350664377ea726ffbf35fab4794d45926ab9f9f9bd28d8a",
+#                     "EndpointID": "aa43be83ff078d4c2dbdff62a2e69217ef2e17c0585edfecdcda030dca3aef0f",
+#                     "Gateway": "172.17.0.1",
+#                     "IPAddress": "172.17.0.2",
+#                     "IPPrefixLen": 16,
+#                     "IPv6Gateway": "",
+#                     "GlobalIPv6Address": "",
+#                     "GlobalIPv6PrefixLen": 0,
+#                     "MacAddress": "02:42:ac:11:00:02",
+#                     "DriverOpts": null
+#                 }
+#             }
+#         }
+#     }
+# ]
+
+# sample: docker exec -it 627b379be47a /bin/bash 
+docker exec [OPTIONS] CONTAINER COMMAND [ARG...]        # 进入容器，开启一个新的终端
+       
+docker attach [OPTIONS] CONTAINER                       # 进去容器，为当前正在执行的终端
+
+# docker cp ./myyyyyy.tar  9b41928f2fb3:/
+docker cp [OPTIONS] CONTAINER:SRC_PATH DEST_PATH|-      # 容器和宿主机之间文件**互相**拷贝, - 这个符号可以操作 tar，查了一下没使用案例，测试失败
+docker cp [OPTIONS] SRC_PATH|- CONTAINER:DEST_PATH
 ```
 
-## Nginx
+## Nginx 镜像操作实践
 
 ```bash
-docker search nginx # 搜索镜像
-docker pull nginx # 下载镜像
+docker search nginx         # 从官方 repo 搜索镜像
+# NAME                               DESCRIPTION                                     STARS     OFFICIAL   AUTOMATED
+# nginx                              Official build of Nginx.                        14752     [OK]
+# jwilder/nginx-proxy                Automated Nginx reverse proxy for docker con…   2018                 [OK]
 
-# -d : 后台运行
-# --name: 自定义容器名称
-# -p: 指定端口号
-docker run -d --name nginx01 -p 3344:80 nginx 
-curl localhost:3344 
-# 访问 nginx 测试是否成功启动, 返回页面如下
+docker pull nginx                               # 下载镜像
+
+# -d                        # 后台运行
+# --name:my-nginx           # 自定义容器名称
+# -p                        # 指定端口号
+docker run -d --name nginx01 -p 3344:80 nginx   # 启动容器
+
+curl localhost:3344                             # 访问暴露的地址测试是否成功启动, 返回页面如下
 # <!DOCTYPE html>
 # <html>
 # <head>
 # <title>Welcome to nginx!</title>
-# <style>
-#     body {
-#         width: 35em;
-#         margin: 0 auto;
-#         font-family: Tahoma, Verdana, Arial, sans-serif;
-#     }
-# </style>
-# </head>
+# ...
 # <body>
 # <h1>Welcome to nginx!</h1>
 # <p>If you see this page, the nginx web server is successfully installed and
 # working. Further configuration is required.</p>
-
-# <p>For online documentation and support please refer to
-# <a href="http://nginx.org/">nginx.org</a>.<br/>
-# Commercial support is available at
-# <a href="http://nginx.com/">nginx.com</a>.</p>
-
+# ...
 # <p><em>Thank you for using nginx.</em></p>
 # </body>
 # </html>
 
-docker exec -it nginx01 /bin/bash # 进入容器
-whereis nginx # 查看配置
+docker exec -it nginx01 /bin/bash               # 进入容器
+whereis nginx                                   # linux 基础命令，查看配置
 ```
 
-## Tomcat 练习
+## Tomcat 镜像操作实践
 
 ```bash
-# --rm: 一般用于测试，用完即删除
-docker run -it --rm tomcat:9.0
+# --rm      # 一般用于测试，用完即删除
+docker run -it --rm tomcat:9.0                      # tomcat docker 镜像官方命令，可以达到测试完毕，推出即删除的效果
 
-docker run -d -p 3355:8080 --name tomcat01 tomcat
-curl localhost:3355
-# 访问失败
-# <!doctype html><html lang="en"><head><title>HTTP Status 404 – Not Found</title><style type="text/css">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 404 – Not Found</h1><hr class="line" /><p><b>Type</b> Status Report</p><p><b>Description</b> The origin server did not find a current representation for the target resource or is not willing to disclose that one exists.</p><hr class="line" /><h3>Apache Tomcat/9.0.45</h3></body></html>
+docker run -d -p 3355:8080 --name tomcat01 tomcat   # 容器命名为 tomcat01 跑在 3355 端口
+curl localhost:3355                                 # 访问测试, 访问失败
+# <!doctype html>...</b> The origin server did not find a current representation for the target resource or is not willing to disclose that one exists...</body></html>
 
-# 进入容器查看原因
-docker exec -it tomcat01 /bin/bash
+docker exec -it tomcat01 /bin/bash                  # 进入容器查看原因
 
-# ls 发现 webapps 目录下没有文件，官方打镜像的时候把对应的文件放到 webapps.dist 下了。拷贝一下，问题解决
-cp -r webapps.dist/* webapps
+cp -r webapps.dist/* webapps                        # 官方镜像 webapps 文件夹为空，样板页面放到了 webapps.dist 下了。拷贝一下，问题解决
 ```
 
-## 部署 ES + kibana
+## 部署 ES + kibana 操作实践
+
+ES 的问题：
 
 * ES 暴露的接口多
 * ES 十分耗内存
 * ES 数据需要备份
 
 ```bash
-# docker run -d --name elasticsearch --net somenetwork -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" elasticsearch:tag
-# --net somenetwork?
+# sample of official:
+#   docker network create somenetwork
+#   docker run -d --name elasticsearch --net somenetwork -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" elasticsearch:tag
 docker run -d --name elasticsearch -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" elasticsearch:7.6.2
 
-# 查看服务状态
-docker stats
-# CONTAINER ID   NAME                          CPU %     MEM USAGE / LIMIT     MEM %     NET I/O           BLOCK I/O         PIDS
-# 4d87cd0d4ff6   elasticsearch                 0.78%     1.26GiB / 15.64GiB    8.06%     936B / 0B         0B / 729kB        45
-# d3119daeed2c   bizx-docker-dev_kafka_1       1.36%     437.9MiB / 1.562GiB   27.37%    1.43MB / 2.08MB   1.25MB / 32.8kB   80
-# 24fe744a20ea   bizx-docker-dev_zookeeper_1   0.31%     101.8MiB / 768MiB     13.26%    2.92MB / 2MB      50.5MB / 0B       50
-# f9b12d209a07   hana2_hana2_1                 4.27%     3.714GiB / 15.64GiB   23.75%    823MB / 3.53GB    1.69GB / 1.08GB   291
+docker stats            # 实时显示容器的资源使用情况
+# CONTAINER ID   NAME            CPU %     MEM USAGE / LIMIT     MEM %     NET I/O     BLOCK I/O       PIDS
+# 5e20f16bed99   elasticsearch   1.01%     1.332GiB / 15.64GiB   8.52%     836B / 0B   106MB / 729kB   46
 
-# 发送请求测试, 成功
-curl localhost:9200
+curl localhost:9200     # 发送请求测试
 # {
 #   "name" : "4d87cd0d4ff6",
 #   "cluster_name" : "docker-cluster",
 #   "cluster_uuid" : "ojWX85pITJyL7WkVnoKZcA",
 #   "version" : {
 #     "number" : "7.6.2",
-#     "build_flavor" : "default",
-#     "build_type" : "docker",
-#     "build_hash" : "ef48eb35cf30adf4db14086e8aabd07ef6fb113f",
-#     "build_date" : "2020-03-26T06:34:37.794943Z",
-#     "build_snapshot" : false,
-#     "lucene_version" : "8.4.0",
-#     "minimum_wire_compatibility_version" : "6.8.0",
-#     "minimum_index_compatibility_version" : "6.0.0-beta1"
+#    ...
 #   },
 #   "tagline" : "You Know, for Search"
 # }
 
-## 停止服务，修改内存配置 -e ES_JAVA_OPTS="-Xms64m -Xmx512m" 修改内存配置
+# -e        # 启动时添加环境配置，sample: ES_JAVA_OPTS="-Xms64m -Xmx512m" 修改内存配置, 再次查看 stats 可以看到内存使用量变化
 docker run -d --name elasticsearch -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e ES_JAVA_OPTS="-Xms64m -Xmx512m" elasticsearch:7.6.2
+# CONTAINER ID   NAME            CPU %     MEM USAGE / LIMIT     MEM %     NET I/O     BLOCK I/O    PIDS
+# 7a804bd391d6   elasticsearch   229.04%   318.1MiB / 15.64GiB   1.99%     766B / 0B   0B / 246kB   27
 ```
 
 ## 可视化
@@ -449,130 +301,120 @@ docker run -d -p 8000:8000 -p 9000:9000 --name=portainer --restart=always -v /va
 
 ## Docker 镜像加载原理
 
-UnionFS 联合文件系统，分层，轻量级且高性能。
+UnionFS 联合文件系统，分层，轻量级且高性能。有机会再做扩展。
 
 ## 制作镜像
 
 ```bash
-# -a: 作者
-# -m: commit 信息
-# 630bab3ed5c2：container sha
-# tomcat02:1.0：镜像名称 + 版本号
+# -a                # 作者
+# -m                # commit 信息
+# 630bab3ed5c2      # 修改过的 container id
+# tomcat02:1.0      # 新镜像名称:版本号
 docker commit -a='jzheng' -m='add webapps' 630bab3ed5c2 tomcat02:1.0
 docker images
-# REPOSITORY                                          TAG            IMAGE ID       CREATED         SIZE
-# tomcat02                                            1.0            67be5e0517c6   7 seconds ago   672MB
-# mysql                                               latest         0627ec6901db   42 hours ago    556MB
+# REPOSITORY            TAG            IMAGE ID       CREATED         SIZE
+# tomcat02              1.0            67be5e0517c6   7 seconds ago   672MB
 ```
 
-## 容器数据卷
+## 数据卷
 
-删除容器，数据一起丢失
-
-Docker 容器中产生的数据，同步到本地
-
-目录挂载，将容器内的目录挂载到宿主机上
-
-容器的持久化和同步操作，容器间也是可以数据共享的
+docker 容器删除之后，运行时产生的数据也会一起删除，为了保留这些数据，我们有了数据卷技术。通过数据卷技术，我们将容器中数据同步到宿主机，容器之间也可以通过这个技术做数据共享。
 
 ```bash
+# -v, --volume list         # 挂载数据卷(Bind mount a volume)
 # sample: docker run -it -v /Users/id/tmp/mount:/home centos /bin/bash
-docker run -it -v host_addr:container_addr
+docker run -it -v host_addr:container_addr [REPOSITORY[:TAG]]
+# 测试 tomcat 时发现，-v 会以本地的文件夹为基准
+# sample: docker run -d --name my-tomcat -P -v /Users/jack/tmp/mount:/usr/local/tomcat/webapps.dist tomcat
+# 问题：
+#   1. 本地路径必须是全路径 './mount' 会查找失败
+#   2. 挂载之后会以本地文件为基准，比如上例，webapps.dist 挂载到本地后，进入容器，这个文件夹下原有的文件都没了
 
-docker inspect container_id
-# 通过 inspect 可以看到具体的挂载信息
+docker inspect [OPTIONS] NAME|ID [NAME|ID...]       # 通过 inspect 可以看到具体的挂载信息
+
 # ...
 # "Mounts": [
-#             {
-#                 "Type": "bind",
-#                 "Source": "/Users/id/tmp/mount",
-#                 "Destination": "/home",
-#                 "Mode": "",
-#                 "RW": true,
-#                 "Propagation": "rprivate"
-#             }
-#         ]
+#     {
+#         "Type": "bind",
+#         "Source": "/Users/jack/tmp/mount",
+#         "Destination": "/usr/local/tomcat/webapps.dist",
+#         "Mode": "",
+#         "RW": true,
+#         "Propagation": "rprivate"
+#     }
+# ],
 # ...
-
-# home 目录下新建文件，内容会同步到外边
 
 停止容器，修改宿主机下的同步文件夹内容，容器启动后改动会同步到容器中
 ```
 
-## 安装 MySQL
+## 安装 MySQL 操作实践
 
 ```bash
 docker pull mysql:5.7
 
-# 启动并挂载
-# 启动 mysql 需要配置密码, 加入 -e MYSQL_ROOT_PASSWORD=my-secret-pw 参数，查看官方镜像文档了解详细信息
-docker run -d -p 3306:3306 -v /Users/id/tmp/mysql/conf:/etc/mysql/conf.d -v /Users/id/tmp/mysql/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 --name=mysql01 mysql:5.7
+# -e MYSQL_ROOT_PASSWORD=my-secret-pw           # 按官方镜像文档提示，启动容器时设置密码
+docker run -d -p 3000:3306 -v /Users/id/tmp/mysql/conf:/etc/mysql/conf.d -v /Users/id/tmp/mysql/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 --name=mysql01 mysql:5.7
 
-# 测试, 遇到一些小波折。。。
-启动 DBeaver，链接数据库，报错：`Unable to load authentication plugin 'caching_sha2_password'.`
+# 启动 DBeaver，链接数据库，报错：`Unable to load authentication plugin 'caching_sha2_password'.`
+# 搜索之后，发现是 mysql 驱动有跟新，需要修稿客户端的 pom, 升级到 8.x 就行。DBeaver 直接就在创建选项里给了方案，选 8.x 那个就行 [GitIssue](https://github.com/dbeaver/dbeaver/issues/4691)
+# 使用高版本的 Mysql connection 还是有问题，不过 msg 变了：`Public Key Retrieval is not allowed`
+# 搜索之后，发现还要改配置, connection setting -> Driver properties -> 'allowPlblicKeyRetrieval' 改为 true
+# 还有问题。。。继续抛错：`Access denied for user 'root'@'localhost' (using password: YES)`
+docker exec -it mysql01 /bin/bash               # 进去容器，输入 `mysql -u root -p` 尝试登陆，成功。推测是链接客户端的问题
+ps -ef | grep mysql                             # 查看了一下，突然想起来，本地我也有安装 mysql 可能有冲突。果断将之前安装的 docker mysql 删除，重新指定一个新的端口，用 DBeaver 链接，成功！
 
-搜索之后，发现是 mysql 驱动有跟新，需要修稿客户端的 pom, 升级到 8.x 就行。DBeaver 直接就在创建选项里给了方案，选 8.x 那个就行 [GitIssue](https://github.com/dbeaver/dbeaver/issues/4691)
-
-使用高版本的 Mysql connection 还是有问题，不过 msg 变了：`Public Key Retrieval is not allowed`
-
-再查一下，说是还要该配置, connection setting -> Driver properties -> 'allowPlblicKeyRetrieval' 改为 true
-
-还有问题。。。继续抛错：`Access denied for user 'root'@'localhost' (using password: YES)`
-
-先用 docker exec -it mysql01 /bin/bash 进去容器，输入 `mysql -u root -p` 尝试登陆，成功。推测是链接客户端的问题。。。
-
-再用 `ps -ef | grep mysql` 查看了一下，突然想起来，本地我也有安装 mysql 可能有冲突。果断将之前安装的 docker mysql 删除，重新指定一个新的端口，用 DBeaver 链接，成功！
-
-通过客户端创建一个新的数据库 new_test, 再本地映射的 data 目录下 ls 一下，可以看到新数据库文件生产出来了
-
+# 通过客户端创建一个新的数据库 new_test, 在本地映射的 data 目录下 ls 一下，可以看到新数据库文件可以同步创建
 # > ~/tmp/mydb/data ls
 # auto.cnf           ca.pem             client-key.pem     ib_logfile0        ibdata1            mysql              performance_schema public_key.pem     server-key.pem
 # ca-key.pem         client-cert.pem    ib_buffer_pool     ib_logfile1        ibtmp1             new_test           private_key.pem    server-cert.pem    sys
 
-# 删除容器，本地文件依然存在
+# 删除容器，本地文件依然存在！
 ```
 
 ## 具名挂载 Vs 匿名挂载
 
+具名挂载和匿名挂载是 `docker run` 命令中 `-v` 参数不同的使用情况。在明确指定挂载路径时(比如之前 mysql 和 tomcat 测试时的挂载指定), 通过 `docker volume ls` 可以看到是不会生产临时文件夹的
+
 ```bash
-# 匿名挂载: -v 不指定宿主机挂载目录
-docker run -d -P --name nginx01 -v /ect/nginx nginx
+docker volume rm $(docker volume ls -q)             # 参考 rm 示例，删除所有的 volume, 准备测试环境
 
-# 查看卷情况
-docker volume ls
+# -v path_in_container                              # 匿名挂载, 不指定宿主机挂载目录
+docker run -d --name my-tomcat01 -P -v /usr/local/tomcat/webapps.dist tomcat
+
+docker volume ls                                    # 查看卷情况
 # DRIVER    VOLUME NAME
-# local     125a67b4291a80270d9839b62abbc7143f05fa133bf2e48c1057a4c9476ad591 <- 没有指定路径，宿主机上没有具体的挂载点，即匿名挂载
-# local     portainer_data
+# local     0cd33950f5d8a050e61e58eaddae66b397db7b0e6968d40a1908a469c8386b03
 
-# 具名挂载
-# juming-nginx 即卷名
-docker run -d -P --name nginx02 -v juming-nginx:/ect/nginx nginx
+
+# -v name:path_in_container                         # 具名挂载, 名字:容器中挂载点地址
+docker run -d --name my-tomcat02 -P -v tomcat02-volume:/usr/local/tomcat/webapps.dist tomcat
 # DRIVER    VOLUME NAME
-# local     125a67b4291a80270d9839b62abbc7143f05fa133bf2e48c1057a4c9476ad591
-# local     juming-nginx
-# local     portainer_data
+# local     0cd33950f5d8a050e61e58eaddae66b397db7b0e6968d40a1908a469c8386b03
+# local     tomcat02-volum
 
-# 使用 inspect 查看具体信息
-docker volume inspect juming-nginx
-[
-    {
-        "CreatedAt": "2021-04-22T12:22:21Z",
-        "Driver": "local",
-        "Labels": null,
-        "Mountpoint": "/var/lib/docker/volumes/juming-nginx/_data",
-        "Name": "juming-nginx",
-        "Options": null,
-        "Scope": "local"
-    }
-]
+docker volume inspect juming-nginx                  # 使用 inspect 查看挂载点具体信息
+# [
+#     {
+#         "CreatedAt": "2021-04-26T12:20:25Z",
+#         "Driver": "local",
+#         "Labels": null,
+#         "Mountpoint": "/var/lib/docker/volumes/tomcat02-volume/_data",
+#         "Name": "tomcat02-volume",
+#         "Options": null,
+#         "Scope": "local"
+#     }
+# ]
 
--v 容器内路径 # 匿名挂载
--v 卷名:容器内路径 # 具名挂载
--v /宿主机路径:容器内路径 # 指定路径挂载
+# 总结：
+#   -v path-in-container                  # 匿名挂载
+#   -v volume-name:path-in-container      # 具名挂载
+#   -v host-path:path-in-container        # 指定路径挂载
 
-# -v /宿主机路径:容器内路径:ro/rw
-ro: read only, 只能通过宿主机改变，容器内部不能改变
-rw: read and write 
+# 其他使用方式，加 ro/rw 参数：
+#   -v host-path:path-in-container:ro/rw
+#       ro: read only, 只能通过宿主机改变，容器内部不能改变
+#       rw: read and write, 默认的权限设置
 ```
 
 ## 初识 Dockerfile
