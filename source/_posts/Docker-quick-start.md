@@ -38,6 +38,7 @@ tags:
 - [Docker Swarm](#docker-swarm)
 - [Raft 协议](#raft-协议)
 - [搭建集群](#搭建集群)
+- [概念总结](#概念总结)
 - [以后还要学 Go](#以后还要学-go)
 - [问题](#问题)
 
@@ -1515,7 +1516,7 @@ Dockerfile 单个容器，Docker Compose 定义运行多个容器
 
 Using Compose is basically a three-step process:
 
-1. Define your app’s environment with a Dockerfile so it can be reproduced anywhere.
+1. Define your app's environment with a Dockerfile so it can be reproduced anywhere.
 2. Define the services that make up your app in `docker-compose.yml` so they can be run together in an isolated environment.
 3. Run `docker compose up` and the Docker compose command starts and runs your entire app. You can alternatively run docker-compose up using the docker-compose binary.
 
@@ -1536,9 +1537,15 @@ docker-compose version
 # OpenSSL version: OpenSSL 1.1.1h  22 Sep 202
 ```
 
+Linux 安装
+
+1. 从 github 下载(源文件)[sudo curl -L "https://github.com/docker/compose/releases/download/1.29.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose]
+2. 修改权限 `sudo chmod +x /usr/local/bin/docker-compose`
+3. 测试运行 `docker compose --version`
+
 ## 官方起步教程
 
-1. 写应用 app
+1. 写应用
 2. Dockerfile 应用打包为镜像
 3. Docker-compose yaml 文件整合所有 services
 4. 启动 compose 项目(docker-compose up .)
@@ -1771,14 +1778,225 @@ log 输出正常，访问页面正常
 
 ## Docker Swarm
 
+PS：Mobaxtream multi-execution 简直是太酷炫了！！！
+
+创建 4 个实例并安装 docker，准备实验环境
+
+![how node works](how_node_work.png)
+
+```bash
+docker swarm --help         # 查看可用命令
+# Usage:  docker swarm COMMAND
+# Manage Swarm
+# Options:
+#       --help   Print usage
+
+# Commands:
+#   init        Initialize a swarm
+#   join        Join a swarm as a node and/or manager
+#   join-token  Manage join tokens
+#   leave       Leave the swarm
+#   unlock      Unlock swarm
+#   unlock-key  Manage the unlock key
+#   update      Update the swarm
+
+docker swarm init --help
+# Usage:  docker swarm init [OPTIONS]
+# Initialize a swarm
+# Options:
+#       --advertise-addr string           Advertised address (format: <ip|interface>[:port])
+#       --autolock                        Enable manager autolocking (requiring an unlock key to start a stopped manager)
+#       --cert-expiry duration            Validity period for node certificates (ns|us|ms|s|m|h) (default 2160h0m0s)
+#       --dispatcher-heartbeat duration   Dispatcher heartbeat period (ns|us|ms|s|m|h) (default 5s)
+#       --external-ca external-ca         Specifications of one or more certificate signing endpoints
+#       --force-new-cluster               Force create a new cluster from current state
+#       --help                            Print usage
+#       --listen-addr node-addr           Listen address (format: <ip|interface>[:port]) (default 0.0.0.0:2377)
+#       --max-snapshots uint              Number of additional Raft snapshots to retain
+#       --snapshot-interval uint          Number of log entries between Raft snapshots (default 10000)
+#       --task-history-limit int          Task history retention limit (default 5)
+
+docker swarm init --advertise-addr 172.28.231.215       # 创建 swarm 集群，提供两个可用命令，一个用于添加 worker 节点，一个用于添加 manager 节点
+# Swarm initialized: current node (abele1bkn04awsnvvfzj0dof2) is now a manager.
+
+# To add a worker to this swarm, run the following command:
+
+#     docker swarm join \
+#     --token SWMTKN-1-2n1wgk8ws8ca2bz2kr5nkqefrngtizuum901cv7hmhgqnsjuc1-3gwzzivpm27xfqk8ddclf6fth \
+#     172.28.231.215:2377
+
+# To add a manager to this swarm, run 'docker swarm join-token manager' and follow the instructions.
+
+docker node ls              # 显示集群节点状态
+# ID                           HOSTNAME                 STATUS  AVAILABILITY  MANAGER STATUS
+# abele1bkn04awsnvvfzj0dof2 *  iZuf6brcie4578p0e13tg9Z  Ready   Active        Leader
+
+docker swarm join \
+    --token SWMTKN-1-2n1wgk8ws8ca2bz2kr5nkqefrngtizuum901cv7hmhgqnsjuc1-3gwzzivpm27xfqk8ddclf6fth \
+    172.28.231.215:2377      # 挑选一个可用节点，作为一个 worker 节点加入
+# This node joined a swarm as a worker.
+
+docker node ls              # 再次查看节点状态，节点加入成功   
+# ID                           HOSTNAME                 STATUS  AVAILABILITY  MANAGER STATUS
+# 9xujdtp2c7dob2t1o704tgwvl    iZuf6brcie4578p0e13tg8Z  Ready   Active
+# abele1bkn04awsnvvfzj0dof2 *  iZuf6brcie4578p0e13tg9Z  Ready   Active        Leader
+
+docker swarm join-token manager     # 生成 manager 节点 token
+# To add a manager to this swarm, run the following command:
+#     docker swarm join \
+#     --token SWMTKN-1-2n1wgk8ws8ca2bz2kr5nkqefrngtizuum901cv7hmhgqnsjuc1-392uyq8gmjgp9dj484y8id8jq \
+#     172.28.231.215:2377
+
+docker swarm join \
+>     --token SWMTKN-1-2n1wgk8ws8ca2bz2kr5nkqefrngtizuum901cv7hmhgqnsjuc1-392uyq8gmjgp9dj484y8id8jq \
+>     172.28.231.215:2377       # 挑选一个可用节点，作为 manager 节点加入集群
+# This node joined a swarm as a manager.
+```
+
 ## Raft 协议
 
 保证大多数节点存活才可用，只要 >1， 集群则要求 > 3
 
+实验：双主双从的情况加，一个主机 down, 另一个主机还是不能使用，并不能达到备份的效果
+
+```bash
+systemctl stop docker       # 停止一个 manager 节点
+
+docker node ls              # 在另一个 manager 节点上显示 node 信息
+# Error response from daemon: rpc error: code = 4 desc = context deadline exceeded
+
+systemctl start docker      # 重启停止的节点
+
+docker node ls              # manager 节点的主备节点互换了
+# ID                           HOSTNAME                 STATUS  AVAILABILITY  MANAGER STATUS
+# 9xujdtp2c7dob2t1o704tgwvl    iZuf6brcie4578p0e13tg8Z  Ready   Active
+# abele1bkn04awsnvvfzj0dof2 *  iZuf6brcie4578p0e13tg9Z  Ready   Active        Reachable
+# qr1s9a3q7h3j8dw48juw1emg4    myvm01                   Ready   Active        Leader
+# y1gs7gsyuwoefjvmw8d9eswrm    iZuf6brcie4578p0e13tgaZ  Ready   Active
+
+docker swarm leave         # 选取一个 worker 节点，起开集群
+
+docker node ls              # manager 节点显示，上面的节点 down 了
+# ID                           HOSTNAME                 STATUS  AVAILABILITY  MANAGER STATUS
+# 9xujdtp2c7dob2t1o704tgwvl    iZuf6brcie4578p0e13tg8Z  Down    Active
+# abele1bkn04awsnvvfzj0dof2 *  iZuf6brcie4578p0e13tg9Z  Ready   Active        Reachable
+# qr1s9a3q7h3j8dw48juw1emg4    myvm01                   Ready   Active        Leader
+# y1gs7gsyuwoefjvmw8d9eswrm    iZuf6brcie4578p0e13tgaZ  Ready   Active
+
+docker swarm join \
+     --token SWMTKN-1-2n1wgk8ws8ca2bz2kr5nkqefrngtizuum901cv7hmhgqnsjuc1-392uyq8gmjgp9dj484y8id8jq \
+     172.28.231.215:2377        # 将其开的节点设置为 manger 节点
+# This node joined a swarm as a manager.
+
+docker node ls                  # 显示由三个 manager 节点
+# ID                           HOSTNAME                 STATUS  AVAILABILITY  MANAGER STATUS
+# 9xujdtp2c7dob2t1o704tgwvl    iZuf6brcie4578p0e13tg8Z  Down    Active
+# abele1bkn04awsnvvfzj0dof2    iZuf6brcie4578p0e13tg9Z  Ready   Active        Reachable
+# o97d3m17864yftbmq6kdaxel4 *  iZuf6brcie4578p0e13tg8Z  Ready   Active        Reachable
+# qr1s9a3q7h3j8dw48juw1emg4    myvm01                   Ready   Active        Leader
+# y1gs7gsyuwoefjvmw8d9eswrm    iZuf6brcie4578p0e13tgaZ  Ready   Active
+
+system stop  docker             # 重复之前的实验，停止一个 manager 节点
+
+docker node ls                  # 到备用 manager 节点，测试节点信息，可用
+# ID                           HOSTNAME                 STATUS  AVAILABILITY  MANAGER STATUS
+# 9xujdtp2c7dob2t1o704tgwvl    iZuf6brcie4578p0e13tg8Z  Down    Active
+# abele1bkn04awsnvvfzj0dof2    iZuf6brcie4578p0e13tg9Z  Down    Active        Unreachable
+# o97d3m17864yftbmq6kdaxel4    iZuf6brcie4578p0e13tg8Z  Ready   Active        Reachable
+# qr1s9a3q7h3j8dw48juw1emg4 *  myvm01                   Ready   Active        Leader
+# y1gs7gsyuwoefjvmw8d9eswrm    iZuf6brcie4578p0e13tgaZ  Ready   Active
+```
+
 ## 搭建集群
+
+docker-compose up 项目，单机
+
+swarm 集群 services 高可用
+
+容器 -> 服务 -> 副本
 
 * docker run 容器启动，不能扩容
 * docker service 服务，可扩容
+
+```bash
+docker service
+# Usage:  docker service COMMAND
+# Manage services
+# Options:
+#       --help   Print usage
+# Commands:
+#   create      Create a new service
+#   inspect     Display detailed information on one or more services
+#   ls          List services
+#   ps          List the tasks of a service
+#   rm          Remove one or more services
+#   scale       Scale one or multiple replicated services
+#   update      Update a service
+# Run 'docker service COMMAND --help' for more information on a command.
+```
+
+创建服务实践
+
+* docker run: 单个容器, 不能扩缩容
+* docker service: 服务，可以扩缩容，可以滚动更新
+
+```bash
+docker service create -p 8888:80 --name my-nginx nginx      # 创建服务
+
+docker service ps my-nginx
+# ID            NAME        IMAGE         NODE    DESIRED STATE  CURRENT STATE               ERROR  PORTS
+# yb78d9o2lsyp  my-nginx.1  nginx:latest  myvm01  Running        Running about a minute ago
+
+docker service ls
+# ID            NAME      MODE        REPLICAS  IMAGE
+# sgcat9l69srz  my-nginx  replicated  1/1       nginx:latest
+
+docker ps           # 这个服务是随机创建在 manager 节点上的
+
+docker service update --replicas 3 my-nginx     # 添加三个副本
+
+docker ps           # 去各个节点上看可以看到如下信息，names 为 1-3
+# CONTAINER ID        IMAGE                                                                           COMMAND                  CREATED             STATUS              PORTS               NAMES
+# 902bbdf9eb3a        nginx@sha256:75a55d33ecc73c2a242450a9f1cc858499d468f077ea942867e662c247b5e412   "/docker-entrypoin..."   9 minutes ago       Up 9 minutes        80/tcp              my-nginx.1.yb78d9o2lsyp0wg7558vn0eew
+
+curl 172.28.231.213:8888        # 挑选一个节点访问其他节点 nginx 服务，可达
+# <!DOCTYPE html>
+# <html>
+# <head>
+# <title>Welcome to nginx!</title>
+# ....
+# </body>
+# </html>
+
+docker service ls
+# ID            NAME      MODE        REPLICAS  IMAGE
+# sgcat9l69srz  my-nginx  replicated  10/10     nginx:latest
+
+docker service update --replicas 10 my-nginx     # 弹性扩缩容
+docker service update --replicas 1 my-nginx
+
+docker service scale my-nginx=4                  # 效果一样，更方便一点
+# my-nginx scaled to 4
+
+docker service rm my-nginx                       # 移除服务
+```
+
+## 概念总结
+
+* swarm: 集群的管理和编排。 docker 可以创建一个集群，其他节点可以加入(worker, manager)
+* Node: docker节点(我觉得理解为虚拟机会比较好)，多个节点组成集群网络
+* service: 任务，可以在管理节点或工作节点运行
+* Task: 容器内的命令，细节任务
+
+命令 -> 管理节点 -> api -> 调度 -> 工作节点
+
+Publish Mode:
+
+* swarm
+* Overlay
+* ingress - 特殊的 overlay 网络，由负载均衡功能
+
+`docker network ls` + `docker network inspect ingress` 可以看到 swarm 集群中的机子都在这个网络中
 
 ## 以后还要学 Go
 
