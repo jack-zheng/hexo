@@ -19,14 +19,13 @@ tags:
 - [数据卷](#数据卷)
 - [安装 MySQL 操作实践](#安装-mysql-操作实践)
 - [具名挂载 Vs 匿名挂载](#具名挂载-vs-匿名挂载)
+- [数据共享](#数据共享)
 - [初识 Dockerfile](#初识-dockerfile)
-- [数据卷容器](#数据卷容器)
 - [Dockerfile](#dockerfile)
-- [Dockerfile 构建过程](#dockerfile-构建过程)
-- [Dockerfile 指令](#dockerfile-指令)
 - [CMD Vs ENTRYPOINT](#cmd-vs-entrypoint)
 - [实战： 制作 Tomcat 镜像](#实战-制作-tomcat-镜像)
-- [Docker 网络详解](#docker-网络详解)
+- [docker0 网络详解](#docker0-网络详解)
+- [--link](#--link)
 - [自定义网络](#自定义网络)
 - [网络联通](#网络联通)
 - [实战：部署 Redis 集群](#实战部署-redis-集群)
@@ -417,130 +416,156 @@ docker volume inspect juming-nginx                  # 使用 inspect 查看挂�
 #       rw: read and write, 默认的权限设置
 ```
 
-## 初识 Dockerfile
+## 数据共享
 
-用来构建 docker 镜像的构建文件
-
-```dockerfile
-# 新建文件写入如下内容
-FROM centos
-
-VOLUME ["volume01", "volume02"]
-
-CMD echo "-----end-----"
-CMD /bin/bash
-```
-```bash
-docker build -f dfile -t my/centos:1.0 .
-# docker images 查看自建的镜像
-docker images
-# REPOSITORY                                          TAG            IMAGE ID       CREATED         SIZE
-# ...
-# my/centos                                           1.0            f75a47123694   4 months ago    209MB
-# ...
-
-# 启动测试
-docker run -it f75a47123694  /bin/bash
-# ls 查看挂载卷
-# drwxr-xr-x   2 root root 4096 Apr 22 12:42 volume01
-# drwxr-xr-x   2 root root 4096 Apr 22 12:42 volume02
-
-# 在 volume1 中新建文件 echo "new" >> new_file.txt
-docker inspect 3996ebe1b343
-# "Mounts": [
-#             {
-#                 "Type": "volume",
-#                 "Name": "4c0081e951fc91397280afa09c9f5928115850f9ccaa17468b301c4aedc00bca",
-#                 "Source": "/var/lib/docker/volumes/4c0081e951fc91397280afa09c9f5928115850f9ccaa17468b301c4aedc00bca/_data",
-#                 "Destination": "volume02",
-#                 "Driver": "local",
-#                 "Mode": "",
-#                 "RW": true,
-#                 "Propagation": ""
-#             },
-#             {
-#                 "Type": "volume",
-#                 "Name": "33e8e61250b705ab4c2fba0972be84a541647c5aa327e5e3055431be836054b9",
-#                 "Source": "/var/lib/docker/volumes/33e8e61250b705ab4c2fba0972be84a541647c5aa327e5e3055431be836054b9/_data",
-#                 "Destination": "volume01",
-#                 "Driver": "local",
-#                 "Mode": "",
-#                 "RW": true,
-#                 "Propagation": ""
-#             }
-#         ]
-```
-
-## 数据卷容器
-
-多个容器之间同步数据
+多个容器之间是可以实现同步数据的效果的
 
 ```bash
-# 启动自制容器作为父容器
-ocker run -it --name docker01 my/centos:1.0
-# 启动子容器
-docker run -it --name docker02 --volumes-from docker01 my/centos:1.0
-# docker01 下的 volume01 中新建文件，docker02 下的对应目录也有这个文件
-# [root@d8c3cdf6d43b volume01]# echo "123" >> new_in_01.txt
-# [root@d8c3cdf6d43b volume01]# ls
-# new_in_01.txt
-#
-# [root@aee652f1fda3 /]# cd volume01
-# [root@aee652f1fda3 volume01]# ls
-# new_in_01.txt
-# 重复以上操作新建的镜像都会同步文件
+docker volume rm $(docker volume ls -q)                             # 删除卷，准备实验环境
 
-# 删除父容器，自容器中同步的文件依旧存在
-docker rm -f docker01
+docker run -it -d --name myos01 mycentos                            # 启动自制容器作为父容器
+
+docker volume ls                                                    # 两个挂载卷创建完毕
+# DRIVER              VOLUME NAME
+# local               8532efd6dabd0254bf5cec28de4df8225e4b633b91d83e13d80ba3ea97a9b314 <- volume01
+# local               b398a216526cfe3a52f71a92c383694f73b91900dbe57159c02ab63040078c21 <- volume02
+
+docker run -it -d --name myos02 --volumes-from myos01 mycentos      # 启动子容器, 查看卷信息，没有新建卷
+
+docker exec -it myos01 /bin/bash                                    # 进入容器 myos01
+cd volume01 && touch new.txt                                        # 进入测试文件夹，新建测试文件
+
+docker exec -it myos02 /bin/bash                                    # 进入容器 myos02
+d volume01 && ls                                                    # 查看文件列表
+# new.txt                                                           # 文件创建成功
+
+docker rm -f myos01                                                 # 删除父容器
+
+docker exec -it myos02 /bin/bash                                    # 进入容器 myos02
+d volume01 && ls                                                    # 查看文件列表
+# new.txt                                                           # 文件创建成功
 ```
 
 结论：
-* 容器之间配置信息传递，数据卷容器的生命周期一直持续到没有容器使用为止
+
+* 数据卷容器的生命周期一直持续到没有容器使用为止
 * 一旦持久化到本地，本地数据是不会删除的
+
+PS: 就我看还不如说，数据卷挂载的时候会在宿主机上创建一个对应的挂载点，文件都存在那里的，所以就算容器删了数据还是存在的
+
+## 初识 Dockerfile
+
+用来构建 docker 镜像的文件
+
+```dockerfile
+# Dockerfile 示例，
+FROM centos
+
+# 挂载两个卷
+VOLUME ["volume01", "volume02"]
+
+# Dockerfile 中只能有一条 CMD 指令，如果要执行多个 cmd 可以用 && 链接
+CMD echo "-----end-----" && /bin/bash
+```
+
+创建镜像文件并启动容器
+
+```bash
+# -f file-path          # 指定 Dockerfile 路径
+# -t name:tag           # 为镜像取名，打 tag
+docker build [OPTIONS] PATH | URL | -
+# sample: docker build -t mycentos .
+
+docker images           # 查看新建 image 是否成功
+# REPOSITORY       TAG                IMAGE ID       CREATED         SIZE
+# ...
+# mycentos         0.1                1fa2eebe33e7   3 days ago      282MB
+# docker images 查看自建的镜像
+
+docker run -it --name myos mycentos     # 启动测试
+# ----- end file -------                # 自定义 log 输出成功
+# [root@ab726584ad36 /]# ls -al         # 两个新文件夹 volume1, volume2 创建成功
+# ...
+# drwxr-xr-x   2 root root 4096 Apr 27 06:34 volume01
+# drwxr-xr-x   2 root root 4096 Apr 27 06:34 volume02
+
+cd volume1 && ehco "test" >> new_file.txt       # 在 volume1 文件夹下创建一个测试文件
+
+# 在 volume1 中新建文件 echo "new" >> new_file.txt
+docker inspect myos
+# "Mounts": [
+#     {
+#         "Type": "volume",
+#         "Name": "f8d5471d593bd05dc18d5ce04a09353f805113408b15b3557dafb71b84bdd73b",
+#         "Source": "/var/lib/docker/volumes/f8d5471d593bd05dc18d5ce04a09353f805113408b15b3557dafb71b84bdd73b/_data",
+#         "Destination": "volume02",
+#         "Driver": "local",
+#         "Mode": "",
+#         "RW": true,
+#         "Propagation": ""
+#     },
+#     {
+#         "Type": "volume",
+#         "Name": "a4940f45b4573330e4db3964ad7534543404fc37eaacce797eff664744240337",
+#         "Source": "/var/lib/docker/volumes/a4940f45b4573330e4db3964ad7534543404fc37eaacce797eff664744240337/_data",
+#         "Destination": "volume01",
+#         "Driver": "local",
+#         "Mode": "",
+#         "RW": true,
+#         "Propagation": ""
+#     }
+# ]
+
+cd /var/lib/docker/volumes/a4940f45b4573330e4db3964ad7534543404fc37eaacce797eff664744240337/_data && ls     # 查看挂载目录下的文件列表
+# new_file.txt
+
+# 上面这个查看挂载文件的操作只能在 Linux 系统上做， Windows 和 MacOS 系统上的 docker 都是通过虚拟机启动的，虽然能看到类似的信息，但是本机上是不能访问挂载文件夹的
+```
 
 ## Dockerfile
 
-构建 Docker 镜像的文件，包含命令参数的脚本
+A Dockerfile is a text document that contains all the commands a user could call on the command line to assemble an image.
 
-步骤：
+构建镜像的步骤：
 
 1. 创建 Dockerfile 文件
 2. docker build 构建镜像
 3. docker run 运行镜像
 4. docker push 发布镜像
 
-## Dockerfile 构建过程
+文件格式注：
 
-1. 每个保留关键字都必须是大写的字母
-2. 执行顺序从上倒下
-3. `#` 表示注释
-4. 每个指令都会创建提交一个新的镜像层，并提交
+* 每个保留关键字都必须是大写的字母
+* 执行顺序从上倒下
+* `#` 表示注释
+* 每个指令都会创建提交一个新的镜像层，并提交
 
-## Dockerfile 指令
+常用指令：
+
+参考[官方文档](https://docs.docker.com/engine/reference/builder/)
 
 ```Dockerfile
-FROM  # 基础镜像，起点
-MAINTAINER # 作者
-RUN # 镜像构建的时候需要运行的命令
-ADD # 步骤，比如添加tomcat 压缩包
-WORKDIR # 镜像工作目录
-VOLUME # 挂载目录
-EXPOSE # 暴露端口
-CMD # 指定容器启动的时候运行的命令，只有最后一个会生效，可被替代
-ENTRYPOINT # 指定容器启动时运行的命令，可以追加命令
-ONBUILD # 当构建一个被继承的 Dockerfile 就会运行 ONBUILD指令，触发指令
-COPY # 类似 ADD， 将文件拷贝到镜像中
-ENV # 设置环境变量
+FROM            # 基础镜像，起点
+MAINTAINER      # 作者
+RUN             # 镜像构建的时候需要运行的命令
+ADD             # 步骤，比如添加tomcat 压缩包
+WORKDIR         # 镜像工作目录
+VOLUME          # 挂载目录
+EXPOSE          # 暴露端口
+CMD             # 指定容器启动的时候运行的命令，只有最后一个会生效，可被替代
+ENTRYPOINT      # 指定容器启动时运行的命令，可以追加命令
+ONBUILD         # 当构建一个被继承的 Dockerfile 就会运行 ONBUILD指令，触发指令
+COPY            # 类似 ADD， 将文件拷贝到镜像中
+ENV             # 设置环境变量
 ```
 
-测试：
-
-构建自己的 centos
+实践案例：构建自己的 centos
 
 编写 dockerfile
 
-```dockerfile
+```Dockerfile
 FROM centos
+
 MAINTAINER jzheng<jzheng@my.com>
 
 ENV MYPATH /usr/local
@@ -551,58 +576,162 @@ RUN yum -y install net-tools
 
 EXPOSE 80
 
-CMD echo $MYPATH
-CMD echo "----end----"
+# CMD echo $MYPATH && echo "---- end ----" && /bin/bash 会出问题
+# docker run -it --name my01 myos
+# /usr/local
+# ----end----
+# /bin/sh: CMD: command not found
 CMD /bin/bash
 ```
 
 运行构建命令
 
-```txt
-> docker build -f mydockerfile -t mycentos:0.1 .
-[+] Building 22.6s (8/8) FINISHED                                                                                                              
- => [internal] load build definition from mydockerfile                                                                                    0.0s
- => => transferring dockerfile: 250B                                                                                                      0.0s
- => [internal] load .dockerignore                                                                                                         0.0s
- => => transferring context: 2B                                                                                                           0.0s
- => [internal] load metadata for docker.io/library/centos:latest                                                                          0.0s
- => CACHED [1/4] FROM docker.io/library/centos                                                                                            0.0s
- => [2/4] WORKDIR /usr/local                                                                                                              0.0s
- => [3/4] RUN yum -y install vim                                                                                                         19.3s
- => [4/4] RUN yum -y install net-tools                                                                                                    2.8s
- => exporting to image                                                                                                                    0.4s 
- => => exporting layers                                                                                                                   0.4s 
- => => writing image sha256:1fa2eebe33e71576555379a1f113cdc8a7a4023f1c0004f9a2b988540fcaa738                                              0.0s 
- => => naming to docker.io/library/mycentos:0.1                                                                                           0.0s 
-```
-
-运行测试
-
 ```bash
-> docker run -it  --name osfromfile01 mycentos:0.1
-# [root@b0ae777b8acf local]# pwd
-# /usr/local
-# 起始目录已经和设定的一样发生了变化
-# 输入 ifconfig 和 vim 也能正常运行
-```
+docker build -f Dockerfile -t mycentos .            # 开始构建，mac 和 linux 上给的 log 有差别
+# Sending build context to Docker daemon 2.048 kB
+# Step 1/8 : FROM centos                            # 每一个 step 都会生产一个新的镜像文件
+#  ---> 300e315adb2f
+# Step 2/8 : MAINTAINER jzheng<jzheng@my.com>
+#  ---> Running in e71638786ebe
+#  ---> 6dda844c25cb
+# Removing intermediate container e71638786ebe
+# Step 3/8 : ENV MYPATH /usr/local
+#  ---> Running in ad27737ada75
+#  ---> 9a617502fc06
+# Removing intermediate container ad27737ada75
+# Step 4/8 : WORKDIR $MYPATH
+#  ---> 79d1c3e4be51
+# Removing intermediate container ea4189b4b4eb
+# Step 5/8 : RUN yum -y install vim
+#  ---> Running in 27be499e2b36
 
-查看 image 构建历史, 可以查看热门 image 学习构建过程
+# CentOS Linux 8 - AppStream                      9.7 MB/s | 6.3 MB     00:00
+# CentOS Linux 8 - BaseOS                         2.8 MB/s | 2.3 MB     00:00
+# CentOS Linux 8 - Extras                          13 kB/s | 9.6 kB     00:00
+# Dependencies resolved.
+# ================================================================================
+#  Package             Arch        Version                   Repository      Size
+# ================================================================================
+# Installing:
+#  vim-enhanced        x86_64      2:8.0.1763-15.el8         appstream      1.4 M
+# Installing dependencies:
+#  gpm-libs            x86_64      1.20.7-15.el8             appstream       39 k
+#  vim-common          x86_64      2:8.0.1763-15.el8         appstream      6.3 M
+#  vim-filesystem      noarch      2:8.0.1763-15.el8         appstream       48 k
+#  which               x86_64      2.21-12.el8               baseos          49 k
 
-```txt
-> docker history mycentos:0.1
-IMAGE          CREATED          CREATED BY                                      SIZE      COMMENT
-1fa2eebe33e7   13 minutes ago   CMD ["/bin/sh" "-c" "/bin/bash"]                0B        buildkit.dockerfile.v0
-<missing>      13 minutes ago   CMD ["/bin/sh" "-c" "echo \"----end----\""]     0B        buildkit.dockerfile.v0
-<missing>      13 minutes ago   CMD ["/bin/sh" "-c" "echo $MYPATH"]             0B        buildkit.dockerfile.v0
-<missing>      13 minutes ago   EXPOSE map[80/tcp:{}]                           0B        buildkit.dockerfile.v0
-<missing>      13 minutes ago   RUN /bin/sh -c yum -y install net-tools # bu…   14.4MB    buildkit.dockerfile.v0
-<missing>      13 minutes ago   RUN /bin/sh -c yum -y install vim # buildkit    58.1MB    buildkit.dockerfile.v0
-<missing>      14 minutes ago   WORKDIR /usr/local                              0B        buildkit.dockerfile.v0
-<missing>      14 minutes ago   ENV MYPATH=/usr/local                           0B        buildkit.dockerfile.v0
-<missing>      14 minutes ago   MAINTAINER jzheng<jzheng@sap.com>               0B        buildkit.dockerfile.v0
-<missing>      4 months ago     /bin/sh -c #(nop)  CMD ["/bin/bash"]            0B        
-<missing>      4 months ago     /bin/sh -c #(nop)  LABEL org.label-schema.sc…   0B        
-<missing>      4 months ago     /bin/sh -c #(nop) ADD file:bd7a2aed6ede423b7…   209MB  
+# Transaction Summary
+# ================================================================================
+# Install  5 Packages
+
+# Total download size: 7.8 M
+# Installed size: 30 M
+# Downloading Packages:
+# (1/5): gpm-libs-1.20.7-15.el8.x86_64.rpm        860 kB/s |  39 kB     00:00
+# (2/5): vim-filesystem-8.0.1763-15.el8.noarch.rp 4.1 MB/s |  48 kB     00:00
+# (3/5): vim-enhanced-8.0.1763-15.el8.x86_64.rpm   13 MB/s | 1.4 MB     00:00
+# (4/5): vim-common-8.0.1763-15.el8.x86_64.rpm     38 MB/s | 6.3 MB     00:00
+# (5/5): which-2.21-12.el8.x86_64.rpm             435 kB/s |  49 kB     00:00
+# --------------------------------------------------------------------------------
+# Total                                           7.7 MB/s | 7.8 MB     00:01
+# CentOS Linux 8 - AppStream                      1.6 MB/s | 1.6 kB     00:00
+# warning: /var/cache/dnf/appstream-02e86d1c976ab532/packages/gpm-libs-1.20.7-15.el8.x86_64.rpm: Header V3 RSA/SHA256 Signature, key ID 8483c65d: NOKEY
+# Importing GPG key 0x8483C65D:
+#  Userid     : "CentOS (CentOS Official Signing Key) <security@centos.org>"
+#  Fingerprint: 99DB 70FA E1D7 CE22 7FB6 4882 05B5 55B3 8483 C65D
+#  From       : /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+# Key imported successfully
+# Running transaction check
+# Transaction check succeeded.
+# Running transaction test
+# Transaction test succeeded.
+# Running transaction
+#   Preparing        :                                                        1/1
+#   Installing       : which-2.21-12.el8.x86_64                               1/5
+#   Installing       : vim-filesystem-2:8.0.1763-15.el8.noarch                2/5
+#   Installing       : vim-common-2:8.0.1763-15.el8.x86_64                    3/5
+#   Installing       : gpm-libs-1.20.7-15.el8.x86_64                          4/5
+#   Running scriptlet: gpm-libs-1.20.7-15.el8.x86_64                          4/5
+#   Installing       : vim-enhanced-2:8.0.1763-15.el8.x86_64                  5/5
+#   Running scriptlet: vim-enhanced-2:8.0.1763-15.el8.x86_64                  5/5
+#   Running scriptlet: vim-common-2:8.0.1763-15.el8.x86_64                    5/5
+#   Verifying        : gpm-libs-1.20.7-15.el8.x86_64                          1/5
+#   Verifying        : vim-common-2:8.0.1763-15.el8.x86_64                    2/5
+#   Verifying        : vim-enhanced-2:8.0.1763-15.el8.x86_64                  3/5
+#   Verifying        : vim-filesystem-2:8.0.1763-15.el8.noarch                4/5
+#   Verifying        : which-2.21-12.el8.x86_64                               5/5
+
+# Installed:
+#   gpm-libs-1.20.7-15.el8.x86_64         vim-common-2:8.0.1763-15.el8.x86_64
+#   vim-enhanced-2:8.0.1763-15.el8.x86_64 vim-filesystem-2:8.0.1763-15.el8.noarch
+#   which-2.21-12.el8.x86_64
+
+# Complete!
+#  ---> 07a9459e3208
+# Removing intermediate container 27be499e2b36
+# Step 6/8 : RUN yum -y install net-tools
+#  ---> Running in 9dd0c1e98a2f
+
+# Last metadata expiration check: 0:00:07 ago on Tue Apr 27 08:30:37 2021.
+# Dependencies resolved.
+# ================================================================================
+#  Package         Architecture Version                        Repository    Size
+# ================================================================================
+# Installing:
+#  net-tools       x86_64       2.0-0.52.20160912git.el8       baseos       322 k
+
+# Transaction Summary
+# ================================================================================
+# Install  1 Package
+
+# Total download size: 322 k
+# Installed size: 942 k
+# Downloading Packages:
+# net-tools-2.0-0.52.20160912git.el8.x86_64.rpm   1.6 MB/s | 322 kB     00:00
+# --------------------------------------------------------------------------------
+# Total                                           519 kB/s | 322 kB     00:00
+# Running transaction check
+# Transaction check succeeded.
+# Running transaction test
+# Transaction test succeeded.
+# Running transaction
+#   Preparing        :                                                        1/1
+#   Installing       : net-tools-2.0-0.52.20160912git.el8.x86_64              1/1
+#   Running scriptlet: net-tools-2.0-0.52.20160912git.el8.x86_64              1/1
+#   Verifying        : net-tools-2.0-0.52.20160912git.el8.x86_64              1/1
+
+# Installed:
+#   net-tools-2.0-0.52.20160912git.el8.x86_64
+
+# Complete!
+#  ---> d4af6e7280be
+# Removing intermediate container 9dd0c1e98a2f
+# Step 7/8 : EXPOSE 80
+#  ---> Running in 8258f5335635
+#  ---> 612fbdec4589
+# Removing intermediate container 8258f5335635
+# Step 8/8 : CMD /bin/bash
+#  ---> Running in 1e7dc8bd18cb
+#  ---> 8ce94727fa9f
+# Removing intermediate container 1e7dc8bd18cb
+# Successfully built 8ce94727fa9f
+
+docker run -it --rm myos
+# [root@af8b74546536 local]# pwd
+# /usr/local                                # 起始目录已经和设定的一样发生了变化, 输入 ifconfig 和 vim 也能正常运行
+
+docker history myos                         # 查看 image 构建历史, 可以查看热门 image 学习构建过程
+# IMAGE               CREATED             CREATED BY                                      SIZE                COMMENT
+# 8ce94727fa9f        4 minutes ago       /bin/sh -c #(nop)  CMD ["/bin/sh" "-c" "/b...   0 B
+# 612fbdec4589        4 minutes ago       /bin/sh -c #(nop)  EXPOSE 80/tcp                0 B
+# d4af6e7280be        4 minutes ago       /bin/sh -c yum -y install net-tools             23.3 MB
+# 07a9459e3208        4 minutes ago       /bin/sh -c yum -y install vim                   58 MB
+# 79d1c3e4be51        4 minutes ago       /bin/sh -c #(nop) WORKDIR /usr/local            0 B
+# 9a617502fc06        4 minutes ago       /bin/sh -c #(nop)  ENV MYPATH=/usr/local        0 B
+# 6dda844c25cb        4 minutes ago       /bin/sh -c #(nop)  MAINTAINER jzheng<jzhen...   0 B
+# 300e315adb2f        4 months ago        /bin/sh -c #(nop)  CMD ["/bin/bash"]            0 B
+# <missing>           4 months ago        /bin/sh -c #(nop)  LABEL org.label-schema....   0 B
+# <missing>           4 months ago        /bin/sh -c #(nop) ADD file:bd7a2aed6ede423...   209 MB
 ```
 
 ## CMD Vs ENTRYPOINT
@@ -615,48 +744,50 @@ CMD echo "1"
 CMD echo "2"
 ```
 
+创建 Dockerfile 测试 CMD 命令
+
 ```dockerfile
-# filename: t_cmd, 测试 cmd
 FROM centos
 CMD ["ls", "-a"]
 ```
 
-构建运行, run 之后终端输出 `ls -a`
-```txt
-> docker build -f t_cmd  -t cmdtest .     
+测试：构建镜像, 运行容器查看输出
 
-[+] Building 0.1s (5/5) FINISHED                                                                                                                 
- => [internal] load build definition from t_cmd                                                                                             0.0s
- => => transferring dockerfile: 65B                                                                                                         0.0s
- => [internal] load .dockerignore                                                                                                           0.0s
- => => transferring context: 2B                                                                                                             0.0s
- => [internal] load metadata for docker.io/library/centos:latest                                                                            0.0s
- => CACHED [1/1] FROM docker.io/library/centos                                                                                              0.0s
- => exporting to image                                                                                                                      0.0s
- => => exporting layers                                                                                                                     0.0s
- => => writing image sha256:be8cf7de876380f7f60e83475b483161f43687087acd253990789c607f3b9848                                                0.0s
- => => naming to docker.io/library/cmdtest                                                                                                  0.0s
+```bash
+docker build -t cmdtest .
+# Sending build context to Docker daemon 2.048 kB
+# Step 1/2 : FROM centos
+#  ---> 300e315adb2f
+# Step 2/2 : CMD ls -al
+#  ---> Running in e8e0790ae8f3
+#  ---> 513ebac8ebef
+# Removing intermediate container e8e0790ae8f3
+# Successfully built 513ebac8ebef
 
-> docker run be8cf7de8                                     
-.
-..
-.dockerenv
-bin
-dev
-etc
-home
-...
+docker run cmdtest
+# .
+# ..
+# .dockerenv
+# bin
+# ...
+# sys
+# tmp
+# usr
+# var
+
+docker run cmdtest -l               # 如果想要追加 `l` 给出 `ls -al` 的效果怎么办？直接在 run 后接参数会报错
+# container_linux.go:235: starting container process caused "exec: \"-l\": executable file not found in $PATH"
+# /usr/bin/docker-current: Error response from daemon: oci runtime error: container_linux.go:235: starting container process caused "exec: \"-l\": executable file not found in $PATH".
+
+docker run cmdtest ls -al         # 输入完整命令可以达到想要的效果，就是有点冗余
+# total 56
+# drwxr-xr-x  1 root root 4096 Apr 27 08:49 .
+# drwxr-xr-x  1 root root 4096 Apr 27 08:49 ..
+# -rwxr-xr-x  1 root root    0 Apr 27 08:49 .dockerenv
+# lrwxrwxrwx  1 root root    7 Nov  3 15:22 bin -> usr/bin
+# drwxr-xr-x  5 root root  340 Apr 27 08:49 dev
+# ...
 ```
-
-如果想要追加 `l` 给出 `ls -al` 的效果怎么办？直接在 run 后接参数会报错
-
-```txt
-> docker run be8cf7de8 -l 
-docker: Error response from daemon: OCI runtime create failed: container_linux.go:370: starting container process caused: exec: "-l": executable file not found in $PATH: unknown.
-ERRO[0000] error waiting for container: context canceled
-```
-
-需要输入全命令 `docker run be8cf7de8 ls -al` 才行
 
 如果想要直接接命令参数，可以用 ENTRYPOINT
 
@@ -664,12 +795,25 @@ ERRO[0000] error waiting for container: context canceled
 FROM centos
 ENTRYPOINT ["ls", "-a"]
 ```
-构建镜像并运行 `docker run 5198b187e -l` 追加命令成功, 直接拼接在 entrypoint 后
+
+```bash
+docker build -f mydockerfile -t entrypointtest .        # 构建镜像
+
+docker run entrypointtest -l                            # 启动容器时直接加参数即可
+# total 56
+# drwxr-xr-x  1 root root 4096 Apr 27 08:53 .
+# drwxr-xr-x  1 root root 4096 Apr 27 08:53 ..
+# -rwxr-xr-x  1 root root    0 Apr 27 08:53 .dockerenv
+# lrwxrwxrwx  1 root root    7 Nov  3 15:22 bin -> usr/bin
+# ...
+```
 
 ## 实战： 制作 Tomcat 镜像
 
+PS: 做这个练习前可以先本地安装 tomcat + JDK 找找感觉
+
 1. 准备镜像文件 + tomcat压缩包 + JDK压缩包
-2. 编写 dockerfile 文件
+2. 编写 Dockerfile 文件
 
 Google 搜索名字可直接下载压缩包 `jdk-8u202-linux-x64.tar.gz` + `apache-tomcat-9.0.22.tar.gz`
 
@@ -723,7 +867,7 @@ CMD /usr/local/apache-tomcat-9.0.22/bin/startup.sh && tail -F /usr/local/apache-
  => => naming to docker.io/library/diytomcat                                                                                                0.0s 
 ```
 
-启动镜像，并为之挂载节点 `docker run -d -p 9090:8080 --name mytomcat -v /Users/i306454/tmp/tmount/test:/usr/local/apache-tomcat-9.0.22/webapps/test -v /Users/i306454/tmp/tmount/tomcatlogs:/usr/local/apache-tomcat-9.0.22/logs diytomcat`
+启动镜像，并为之挂载节点 `docker run -d -p 9090:8080 --name mytomcat -v /Users/jack/tmp/tmount/test:/usr/local/apache-tomcat-9.0.22/webapps/test -v /Users/jack/tmp/tmount/tomcatlogs:/usr/local/apache-tomcat-9.0.22/logs diytomcat`
 
 查看本地 logs 文件，报错
 
@@ -767,180 +911,212 @@ CMD /usr/local/apache-tomcat-9.0.22/bin/startup.sh && tail -F /usr/local/apache-
 
 直接访问 localhost:9090/test 可以看到新写的页面显示成功, logs 下的 catalina.out 会输出 jsp 里的打印信息
 
-## Docker 网络详解
+## docker0 网络详解
 
-ip addr
+这部分实验需要在 Linux 环境下测试
 
-lo: 本机回环地址
-eh0: 阿里云内网地址
-docker0: docker0地址
+```bash
+ip addr         # 终端测试命令
+# 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000               # 本机回环地址
+#     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+#     inet 127.0.0.1/8 scope host lo
+#        valid_lft forever preferred_lft forever
+#     inet6 ::1/128 scope host
+#        valid_lft forever preferred_lft forever
+# 2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000     # 阿里云内网地址
+#     link/ether 00:16:3e:23:6b:3f brd ff:ff:ff:ff:ff:ff
+#     inet 172.28.231.212/20 brd 172.28.239.255 scope global dynamic eth0
+#        valid_lft 315353600sec preferred_lft 315353600sec
+#     inet6 fe80::216:3eff:fe23:6b3f/64 scope link
+#        valid_lft forever preferred_lft forever
+# 3: docker0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default           # docker0地址
+#     link/ether 02:42:79:29:30:37 brd ff:ff:ff:ff:ff:ff
+#     inet 172.17.0.1/16 scope global docker0
+#        valid_lft forever preferred_lft forever
+#     inet6 fe80::42:79ff:fe29:3037/64 scope link
+#        valid_lft forever preferred_lft forever
 
-启动测试容器
+docker run -d -P --name tomcat01 tomcat                     # 启动测试容器
 
-docker run -d -P --name tomcat01 tomcat
+docker exec -it tomcat01 ip addr                            # 进入容器查看本机地址，可以看到网卡名 eth0@if55，地址 172.17.0.2/16
+# 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+#     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+#     inet 127.0.0.1/8 scope host lo
+#        valid_lft forever preferred_lft forever
+#     inet6 ::1/128 scope host
+#        valid_lft forever preferred_lft forever
+# 54: eth0@if55: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default
+#     link/ether 02:42:ac:11:00:02 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+#     inet 172.17.0.2/16 scope global eth0
+#        valid_lft forever preferred_lft forever
+#     inet6 fe80::42:acff:fe11:2/64 scope link
+#        valid_lft forever preferred_lft forever
 
-输入 ip addr 查看网络配置, 容器启动时会得到 eth0@if65 的 IP 地址
+ping 172.17.0.2     # 回到宿主机，ping 容器，可以 ping 通, mac 不能 ping 通，应该是 OS 差异导致的
+# PING 172.17.0.2 (172.17.0.2) 56(84) bytes of data.
+# 64 bytes from 172.17.0.2: icmp_seq=1 ttl=64 time=0.038 ms
 
-```txt
-1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
-    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
-    inet 127.0.0.1/8 scope host lo
-       valid_lft forever preferred_lft forever
-2: tunl0@NONE: <NOARP> mtu 1480 qdisc noop state DOWN group default qlen 1000
-    link/ipip 0.0.0.0 brd 0.0.0.0
-3: ip6tnl0@NONE: <NOARP> mtu 1452 qdisc noop state DOWN group default qlen 1000
-    link/tunnel6 :: brd ::
-64: eth0@if65: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default 
-    link/ether 02:42:ac:11:00:02 brd ff:ff:ff:ff:ff:ff link-netnsid 0
-    inet 172.17.0.2/16 brd 172.17.255.255 scope global eth0
-       valid_lft forever preferred_lft forever
+# [原理] 我们每启动一个 docker 容器，docker 就会给 docker 容器分配一个 ip，只要安装了 docker 就会有一个 docker0，采用桥接模式，使用 veth-pair 技术。
+
+ip addr             # 再次查看 ip 地址，可以看到有一个新的网卡 veth9a205ef@if54 生成了
+# 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+#     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+#     inet 127.0.0.1/8 scope host lo
+#        valid_lft forever preferred_lft forever
+#     inet6 ::1/128 scope host
+#        valid_lft forever preferred_lft forever
+# 2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+#     link/ether 00:16:3e:23:6b:3f brd ff:ff:ff:ff:ff:ff
+#     inet 172.28.231.212/20 brd 172.28.239.255 scope global dynamic eth0
+#        valid_lft 315353315sec preferred_lft 315353315sec
+#     inet6 fe80::216:3eff:fe23:6b3f/64 scope link
+#        valid_lft forever preferred_lft forever
+# 3: docker0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default
+#     link/ether 02:42:79:29:30:37 brd ff:ff:ff:ff:ff:ff
+#     inet 172.17.0.1/16 scope global docker0
+#        valid_lft forever preferred_lft forever
+#     inet6 fe80::42:79ff:fe29:3037/64 scope link
+#        valid_lft forever preferred_lft forever
+# 55: veth9a205ef@if54: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master docker0 state UP group default
+#     link/ether e2:a0:b1:2d:41:18 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+#     inet6 fe80::e0a0:b1ff:fe2d:4118/64 scope link
+#        valid_lft forever preferred_lft forever
+
+docker run -P -d --name tomcat02 tomcat         # 启动新的容器，观察网卡信息
+
+docker exec -it tomcat ip addr
+# 56: eth0@if57: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default
+#     link/ether 02:42:ac:11:00:03 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+#     inet 172.17.0.3/16 scope global eth0
+#        valid_lft forever preferred_lft forever
+#     inet6 fe80::42:acff:fe11:3/64 scope link
+#        valid_lft forever preferred_lft forever
+
+ip addr                                         # 宿主机和容器新增网卡对应关系 veth5b8ed66@if56 - eth0@if57
+# 57: veth5b8ed66@if56: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master docker0 state UP group default
+#     link/ether ae:21:12:09:51:01 brd ff:ff:ff:ff:ff:ff link-netnsid 1
+#     inet6 fe80::ac21:12ff:fe09:5101/64 scope link
+#        valid_lft forever preferred_lft forever
+
+docker exec -it tomcat02 ping 172.17.02        # 在 tomcat02 中尝试 ping tomcat01, 可以 ping 通
+# PING 172.17.02 (172.17.0.2) 56(84) bytes of data.
+# 64 bytes from 172.17.0.2: icmp_seq=1 ttl=64 time=0.066 ms
+
+docker rm -f tomcat01                           # 删除测试容器
+
+ip addr                                         # 对应的虚拟网卡也被删除
 ```
-
-ping 172.17.0.2 测试, mac 不能 ping 通，不过视频用的 Linux 可以，应该时 OS 差异导致的
-
-docker0 ip 为 172.17.0.1
-
-原理
-
-1. 我们每启动一个 docker 容器，docker 就会给 docker 容器分配一个 ip，我们只要安装了 docker 就会有一个 docker0，采用桥接模式，使用 veth-pair 技术。
-
-再次宿主机终端输入 ip addr 可以看到有一个新的网卡 vethcxxx@ifxx 的网卡
 
 新建容器生产的网卡都是成对出现的，这里采用 veth-pair 技术，一端连着协议，一端彼此相连
 
 veth-pair 充当一个桥梁，链接各种虚拟网络设备
 
-起两个 tomcat 容器也可以互相 ping 通
-
 docker0 相当于一个虚拟路由器, 通信模型如下
 
 ![docker network](docker_network.png)
 
-tomcat01 和 tomcat02 都是公用一个路由 - docker0, 所有容器不指定网络的情况下，都是 docker0 路由，docker 会给我们的容器分配默认可用 ip
+tomcat01 和 tomcat02 都是公用一个路由(docker0), 所有容器不指定网络的情况下，都使用 docker0 作为路由，docker 会给容器分配默认的可用 ip
 
-255.255.0.1/16: 16 表示前 16 为同一个网络
+255.255.0.1/16: 16 表示前 16 位为同一个网络
 
 ![docker network02](docker_network01.png)
 
 Docker 中所有的网络接口都是虚拟的，虚拟的转发效率高
 
-> 思考：我们编写一个微服务， database url=ip...，项目不重启，数据库 ip 换掉了，配置就失效了。我们是否可以通过指定名字进行访问 --link
+## --link
 
-默认通过 name 是不能 ping 通的
-
-```txt
-> docker exec -it tomcat01 ping tomcat02
-ping: tomcat02: Name or service not known
-```
-
-启动容器时加入 --link 参数即可实现上述效果
-
-```txt
-> docker run -d -P --name tomcat03 --link tomcat02 tomcat
-4ccaa4545718ec75ba1d9c1a9d1941f3185502b4e754a6c6f940db353ea99d1c
-
-> docker exec -it tomcat03 ping tomcat02                
-PING tomcat02 (172.17.0.3) 56(84) bytes of data.
-64 bytes from tomcat02 (172.17.0.3): icmp_seq=1 ttl=64 time=0.348 ms
-64 bytes from tomcat02 (172.17.0.3): icmp_seq=2 ttl=64 time=0.282 ms
-
-# 但是反向是 ping 不通的！！?
-> docker exec -it tomcat02 ping tomcat03                
-ping: tomcat03: Name or service not known
-```
-
-使用 docker network ls 查看当前网络配置
-
-```txt
-> docker network ls
-
-NETWORK ID     NAME                      DRIVER    SCOPE
-a6af0500c961   bizx-docker-dev_default   bridge    local
-39a92d7cce05   bridge                    bridge    local
-301b50497bc1   hana2_bizxdev             bridge    local
-28c768cdf8c2   host                      host      local
-3da61f734ed6   none                      null      local
-```
-
-查看桥接网卡信息
+> 思考：我们编写一个微服务， database url=ip...，项目不重启，数据库 ip 换掉了，配置就失效了。我们是否可以通过指定名字进行访问
 
 ```bash
-docker network inspect 39a92d7cce05
+docker exec -it tomcat01 ping tomcat02                          # 默认通过 name 是不能 ping 通的
+# ping: tomcat02: Name or service not known
 
-[
-    {
-        "Name": "bridge",
-        "Id": "39a92d7cce055ead7bd2ba06365c5ad20a381730cba57137850e619eccdb993b",
-        "Created": "2021-04-22T11:01:08.474840175Z",
-        "Scope": "local",
-        "Driver": "bridge",
-        "EnableIPv6": false,
-        "IPAM": {
-            "Driver": "default",
-            "Options": null,
-            "Config": [
-                {
-                    "Subnet": "172.17.0.0/16", <- 最多 255*255 个地址
-                    "Gateway": "172.17.0.1" <- 默认网关 docker0
-                }
-            ]
-        },
-        "Internal": false,
-        "Attachable": false,
-        "Ingress": false,
-        "ConfigFrom": {
-            "Network": ""
-        },
-        "ConfigOnly": false,
-        "Containers": { <- 新建容器 tomcat01-03 信息
-            "3bf7596cfde91a8a668621c750f744df4163aa4a3d836b7c3779f5cbe292e8ed": {
-                "Name": "tomcat01",
-                "EndpointID": "bc46d41fdbade310124ee65b5a1e1e8959d51ecb05f4441339a1da6cebd9daaa",
-                "MacAddress": "02:42:ac:11:00:02",
-                "IPv4Address": "172.17.0.2/16",
-                "IPv6Address": ""
-            },
-            "4ccaa4545718ec75ba1d9c1a9d1941f3185502b4e754a6c6f940db353ea99d1c": {
-                "Name": "tomcat03",
-                "EndpointID": "64bffe5af0e30814d0b947edf3fe27d27db1f82cb2288b22ed1f2f3af60e38a9",
-                "MacAddress": "02:42:ac:11:00:04",
-                "IPv4Address": "172.17.0.4/16",
-                "IPv6Address": ""
-            },
-            "c5012b3643975869e49facb62d6d68f1c5153ea3cfa3f4a5fa36b91073aae07a": {
-                "Name": "tomcat02",
-                "EndpointID": "8c9fef294e0fd087ebb440f071d41440375c04603d4575b6eeece0e91e733dac",
-                "MacAddress": "02:42:ac:11:00:03",
-                "IPv4Address": "172.17.0.3/16",
-                "IPv6Address": ""
-            }
-        },
-        "Options": {
-            "com.docker.network.bridge.default_bridge": "true",
-            "com.docker.network.bridge.enable_icc": "true",
-            "com.docker.network.bridge.enable_ip_masquerade": "true",
-            "com.docker.network.bridge.host_binding_ipv4": "0.0.0.0",
-            "com.docker.network.bridge.name": "docker0",
-            "com.docker.network.driver.mtu": "1500"
-        },
-        "Labels": {}
-    }
-]
-```
+docker run -d -P --name tomcat03 --link tomcat02 tomcat         # 启动容器时加入 --link 参数即可实现上述效果
 
-查看 tomcat03 的 host 配置
+docker exec -it tomcat03 ping tomcat02                
+# PING tomcat02 (172.17.0.3) 56(84) bytes of data.
+# 64 bytes from tomcat02 (172.17.0.3): icmp_seq=1 ttl=64 time=0.077 ms
+# 64 bytes from tomcat02 (172.17.0.3): icmp_seq=2 ttl=64 time=0.050 ms
 
-```bash
-docker exec -it tomcat03 cat /etc/hosts
+docker exec -it tomcat02 ping tomcat03                          # 但是反向是 ping 不通的！！?
+# ping: tomcat03: Name or service not known
 
-# 127.0.0.1       localhost
-# ::1     localhost ip6-localhost ip6-loopback
-# fe00::0 ip6-localnet
-# ff00::0 ip6-mcastprefix
-# ff02::1 ip6-allnodes
-# ff02::2 ip6-allrouters
-# 172.17.0.3      tomcat02 c5012b364397 < host 中直接指定的 ip - host 的对应关系，域名劫持
-# 172.17.0.4      4ccaa4545718
+docker network ls                                               # 使用 docker network ls 查看当前网络配置
+# NETWORK ID          NAME                DRIVER              SCOPE
+# ceb0592c9055        bridge              bridge              local
+# 5ac97b2cf390        host                host                local
+# 03f71a7f47f1        none                null                local
+
+docker inspect bridge                                           # bridge 即 docker0 的网卡，包含 tomcat01-03 的网络信息
+# [
+#     {
+#         "Name": "bridge",
+#         "Id": "ceb0592c9055bd94767114d43e3677b18fd8a41a2afe6966d64551b71a09041c",
+#         "Created": "2021-04-27T15:19:48.803023317+08:00",
+#         "Scope": "local",
+#         "Driver": "bridge",
+#         "EnableIPv6": false,
+#         "IPAM": {
+#             "Driver": "default",
+#             "Options": null,
+#             "Config": [
+#                 {
+#                     "Subnet": "172.17.0.0/16",  # 子网掩码，最多可配 256*256 个子节点
+#                     "Gateway": "172.17.0.1"     # 默认网关，docker0
+#                 }
+#             ]
+#         },
+#         "Internal": false,
+#         "Attachable": false,
+#         "Containers": {
+#             "2d12d505984e201296ecf26c6705405dc0fd67fd2f837f2a9c0deadbe690eb06": {
+#                 "Name": "tomcat02",
+#                 "EndpointID": "4a71a36b8e3c04febdc0bdc0c86a3d5fdbf2b39daec75dcef3873acf5d017c37",
+#                 "MacAddress": "02:42:ac:11:00:03",
+#                 "IPv4Address": "172.17.0.3/16",
+#                 "IPv6Address": ""
+#             },
+#             "4adfd9b9e4a50876d65a1786ea188e7d0b4b0c0099747b3f3bb1e460be5f0849": {
+#                 "Name": "tomcat03",
+#                 "EndpointID": "debaf9ed00b14992dc700a1d30ada54be9f12206139483d490d87e7ac055da0f",
+#                 "MacAddress": "02:42:ac:11:00:04",
+#                 "IPv4Address": "172.17.0.4/16",
+#                 "IPv6Address": ""
+#             },
+#             "c1d873b0967c6c41929099f2898a0478eb91538b5d889c4d38ea74f29a3f4433": {
+#                 "Name": "tomcat01",
+#                 "EndpointID": "28e9076a4c9b56044588ca3993a6d481e08989a78ebe82c7b6632b17d437f79c",
+#                 "MacAddress": "02:42:ac:11:00:02",
+#                 "IPv4Address": "172.17.0.2/16",
+#                 "IPv6Address": ""
+#             }
+#         },
+#         "Options": {
+#             "com.docker.network.bridge.default_bridge": "true",
+#             "com.docker.network.bridge.enable_icc": "true",
+#             "com.docker.network.bridge.enable_ip_masquerade": "true",
+#             "com.docker.network.bridge.host_binding_ipv4": "0.0.0.0",
+#             "com.docker.network.bridge.name": "docker0",
+#             "com.docker.network.driver.mtu": "1500"
+#         },
+#         "Labels": {}
+#     }
+# ]
+
+docker inspect tomcat03                     # 查看 link 配置
+# "Links": [
+#     "/tomcat02:/tomcat03/tomcat02"
+# ],
+
+docker exec -it tomcat03 cat /etc/hosts     # 查看 tomcat03 的 host 配置, --link 会修改容器 hosts 配置达到绑定 ip 的效果
+# 127.0.0.1	localhost
+# ::1	localhost ip6-localhost ip6-loopback
+# fe00::0	ip6-localnet
+# ff00::0	ip6-mcastprefix
+# ff02::1	ip6-allnodes
+# ff02::2	ip6-allrouters
+# 172.17.0.3	tomcat02 2d12d505984e
+# 172.17.0.4	4adfd9b9e4a5
 
 docker ps
 
@@ -954,49 +1130,35 @@ docker ps
 
 ## 自定义网络
 
-容器互联
+通过自定义网络可以达到容器互联的效果
 
-```bash
-> docker network ls     
-
-NETWORK ID     NAME                      DRIVER    SCOPE
-a6af0500c961   bizx-docker-dev_default   bridge    local
-39a92d7cce05   bridge                    bridge    local
-301b50497bc1   hana2_bizxdev             bridge    local
-28c768cdf8c2   host                      host      local
-3da61f734ed6   none                      null      local
-```
-
-网络模式
+网络模式：
 
 * brige: 桥接模式 - 默认
 * none: 不配置
 * host: 和宿主机共享网络
 * container: 容器网络连通 - 用的少，局限大
 
-cmd: `docker run -d -P --name tomcat01 tomcat` 其实是默认带有 `--net bridge` 的参数的
+我们使用命令 `docker run -d -P --name tomcat01 tomcat` 创建容器时，会默认带有 `--net bridge` 的参数
 
 ```bash
-# 创建自定义网络
 # --driver bridge 桥接模式
 # --subnet 192.168.0.0/16 子网掩码
 # --gateway 192.168.0.1 网关
-docker network create --driver bridge --subnet 192.168.0.0/16 --gateway 192.168.0.1 mynet
-# 7751a2b22fafcf8d7c4b5080cc15e46cb798f137f469826a547dd4bcf68f79d7
+docker network create --driver bridge --subnet 192.168.0.0/16 --gateway 192.168.0.1 mynet       # 创建自定义网络
 
 docker network ls                                                                        
-# NETWORK ID     NAME                      DRIVER    SCOPE
+# NETWORK ID          NAME                DRIVER              SCOPE
 # ...
-# 28c768cdf8c2   host                      host      local
-# 7751a2b22faf   mynet                     bridge    local
+# 5a8dc0f2df06        mynet               bridge              local
 # ...
 
 docker network inspect mynet       
 # [
 #     {
 #         "Name": "mynet",
-#         "Id": "7751a2b22fafcf8d7c4b5080cc15e46cb798f137f469826a547dd4bcf68f79d7",
-#         "Created": "2021-04-24T08:43:56.4363152Z",
+#         "Id": "5a8dc0f2df0667684167d7e219c53f4657ae4d89690afef54659080ddbc52e1e",
+#         "Created": "2021-04-27T17:55:26.42981439+08:00",
 #         "Scope": "local",
 #         "Driver": "bridge",
 #         "EnableIPv6": false,
@@ -1012,11 +1174,6 @@ docker network inspect mynet
 #         },
 #         "Internal": false,
 #         "Attachable": false,
-#         "Ingress": false,
-#         "ConfigFrom": {
-#             "Network": ""
-#         },
-#         "ConfigOnly": false,
 #         "Containers": {},
 #         "Options": {},
 #         "Labels": {}
@@ -1032,26 +1189,25 @@ docker network inspect mynet
 # [
 #  ...   
 # "Containers": {
-#     "063c3bfb96d0328c67fb411944ca650cc2f1e4fac7ec00137bc35306f2da76ed": {
-#         "Name": "tomcat01",
-#         "EndpointID": "3fee6c414247c987f5f17dea54def8c3b162615f5d78c9fdaa81d7697057e9c4",
-#         "MacAddress": "02:42:c0:a8:00:02",
-#         "IPv4Address": "192.168.0.2/16",
-#         "IPv6Address": ""
-#     },
-#     "163204a683461fef05b51b5eedd871dd9829fe5a78824e934edcdff2b83b31e7": {
+#     "4075fa56e6edc165fead5290085747455d5fbe2ad7bafc06e62a118c481b3f5b": {
 #         "Name": "tomcat02",
-#         "EndpointID": "2cc8c11a10b6bf3afedc8f31ee01576407cb1c1885ab5834465ca08d7af2f4b7",
+#         "EndpointID": "793ff48b6a30c18e2f4372e99bb0bb06ea830a609bfd1b4fb9292e8b3dd77326",
 #         "MacAddress": "02:42:c0:a8:00:03",
 #         "IPv4Address": "192.168.0.3/16",
 #         "IPv6Address": ""
+#     },
+#     "b8e4896497b05f77ae5e3c5c3cc998500d68dc4eb2cdad2702fa90e33fd56b28": {
+#         "Name": "tomcat01",
+#         "EndpointID": "23f5a636ccf43e96b1734bd5572dcc2c53997dbf8087bf04474433fe645bf40e",
+#         "MacAddress": "02:42:c0:a8:00:02",
+#         "IPv4Address": "192.168.0.2/16",
+#         "IPv6Address": ""
 #     }
-# }
+# },
 # ...
 # ]
 
-# 重复之前 --link 的实验，容器间通过 name 互相 ping. 自建网络虽然没有特殊设置，但是可以直接 ping 通
-docker exec -it tomcat02 ping tomcat01 
+docker exec -it tomcat02 ping tomcat01              # 重复之前 --link 的实验，容器间通过 name 互相 ping. 自定义网络虽然没有特殊设置，但是可以直接通过 name 连接
 # PING tomcat01 (192.168.0.2) 56(84) bytes of data.
 # 64 bytes from tomcat01.mynet (192.168.0.2): icmp_seq=1 ttl=64 time=0.206 ms
 # 64 bytes from tomcat01.mynet (192.168.0.2): icmp_seq=2 ttl=64 time=0.294 ms
@@ -1067,34 +1223,16 @@ docker exec -it tomcat01 ping tomcat02
 
 ## 网络联通
 
-如果让一个容器连接到另一个网络，比如 docker0 中的 容器连接到 mynet
+如何让一个容器连接到另一个网络，比如 docker0 中的 容器连接到 mynet
 
 ```bash
 # 默认 docker0 网络下新建测试容器 tomcat03
 docker run -d -P --name tomcat03 tomcat 
 
-docker network --help 
-# Usage:  docker network COMMAND
 
-# Manage networks
-
-# Commands:
-#   connect     Connect a container to a network <- 我们想要的命令
-#   create      Create a network
-#   disconnect  Disconnect a container from a network
-#   inspect     Display detailed information on one or more networks
-#   ls          List networks
-#   prune       Remove all unused networks
-#   rm          Remove one or more networks
-
-# Run 'docker network COMMAND --help' for more information on a command.
-
-# 使用方法
-docker network connect --help 
+docker network connect --help           # 查看使用方式
 # Usage:  docker network connect [OPTIONS] NETWORK CONTAINER
-
 # Connect a container to a network
-
 # Options:
 #       --alias strings           Add network-scoped alias for the container
 #       --driver-opt strings      driver options for the network
@@ -1105,34 +1243,32 @@ docker network connect --help
 
 docker network connect mynet tomcat03
 
-# 再次查看 mynet 信息，可以看到 tomcat3 已经加入网络，这个就是一个容器两个地址
-docker network inspect mynet
+docker network inspect mynet            # 再次查看 mynet 信息，可以看到 tomcat3 已经加入网络，即一个容器两个地址
 # "Containers": {
-#     "063c3bfb96d0328c67fb411944ca650cc2f1e4fac7ec00137bc35306f2da76ed": {
-#         "Name": "tomcat01",
-#         "EndpointID": "3fee6c414247c987f5f17dea54def8c3b162615f5d78c9fdaa81d7697057e9c4",
-#         "MacAddress": "02:42:c0:a8:00:02",
-#         "IPv4Address": "192.168.0.2/16",
-#         "IPv6Address": ""
-#     },
-#     "163204a683461fef05b51b5eedd871dd9829fe5a78824e934edcdff2b83b31e7": {
+#     "4075fa56e6edc165fead5290085747455d5fbe2ad7bafc06e62a118c481b3f5b": {
 #         "Name": "tomcat02",
-#         "EndpointID": "2cc8c11a10b6bf3afedc8f31ee01576407cb1c1885ab5834465ca08d7af2f4b7",
+#         "EndpointID": "793ff48b6a30c18e2f4372e99bb0bb06ea830a609bfd1b4fb9292e8b3dd77326",
 #         "MacAddress": "02:42:c0:a8:00:03",
 #         "IPv4Address": "192.168.0.3/16",
 #         "IPv6Address": ""
 #     },
-#     "ca3d7a33b27b4c02392059c4505c9b4b73eeb3fbe16d28483400c60b5ea17643": {
+#     "76c7258757f99e4d4efc565f5e305452277fdd700a783a5387c71b54275df506": {
 #         "Name": "tomcat03",
-#         "EndpointID": "b0de06f6bac08115b9df8cea1c08de53f675ec80ea675be9f3b1164bd4d069e2",
+#         "EndpointID": "fbad841162867dfc73872cfa997ef99c099fde95e8b58de76ca9ccdb3ff4359e",
 #         "MacAddress": "02:42:c0:a8:00:04",
 #         "IPv4Address": "192.168.0.4/16",
 #         "IPv6Address": ""
+#     },
+#     "b8e4896497b05f77ae5e3c5c3cc998500d68dc4eb2cdad2702fa90e33fd56b28": {
+#         "Name": "tomcat01",
+#         "EndpointID": "23f5a636ccf43e96b1734bd5572dcc2c53997dbf8087bf04474433fe645bf40e",
+#         "MacAddress": "02:42:c0:a8:00:02",
+#         "IPv4Address": "192.168.0.2/16",
+#         "IPv6Address": ""
 #     }
-# }
+# },
 
-# tomcat01, 03 互 ping 测试
-docker exec -it tomcat01 ping tomcat03                              
+docker exec -it tomcat01 ping tomcat03              # tomcat01, 03 互 ping 测试
 # PING tomcat03 (192.168.0.4) 56(84) bytes of data.
 # 64 bytes from tomcat03.mynet (192.168.0.4): icmp_seq=1 ttl=64 time=0.131 ms
 # 64 bytes from tomcat03.mynet (192.168.0.4): icmp_seq=2 ttl=64 time=0.123 ms
@@ -1144,23 +1280,20 @@ docker exec -it tomcat03 ping tomcat01
 
 ## 实战：部署 Redis 集群
 
-我 redis 的环境还没有搞好，等看过 redis 的课程之后回头再看把
-
 部署三主三从节点
 
 ![redis](redis.png)
 
 ```bash
-# 创建网络
-docker network create redis --subnet 172.38.0.0/16
+docker network create --subnet 172.38.0.0/16 redis          # 创建 redis 网络
 
-# 脚本创建六个 redis 配置
-# mac 环境下一些命令支持有问题，文件内容没有塞进去...
+# 将下面的内容放入 redis.sh 使用 sh redis.sh 创建配置文件
+################# SH START #################
 for port in $(seq 1 6); \
 do \
-mkdir -p /Users/i306454/tmp/mydata/redis/node-${port}/conf
-touch /Users/i306454/tmp/mydata/redis/node-${port}/conf/redis.conf
-cat  EOF /Users/i306454/tmp/mydata/redis/node-${port}/conf/redis.conf
+mkdir -p /root/mydata/redis/node-${port}/conf
+touch /root/mydata/redis/node-${port}/conf/redis.conf
+cat  EOF > /root/mydata/redis/node-${port}/conf/redis.conf
 port 6379 
 bind 0.0.0.0
 cluster-enabled yes 
@@ -1172,21 +1305,26 @@ cluster-announce-bus-port 16379
 appendonly yes
 EOF
 done
+################# SH END #################
 
-# 创建 redis 节点
+# 创建 redis 节点示例
 docker run -p 6371:6379 -p 16371:16379 --name redis-1 \
--v /Users/i306454/tmp/mydata/redis/node-1/data:/data \
--v /Users/i306454/tmp/mydata/redis/node-1/conf/redis.conf:/etc/redis/redis.conf \
+-v /root/mydata/redis/node-1/data:/data \
+-v /root/mydata/redis/node-1/conf/redis.conf:/etc/redis/redis.conf \
 -d --net redis --ip 172.38.0.11 redis:5.0.9-alpine3.11 redis-server /etc/redis/redis.conf
 
-# 依次创建 2-6 节点
+# 使用 shell 脚本创建所有 redis 容器
+################# SH START #################
+for n in $(seq 1 6); \
+do \
 docker run -p 637${n}:6379 -p 1637${n}:16379 --name redis-${n} \
--v /Users/i306454/tmp/mydata/redis/node-${n}/data:/data \
--v /Users/i306454/tmp/mydata/redis/node-${n}/conf/redis.conf:/etc/redis/redis.conf \
+-v /root/mydata/redis/node-${n}/data:/data \
+-v /root/mydata/redis/node-${n}/conf/redis.conf:/etc/redis/redis.conf \
 -d --net redis --ip 172.38.0.1${n} redis:5.0.9-alpine3.11 redis-server /etc/redis/redis.conf
+done
+################# SH END #################
 
-# 进入 redis 容器
-docker exec -it redis-1 /bin/sh
+docker exec -it redis-1 /bin/sh         # 进入 redis 容器, redis 容器中并没有 bash
 
 # 创建集群
 redis-cli --cluster create 172.38.0.11:6379 172.38.0.12:6379 172.38.0.13:6379 172.38.0.14:6379 172.38.0.15:6379 172.38.0.16:6379 --cluster-replicas 1
@@ -1259,7 +1397,7 @@ redis-cli -c
 # cluster_stats_messages_meet_received:5
 # cluster_stats_messages_received:404
 
-127.0.0.1:6379> cluster noes 
+127.0.0.1:6379> cluster nodes 
 # (error) ERR Unknown subcommand or wrong number of arguments for 'noes'. Try CLUSTER HELP.
 # 127.0.0.1:6379> cluster nodes 
 # c47e77a26e9c1186b489003c00f1a9c647e913c2 172.38.0.14:6379@16379 slave 0d6d16438bcb68bf89109b2e91dc6b71208ea113 0 1619257734941 4 connected
@@ -1269,41 +1407,32 @@ redis-cli -c
 # 69fa6ac41672b325cfce023353ea3a35181ca873 172.38.0.15:6379@16379 slave 4abbca8e1511fc4a04e8b410e35a93af1392bc62 0 1619257735453 5 connected
 # c7b681f08fbbe568c5fcb2bddf88660ec3d217bf 172.38.0.16:6379@16379 slave 6ff00ea4f03e997b831c2e7d3150c7399c5fb44c 0 1619257735554 6 connected
 
-127.0.0.1:6379> set a b
+127.0.0.1:6379> set a b             # 从 log 看出，值存到了 13 节点中，下面将 13 节点容器 stop, 通过 get 测试备份是否生效
 # -> Redirected to slot [15495] located at 172.38.0.13:6379
 # OK
-# 从 log 看出，值存到了 13 节点中，下面将 13 节点容器 stop, 通过 get 测试备份是否生效
 
 # 开启一个新的终端，查看 13 节点信息
 docker inspect redis
-# "59ceffe5a78c6d013f62e44bd78b3e0b30b9716766bfe0d2944c3d4e55ad730a": {
+# "319cc5bc69cf7d6875a7244b089f832e800d21f1de9d1b24a09367a2e368ea60": {
 #     "Name": "redis-3",
-#     "EndpointID": "4e28b437aa3d725661616200271dab68152ebb3bf93b5e6d66af23e5f44710d6",
+#     "EndpointID": "4419d36052f0849869b8227db835b9cffb0e053ba593730c0f76904a9465fa92",
 #     "MacAddress": "02:42:ac:26:00:0d",
 #     "IPv4Address": "172.38.0.13/16",
 #     "IPv6Address": ""
 # }
 
 docker stop redis-3
-docker ps
-# CONTAINER ID   IMAGE                    COMMAND                  CREATED          STATUS          PORTS                                              NAMES
-# c0ea4cc5bfc6   redis:5.0.9-alpine3.11   "docker-entrypoint.s…"   11 minutes ago   Up 11 minutes   0.0.0.0:6376->6379/tcp, 0.0.0.0:16376->16379/tcp   redis-6
-# 4a89995a1cad   redis:5.0.9-alpine3.11   "docker-entrypoint.s…"   12 minutes ago   Up 12 minutes   0.0.0.0:6375->6379/tcp, 0.0.0.0:16375->16379/tcp   redis-5
-# 32da42a0d210   redis:5.0.9-alpine3.11   "docker-entrypoint.s…"   12 minutes ago   Up 12 minutes   0.0.0.0:6374->6379/tcp, 0.0.0.0:16374->16379/tcp   redis-4
-# d7d7751dc13d   redis:5.0.9-alpine3.11   "docker-entrypoint.s…"   14 minutes ago   Up 14 minutes   0.0.0.0:6372->6379/tcp, 0.0.0.0:16372->16379/tcp   redis-2
-# 71fa6b723afd   redis:5.0.9-alpine3.11   "docker-entrypoint.s…"   17 minutes ago   Up 17 minutes   0.0.0.0:6371->6379/tcp, 0.0.0.0:16371->16379/tcp   redis-1
 
-# 回到原来的终端进行 get 操作
-172.38.0.13:6379> get a
-Error: Operation timed out
-# 好像他默认直接从原来的 13 节点拿了，服务停了，回到了 11 节点的 data 目录，再通过 redis-cli -c 进去集群终端 get a 信息从 14 节点，备份节点返回
-/data # redis-cli -c 
-127.0.0.1:6379> get a
+172.38.0.13:6379> get a             # 回到原来的终端进行 get 操作
+# Error: Operation timed out
+# /data #                           # 默认直接从原来的 13 节点拿了，服务停了，回到了 11 节点的 data 目录，再通过 redis-cli -c 进去集群终端 get a 信息从 14 节点，备份节点返回
+
+redis-cli -c
+127.0.0.1:6379> get a               # 从 log 可以看到值是从备份节点 14 拿到的
 # -> Redirected to slot [15495] located at 172.38.0.14:6379
 # "b"
 
-# 通过 nodes 命令查看节点信息可以看到 13 挂了 172.38.0.13:6379@16379 master,fail, slave 直接翻身农奴把歌唱
-172.38.0.14:6379> cluster nodes 
+172.38.0.14:6379> cluster nodes     # 通过 nodes 命令查看节点信息可以看到 13 挂了 172.38.0.13:6379@16379 master,fail, slave 直接翻身农奴把歌唱
 # 6ff00ea4f03e997b831c2e7d3150c7399c5fb44c 172.38.0.12:6379@16379 master - 0 1619258378445 2 connected 5461-10922
 # 0d6d16438bcb68bf89109b2e91dc6b71208ea113 172.38.0.13:6379@16379 master,fail - 1619258032356 1619258031341 3 connected
 # c47e77a26e9c1186b489003c00f1a9c647e913c2 172.38.0.14:6379@16379 myself,master - 0 1619258377000 7 connected 10923-16383
