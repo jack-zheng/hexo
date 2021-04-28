@@ -44,6 +44,23 @@
       </tags>
   </entry>
   <entry>
+    <title>Algorithm merge sort</title>
+    <url>/hexo/2021/04/28/Algorithm-merge-sort/</url>
+    <content><![CDATA[<p>采用分治(Divide and Conquer)的思想，解题思路如下：</p>
+<ol>
+<li>先将整个数组分为有序数组(对半分，直到长度为1)</li>
+<li>两两合并，并确保合并后的数组有序 - 二路归并</li>
+<li>重复直到所有数组合并完成</li>
+</ol>
+]]></content>
+      <categories>
+        <category>算法</category>
+      </categories>
+      <tags>
+        <tag>归并排序</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>快速排序</title>
     <url>/hexo/2021/04/08/Algorithm-quick-sort/</url>
     <content><![CDATA[<p>分而治之（divide and conquer，D&amp;C）- 种著名的递归式问题解决方法</p>
@@ -2859,31 +2876,18 @@
       </tags>
   </entry>
   <entry>
-    <title>Linux 换源</title>
-    <url>/hexo/2019/12/02/Linux%20%E6%8D%A2%E6%BA%90/</url>
-    <content><![CDATA[<p>Linux 配置国内源加速，以 Ubuntu 为例子</p>
-<h2 id="Steps"><a href="#Steps" class="headerlink" title="Steps"></a>Steps</h2><p>运行 command</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 替换 sources.list 中的源信息</span></span><br><span class="line">sudo sed -i <span class="string">&#x27;s/archive.ubuntu.com/mirrors.ustc.edu.cn/g&#x27;</span> /etc/apt/sources.list</span><br><span class="line"></span><br><span class="line"><span class="comment"># 更新索引</span></span><br><span class="line">sudo apt-get update</span><br></pre></td></tr></table></figure>
-
-<p>如果配置不生效，查看 sources.list 文件中的源信息，可能不是 <code>archive.ubuntu.com</code> 所以更新失败，比如我的 WSL环境中，原始的源就 <code>security.ubuntu.com</code> 需要把上面的命令改为, 使之生效</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sudo sed -i <span class="string">&#x27;s/security.ubuntu.com/mirrors.ustc.edu.cn/g&#x27;</span> /etc/apt/sources.list</span><br></pre></td></tr></table></figure>
-
-<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
-<li><a href="https://mirrors.ustc.edu.cn/help/ubuntu.html">Ubuntu 源使用帮助</a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>配置</category>
-      </categories>
-      <tags>
-        <tag>linux</tag>
-        <tag>换源</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Linux 命令小贴士</title>
     <url>/hexo/2020/07/08/Linux-cmd-tips/</url>
     <content><![CDATA[<p>常用 Linux command 备忘录</p>
+<h2 id="sh-Vs-bash"><a href="#sh-Vs-bash" class="headerlink" title="sh Vs bash"></a>sh Vs bash</h2><p><code>sh</code> 是一种协议 shell command language. 而 <code>/bin/sh</code> 和 <code>/bin/bash</code> 是对他的两种不同的实现, 早起他们基本是一致的，但是随着 bash 的发展，他们变得不兼容起来。<code>/bin/sh</code> 还是标准，<code>/bin/bash</code> 则效率更高</p>
+<h2 id="tee"><a href="#tee" class="headerlink" title="tee"></a>tee</h2><p>查看信息的同时做写入操作</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">ps  | tee info.log      <span class="comment"># ps 输出进程信息的同时，将结果导入 info.log 中</span></span><br><span class="line"><span class="comment">#   PID TTY           TIME CMD</span></span><br><span class="line"><span class="comment"># 23438 ttys000    0:59.10 /bin/zsh -l</span></span><br><span class="line"><span class="comment"># 48670 ttys002    0:01.91 /bin/zsh --login -i</span></span><br><span class="line"><span class="comment"># 71565 ttys003    0:02.87 -zsh</span></span><br><span class="line"><span class="comment"># 72395 ttys003    0:00.00 tee info.log</span></span><br><span class="line">cat info.log            <span class="comment"># 查看文本信息</span></span><br><span class="line"><span class="comment">#   PID TTY           TIME CMD</span></span><br><span class="line"><span class="comment"># 23438 ttys000    0:59.10 /bin/zsh -l</span></span><br><span class="line"><span class="comment"># 48670 ttys002    0:01.91 /bin/zsh --login -i</span></span><br><span class="line"><span class="comment"># 71565 ttys003    0:02.87 -zsh</span></span><br><span class="line"><span class="comment"># 72395 ttys003    0:00.00 tee info.log</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="重定向"><a href="#重定向" class="headerlink" title="重定向"></a>重定向</h2><figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">&lt;: 输入重定向</span><br><span class="line">&gt;: 输出重定向</span><br><span class="line">&lt;&lt;: 截取标准输入</span><br><span class="line">&gt;&gt;: 输出重定向，追加，不覆盖</span><br><span class="line">EOF: 自定义终止符</span><br></pre></td></tr></table></figure>
+
+<p>示例：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 只能在一条命令中完成，文本过长会很累赘</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;eeeeecho&quot;</span> &gt;&gt; echo.txt</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将 aaa 写入 a.txt</span></span><br><span class="line">cat &lt;&lt; EOF &gt; a.txt</span><br><span class="line">aaa</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"><span class="comment"># a.txt 中追加 bbb</span></span><br><span class="line">cat &lt;&lt; EOF &gt;&gt; a.txt</span><br><span class="line">bbb</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"><span class="comment"># a.txt 拷贝到 b.txt</span></span><br><span class="line">cat a.txt &gt; b.txt</span><br><span class="line"></span><br><span class="line"><span class="comment"># 和 cat 类似不过它还有附带显示内容的效果</span></span><br><span class="line"><span class="comment"># tee &lt;&lt; EOF &gt; d.txt 会将显示部分吞掉，文件倒是还是生产</span></span><br><span class="line">tee c.txt &lt;&lt; EOF</span><br><span class="line">ccc</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+
 <h2 id="curl"><a href="#curl" class="headerlink" title="curl"></a>curl</h2><p>终端获取资源，Sample: <code>curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python</code></p>
 <p>-s: 静默模式，去掉显示进度等信息<br>-S: 显示错误信息<br>-L: 自动站点跳转</p>
 <p>将 query 结果存到本地文件</p>
@@ -2919,11 +2923,60 @@
 </ul>
 ]]></content>
       <categories>
-        <category>配置</category>
+        <category>linux</category>
       </categories>
       <tags>
-        <tag>linux</tag>
         <tag>cmd</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Linux 弹射起步</title>
+    <url>/hexo/2021/04/28/Linux-quick-start/</url>
+    <content><![CDATA[<h2 id="走进-Linux-系统"><a href="#走进-Linux-系统" class="headerlink" title="走进 Linux 系统"></a>走进 Linux 系统</h2><p>开机会启动很多程序，Windows 叫服务(service)，Linux 叫守护进程(daemon)</p>
+<h2 id="关机"><a href="#关机" class="headerlink" title="关机"></a>关机</h2><p>linux 中没有报错，即成功</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">sync            <span class="comment"># 同步数据</span></span><br><span class="line"></span><br><span class="line">shutdown -h now <span class="comment"># 马上关机</span></span><br><span class="line"></span><br><span class="line">reboot          <span class="comment"># 重启</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="目录结构"><a href="#目录结构" class="headerlink" title="目录结构"></a>目录结构</h2><ol>
+<li>一切皆文件</li>
+<li>根目录 <code>/</code>，所有文件都挂载在这个节点下</li>
+</ol>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">ls</span><br><span class="line"><span class="comment"># bin  boot  dev  etc  home  lib  lib64  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var</span></span><br><span class="line"><span class="comment"># bin: binary, 存放经常使用的命令</span></span><br><span class="line"><span class="comment"># boot: 启动 Linux 时使用的一些核心文件，包括连接文件和镜像文件</span></span><br><span class="line"><span class="comment"># dev: device, 存放外部设备，Linux 中访问设备和访问文件是一样的</span></span><br><span class="line"><span class="comment"># *etc: 存放所有系统管理所需的配置文件和子目录</span></span><br><span class="line"><span class="comment"># home: 用户主目录，每个用户有一个自己的目录，以自己命名</span></span><br><span class="line"><span class="comment"># lib: 系统最基本的动态连接共享库，类似于 Windows 的 dll 文件</span></span><br><span class="line"><span class="comment"># mnt: 系统提供目录为用户临时挂载文件系统，如光驱等</span></span><br><span class="line"><span class="comment"># lost+found: 一般为空，当系统非正常关机时，这里就会存放一些文件</span></span><br><span class="line"><span class="comment"># media: 媒体设备，U盘，光驱等</span></span><br><span class="line"><span class="comment"># *opt: 额外安装的软件所摆放的位置，比如安装一个数据库什么的，默认为空</span></span><br><span class="line"><span class="comment"># proc: 虚拟目录，系统映射，不管</span></span><br><span class="line"><span class="comment"># *root: 管理员目录</span></span><br><span class="line"><span class="comment"># sbin: s for super user, 村系统管理员使用的管理程序</span></span><br><span class="line"><span class="comment"># srv: 存放一些服务启动后需要提取的数据</span></span><br><span class="line"><span class="comment"># sys: linux2.6之后一个很大的变化，2.6后该目录下新出现一个文件系统 sysfs</span></span><br><span class="line"><span class="comment"># tmp: 临时文件，用完就丢</span></span><br><span class="line"><span class="comment"># *usr: 非常重要的目录，用户很多应用程序和文件都放在这个目录下，类似 Windows 的 program files 目录</span></span><br><span class="line"><span class="comment"># usr/bin: 系统用户使用的应用程序</span></span><br><span class="line"><span class="comment"># usr/sbin: 超级用户使用的应用程序</span></span><br><span class="line"><span class="comment"># usr/src: 内核源代码默认放置位置</span></span><br><span class="line"><span class="comment"># var: 放不断扩充的东西，比如日志</span></span><br><span class="line"><span class="comment"># run: 临时文件系统，存储系统启动以来的信息。重启时，这个目录下的文件应该被删除或清空</span></span><br><span class="line"><span class="comment"># www: 存放服务器网站相关资源，环境，网站目录</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="常用基本命令"><a href="#常用基本命令" class="headerlink" title="常用基本命令"></a>常用基本命令</h2><figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">mkdir -p f1/f2/f3   <span class="comment"># 递归创建文件夹</span></span><br><span class="line">rmdir -p f1         <span class="comment"># 递归删除</span></span><br><span class="line">rmdir f1            <span class="comment"># 如果有子文件，删除会失败</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="内容查看"><a href="#内容查看" class="headerlink" title="内容查看"></a>内容查看</h2><figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">cat <span class="comment"># 顺序</span></span><br><span class="line">tac <span class="comment"># 倒叙</span></span><br><span class="line">nl  <span class="comment"># 带行号</span></span><br><span class="line"></span><br><span class="line">less 比 more 好，功能多，向下查询 /，向上查询 ？</span><br><span class="line">tail -n 20 <span class="comment"># 最后20行</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="链接"><a href="#链接" class="headerlink" title="链接"></a>链接</h2><p>硬链接：A…B, 假设 B 是 A 的硬连接，那么他们指向同一个文件，允许一个文件多个路径，用这种机制可以放置误删<br>软连接：类似 Windows 下的快捷方式</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">touch f1</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;hello&quot;</span> &gt; f1</span><br><span class="line"></span><br><span class="line">ln f1 f2 <span class="comment"># 创建硬链接</span></span><br><span class="line"></span><br><span class="line">ln -s f1 f3 <span class="comment"># 创建软链接</span></span><br><span class="line"></span><br><span class="line">rm f1</span><br><span class="line"></span><br><span class="line">cat f2      <span class="comment"># f1, f2 硬连接，删除还存在</span></span><br><span class="line"><span class="comment"># hello</span></span><br><span class="line"></span><br><span class="line">cat f3      <span class="comment"># f1, f3 软链接，删除即不见</span></span><br><span class="line"><span class="comment"># cat: f3: No such file or directory</span></span><br></pre></td></tr></table></figure>
+
+
+]]></content>
+      <categories>
+        <category>linux</category>
+      </categories>
+      <tags>
+        <tag>弹射起步</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Linux 换源</title>
+    <url>/hexo/2019/12/02/Linux-update-software-sources/</url>
+    <content><![CDATA[<p>Linux 配置国内源加速，以 Ubuntu 为例子</p>
+<h2 id="Steps"><a href="#Steps" class="headerlink" title="Steps"></a>Steps</h2><p>运行 command</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 替换 sources.list 中的源信息</span></span><br><span class="line">sudo sed -i <span class="string">&#x27;s/archive.ubuntu.com/mirrors.ustc.edu.cn/g&#x27;</span> /etc/apt/sources.list</span><br><span class="line"></span><br><span class="line"><span class="comment"># 更新索引</span></span><br><span class="line">sudo apt-get update</span><br></pre></td></tr></table></figure>
+
+<p>如果配置不生效，查看 sources.list 文件中的源信息，可能不是 <code>archive.ubuntu.com</code> 所以更新失败，比如我的 WSL环境中，原始的源就 <code>security.ubuntu.com</code> 需要把上面的命令改为, 使之生效</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sudo sed -i <span class="string">&#x27;s/security.ubuntu.com/mirrors.ustc.edu.cn/g&#x27;</span> /etc/apt/sources.list</span><br></pre></td></tr></table></figure>
+
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<li><a href="https://mirrors.ustc.edu.cn/help/ubuntu.html">Ubuntu 源使用帮助</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>linux</category>
+      </categories>
+      <tags>
+        <tag>换源</tag>
       </tags>
   </entry>
   <entry>
@@ -3295,21 +3348,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Python 解析 csv 文件</title>
-    <url>/hexo/2020/06/18/Python-parse-csv/</url>
-    <content><![CDATA[<p>有一个 csv 文件，其中有个 column 名为 ‘_raw’ 包含我们需要的信息，写一段脚本解析之</p>
-<figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">_raw 中文本为</span><br><span class="line"></span><br><span class="line">08:42:50,222 INFO  [RESTCallbackSubscriber] [customerId,customerId,null,null,SFAPI,null,null] [IrisSubscriber Container[queue_seb.subscriber.pillar.deactivateuser]1]Postback for event com.company.hermes.core.SFEvent=&#123;meta:Meta=&#123;priority:0,proxyId:&quot;null&quot;,serverName:&quot;null&quot;,topic:&quot;com.company.platform.mobile.deactivateuser&quot;,ptpName:null,companyId:&quot;customerId&quot;,eventId:&quot;a3b43584-3ceb-4760-9c01-699d635f4461&quot;,type:&quot;null&quot;,sourceArea:&quot;null&quot;,effectiveStartDate:&quot;null&quot;,publishedAt:&quot;2020-05-31 08:42:39&quot;,publishBy:&quot;SFAPI&quot;,publishServer:&quot;serverip&quot;,externalAllowed:false,filterParameters:&#123;&#123;companyId=customerId, userId=SFAPI, type=null, sourceArea=null, effectiveStartDate=null, publishedAt=1590914553205, publishedBy=SFAPI, externalAllowed=false, publishServer=serverip, priority=0, proxyId=null, serverName=null, topic=com.company.platform.mobile.deactivateuser, ptpName=null&#125;&#125;&#125;,body:&#123;&quot;companyId&quot;: &quot;customerId&quot;, &quot;inactiveUserId&quot;: [&quot;E_UUU_21934&quot;,&quot;E_UUU_21935&quot;]&#125;&#125; sent to https://domain/api/deactivate, (HTTP/1.1 200 OK)</span><br><span class="line"></span><br><span class="line">提取目标：publishedAt, publishedAt of filterParameters, inactiveUserId</span><br></pre></td></tr></table></figure>
-
-<h2 id="Impl"><a href="#Impl" class="headerlink" title="Impl"></a>Impl</h2><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> csv</span><br><span class="line"><span class="comment"># 拿到 csv 的 _raw 列数据</span></span><br><span class="line">context = []</span><br><span class="line">rows = []</span><br><span class="line"><span class="keyword">with</span> open(<span class="string">&#x27;dump_csv.csv&#x27;</span>, newline=<span class="string">&#x27;&#x27;</span>) <span class="keyword">as</span> csvfile:</span><br><span class="line">   contexts = csv.reader(csvfile)</span><br><span class="line">   <span class="comment"># 使用 reader = csv.DictReader(csvfile) 的话可以使用 column name 取值</span></span><br><span class="line">   <span class="comment"># 例如: reader[&#x27;companyId&#x27;], 不过缺点是要在 with loop 中处理完数据</span></span><br><span class="line">   rows = [row[<span class="number">16</span>] <span class="keyword">for</span> row <span class="keyword">in</span> contexts]</span><br><span class="line">   rows = [<span class="number">1</span>:]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 分析 _raw 数据特性，决定使用正则匹配数据</span></span><br><span class="line"><span class="comment"># publishedAt:&quot;(.*?)&quot; 加 ? 表示 非贪婪</span></span><br><span class="line"><span class="comment"># publishedAt=(\d+)</span></span><br><span class="line"><span class="comment"># inactiveUserId&quot;: (\[.*?\])</span></span><br><span class="line"><span class="comment"># 以上表达式取 group 1 数据</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">from</span> datetime <span class="keyword">import</span> datetime</span><br><span class="line"><span class="comment"># re.findAll</span></span><br><span class="line"><span class="comment"># re.match() 从开头开始匹配</span></span><br><span class="line"><span class="comment"># re.search(reg, src) 匹配任意位置</span></span><br><span class="line"></span><br><span class="line">reg1 = <span class="string">&#x27;publishedAt:&quot;(.*?)&quot;&#x27;</span></span><br><span class="line">reg2 = <span class="string">&#x27;publishedAt=(\d+)&#x27;</span></span><br><span class="line">reg3 = <span class="string">&#x27;inactiveUserId&quot;: (\[.*?\])&#x27;</span></span><br><span class="line"></span><br><span class="line">rowlist = []</span><br><span class="line"><span class="keyword">for</span> row <span class="keyword">in</span> rows:</span><br><span class="line">    infolist = []</span><br><span class="line">    timestr01 = re.search(reg1, row).group(<span class="number">1</span>)</span><br><span class="line">    d1 = datetime.strptime(timestr01, <span class="string">&#x27;%Y-%m-%d %H:%M:%S&#x27;</span>)</span><br><span class="line">    infolist.append(d1)</span><br><span class="line"></span><br><span class="line">    timestr2 = int(re.search(reg2, row).group(<span class="number">1</span>))</span><br><span class="line">    d2 = datetime.fromtimestamp(timestr2/<span class="number">1000.0</span>)</span><br><span class="line">    infolist.append(d2)</span><br><span class="line"></span><br><span class="line">    users = re.search(reg3, row).group(<span class="number">1</span>)</span><br><span class="line">    ulist = eval(users) <span class="comment"># string 转化为 list</span></span><br><span class="line">    infolist.append(ulist)</span><br><span class="line">    rowlist.append(infolist)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 把数据根据时间先后排序</span></span><br><span class="line">sortedList = sorted(rowlist, key=<span class="keyword">lambda</span> sub: sub[<span class="number">1</span>])</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">printList</span>(<span class="params">line</span>):</span></span><br><span class="line">    formatStr01 = <span class="string">&#x27;%y-%m-%d %H:%M:%S&#x27;</span></span><br><span class="line">    print(line[<span class="number">0</span>].strftime(formatStr01), end=<span class="string">&#x27; | &#x27;</span>)</span><br><span class="line">    print(<span class="string">&quot;%15f&quot;</span> % (line[<span class="number">1</span>].timestamp()), end=<span class="string">&#x27; | &#x27;</span>)</span><br><span class="line">    arrStr = str(line[<span class="number">2</span>][:<span class="number">5</span>]) + <span class="string">&quot;...&quot;</span> + str(len(line[<span class="number">2</span>])) <span class="keyword">if</span> len(line[<span class="number">2</span>]) &gt; <span class="number">5</span> <span class="keyword">else</span> str(line[<span class="number">2</span>])</span><br><span class="line">    print(arrStr)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> sub <span class="keyword">in</span> sortedList:</span><br><span class="line">    printList(sub)</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>python</category>
-      </categories>
-      <tags>
-        <tag>csv</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Python 解析 PDF</title>
     <url>/hexo/2020/06/19/Python-parse-pdf/</url>
     <content><![CDATA[<p>使用 python 解析 PDF 文件，提取文件中表格的数据。随便在网上找了一个 PDF 文件做样本。使用 <code>filetype:pdf 价格表格</code> 的到样本文件。</p>
@@ -3509,6 +3547,63 @@
       </categories>
       <tags>
         <tag>pyenv</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Python 操作 csv 文件</title>
+    <url>/hexo/2020/06/18/Python-with-csv/</url>
+    <content><![CDATA[<h2 id="基本操作"><a href="#基本操作" class="headerlink" title="基本操作"></a>基本操作</h2><p><a href="https://segmentfault.com/a/1190000013031439">qutochar, delimiter 使用详解</a></p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 写 csv 文件</span></span><br><span class="line"><span class="comment"># newline=&#x27;&#x27; 可以在读写时移除空白行</span></span><br><span class="line"><span class="keyword">import</span> csv</span><br><span class="line"><span class="keyword">with</span> open(<span class="string">&#x27;eggs.csv&#x27;</span>, <span class="string">&#x27;w&#x27;</span>, newline=<span class="string">&#x27;&#x27;</span>) <span class="keyword">as</span> csvfile:</span><br><span class="line">    spamwriter = csv.writer(csvfile)</span><br><span class="line">    spamwriter.writerow([<span class="string">&#x27;Spam&#x27;</span>] * <span class="number">5</span> + [<span class="string">&#x27;Baked Beans&#x27;</span>])</span><br><span class="line">    spamwriter.writerow([<span class="string">&#x27;Spam&#x27;</span>, <span class="string">&#x27;Lovely Spam&#x27;</span>, <span class="string">&#x27;Wonderful Spam&#x27;</span>])</span><br><span class="line"></span><br><span class="line"><span class="comment"># cat eggs.csv            </span></span><br><span class="line"><span class="comment"># Spam,Spam,Spam,Spam,Spam,Baked Beans</span></span><br><span class="line"><span class="comment"># Spam,Lovely Spam,Wonderful Spam</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 一次性写多行</span></span><br><span class="line">header = [<span class="string">&#x27;name&#x27;</span>, <span class="string">&#x27;area&#x27;</span>, <span class="string">&#x27;country_code2&#x27;</span>, <span class="string">&#x27;country_code3&#x27;</span>]</span><br><span class="line">data = [</span><br><span class="line">    [<span class="string">&#x27;Albania&#x27;</span>, <span class="number">28748</span>, <span class="string">&#x27;AL&#x27;</span>, <span class="string">&#x27;ALB&#x27;</span>],</span><br><span class="line">    [<span class="string">&#x27;Angola&#x27;</span>, <span class="number">1246700</span>, <span class="string">&#x27;AO&#x27;</span>, <span class="string">&#x27;AGO&#x27;</span>]</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line"><span class="keyword">with</span> open(<span class="string">&#x27;countries.csv&#x27;</span>, <span class="string">&#x27;w&#x27;</span>, encoding=<span class="string">&#x27;UTF8&#x27;</span>, newline=<span class="string">&#x27;&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">    writer = csv.writer(f)</span><br><span class="line">    <span class="comment"># write the header</span></span><br><span class="line">    writer.writerow(header)</span><br><span class="line">    <span class="comment"># write multiple rows</span></span><br><span class="line">    writer.writerows(data)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果数据以 dict 的格式出现，可以使用 DictWriter 简化操作</span></span><br><span class="line">fieldnames = [<span class="string">&#x27;name&#x27;</span>, <span class="string">&#x27;area&#x27;</span>, <span class="string">&#x27;country_code2&#x27;</span>, <span class="string">&#x27;country_code3&#x27;</span>]</span><br><span class="line"><span class="comment"># csv data</span></span><br><span class="line">rows = [</span><br><span class="line">    &#123;<span class="string">&#x27;name&#x27;</span>: <span class="string">&#x27;Algeria&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;area&#x27;</span>: <span class="number">2381741</span>,</span><br><span class="line">    <span class="string">&#x27;country_code2&#x27;</span>: <span class="string">&#x27;DZ&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;country_code3&#x27;</span>: <span class="string">&#x27;DZA&#x27;</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&#x27;name&#x27;</span>: <span class="string">&#x27;American Samoa&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;area&#x27;</span>: <span class="number">199</span>,</span><br><span class="line">    <span class="string">&#x27;country_code2&#x27;</span>: <span class="string">&#x27;AS&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;country_code3&#x27;</span>: <span class="string">&#x27;ASM&#x27;</span>&#125;</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line"><span class="keyword">with</span> open(<span class="string">&#x27;countries.csv&#x27;</span>, <span class="string">&#x27;w&#x27;</span>, encoding=<span class="string">&#x27;UTF8&#x27;</span>, newline=<span class="string">&#x27;&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">    writer = csv.DictWriter(f, fieldnames=fieldnames)</span><br><span class="line">    writer.writeheader()</span><br><span class="line">    writer.writerows(rows)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 读 csv 文件</span></span><br><span class="line"><span class="keyword">import</span> csv</span><br><span class="line"><span class="keyword">with</span> open(<span class="string">&#x27;some.csv&#x27;</span>, newline=<span class="string">&#x27;&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">    reader = csv.reader(f)</span><br><span class="line">    <span class="keyword">for</span> row <span class="keyword">in</span> reader:</span><br><span class="line">        print(row)</span><br><span class="line"><span class="comment"># [&#x27;Spam&#x27;, &#x27;Spam&#x27;, &#x27;Spam&#x27;, &#x27;Spam&#x27;, &#x27;Spam&#x27;, &#x27;Baked Beans&#x27;]</span></span><br><span class="line"><span class="comment"># [&#x27;Spam&#x27;, &#x27;Lovely Spam&#x27;, &#x27;Wonderful Spam&#x27;]</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="实操"><a href="#实操" class="headerlink" title="实操"></a>实操</h2><p>有一个 csv 文件，其中有个 column 名为 ‘_raw’ 包含我们需要的信息，写一段脚本解析之</p>
+<figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">_raw 中文本为</span><br><span class="line"></span><br><span class="line">08:42:50,222 INFO  [RESTCallbackSubscriber] [customerId,customerId,null,null,SFAPI,null,null] [IrisSubscriber Container[queue_seb.subscriber.pillar.deactivateuser]1]Postback for event com.company.hermes.core.SFEvent=&#123;meta:Meta=&#123;priority:0,proxyId:&quot;null&quot;,serverName:&quot;null&quot;,topic:&quot;com.company.platform.mobile.deactivateuser&quot;,ptpName:null,companyId:&quot;customerId&quot;,eventId:&quot;a3b43584-3ceb-4760-9c01-699d635f4461&quot;,type:&quot;null&quot;,sourceArea:&quot;null&quot;,effectiveStartDate:&quot;null&quot;,publishedAt:&quot;2020-05-31 08:42:39&quot;,publishBy:&quot;SFAPI&quot;,publishServer:&quot;serverip&quot;,externalAllowed:false,filterParameters:&#123;&#123;companyId=customerId, userId=SFAPI, type=null, sourceArea=null, effectiveStartDate=null, publishedAt=1590914553205, publishedBy=SFAPI, externalAllowed=false, publishServer=serverip, priority=0, proxyId=null, serverName=null, topic=com.company.platform.mobile.deactivateuser, ptpName=null&#125;&#125;&#125;,body:&#123;&quot;companyId&quot;: &quot;customerId&quot;, &quot;inactiveUserId&quot;: [&quot;E_UUU_21934&quot;,&quot;E_UUU_21935&quot;]&#125;&#125; sent to https://domain/api/deactivate, (HTTP/1.1 200 OK)</span><br><span class="line"></span><br><span class="line">提取目标：publishedAt, publishedAt of filterParameters, inactiveUserId</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> csv</span><br><span class="line"><span class="comment"># 拿到 csv 的 _raw 列数据</span></span><br><span class="line">context = []</span><br><span class="line">rows = []</span><br><span class="line"><span class="keyword">with</span> open(<span class="string">&#x27;dump_csv.csv&#x27;</span>, newline=<span class="string">&#x27;&#x27;</span>) <span class="keyword">as</span> csvfile:</span><br><span class="line">   contexts = csv.reader(csvfile)</span><br><span class="line">   <span class="comment"># 使用 reader = csv.DictReader(csvfile) 的话可以使用 column name 取值</span></span><br><span class="line">   <span class="comment"># 例如: reader[&#x27;companyId&#x27;], 不过缺点是要在 with loop 中处理完数据</span></span><br><span class="line">   rows = [row[<span class="number">16</span>] <span class="keyword">for</span> row <span class="keyword">in</span> contexts]</span><br><span class="line">   rows = [<span class="number">1</span>:]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 分析 _raw 数据特性，决定使用正则匹配数据</span></span><br><span class="line"><span class="comment"># publishedAt:&quot;(.*?)&quot; 加 ? 表示 非贪婪</span></span><br><span class="line"><span class="comment"># publishedAt=(\d+)</span></span><br><span class="line"><span class="comment"># inactiveUserId&quot;: (\[.*?\])</span></span><br><span class="line"><span class="comment"># 以上表达式取 group 1 数据</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">from</span> datetime <span class="keyword">import</span> datetime</span><br><span class="line"><span class="comment"># re.findAll</span></span><br><span class="line"><span class="comment"># re.match() 从开头开始匹配</span></span><br><span class="line"><span class="comment"># re.search(reg, src) 匹配任意位置</span></span><br><span class="line"></span><br><span class="line">reg1 = <span class="string">&#x27;publishedAt:&quot;(.*?)&quot;&#x27;</span></span><br><span class="line">reg2 = <span class="string">&#x27;publishedAt=(\d+)&#x27;</span></span><br><span class="line">reg3 = <span class="string">&#x27;inactiveUserId&quot;: (\[.*?\])&#x27;</span></span><br><span class="line"></span><br><span class="line">rowlist = []</span><br><span class="line"><span class="keyword">for</span> row <span class="keyword">in</span> rows:</span><br><span class="line">    infolist = []</span><br><span class="line">    timestr01 = re.search(reg1, row).group(<span class="number">1</span>)</span><br><span class="line">    d1 = datetime.strptime(timestr01, <span class="string">&#x27;%Y-%m-%d %H:%M:%S&#x27;</span>)</span><br><span class="line">    infolist.append(d1)</span><br><span class="line"></span><br><span class="line">    timestr2 = int(re.search(reg2, row).group(<span class="number">1</span>))</span><br><span class="line">    d2 = datetime.fromtimestamp(timestr2/<span class="number">1000.0</span>)</span><br><span class="line">    infolist.append(d2)</span><br><span class="line"></span><br><span class="line">    users = re.search(reg3, row).group(<span class="number">1</span>)</span><br><span class="line">    ulist = eval(users) <span class="comment"># string 转化为 list</span></span><br><span class="line">    infolist.append(ulist)</span><br><span class="line">    rowlist.append(infolist)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 把数据根据时间先后排序</span></span><br><span class="line">sortedList = sorted(rowlist, key=<span class="keyword">lambda</span> sub: sub[<span class="number">1</span>])</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">printList</span>(<span class="params">line</span>):</span></span><br><span class="line">    formatStr01 = <span class="string">&#x27;%y-%m-%d %H:%M:%S&#x27;</span></span><br><span class="line">    print(line[<span class="number">0</span>].strftime(formatStr01), end=<span class="string">&#x27; | &#x27;</span>)</span><br><span class="line">    print(<span class="string">&quot;%15f&quot;</span> % (line[<span class="number">1</span>].timestamp()), end=<span class="string">&#x27; | &#x27;</span>)</span><br><span class="line">    arrStr = str(line[<span class="number">2</span>][:<span class="number">5</span>]) + <span class="string">&quot;...&quot;</span> + str(len(line[<span class="number">2</span>])) <span class="keyword">if</span> len(line[<span class="number">2</span>]) &gt; <span class="number">5</span> <span class="keyword">else</span> str(line[<span class="number">2</span>])</span><br><span class="line">    print(arrStr)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> sub <span class="keyword">in</span> sortedList:</span><br><span class="line">    printList(sub)</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>python</category>
+      </categories>
+      <tags>
+        <tag>csv</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Python with json</title>
+    <url>/hexo/2021/04/28/Python-with-json/</url>
+    <content><![CDATA[<h2 id="基操"><a href="#基操" class="headerlink" title="基操"></a>基操</h2><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line"></span><br><span class="line"><span class="comment">#### 从 string 加载</span></span><br><span class="line">person = <span class="string">&#x27;&#123;&quot;name&quot;: &quot;Bob&quot;, &quot;languages&quot;: [&quot;English&quot;, &quot;Fench&quot;]&#125;&#x27;</span></span><br><span class="line">person_dict = json.loads(person)</span><br><span class="line"></span><br><span class="line"><span class="comment">#### 从文件加载</span></span><br><span class="line"><span class="keyword">with</span> open(<span class="string">&#x27;path_to_file/person.json&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">    data = json.load(f)</span><br><span class="line"></span><br><span class="line"><span class="comment">#### json 转 string</span></span><br><span class="line">person_dict = &#123;<span class="string">&#x27;name&#x27;</span>: <span class="string">&#x27;Bob&#x27;</span>,</span><br><span class="line"><span class="string">&#x27;age&#x27;</span>: <span class="number">12</span>,</span><br><span class="line"><span class="string">&#x27;children&#x27;</span>: <span class="literal">None</span></span><br><span class="line">&#125;</span><br><span class="line">person_json = json.dumps(person_dict)</span><br><span class="line"><span class="comment"># Output: &#123;&quot;name&quot;: &quot;Bob&quot;, &quot;age&quot;: 12, &quot;children&quot;: null&#125;</span></span><br><span class="line"></span><br><span class="line">person_dict = &#123;<span class="string">&quot;name&quot;</span>: <span class="string">&quot;Bob&quot;</span>,</span><br><span class="line"><span class="string">&quot;languages&quot;</span>: [<span class="string">&quot;English&quot;</span>, <span class="string">&quot;Fench&quot;</span>],</span><br><span class="line"><span class="string">&quot;married&quot;</span>: <span class="literal">True</span>,</span><br><span class="line"><span class="string">&quot;age&quot;</span>: <span class="number">32</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">#### json 写入文件</span></span><br><span class="line"><span class="keyword">with</span> open(<span class="string">&#x27;person.txt&#x27;</span>, <span class="string">&#x27;w&#x27;</span>) <span class="keyword">as</span> json_file:</span><br><span class="line">    json.dump(person_dict, json_file)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">#### 格式化输出</span></span><br><span class="line">person_string = <span class="string">&#x27;&#123;&quot;name&quot;: &quot;Bob&quot;, &quot;languages&quot;: &quot;English&quot;, &quot;numbers&quot;: [2, 1.6, null]&#125;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Getting dictionary</span></span><br><span class="line">person_dict = json.loads(person_string)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Pretty Printing JSON string back</span></span><br><span class="line">print(json.dumps(person_dict, indent = <span class="number">4</span>, sort_keys=<span class="literal">True</span>))</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>python</category>
+      </categories>
+      <tags>
+        <tag>json</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>零宽断言</title>
+    <url>/hexo/2021/04/28/Regex-zero-length-assertion/</url>
+    <content><![CDATA[<h2 id="Positive-Lookahead-零宽度正预测先行断言-匹配以-xx-结尾的-XX"><a href="#Positive-Lookahead-零宽度正预测先行断言-匹配以-xx-结尾的-XX" class="headerlink" title="Positive Lookahead, 零宽度正预测先行断言: 匹配以 xx 结尾的, (?=XX)"></a>Positive Lookahead, 零宽度正预测先行断言: 匹配以 xx 结尾的, (?=XX)</h2><p>特性： 这个断言是从右边开始匹配</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">e.g.01 </span><br><span class="line">use .*(?&#x3D;ing) as pattern to match &#39;cooking, doing&#39; </span><br><span class="line">matched: &#39;cooking, do&#39;</span><br><span class="line"></span><br><span class="line">e.g.02</span><br><span class="line">use [a-z]*(?&#x3D;ing) as pattern to match &#39;cooking, doing, singing&#39; </span><br><span class="line">matched: &#39;cook, do, sing&#39;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Negtive-Lookahead-负向零宽先行断言-匹配不以-xx-结尾的-XX"><a href="#Negtive-Lookahead-负向零宽先行断言-匹配不以-xx-结尾的-XX" class="headerlink" title="Negtive Lookahead, 负向零宽先行断言: 匹配不以 xx 结尾的, (?!XX)"></a>Negtive Lookahead, 负向零宽先行断言: 匹配不以 xx 结尾的, (?!XX)</h2><p>特性： 这个断言是从右边开始匹配</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">e.g.01 </span><br><span class="line">pattern: yolo(?!lo)</span><br><span class="line">matched: yolo yololo yolo</span><br><span class="line">result: 匹配到第一个 yolo 和最后一个 yolo</span><br><span class="line">refer: https:&#x2F;&#x2F;regex101.com&#x2F;r&#x2F;UyC8Z1&#x2F;1&#x2F;</span><br><span class="line"></span><br><span class="line">感觉上零宽断言适合做 词 这个level 的 match, 普通的 regex 经常会带进来空格</span><br></pre></td></tr></table></figure>
+
+<h2 id="Positive-Lookbehind-负向零宽先行断言-匹配以-xx-开始的-lt-XX"><a href="#Positive-Lookbehind-负向零宽先行断言-匹配以-xx-开始的-lt-XX" class="headerlink" title="Positive Lookbehind, 负向零宽先行断言: 匹配以 xx 开始的, (?&lt;=XX)"></a>Positive Lookbehind, 负向零宽先行断言: 匹配以 xx 开始的, (?&lt;=XX)</h2><p>特性： 这个断言是从左边开始匹配</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">e.g.01 </span><br><span class="line">use (?&lt;&#x3D;abc).* to match abcdefgabc</span><br><span class="line">result: defgabc, not abcdefg</span><br></pre></td></tr></table></figure>
+
+<h2 id="Negative-Lookbehind-负向零宽先行断言-匹配不以-xx-开始的-lt-XX"><a href="#Negative-Lookbehind-负向零宽先行断言-匹配不以-xx-开始的-lt-XX" class="headerlink" title="Negative Lookbehind, 负向零宽先行断言: 匹配不以 xx 开始的, (?&lt;!XX)"></a>Negative Lookbehind, 负向零宽先行断言: 匹配不以 xx 开始的, (?&lt;!XX)</h2><p>特性： 这个断言是从左边开始匹配</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">e.g.01</span><br><span class="line">use (?&lt;!yo)lol to match lol yolol</span><br><span class="line">result: the first lol on left</span><br></pre></td></tr></table></figure>
+
+<h2 id="Refer"><a href="#Refer" class="headerlink" title="Refer"></a>Refer</h2><ul>
+<li><a href="https://regex101.com/">Regex Online</a></li>
+<li><a href="http://www.ibloger.net/article/31.html">Sample Blog Source, CN</a></li>
+<li><a href="https://coderwall.com/p/5c7kjq/lookahead-and-lookbehind-regex">Sample Blog Source</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>regex</category>
+      </categories>
+      <tags>
+        <tag>零宽断言</tag>
       </tags>
   </entry>
   <entry>

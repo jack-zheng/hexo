@@ -206,6 +206,773 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/06/04/Effective-Java-Item-42-Lambda-%E4%BC%98%E5%85%88%E4%BA%8E%E5%8C%BF%E5%90%8D%E7%B1%BB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2020/06/04/Effective-Java-Item-42-Lambda-%E4%BC%98%E5%85%88%E4%BA%8E%E5%8C%BF%E5%90%8D%E7%B1%BB/" class="post-title-link" itemprop="url">Effective Java Item 42 Lambda 优先于匿名类</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-06-04 21:41:24" itemprop="dateCreated datePublished" datetime="2020-06-04T21:41:24+08:00">2020-06-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-28 19:50:15" itemprop="dateModified" datetime="2021-04-28T19:50:15+08:00">2021-04-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
+                    <span itemprop="name">编程</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>本节要点：</p>
+<ul>
+<li>使用 lambda 代替匿名函数</li>
+<li>不要指定 lambda 中的数据类型，除非报错</li>
+<li>主要长度，最多三行</li>
+</ul>
+<p>名词对照表</p>
+<table>
+<thead>
+<tr>
+<th>EN</th>
+<th>CN</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>function type</td>
+<td>函数类型</td>
+</tr>
+<tr>
+<td>function object</td>
+<td>函数对象</td>
+</tr>
+<tr>
+<td>function interface</td>
+<td>函数接口</td>
+</tr>
+<tr>
+<td>type inference</td>
+<td>类型推导</td>
+</tr>
+<tr>
+<td>raw type</td>
+<td>原生类型</td>
+</tr>
+</tbody></table>
+<p>自从 java 1.1 发布依赖，如果我们想要创建一个方法对象那么就需要使用到匿名函数</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">List&lt;String&gt; list = Arrays.asList(<span class="string">&quot;jerry&quot;</span>, <span class="string">&quot;tom&quot;</span>);</span><br><span class="line">Collections.sort(list, <span class="keyword">new</span> Comparator&lt;String&gt;() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compare</span><span class="params">(String o1, String o2)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> Integer.compare(o1.length(), o2.length());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line">list.forEach(System.out::println);</span><br><span class="line"><span class="comment">// output:</span></span><br><span class="line"><span class="comment">// tom</span></span><br><span class="line"><span class="comment">// jerry</span></span><br></pre></td></tr></table></figure>
+
+<p>这种表述方式可以实现我们的需求，但是实现繁琐并且语义表达不顺畅， 在 java 8 中，我们可以使用 lambda 来代替匿名函数</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">List&lt;String&gt; list = Arrays.asList(<span class="string">&quot;jerry&quot;</span>, <span class="string">&quot;tom&quot;</span>);</span><br><span class="line">Collections.sort(list, (s1, s2) -&gt; Integer.compare(s1.length(), s2.length()));</span><br><span class="line">list.forEach(System.out::println);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 甚至可以简写为</span></span><br><span class="line">Collections.sort(list, Comparator.comparingInt(String::length));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 或者更甚</span></span><br><span class="line">list.sort(Comparator.comparingInt(String::length));</span><br></pre></td></tr></table></figure>
+
+<p>再使用 lambda 的时候有一条原则<strong>去掉 lambda 中的所有参数类型，除非它能使你的表达更清楚</strong>。默认情况下，程序会根据上下文推断出类型，实在不行它会报错的，那个时候你再自己修不迟。</p>
+<p>Operator 枚举类优化，可以将参数使用 DoubleBinaryOperator 这个方法接口做优化</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 原始代码</span></span><br><span class="line"><span class="keyword">enum</span> Operation &#123;</span><br><span class="line">    PLUS(<span class="string">&quot;+&quot;</span>) &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> x + y;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    MINUS(<span class="string">&quot;-&quot;</span>) &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> x - y;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    TIMES(<span class="string">&quot;*&quot;</span>) &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> x * y;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    DIVIDE(<span class="string">&quot;/&quot;</span>) &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String symbol;</span><br><span class="line"></span><br><span class="line">    Operation(String symbol) &#123; <span class="keyword">this</span>.symbol = symbol; &#125;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> symbol; &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过将上面的 apply() 方法抽象，这个 Operation 的枚举中的行为可以看作是传入两个数，进行计算， 我们将计算抽象，得到如下的简化形式</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">enum</span> Operation &#123;</span><br><span class="line">    PLUS(<span class="string">&quot;+&quot;</span>, (x, y) -&gt; x + y),</span><br><span class="line">    MINUS(<span class="string">&quot;-&quot;</span>, (x, y) -&gt; x - y),</span><br><span class="line">    TIMES(<span class="string">&quot;*&quot;</span>, (x, y) -&gt; x * y),</span><br><span class="line">    DIVIDE(<span class="string">&quot;/&quot;</span>, (x, y) -&gt; x / y);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String symbol;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> DoubleBinaryOperator operator;</span><br><span class="line"></span><br><span class="line">    Operation(String symbol, DoubleBinaryOperator operator) &#123;</span><br><span class="line">        <span class="keyword">this</span>.symbol = symbol;</span><br><span class="line">        <span class="keyword">this</span>.operator = operator;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> symbol; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> operator.applyAsDouble(x, y);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>缺点：lambda 没有名字和文档，如果一段算法不能自我描述，或者超出了几行，就别把他放到一个 lambda 函数中。 </p>
+<p>lambda 注意点：</p>
+<ul>
+<li>一个 lambda 一行是最理想的，最多不能超过三行！</li>
+<li>绝大多视情况下，使用 lambda 代替匿名函数，但是如果是对抽象类的实现，还是得依靠匿名函数， lambda 并不能完成这样的功能。</li>
+<li>lambda 不能获取自身引用， 在 lambda 中 this 指代的是外围示例，匿名类中 this 指自己</li>
+<li>可能的话，别去序列化 lambda 和 匿名函数</li>
+<li>lambda 是小函数的最佳表现方式，除非万不得已，不然就别用匿名类实现函数接口</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/06/03/function-%E5%8C%85%E7%AE%80%E4%BB%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2020/06/03/function-%E5%8C%85%E7%AE%80%E4%BB%8B/" class="post-title-link" itemprop="url">function 包简介</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-06-03 21:02:15" itemprop="dateCreated datePublished" datetime="2020-06-03T21:02:15+08:00">2020-06-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-28 19:50:15" itemprop="dateModified" datetime="2021-04-28T19:50:15+08:00">2021-04-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
+                    <span itemprop="name">编程</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>6.7k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>6 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>对 java 的 lang 包下的 function 包做一下简要的总结， 写本篇文章时参考的 java 11 的源代码。是实话，我中觉得函数接口的定义，语义上很奇葩，不怎么读的懂，比如源码中 Predicate 的 isEquals 方法是这样定义的</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> &lt;T&gt; <span class="function">Predicate&lt;T&gt; <span class="title">isEqual</span><span class="params">(Object targetRef)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (<span class="keyword">null</span> == targetRef)</span><br><span class="line">            ? Objects::isNull</span><br><span class="line">            : object -&gt; targetRef.equals(object);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>简直是看的我一脸的黑人问好啊 ？？？ 这 TM 什么鬼，有空再研究一下怎么自定义函数接口。</p>
+<h2 id="概况"><a href="#概况" class="headerlink" title="概况"></a>概况</h2><p>function 包是函数接口的集合，包路径为： <code>java.util.function.*</code>， 接口可以大致分为 5 类</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>作用</th>
+<th>个数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Consumer</td>
+<td>接收参数做计算，无返回</td>
+<td>8</td>
+</tr>
+<tr>
+<td>Supplier</td>
+<td>生成数据，对象</td>
+<td>5</td>
+</tr>
+<tr>
+<td>Predicate</td>
+<td>根据参数做返回 Boolean 值的计算</td>
+<td>5</td>
+</tr>
+<tr>
+<td>Function</td>
+<td>接受参数，返会计算值</td>
+<td>17</td>
+</tr>
+<tr>
+<td>Operator</td>
+<td>接受数据并返回计算值</td>
+<td>8</td>
+</tr>
+</tbody></table>
+<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><h3 id="Consumer"><a href="#Consumer" class="headerlink" title="Consumer"></a>Consumer</h3><p>拿到参数， 运算， 无返回值：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Stream.of(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>).forEach(System.out::println);</span><br></pre></td></tr></table></figure>
+
+<p>它有一些变种，比如 BiConsumer, Bi 是 Binary 的缩写，表示复数， 两个的意思。这里表示 Consumer 接收两个参数：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">BiConsumer&lt;String, String&gt; biConsumer = (name, action) -&gt; &#123;</span><br><span class="line">    System.out.println(String.format(<span class="string">&quot;Name: %s is %s ing...&quot;</span>, name, action));</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">biConsumer.accept(<span class="string">&quot;Jack&quot;</span>, <span class="string">&quot;run&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>其他变种，比如 DoubleConsumer, 只接受 Double 做参数， 类似的还有 LongConsumer, IntConsumer 等，限制一样：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">DoubleConsumer consumer = (val) -&gt; &#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;Val: &quot;</span> + val);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">consumer.accept(<span class="number">1.0</span>); <span class="comment">// output: Val: 1.0</span></span><br><span class="line"><span class="comment">// consumer.accept(&quot;test&quot;); - 编译报错</span></span><br><span class="line"><span class="comment">// consumer.accept(1.0L); - 编译报错</span></span><br></pre></td></tr></table></figure>
+
+<p>还有一类变种，比如 ObjDoubleConsumer, ObjIntConsumer 和 ObjLongConsumer， 表示接收两个参数，但是其中一个是对象类型的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 设计一个 lambda， 接受 person 对象和 int 值，并用 int 对 person 的年龄 field 赋值</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span> </span>&#123;</span><br><span class="line">    String name;</span><br><span class="line">    <span class="keyword">int</span> age;</span><br><span class="line">    <span class="comment">// 省略 getter/setter/toString 方法</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">ObjIntConsumer&lt;Person&gt; consumer = Person::setAge;</span><br><span class="line">Person p = <span class="keyword">new</span> Person(<span class="string">&quot;Jack&quot;</span>);</span><br><span class="line">consumer.accept(p, <span class="number">30</span>);</span><br><span class="line">System.out.println(p);</span><br><span class="line"><span class="comment">// output: Person&#123;name=&#x27;Jack&#x27;, age=30&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>大多数 *Consumer 接口看书中还有另外一个方法，叫 <code>andThen()</code> 可以达到组合拳的效果</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 定义两个 lambda, 一个做大写转化，一个做小写转化。 就是他的这个级联的语法总有一种很奇葩的感觉，要先写 andThan 再写 accept 才合法</span></span><br><span class="line">Consumer&lt;String&gt; consumer01 = (val) -&gt; &#123;</span><br><span class="line">    String toUp = val.toUpperCase();</span><br><span class="line">    System.out.print(toUp);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">Consumer&lt;String&gt; consumer02 = (val) -&gt; &#123;</span><br><span class="line">    String toUp = val.toLowerCase();</span><br><span class="line">    System.out.println(toUp);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">Stream.of(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;B&quot;</span>).forEach(consumer01.andThen(consumer02).accept);</span><br><span class="line"><span class="comment">// output:</span></span><br><span class="line"><span class="comment">// Aa</span></span><br><span class="line"><span class="comment">// Bb</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Supplier"><a href="#Supplier" class="headerlink" title="Supplier"></a>Supplier</h3><p>生成数据并返回，和工厂方法很像</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Supplier supplier = Math::random;</span><br><span class="line">System.out.println(supplier.get());</span><br><span class="line">System.out.println(supplier.get());</span><br><span class="line"><span class="comment">// output: 0.21716622238340733</span></span><br><span class="line"><span class="comment">// output: 0.06868488591912514</span></span><br></pre></td></tr></table></figure>
+
+<p>和 Consumer 一样，他也有指定返回类型的 type, 像 BooleanSupplier, DoubleSupplier, IntSupplier 和 LongSupplier</p>
+<h3 id="Predicate"><a href="#Predicate" class="headerlink" title="Predicate"></a>Predicate</h3><p>接受参数，然后再 lambda 中计算，得出一个 Boolean 的结果值</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 对准备的 3 个 string 做过滤，输出空字串的个数</span></span><br><span class="line"><span class="keyword">long</span> count = Stream.of(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;  &quot;</span>, <span class="string">&quot;B&quot;</span>).filter(String::isBlank).count();</span><br><span class="line">System.out.println(count);</span><br><span class="line"><span class="comment">// output: 1</span></span><br></pre></td></tr></table></figure>
+
+<p>filter 中接受的就是 Predicate 类型的表达式，如果计算结果为 true，则保留参数对象，否则过滤掉。</p>
+<p>对应的它也有多个变种形式，变种的处理方式和前面的雷同： BiPredicate, DoublePredicate, IntPredicate 和 LongPredicate。</p>
+<p>除此之外，大多数的 *Predicate 接口中除了 test() 外还有 and(), negate()， or() 和 isEqual() 方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">Predicate&lt;String&gt; checkLength = val -&gt; val.length() &gt; <span class="number">5</span>;</span><br><span class="line">Predicate&lt;String&gt; startWith = val -&gt; val.startsWith(<span class="string">&quot;B&quot;</span>);</span><br><span class="line">List&lt;String&gt; ret = Stream.of(<span class="string">&quot;Apple&quot;</span>, <span class="string">&quot;Banana&quot;</span>, <span class="string">&quot;BBC&quot;</span>).filter(checkLength.and(startWith)).collect(Collectors.toList());</span><br><span class="line">System.out.println(<span class="string">&quot;-------------- Test AND result--------------&quot;</span>);</span><br><span class="line">ret.forEach(System.out::println);</span><br><span class="line"></span><br><span class="line">ret = Stream.of(<span class="string">&quot;Apple&quot;</span>, <span class="string">&quot;Banana&quot;</span>, <span class="string">&quot;BBC&quot;</span>).filter(checkLength.or(startWith)).collect(Collectors.toList());</span><br><span class="line">System.out.println(<span class="string">&quot;-------------- Test OR result--------------&quot;</span>);</span><br><span class="line">ret.forEach(System.out::println);</span><br><span class="line"></span><br><span class="line">ret = Stream.of(<span class="string">&quot;Apple&quot;</span>, <span class="string">&quot;Banana&quot;</span>, <span class="string">&quot;BBC&quot;</span>).filter(checkLength.negate()).collect(Collectors.toList());</span><br><span class="line">System.out.println(<span class="string">&quot;-------------- Test NEGATE result--------------&quot;</span>);</span><br><span class="line">ret.forEach(System.out::println);</span><br><span class="line"></span><br><span class="line">ret = Stream.of(<span class="string">&quot;Apple&quot;</span>, <span class="string">&quot;Banana&quot;</span>, <span class="string">&quot;BBC&quot;</span>).filter(Predicate.not(checkLength)).collect(Collectors.toList());</span><br><span class="line">System.out.println(<span class="string">&quot;-------------- Test NOT result--------------&quot;</span>);</span><br><span class="line">ret.forEach(System.out::println);</span><br><span class="line"></span><br><span class="line">System.out.println(<span class="string">&quot;-------------- Test EQUALS result--------------&quot;</span>);</span><br><span class="line">System.out.println(Predicate.isEqual(<span class="string">&quot;abc&quot;</span>).test(<span class="string">&quot;abc&quot;</span>));</span><br><span class="line"></span><br><span class="line"><span class="comment">// output:</span></span><br><span class="line">-------------- Test AND result--------------</span><br><span class="line">Banana</span><br><span class="line">-------------- Test OR result--------------</span><br><span class="line">Banana</span><br><span class="line">BBC</span><br><span class="line">-------------- Test NEGATE result--------------</span><br><span class="line">Apple</span><br><span class="line">BBC</span><br><span class="line">-------------- Test NOT result--------------</span><br><span class="line">Apple</span><br><span class="line">BBC</span><br><span class="line">-------------- Test EQUALS result--------------</span><br><span class="line"><span class="keyword">true</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Function"><a href="#Function" class="headerlink" title="Function"></a>Function</h3><p>接受参数，计算并返回所得的值</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 接收一个字符串并将其转化成 integer 类型</span></span><br><span class="line">Function&lt;String, Integer&gt; func = Integer::valueOf;</span><br><span class="line"><span class="keyword">int</span> ret = func.apply(<span class="string">&quot;100&quot;</span>);</span><br><span class="line">System.out.println(ret);</span><br><span class="line"><span class="comment">// output: 100</span></span><br></pre></td></tr></table></figure>
+
+<p>同样，他也有变种，而且特别多</p>
+<table>
+<thead>
+<tr>
+<th>name</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>BiFunction</td>
+<td>接收两个参数, 返回值类型自定</td>
+</tr>
+<tr>
+<td>DoubleFunction</td>
+<td>接收 Double 参数，返回值自定</td>
+</tr>
+<tr>
+<td>IntFunction</td>
+<td>接收 Int 参数，返回值自定</td>
+</tr>
+<tr>
+<td>LongFunction</td>
+<td>接收 Long 参数，返回值自定</td>
+</tr>
+<tr>
+<td>DoubleToIntFunction</td>
+<td>接收 Double 返回 Int</td>
+</tr>
+<tr>
+<td>DoubleToLongFunction</td>
+<td>接收 Double 返回 Long</td>
+</tr>
+<tr>
+<td>IntToDoubleFunction</td>
+<td>接收 Int 返回 Double</td>
+</tr>
+<tr>
+<td>IntToLongFunction</td>
+<td>接收 Int 返回 Long</td>
+</tr>
+<tr>
+<td>LongToDoubleFunction</td>
+<td>接收 Long 返回 Double</td>
+</tr>
+<tr>
+<td>LongToIntFunction</td>
+<td>接收 Long 返回 Int</td>
+</tr>
+<tr>
+<td>ToDoubleFunction</td>
+<td>接收参数类型自定，返回 Double</td>
+</tr>
+<tr>
+<td>ToIntFunction</td>
+<td>接收参数类型自定，返回 Int</td>
+</tr>
+<tr>
+<td>ToLongFunction</td>
+<td>接收参数类型自定，返回 Long</td>
+</tr>
+<tr>
+<td>ToIntBiFunction</td>
+<td>接收两个参数, 返回 Int</td>
+</tr>
+<tr>
+<td>ToLongBiFunction</td>
+<td>接收两个参数, 返回 Long</td>
+</tr>
+<tr>
+<td>ToDoubleBiFunction</td>
+<td>接收两个参数, 返回 Double</td>
+</tr>
+</tbody></table>
+<p>相比其他的几个 *Function 接口， BiFunction 和 Function 要更特殊一点，他们除了最基本的 apply() 之外还有一些额外的方法。</p>
+<p>Function 和 BiFunction 还有一个相同的 <code>andThen()</code> 方法，他会再前一个返回值的基础上再做计算</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 对 Stream 中的数进行 x 100 -10 操作</span></span><br><span class="line">Function&lt;Integer, Integer&gt; funcx100 = val -&gt; val * <span class="number">100</span>;</span><br><span class="line">Function&lt;Integer, Integer&gt; funcMinus10 = val -&gt; val - <span class="number">10</span>;</span><br><span class="line">List&lt;Integer&gt; ret = Stream.of(<span class="number">1</span>, <span class="number">2</span>).map(funcx100.andThen(funcMinus10)).collect(Collectors.toList());</span><br><span class="line">ret.forEach(System.out::println);</span><br><span class="line"><span class="comment">// output:</span></span><br><span class="line"><span class="comment">// 90</span></span><br><span class="line"><span class="comment">// 190</span></span><br></pre></td></tr></table></figure>
+
+<p>初此之外 Function 还有几个特殊的方法， compose() 他是再 apply() 之前执行的，注意泛型返回值的承接</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 设计两个 lambda 函数，将测试字符串中的数字部分抽出来，并格式化</span></span><br><span class="line">Function&lt;String, Integer&gt; funcComp = val -&gt; &#123;String intVal = val.split(<span class="string">&quot;:&quot;</span>)[<span class="number">1</span>];</span><br><span class="line"><span class="keyword">return</span> Integer.valueOf(intVal);&#125;;</span><br><span class="line">Function&lt;Integer, String&gt; func = val -&gt; <span class="string">&quot;[&quot;</span> + val + <span class="string">&quot;]&quot;</span>;</span><br><span class="line">List&lt;String&gt; ret = Stream.of(<span class="string">&quot;Jack:30&quot;</span>, <span class="string">&quot;Jerry:18&quot;</span>).map(func.compose(funcComp)).collect(Collectors.toList());</span><br><span class="line">ret.forEach(System.out::println);</span><br></pre></td></tr></table></figure>
+
+<p>Function 还有一个 identity() 方法，传入什么返回什么，完全不能领会它有什么用，到是网上一些例子中，可以用来快速生成 map 的用法让人挺印象深刻的</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Map&lt;String, Integer&gt; map = Stream.of(<span class="string">&quot;i&quot;</span>, <span class="string">&quot;love&quot;</span>, <span class="string">&quot;you&quot;</span>).collect(Collectors.toMap(Function.identity(), String::length));</span><br><span class="line">System.out.println(map);</span><br><span class="line"><span class="comment">// output:</span></span><br><span class="line"><span class="comment">// &#123;love=4, i=1, you=3&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Operator"><a href="#Operator" class="headerlink" title="Operator"></a>Operator</h3><p>一个计算表达式，最基本的类型为 UnaryOperator， 翻译为 <code>一元表达式</code>, 它是 Function 的一个子类, 可以看成是定制版/特殊形式的 Function，只用于计算，看网上的例子貌似是这样</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">UnaryOperator&lt;Integer&gt; operator = val -&gt; val ^ <span class="number">2</span>;</span><br><span class="line">System.out.println(operator.apply(<span class="number">4</span>));</span><br><span class="line"><span class="comment">// output: 6</span></span><br></pre></td></tr></table></figure>
+<p>与之类似的还有 LongUnaryOperator 表示 long 类型的一元运算， 同理推至 IntUnaryOperator， DoubleUnaryOperator。</p>
+<p>DoubleBinaryOperator 两个 Double 类型数据的运算，同理推至 IntBinaryOperator 和 LongBinaryOperator。</p>
+<p>再 *Operator 一族中，比较特殊的是 BinaryOperator, 再他的方法中有两个计算最值的方法 <code>minBy()</code> 和 <code>maxBy()</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">BinaryOperator&lt;Integer&gt; max = BinaryOperator.maxBy(Comparator.naturalOrder());</span><br><span class="line">System.out.println(max.apply(<span class="number">1</span>,<span class="number">2</span>));</span><br><span class="line"></span><br><span class="line">BinaryOperator&lt;Integer&gt; min = BinaryOperator.minBy(Comparator.naturalOrder());</span><br><span class="line">System.out.println(min.apply(<span class="number">1</span>, <span class="number">2</span>));</span><br><span class="line"><span class="comment">//output: 2 1</span></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/05/28/Java-lambda/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2020/05/28/Java-lambda/" class="post-title-link" itemprop="url">Java 函数式编程</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-05-28 21:15:28" itemprop="dateCreated datePublished" datetime="2020-05-28T21:15:28+08:00">2020-05-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-28 19:50:15" itemprop="dateModified" datetime="2021-04-28T19:50:15+08:00">2021-04-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>9k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>8 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>Java 8 函数式编程读书笔记</p>
+<h2 id="第一章-简介"><a href="#第一章-简介" class="headerlink" title="第一章 简介"></a>第一章 简介</h2><ul>
+<li>Java 8 增加 Lambda 表达式来支持对大型数据的并发操作 - 核实一下</li>
+<li>面向对象式对数据进行抽象，函数式编程时对行为进行抽象</li>
+</ul>
+<h2 id="第二章-Lambda-表达式"><a href="#第二章-Lambda-表达式" class="headerlink" title="第二章 Lambda 表达式"></a>第二章 Lambda 表达式</h2><p>以 Swing 为例，传统做法中监听事件需要如下代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">button.addActionListener(</span><br><span class="line">    <span class="keyword">new</span> ActionListener() &#123;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">actionPerformed</span><span class="params">(ActionEvent event)</span> </span>&#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;button clicked&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<p>当我们使用 lambda 表达式时可以简写为 <code>button.addActionListener(event -&gt; System.out.println(&quot;button clicked&quot;));</code></p>
+<p>Lambda 表达式中的类型都是由编译器推断出来的，但你也可以显示的声明参数类型。</p>
+<p>Lambda 表达式引用的是值，而不是变量。</p>
+<table>
+<thead>
+<tr>
+<th>接口</th>
+<th>参数</th>
+<th>返回类型</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Predicate&lt;T&gt;</td>
+<td>T</td>
+<td>boolean</td>
+<td>唱片是否发行</td>
+</tr>
+<tr>
+<td>Consumer&lt;T&gt;</td>
+<td>T</td>
+<td>void</td>
+<td>输出一个值</td>
+</tr>
+<tr>
+<td>Function&lt;T, R&gt;</td>
+<td>T</td>
+<td>R</td>
+<td>获取Artist 对象的名字</td>
+</tr>
+<tr>
+<td>Supplier&lt;T&gt;</td>
+<td>None</td>
+<td>T</td>
+<td>工厂方法</td>
+</tr>
+<tr>
+<td>UnaryOperator&lt;T&gt;</td>
+<td>T</td>
+<td>T</td>
+<td>逻辑非(!)</td>
+</tr>
+<tr>
+<td>BinaryOperator&lt;T&gt;</td>
+<td>(T, T)</td>
+<td>T</td>
+<td>求连个数的乘积(*)</td>
+</tr>
+</tbody></table>
+<p>在复杂的情况下需要指定泛型类型才能使编译通过</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 如果省略掉 &lt;Long&gt; 编译报错：Operator&#x27;&amp;#x002B;&#x27;cannotbeappliedtojava.lang.Object,java.lang.Object.</span></span><br><span class="line">BinaryOperator&lt;Long&gt; addLongs = (x, y) -&gt; x + y;</span><br></pre></td></tr></table></figure>
+
+<p>Predicate 可用于检测对象是否符合要求</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 检测字符串是否以 J 开头</span></span><br><span class="line">List&lt;String&gt; names = Arrays.asList(<span class="string">&quot;Jerry&quot;</span>, <span class="string">&quot;Tom&quot;</span>);</span><br><span class="line">List&lt;String&gt; ret = names.stream().filter(name -&gt; name.charAt(<span class="number">0</span>) == <span class="string">&#x27;J&#x27;</span>).collect(Collectors.toList());</span><br><span class="line"></span><br><span class="line"><span class="comment">// filter 中的部分就是 Predicate 表达式，也可以分开定义写成如下形式</span></span><br><span class="line">Predicate&lt;String&gt; filterTom = input -&gt; input.equals(<span class="string">&quot;Tom&quot;</span>);</span><br><span class="line">ret = names.stream().filter(filterTom).collect(Collectors.toList());</span><br><span class="line"></span><br><span class="line"><span class="comment">// 自定义 predicate 表达式</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PredicateSamples</span> </span>&#123;</span><br><span class="line">    Predicate&lt;String&gt; checkLength = input -&gt; input.length() &gt; <span class="number">5</span>;</span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test_checkLength</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// false</span></span><br><span class="line">        System.out.println(checkLength.test(<span class="string">&quot;1234&quot;</span>));</span><br><span class="line">        <span class="comment">// true</span></span><br><span class="line">        System.out.println(checkLength.test(<span class="string">&quot;123456&quot;</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义方法生成 predicate 作为返回值</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> Predicate&lt;String&gt; <span class="title">generatePredicateExpression</span><span class="params">(String prefix)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> test -&gt; prefix.startsWith(test);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test_generate_expression</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// true</span></span><br><span class="line">    System.out.println(generatePredicateExpression(<span class="string">&quot;jack123&quot;</span>).test(<span class="string">&quot;jack&quot;</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Consumer 对传入的参数做操作，没有返回值，例如可以用它实现打印，断言等操作</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ret.forEach(System.out::print);</span><br><span class="line">names.forEach(name -&gt; Assert.assertEquals(name, <span class="string">&quot;Jerry&quot;</span>));</span><br></pre></td></tr></table></figure>
+
+<p>Function 对传入的对象操作并放回结果</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">List&lt;String&gt; ret = names.stream().map(String::toUpperCase).collect(Collectors.toList());</span><br><span class="line">ret.forEach(System.out::println);</span><br></pre></td></tr></table></figure>
+
+<p>Supplier 可以帮你生产数据, 但是只能使用应用于无参的 constructor，不支持传入参数</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Supplier&lt;User&gt; userSupplier = User::<span class="keyword">new</span>;</span><br></pre></td></tr></table></figure>
+
+<h2 id="第三章-流"><a href="#第三章-流" class="headerlink" title="第三章 流"></a>第三章 流</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// for 处理集合模板</span></span><br><span class="line"><span class="keyword">int</span> count=<span class="number">0</span>;</span><br><span class="line"><span class="keyword">for</span> (Artist artist : allArtists) &#123;</span><br><span class="line">    <span class="keyword">if</span> (artist.isFrom(<span class="string">&quot;London&quot;</span>)) &#123;</span><br><span class="line">        count++;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">``</span><br><span class="line"></span><br><span class="line">外部迭代方式： 通过拿到 iterator， 然后通过 hasNext(), next() 方法完成迭代</span><br><span class="line"></span><br><span class="line">```java</span><br><span class="line"><span class="keyword">int</span> count=<span class="number">0</span>;</span><br><span class="line">Iterator&lt;Artist&gt; iterator = allArtists.iterator();</span><br><span class="line"><span class="keyword">while</span> (iterator.hasNext()) &#123;</span><br><span class="line">    Artistartist = iterator.next();</span><br><span class="line">    <span class="keyword">if</span> (artist.isFrom(<span class="string">&quot;London&quot;</span>)) &#123;</span><br><span class="line">        count++;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>内部迭代：通过 Steam 对集合类进行复杂操作</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// filter：只保留通过某项测试的对象，整个过程被分为两步，过滤和计算</span></span><br><span class="line"><span class="keyword">long</span> count = allArtists.stream().filter(artist -&gt; artist.isFrom(<span class="string">&quot;London&quot;</span>)).count();</span><br></pre></td></tr></table></figure>
+
+<p>filter 中的表达式是惰性求值方法，count 是及早求职方法，惰性求值并不会真正执行</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 此实例中并不会在控制台打印文字</span></span><br><span class="line">allArtists.stream().filter(artist -&gt; &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;print artist&#x27;s location: &quot;</span> + artist.location);</span><br><span class="line">            <span class="keyword">return</span> artist.isFrom(<span class="string">&quot;London&quot;</span>);</span><br><span class="line">        &#125;);</span><br></pre></td></tr></table></figure>
+
+<p>如果返回值是 Stream 则为 惰性求值；如果返回值是另一个值或为空则是 及早求值。使用这些操作的理想方式就是形成一个惰性求值的链，最后用一个及早求值的操作返回想要的结果，这正是它的合理之处。</p>
+<h3 id="常用的流操作"><a href="#常用的流操作" class="headerlink" title="常用的流操作"></a>常用的流操作</h3><table>
+<thead>
+<tr>
+<th>操作</th>
+<th>用途</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>collect</td>
+<td>生成集合</td>
+<td>Stream.of(“a”, “b”, “c”).collect(Collectors.toList());</td>
+</tr>
+<tr>
+<td>map</td>
+<td>类型转换</td>
+<td>Stream.of(“a”).map(string -&gt; string.toUpperCase()).collect(Collectors.toList());</td>
+</tr>
+<tr>
+<td>filter</td>
+<td>检查过滤</td>
+<td>Stream.of(“a”, “12b”).filter(val -&gt; isDigit(val.charAt(0))).(Collectors.toList());</td>
+</tr>
+<tr>
+<td>flatMap</td>
+<td>拼接多个 Stream</td>
+<td>Stream.of(asList(1, 2), asList(3, 4)).flatMap(numbers -&gt; numbers.stream()).collect(toList());</td>
+</tr>
+<tr>
+<td>max/min</td>
+<td>最值</td>
+<td>tracks.stream().min(Comparator.comparing(track -&gt; track.getLength())).get();</td>
+</tr>
+<tr>
+<td>reduce</td>
+<td>提供计算功能</td>
+<td>Stream.of(1,2,3).reduce(0, (acc, ele) - &gt; acc + ele);</td>
+</tr>
+</tbody></table>
+<h2 id="第四章-类库"><a href="#第四章-类库" class="headerlink" title="第四章 类库"></a>第四章 类库</h2><p>日志优化</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Logger logger = <span class="keyword">new</span> Logger();</span><br><span class="line"><span class="keyword">if</span> (logger.isDebugEnabled()) &#123;</span><br><span class="line">    logger.debug(<span class="string">&quot;Look at this:&quot;</span> + expensiveOperation());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用 Lambda 优化</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Logger logger = <span class="keyword">new</span> Logger();</span><br><span class="line">logger.debug(() -&gt; <span class="string">&quot;Look at this:&quot;</span> + expensiveOperation());</span><br><span class="line"></span><br><span class="line"><span class="comment">// 在 Logger 类中添加方法</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">debug</span><span class="params">(Supplier&lt;String&gt; message)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (isDebugEnabled()) &#123;</span><br><span class="line">        debug(message.get());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Supplier -&gt; get(), Predicate -&gt; test, Function -&gt; apply.</p>
+<p>如果可以的话，在流中尽量使用对基本类型的操作，而不是封装类型。 mapToInt 之类的操作还提供了很多简便操作得到最值和平均值。</p>
+<p><strong>Optional</strong>是一个新设计的数据类新来替换 null 值。 使用它有两个目的：</p>
+<ul>
+<li>Optional 对象鼓励程序员适时检测变量是否为空，以避免代码缺陷</li>
+<li>将一个类的 API 中可能为空的值文档化，这比阅读实现代码要简单的很多</li>
+</ul>
+<h2 id="第五章-高级集合类和收集器"><a href="#第五章-高级集合类和收集器" class="headerlink" title="第五章 高级集合类和收集器"></a>第五章 高级集合类和收集器</h2><p><code>方法引用</code>语法， artist -&gt; artist.getName() 等价于 Artist::getName, 标准语法为 Classname::methodName. 由此，新建 Artist 对象的代码可以由 （name, nationality） -&gt; new Artist(name, nationality) 简化为 Artist::new, 类似的可以通过 String[]::new 创建新的数组。</p>
+<p><code>stream.collect()</code> 可以生成你想要的集合形式。例如：<code>stream.collect(toCollection(TreeSet::new));</code></p>
+<p><code>partitioningBy</code> 收集器可用于分流, 与之类似的还有 <code>groupingBy</code> 关键字。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> Map&lt;Boolean, List&lt;Artist&gt;&gt; bandsAndSolo(Stream&lt;Artist&gt; artists) &#123;</span><br><span class="line">    <span class="keyword">return</span> artist.collect(partitioningBy(artist -&gt; artist.isSolo())); <span class="comment">// artist -&gt; artist.isSolo() 可替换为 Artist::isSolo</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>字符串流操作示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">String ret = artists.steam().map(Artist::getName).collect(Collectors.joining(<span class="string">&quot;,&quot;</span>, <span class="string">&quot;[&quot;</span>, <span class="string">&quot;]&quot;</span>));</span><br></pre></td></tr></table></figure>
+
+<p>查询并加入 map 的简化操作：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// before</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Artist <span class="title">getArtist</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">    Artist artist = artistCache.get(name);</span><br><span class="line">    <span class="keyword">if</span> (artist == <span class="keyword">null</span>) &#123;</span><br><span class="line">        artist = readArtistFromDB(name);</span><br><span class="line">        artistCache.put(name, artist);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> artist;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// after</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Artist <span class="title">getArtist</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> artistCache.computeIfAbsent(name, <span class="keyword">this</span>::readArtistFromDB);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过 forEach 简化 map 的统计操作：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// before</span></span><br><span class="line">Map&lt;Artist, Integer&gt; countOfAlbums = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line"><span class="keyword">for</span>(Map.Entry&lt;Artist, List&lt;Album&gt;&gt; entry : albumsByArtist.entrySet()) &#123;</span><br><span class="line">    Artist artist = entry.getKey();</span><br><span class="line">    List&lt;Album&gt; albums = entry.getValue();</span><br><span class="line">    countOfAlbums.put(artist, albums.size());</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// after</span></span><br><span class="line">Map&lt;Artist, Integer&gt; countOfAlbums = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">albumsByArtist.forEach((artist, albums) -&gt; &#123;</span><br><span class="line">    countOfAlbums.put(artist, albums.size());</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h2 id="第六章-数据并行化"><a href="#第六章-数据并行化" class="headerlink" title="第六章 数据并行化"></a>第六章 数据并行化</h2><p>并行化：同一任务拆分，多核执行<br>并发化：单核多任务</p>
+<p>实现上只需要在调用方法时将 <code>.stream()</code> 改为 <code>.parallelStream()</code> 就行了。但是并不是并行了就快，取决于处理量等其他因素。</p>
+<p>影响因素：数据大小， 源数据结构， 装箱， 核的数量， 单元处理开销， 底层还是使用了 fork/join 的模式。</p>
+<p>数据结构并行性能：ArrayList, 数组， IntStream.range &gt; HashSet, Treeset &gt; LinkedList, Streams.iterate, BufferedReader.lines</p>
+<p>为 array 赋初值：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span>[] a = <span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">100</span>];</span><br><span class="line">Arrays.setAll(a, i-&gt;i);</span><br><span class="line"><span class="comment">// 输出：0，1，3.。。99</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="第七章-测试，调试和重构"><a href="#第七章-测试，调试和重构" class="headerlink" title="第七章 测试，调试和重构"></a>第七章 测试，调试和重构</h2><p>ThreadLocal 优化：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// before</span></span><br><span class="line">ThreadLocal&lt;album&gt; thisAlbum = <span class="keyword">new</span> ThreadLocal&lt;Album&gt; () &#123;</span><br><span class="line">    <span class="meta">@Overrride</span> <span class="function"><span class="keyword">protected</span> Album <span class="title">initialValue</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> database.lookupCurrentAlbum();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// after</span></span><br><span class="line">ThreadLocal&lt;Album&gt; thisAlbum = ThreadLocal.withInitial(() -&gt; database.lookupCurrentAlbum());</span><br></pre></td></tr></table></figure>
+
+<p>可以使用 peek 进行流的调试</p>
+<h2 id="第八章-设计和架构的原则"><a href="#第八章-设计和架构的原则" class="headerlink" title="第八章 设计和架构的原则"></a>第八章 设计和架构的原则</h2><p>列举了 Lambda 和 设计模式， DSL 的结合的例子，和我看这本书的初衷有点远了，先跳过。</p>
+<h2 id="第九章-使用-Lambda-表达式编写并发程序"><a href="#第九章-使用-Lambda-表达式编写并发程序" class="headerlink" title="第九章 使用 Lambda 表达式编写并发程序"></a>第九章 使用 Lambda 表达式编写并发程序</h2><p>使用 Vertx 框架结合 Lambda 的知识点，实现一个聊天室，跳过。但是它的这个框架我倒是感觉很有意思，灵感是从 NodeJS 那边来的，支持并发。</p>
+<h2 id="工作中遇到的一些例子"><a href="#工作中遇到的一些例子" class="headerlink" title="工作中遇到的一些例子"></a>工作中遇到的一些例子</h2><h3 id="如果集合包含范型信息，在没有指定具体的范型类的时候，调用-lambda-会报编译错误"><a href="#如果集合包含范型信息，在没有指定具体的范型类的时候，调用-lambda-会报编译错误" class="headerlink" title="如果集合包含范型信息，在没有指定具体的范型类的时候，调用 lambda 会报编译错误"></a>如果集合包含范型信息，在没有指定具体的范型类的时候，调用 lambda 会报编译错误</h3><p>当使用注释掉的语句代替现有的语句时就会报编译错误：Non-static method cannot be referenced from a static contex</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test4</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  Set&lt;MyProp&gt; props = <span class="keyword">new</span> HashSet&lt;&gt;();</span><br><span class="line">  MyProp p1 = <span class="keyword">new</span> MyProp(<span class="number">1</span>);</span><br><span class="line">  MyProp p2 = <span class="keyword">new</span> MyProp(<span class="number">2</span>);</span><br><span class="line">  props.add(p1);</span><br><span class="line">  props.add(p2);</span><br><span class="line">  MyInterface&lt;String&gt; i0 = <span class="keyword">new</span> MyInterface&lt;&gt;(props); <span class="comment">// MyInterface i0 = new MyInterface&lt;&gt;(props);</span></span><br><span class="line">  System.out.println(i0.getList().stream().map(MyProp::getId).collect(Collectors.toList()));</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">MyInterface</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> Set props;</span><br><span class="line">  MyInterface(Set props) &#123;</span><br><span class="line">    <span class="keyword">this</span>.props = props;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> Set&lt;MyProp&gt; <span class="title">getList</span><span class="params">()</span> </span>&#123; <span class="comment">// public Set getList() </span></span><br><span class="line">    <span class="keyword">return</span> props;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">MyProp</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> id;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="title">MyProp</span><span class="params">(<span class="keyword">int</span> id)</span> </span>&#123; <span class="keyword">this</span>.id = id; &#125;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getId</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> id; &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>找了一下网上的解释，虽然有重现和解决方案，但是对它的底层原因并没有很清楚的解释，以后如果有机会再深入了解 lambda 的语法的话，可以再看看</p>
+<p>PS: 个人感觉应该是在没有指定 type 的时候，类型判断有问题</p>
+<h3 id="从-List-中抽取属性组成新的集合"><a href="#从-List-中抽取属性组成新的集合" class="headerlink" title="从 List 中抽取属性组成新的集合"></a>从 List 中抽取属性组成新的集合</h3><p>List of BeanProperty, BeanProperty 有 <code>getName()</code> 方法，如何通过 lambda 函数抽取</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">List&lt;String&gt; ret = list.stream().map(BeanProperty::getName).collect(Collectors.toList());</span><br></pre></td></tr></table></figure>
+
+<h3 id="Map-gt-Map-转化"><a href="#Map-gt-Map-转化" class="headerlink" title="Map -&gt; Map 转化"></a>Map -&gt; Map 转化</h3><p>Map&lt;String, List&lt;Obj&gt;&gt; 对 list 中的值进行修改，案例简化为 Map&lt;String, List&lt;String&gt;&gt; 将 list 中的 String 转化为大写</p>
+<p>第一步先熟悉 list -&gt; list 转化方式</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">List&lt;String&gt; test = Arrays.asList(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;c&quot;</span>);</span><br><span class="line">List&lt;String&gt; answer = test.stream().map(String::toUpperCase).collect(Collectors.toList());</span><br><span class="line">System.out.println(answer);</span><br><span class="line"><span class="comment">//output: [A, C]</span></span><br></pre></td></tr></table></figure>
+
+<p>熟悉 map 转化方式并结合 list 转化</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">Map&lt;String, List&lt;String&gt;&gt; origin = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">origin.put(<span class="string">&quot;a&quot;</span>, Arrays.asList(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;n&quot;</span>));</span><br><span class="line">origin.put(<span class="string">&quot;b&quot;</span>, Arrays.asList(<span class="string">&quot;b&quot;</span>));</span><br><span class="line">origin.put(<span class="string">&quot;c&quot;</span>, Arrays.asList(<span class="string">&quot;c&quot;</span>));</span><br><span class="line"></span><br><span class="line">System.out.println(origin);</span><br><span class="line"></span><br><span class="line">Map&lt;String, List&lt;String&gt;&gt; after = origin.entrySet().stream().</span><br><span class="line">        collect(Collectors.toMap(</span><br><span class="line">                Map.Entry::getKey, (entry) -&gt; entry.getValue().stream().map(String::toUpperCase).collect(Collectors.toList()))</span><br><span class="line">        );</span><br><span class="line">System.out.println(after);</span><br><span class="line"><span class="comment">// output:</span></span><br><span class="line"><span class="comment">// &#123;a=[a, n], b=[b], c=[c]&#125;</span></span><br><span class="line"><span class="comment">// &#123;a=[A, N], b=[B], c=[C]&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Collectors-toMap-怎么使用"><a href="#Collectors-toMap-怎么使用" class="headerlink" title="Collectors.toMap() 怎么使用"></a>Collectors.toMap() 怎么使用</h3><p>函数定义：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T, K, U&gt;</span><br><span class="line">    Collector&lt;T, ?, Map&lt;K,U&gt;&gt; toMap(Function&lt;? <span class="keyword">super</span> T, ? extends K&gt; keyMapper,</span><br><span class="line">                                    Function&lt;? <span class="keyword">super</span> T, ? extends U&gt; valueMapper) &#123;</span><br><span class="line">        <span class="keyword">return</span> toMap(keyMapper, valueMapper, throwingMerger(), HashMap::<span class="keyword">new</span>);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>简单理解就是两个参数分别是两个计算式，得到 key 和 value 的对应的值</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Class&lt;? extends Number&gt;&gt; list = Arrays.asList(Integer.class, Double.class, Long.class);</span><br><span class="line">Map map = list.stream().collect(Collectors.toMap(Function.identity(), x-&gt;<span class="number">0</span>));</span><br></pre></td></tr></table></figure>
+
+<p><code>Function.identity()</code> 等价于 x -&gt; x</p>
+<p><code>x -&gt; 0</code> 等价于设置常量</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/05/28/Hexo-Search-Plugin/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2020/05/28/Hexo-Search-Plugin/" class="post-title-link" itemprop="url">Hexo 搜索</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-05-28 17:10:27" itemprop="dateCreated datePublished" datetime="2020-05-28T17:10:27+08:00">2020-05-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-28 19:50:15" itemprop="dateModified" datetime="2021-04-28T19:50:15+08:00">2021-04-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E5%8D%9A%E5%AE%A2/" itemprop="url" rel="index">
+                    <span itemprop="name">博客</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>530</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>Hexo 提供全区搜索功能很方便，在两个 <code>_config.yml</code> 文件下添加配置就行了，一个在 hexo 下，一个在 next 皮肤下。</p>
+<p>root -&gt; _config.yml 添加配置</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Config for search service</span></span><br><span class="line"><span class="attr">search:</span></span><br><span class="line">    <span class="attr">path:</span> <span class="string">search.xml</span></span><br><span class="line">    <span class="attr">field:</span> <span class="string">post</span></span><br><span class="line">    <span class="attr">format:</span> <span class="string">html</span></span><br><span class="line">    <span class="attr">limit:</span> <span class="number">10000</span></span><br></pre></td></tr></table></figure>
+
+<p>root -&gt; themes -&gt; next -&gt; _config.yml</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">local_search:</span></span><br><span class="line">  <span class="attr">enable:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="Issues"><a href="#Issues" class="headerlink" title="Issues"></a>Issues</h2><p>某一天突然发现部分 Post 不能被 search 出来了，排查了好久，发现是 Splunk 之后一个都失效了。继续排查，是这片文章中有个 ‘Steps:’ 的节点，在编辑器里面查看是没什么问题的，但是贴到其他工具，比如 idea 或者 browser 里面时，他会带一个 [BS] 的前缀。太神奇了。。。所以之前一直没发现。</p>
+<p>在 VSCode 里面看结构还是 <code>&lt;p&gt;Steps&lt;/p&gt;</code> 但是用 linux cat 时就变成 <code>&lt;pSteps:&lt;/p&gt;</code> 所以后面的 search 解析就出问题了。查了下 BS 代表的是退格键 0x008, 也解释了为什么 xml p 标签会少一个尖括号了 ╮(￣▽￣””)╭</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/05/28/%E8%AF%8D%E6%9D%A1/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +1004,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-27 22:44:14" itemprop="dateModified" datetime="2021-04-27T22:44:14+08:00">2021-04-27</time>
+                <time title="修改时间：2021-04-28 19:50:15" itemprop="dateModified" datetime="2021-04-28T19:50:15+08:00">2021-04-28</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -334,7 +1101,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-27 22:44:14" itemprop="dateModified" datetime="2021-04-27T22:44:14+08:00">2021-04-27</time>
+                <time title="修改时间：2021-04-28 19:50:15" itemprop="dateModified" datetime="2021-04-28T19:50:15+08:00">2021-04-28</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -430,7 +1197,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-27 22:44:14" itemprop="dateModified" datetime="2021-04-27T22:44:14+08:00">2021-04-27</time>
+                <time title="修改时间：2021-04-28 19:50:15" itemprop="dateModified" datetime="2021-04-28T19:50:15+08:00">2021-04-28</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -557,7 +1324,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-27 22:44:14" itemprop="dateModified" datetime="2021-04-27T22:44:14+08:00">2021-04-27</time>
+                <time title="修改时间：2021-04-28 19:50:15" itemprop="dateModified" datetime="2021-04-28T19:50:15+08:00">2021-04-28</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -669,7 +1436,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-27 22:44:14" itemprop="dateModified" datetime="2021-04-27T22:44:14+08:00">2021-04-27</time>
+                <time title="修改时间：2021-04-28 19:50:15" itemprop="dateModified" datetime="2021-04-28T19:50:15+08:00">2021-04-28</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -771,7 +1538,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-27 22:44:14" itemprop="dateModified" datetime="2021-04-27T22:44:14+08:00">2021-04-27</time>
+                <time title="修改时间：2021-04-28 19:50:15" itemprop="dateModified" datetime="2021-04-28T19:50:15+08:00">2021-04-28</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -827,476 +1594,11 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/01/06/NoClassDefFoundError%20%E8%AE%B0%E5%BD%95/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2020/01/06/NoClassDefFoundError%20%E8%AE%B0%E5%BD%95/" class="post-title-link" itemprop="url">NoClassDefFoundError 记录</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-01-06 10:37:39" itemprop="dateCreated datePublished" datetime="2020-01-06T10:37:39+08:00">2020-01-06</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-27 22:44:14" itemprop="dateModified" datetime="2021-04-27T22:44:14+08:00">2021-04-27</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
-                    <span itemprop="name">编程</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>写 UT 的时候遇到一个 NoClassDefFoundError, 以前没碰到过，记一笔</p>
-<h3 id="Root-Cause"><a href="#Root-Cause" class="headerlink" title="Root Cause"></a>Root Cause</h3><p>编译时能找到 class 但是运行时对应的类找不到了，听上去可能不点矛盾</p>
-<h3 id="与-ClassNotFoundException-的区别"><a href="#与-ClassNotFoundException-的区别" class="headerlink" title="与 ClassNotFoundException 的区别"></a>与 ClassNotFoundException 的区别</h3><p>ClassNotFoundException 的场景更多的是我们给出 class name, 然后 JVM 根据名字去 load 的时候找不到就会跑抛出这个异常</p>
-<p>NoClassDefFoundError 则是在编译期，JVM 是能找到对应的类的，但是等运行期时找不到了</p>
-<h3 id="怎么修复"><a href="#怎么修复" class="headerlink" title="怎么修复"></a>怎么修复</h3><ol>
-<li>检测 Classpath 是不是缺少你需要的 jar 包，缺少就加一下。我本地就是这个问题，测试的 dependency 中没有类的引用，挂了</li>
-<li>检查 error exception stack, 看看是不是类初始化时 static 部分出错了</li>
-</ol>
-<h3 id="打印-Classpath-调试"><a href="#打印-Classpath-调试" class="headerlink" title="打印 Classpath 调试"></a>打印 Classpath 调试</h3><p>通过打印 classpath 输出当前运行环境是否缺少需要的 jar 包。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.net.URL;</span><br><span class="line"><span class="keyword">import</span> java.net.URLClassLoader;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PrintClassPath</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ClassLoader cl = ClassLoader.getSystemClassLoader();</span><br><span class="line"></span><br><span class="line">        URL[] urls = ((URLClassLoader)cl).getURLs();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span>(URL url: urls)&#123;</span><br><span class="line">            System.out.println(url.getFile());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Output:</span></span><br><span class="line"><span class="comment">// /Library/Java/JavaVirtualMachines/jdk1.8.0_144.jdk/Contents/Home/jre/lib/charsets.jar</span></span><br><span class="line"><span class="comment">// /Library/Java/JavaVirtualMachines/jdk1.8.0_144.jdk/Contents/Home/jre/lib/deploy.jar</span></span><br><span class="line"><span class="comment">// /Library/Java/JavaVirtualMachines/jdk1.8.0_144.jdk/Contents/Home/jre/lib/ext/cldrdata.jar</span></span><br><span class="line"><span class="comment">// ...</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Refer"><a href="#Refer" class="headerlink" title="Refer"></a>Refer</h3><p><a target="_blank" rel="noopener" href="https://javarevisited.blogspot.com/2011/06/noclassdeffounderror-exception-in.html">很全面的一个 NoClassDefFoundError 异常分析博文</a></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/01/03/%E5%88%9B%E5%BB%BA%20Date%20%E5%AF%B9%E8%B1%A1/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2020/01/03/%E5%88%9B%E5%BB%BA%20Date%20%E5%AF%B9%E8%B1%A1/" class="post-title-link" itemprop="url">创建 Date 对象</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-01-03 17:43:50" itemprop="dateCreated datePublished" datetime="2020-01-03T17:43:50+08:00">2020-01-03</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-27 22:44:14" itemprop="dateModified" datetime="2021-04-27T22:44:14+08:00">2021-04-27</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
-                    <span itemprop="name">编程</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>799</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>简单记录一下 java 中 Date 类的使用</p>
-<h3 id="通过-Date-创建"><a href="#通过-Date-创建" class="headerlink" title="通过 Date 创建"></a>通过 Date 创建</h3><p>默认构造函数会创建当前时间点的 Date 对象, 另外还可以通过 <code>Date(long milliseconds)</code> 的构造器创建指定时间的日期对象</p>
-<p>主要方法：</p>
-<ul>
-<li>getTime() - return milliseconds</li>
-<li>before(Date) - if date is before target date</li>
-<li>after(Date)</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    Date date = <span class="keyword">new</span> Date();</span><br><span class="line">    <span class="comment">// The default date fromat is: &quot;EEE MMM dd HH:mm:ss zzz yyyy&quot;;</span></span><br><span class="line">    System.out.println(date);</span><br><span class="line">    System.out.println(date.getTime());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Output:</span></span><br><span class="line"><span class="comment">// Fri Jan 03 17:47:16 CST 2020</span></span><br><span class="line"><span class="comment">// 1578045256817</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="通过-SimpleDateFormat-创建"><a href="#通过-SimpleDateFormat-创建" class="headerlink" title="通过 SimpleDateFormat 创建"></a>通过 SimpleDateFormat 创建</h3><p>相比于上一种方式，这种更易懂一点，而且可以指定输出格式呦(´▽｀)</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> ParseException </span>&#123;</span><br><span class="line">    Date simpleDate = <span class="keyword">new</span> SimpleDateFormat(<span class="string">&quot;yyyy-MM-dd&quot;</span>).parse(<span class="string">&quot;2020-01-03&quot;</span>);</span><br><span class="line"></span><br><span class="line">    System.out.println(simpleDate);</span><br><span class="line">    System.out.println(<span class="keyword">new</span> SimpleDateFormat(<span class="string">&quot;MM-dd-yyyy&quot;</span>).format(simpleDate));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Output:</span></span><br><span class="line"><span class="comment">// Fri Jan 03 00:00:00 CST 2020</span></span><br><span class="line"><span class="comment">// 01-03-2020</span></span><br></pre></td></tr></table></figure>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2019/12/26/Idea-configuration/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2019/12/26/Idea-configuration/" class="post-title-link" itemprop="url">Idea 常用配置</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2019-12-26 22:24:12" itemprop="dateCreated datePublished" datetime="2019-12-26T22:24:12+08:00">2019-12-26</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-27 22:44:14" itemprop="dateModified" datetime="2021-04-27T22:44:14+08:00">2021-04-27</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E9%85%8D%E7%BD%AE/" itemprop="url" rel="index">
-                    <span itemprop="name">配置</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>2.6k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>2 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>Idea 中关于 Maven 的一些配置</p>
-<h2 id="Configurations"><a href="#Configurations" class="headerlink" title="Configurations"></a>Configurations</h2><h3 id="避免-import"><a href="#避免-import" class="headerlink" title="避免 import *"></a>避免 import *</h3><p>默认设置下，同一个包下 import 数量超过 5 个就会用 * 来代替，可以去 Setting -&gt; editor -&gt; code style -&gt; java, 然后右边选择 Imports tab, 修改 ‘Class count to use import *’ 的值即可</p>
-<h3 id="Maven-下载仓库配"><a href="#Maven-下载仓库配" class="headerlink" title="Maven 下载仓库配"></a>Maven 下载仓库配</h3><ol>
-<li>Shift + Ctrl + A -&gt; 搜索 <code>Settings.xml</code>, Open/Create 这个文件 -&gt; 添加仓库地址  </li>
-<li>localRepository 这个变量的地址应该是对应到本地的 <code>.m</code> folder 下的 repository 文件夹  </li>
-<li>Settings.xml 路径可以在 ‘Build, Excutations, Deployment’ 下的 maven tag 下查看</li>
-</ol>
-<h3 id="设置-Maven-自动下载包源码"><a href="#设置-Maven-自动下载包源码" class="headerlink" title="设置 Maven 自动下载包源码"></a>设置 Maven 自动下载包源码</h3><ol>
-<li>Build, Excutations, Deployment -&gt; Maven -&gt; Importing -&gt; Automatically download: source, documentation 打勾  </li>
-<li>回到主界面，在侧边栏的 Maven 里面会出现 ‘Download source and/or documentation’ 的按钮</li>
-</ol>
-<h3 id="Win10-下-Idea-NVIDIA-快捷键冲突"><a href="#Win10-下-Idea-NVIDIA-快捷键冲突" class="headerlink" title="Win10 下 Idea/NVIDIA 快捷键冲突"></a>Win10 下 Idea/NVIDIA 快捷键冲突</h3><ol>
-<li>NVIDIA Graphic 开启的时候 Ctrl + Alt + 方向键会变成调整显示方向的设置，和 Idea 的代码跳转冲突</li>
-<li>右键桌面 -&gt; 图形属性 -&gt; 选项和支持 -&gt; 禁用快捷键</li>
-</ol>
-<h3 id="Idea-查看-JDK-源码"><a href="#Idea-查看-JDK-源码" class="headerlink" title="Idea 查看 JDK 源码"></a>Idea 查看 JDK 源码</h3><p>File -&gt; project setting -&gt; SDKs -&gt; 右边有个 Sourcepath -&gt; 导航到 JDK 文件目录下找到 src.zip 就行了</p>
-<h3 id="设置条件断点"><a href="#设置条件断点" class="headerlink" title="设置条件断点"></a>设置条件断点</h3><p>添加断点之后，在断点上右键输入你想要的条件，比如： a==10</p>
-<h3 id="Debug-显示设置"><a href="#Debug-显示设置" class="headerlink" title="Debug 显示设置"></a>Debug 显示设置</h3><p>debug 时一些值比如 <code>byte[]</code> 想要看具体的值时多少，可以右键 -&gt; Evaluate Expression… 输入表达式 <code>new String(dmBytes)</code> 查看，也可以通过 add to watch 输入同样的表达式</p>
-<h3 id="复制代码段的时候，取消格式复制"><a href="#复制代码段的时候，取消格式复制" class="headerlink" title="复制代码段的时候，取消格式复制"></a>复制代码段的时候，取消格式复制</h3><p>cmd+shift+A 打开搜索框，输入关键字 ‘copy as rich text’, 关闭对应的开关</p>
-<h3 id="IDEA中显示空格"><a href="#IDEA中显示空格" class="headerlink" title="IDEA中显示空格"></a>IDEA中显示空格</h3><p>cmd+shift+A 打开搜索框，输入关键字 ‘show withspace’, 操作对应的开关</p>
-<h3 id="快速实现-tab-lt-gt-space-转化"><a href="#快速实现-tab-lt-gt-space-转化" class="headerlink" title="快速实现 tab &lt;-&gt; space 转化"></a>快速实现 tab &lt;-&gt; space 转化</h3><ol>
-<li>cmd+shift+A 打开搜索框，输入关键字 ‘convert indents’, 选择 ‘To Spaces’</li>
-<li>或者在输入关键字的时候直接选择 ‘To Spaces’</li>
-</ol>
-<h3 id="查看类继承关系"><a href="#查看类继承关系" class="headerlink" title="查看类继承关系"></a>查看类继承关系</h3><p>Navigate -&gt; Type Hierarchy 或者 Ctrl + H</p>
-<h3 id="关闭-Idea-自动更新提示"><a href="#关闭-Idea-自动更新提示" class="headerlink" title="关闭 Idea 自动更新提示"></a>关闭 Idea 自动更新提示</h3><p>快捷搜索 <code>Automatically check update for</code> 然后将更新选项去掉</p>
-<h3 id="Class-生成-Enter就会提示自动创建serialVersionUID"><a href="#Class-生成-Enter就会提示自动创建serialVersionUID" class="headerlink" title="Class 生成 Enter就会提示自动创建serialVersionUID"></a>Class 生成 Enter就会提示自动创建serialVersionUID</h3><ol>
-<li>Setting-&gt;Inspections-&gt;Serialization issues-&gt;Serializable class without ’serialVersionUID’ </li>
-<li>选上以后，在你的class中：Alt+Enter就会提示自动创建serialVersionUID了。</li>
-</ol>
-<h3 id="设置终端-log-size"><a href="#设置终端-log-size" class="headerlink" title="设置终端 log size"></a>设置终端 log size</h3><p>默认终端数量有限，稍微多点就把前面的给冲掉了，可以设置 Preferences &gt; Editor &gt; General &gt; Console, 勾选 Override console cycle buffer size (1024 KB)，并把值调大就行</p>
-<h2 id="插件"><a href="#插件" class="headerlink" title="插件"></a>插件</h2><ul>
-<li>查看字节码：安装 jclasslib，重启。选中文件，选择导航栏上的 view -&gt; Show byte code with jclasslib 选项即可</li>
-</ul>
-<h2 id="快捷键"><a href="#快捷键" class="headerlink" title="快捷键"></a>快捷键</h2><table>
-<thead>
-<tr>
-<th align="left">功能</th>
-<th align="center">Mac</th>
-<th align="center">Win</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left">万能快捷键</td>
-<td align="center">CMD + Shift + A</td>
-<td align="center">TODO</td>
-</tr>
-<tr>
-<td align="left">查找类</td>
-<td align="center">CMD+ O</td>
-<td align="center">TODO</td>
-</tr>
-</tbody></table>
-<h2 id="Spring-中-Autowired-warning"><a href="#Spring-中-Autowired-warning" class="headerlink" title="Spring 中 Autowired warning"></a>Spring 中 Autowired warning</h2><p>Settings -&gt; Editor -&gt; Code Style -&gt; Inspections -&gt; Spring Core -&gt; Code -&gt; Field injection warning 选项 disable 掉</p>
-<h2 id="maven-assembly-plugin-not-found"><a href="#maven-assembly-plugin-not-found" class="headerlink" title="maven-assembly-plugin not found"></a>maven-assembly-plugin not found</h2><p>For newer versions of IntelliJ, enable the use plugin registry option within the Maven settings as follows:</p>
-<ol>
-<li>Click File -&gt; Settings.</li>
-<li>Expand Build, Execution, Deployment -&gt; Build Tools -&gt; Maven. Check Use plugin registry.</li>
-<li>Click OK or Apply.</li>
-</ol>
-<p>For IntelliJ 14.0.1, open the preferences—not settings—to find the plugin registry option:</p>
-<ol>
-<li>Click File -&gt; Preferences. Regardless of version, also invalidate the caches:</li>
-<li>Click File -&gt; Invalidate Caches / Restart.</li>
-<li>Click Invalidate and Restart.</li>
-</ol>
-<p>When IntelliJ starts again the problem should be vanquished.</p>
-<h2 id="默认注释格式"><a href="#默认注释格式" class="headerlink" title="默认注释格式"></a>默认注释格式</h2><p>默认注释格式会把双斜杠放到最前面，和习惯很不搭配，可以通过 Perferences -&gt; settings -&gt; Editor -&gt; Code style -&gt; java 跳出设置界面</p>
-<p>到 Code generic tab 下面，将 Comment Code 选项下的 <code>Line comment at first coumn</code> 去掉，下一级的 <code>Add a space at comment start</code> 选上即可</p>
-<h2 id="2021-04-15"><a href="#2021-04-15" class="headerlink" title="2021-04-15"></a>2021-04-15</h2><p>升级 Idea 之后，原来的项目在 Idea 里面编译失败，但是终端却可以。由此断定项目肯定是好的。Google 了一下，可以通过 File -&gt; Invalidate caches -&gt; Invalidate and Restart 重启 Idea 解决问题</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2019/12/26/Idea-cracking/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2019/12/26/Idea-cracking/" class="post-title-link" itemprop="url">Idea 破解</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2019-12-26 21:36:14" itemprop="dateCreated datePublished" datetime="2019-12-26T21:36:14+08:00">2019-12-26</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-27 22:44:14" itemprop="dateModified" datetime="2021-04-27T22:44:14+08:00">2021-04-27</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E9%85%8D%E7%BD%AE/" itemprop="url" rel="index">
-                    <span itemprop="name">配置</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>456</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>简单记录一下怎么破解 idea, 主要是记录下破解的文章引用，方便以后查找，引用的文章 po 主说会持续跟新的 (～￣▽￣)～</p>
-<h2 id="Steps"><a href="#Steps" class="headerlink" title="Steps"></a>Steps</h2><blockquote>
-<p>PS: 预算充足的一定要支持正版啊啊啊啊 (●’◡’●)</p>
-</blockquote>
-<ol>
-<li>去官网下载最新的 Pro 版</li>
-<li>下载 JetbrainsCrack.jar 破解包，放到 idea 安装路径的 bin 文件夹下</li>
-<li>打开安装好的 idea，选择试用 30 天。 进入界面之后 Help -&gt; Edit Custom VM Options, 如果提示是否创建文件，选择 Yes</li>
-<li>拿到刚刚的 jar 文件的绝对路径，添加到末尾，比如我这里是：<code>-javaagent:C:\Program Files\JetBrains\IntelliJ IDEA 2019.2.4\bin\JetbrainsCrack.jar</code></li>
-<li>重启 idea, 再到 Help -&gt; Register, 选择 License server 方式，idea 会自动填入 <code>http://jetbrains-license-server</code>，确定</li>
-<li>在重启一波，根据提示信息可以看到破解完成</li>
-</ol>
-<h2 id="Refer"><a href="#Refer" class="headerlink" title="Refer"></a>Refer</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://www.algerfan.cn/articles/2019/03/06/1551868940012.html">感谢给出资源和解决方案的 - AlgerFan</a></li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/hexo/page/10/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/hexo/">1</a><span class="space">&hellip;</span><a class="page-number" href="/hexo/page/10/">10</a><span class="page-number current">11</span><a class="page-number" href="/hexo/page/12/">12</a><a class="page-number" href="/hexo/page/13/">13</a><a class="extend next" rel="next" href="/hexo/page/12/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <a class="extend prev" rel="prev" href="/hexo/page/10/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/hexo/">1</a><span class="space">&hellip;</span><a class="page-number" href="/hexo/page/10/">10</a><span class="page-number current">11</span><a class="page-number" href="/hexo/page/12/">12</a><span class="space">&hellip;</span><a class="page-number" href="/hexo/page/14/">14</a><a class="extend next" rel="next" href="/hexo/page/12/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1342,20 +1644,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">127</span>
+          <span class="site-state-item-count">131</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/hexo/categories/">
           
-        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-count">26</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-count">142</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1389,12 +1691,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">557k</span>
+    <span title="站点总字数">563k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">8:26</span>
+    <span title="站点阅读时长">8:31</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
