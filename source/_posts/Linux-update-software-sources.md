@@ -2,9 +2,8 @@
 title: Linux 换源
 date: 2019-12-02 22:27:18
 categories:
-- 配置
-tags:
 - linux
+tags:
 - 换源
 ---
 Linux 配置国内源加速，以 Ubuntu 为例子

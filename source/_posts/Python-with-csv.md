@@ -1,11 +1,73 @@
 ---
-title: Python 解析 csv 文件
+title: Python 操作 csv 文件
 date: 2020-06-18 17:43:48
 categories:
 - python
 tags:
 - csv
 ---
+
+## 基本操作
+
+[qutochar, delimiter 使用详解](https://segmentfault.com/a/1190000013031439)
+
+```python
+# 写 csv 文件
+# newline='' 可以在读写时移除空白行
+import csv
+with open('eggs.csv', 'w', newline='') as csvfile:
+    spamwriter = csv.writer(csvfile)
+    spamwriter.writerow(['Spam'] * 5 + ['Baked Beans'])
+    spamwriter.writerow(['Spam', 'Lovely Spam', 'Wonderful Spam'])
+
+# cat eggs.csv            
+# Spam,Spam,Spam,Spam,Spam,Baked Beans
+# Spam,Lovely Spam,Wonderful Spam
+
+# 一次性写多行
+header = ['name', 'area', 'country_code2', 'country_code3']
+data = [
+    ['Albania', 28748, 'AL', 'ALB'],
+    ['Angola', 1246700, 'AO', 'AGO']
+]
+
+with open('countries.csv', 'w', encoding='UTF8', newline='') as f:
+    writer = csv.writer(f)
+    # write the header
+    writer.writerow(header)
+    # write multiple rows
+    writer.writerows(data)
+
+# 如果数据以 dict 的格式出现，可以使用 DictWriter 简化操作
+fieldnames = ['name', 'area', 'country_code2', 'country_code3']
+# csv data
+rows = [
+    {'name': 'Algeria',
+    'area': 2381741,
+    'country_code2': 'DZ',
+    'country_code3': 'DZA'},
+    {'name': 'American Samoa',
+    'area': 199,
+    'country_code2': 'AS',
+    'country_code3': 'ASM'}
+]
+
+with open('countries.csv', 'w', encoding='UTF8', newline='') as f:
+    writer = csv.DictWriter(f, fieldnames=fieldnames)
+    writer.writeheader()
+    writer.writerows(rows)
+
+# 读 csv 文件
+import csv
+with open('some.csv', newline='') as f:
+    reader = csv.reader(f)
+    for row in reader:
+        print(row)
+# ['Spam', 'Spam', 'Spam', 'Spam', 'Spam', 'Baked Beans']
+# ['Spam', 'Lovely Spam', 'Wonderful Spam']
+```
+
+## 实操
 
 有一个 csv 文件，其中有个 column 名为 '_raw' 包含我们需要的信息，写一段脚本解析之
 
@@ -16,8 +78,6 @@ _raw 中文本为
 
 提取目标：publishedAt, publishedAt of filterParameters, inactiveUserId
 ```
-
-## Impl
 
 ```python
 import csv

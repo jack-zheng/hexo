@@ -2,13 +2,71 @@
 title: Linux 命令小贴士
 date: 2020-07-08 18:49:48
 categories:
-- 配置
-tags:
 - linux
+tags:
 - cmd
 ---
 
 常用 Linux command 备忘录
+
+## sh Vs bash
+
+`sh` 是一种协议 shell command language. 而 `/bin/sh` 和 `/bin/bash` 是对他的两种不同的实现, 早起他们基本是一致的，但是随着 bash 的发展，他们变得不兼容起来。`/bin/sh` 还是标准，`/bin/bash` 则效率更高
+
+## tee
+
+查看信息的同时做写入操作
+
+```sh
+ps  | tee info.log      # ps 输出进程信息的同时，将结果导入 info.log 中
+#   PID TTY           TIME CMD
+# 23438 ttys000    0:59.10 /bin/zsh -l
+# 48670 ttys002    0:01.91 /bin/zsh --login -i
+# 71565 ttys003    0:02.87 -zsh
+# 72395 ttys003    0:00.00 tee info.log
+cat info.log            # 查看文本信息
+#   PID TTY           TIME CMD
+# 23438 ttys000    0:59.10 /bin/zsh -l
+# 48670 ttys002    0:01.91 /bin/zsh --login -i
+# 71565 ttys003    0:02.87 -zsh
+# 72395 ttys003    0:00.00 tee info.log
+```
+
+## 重定向
+
+```txt
+<: 输入重定向
+>: 输出重定向
+<<: 截取标准输入
+>>: 输出重定向，追加，不覆盖
+EOF: 自定义终止符
+```
+
+示例：
+
+```bash
+# 只能在一条命令中完成，文本过长会很累赘
+echo "eeeeecho" >> echo.txt
+
+# 将 aaa 写入 a.txt
+cat << EOF > a.txt
+aaa
+EOF
+
+# a.txt 中追加 bbb
+cat << EOF >> a.txt
+bbb
+EOF
+
+# a.txt 拷贝到 b.txt
+cat a.txt > b.txt
+
+# 和 cat 类似不过它还有附带显示内容的效果
+# tee << EOF > d.txt 会将显示部分吞掉，文件倒是还是生产
+tee c.txt << EOF
+ccc
+EOF
+```
 
 ## curl
 
