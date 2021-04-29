@@ -98,4 +98,128 @@ cat f3      # f1, f3 软链接，删除即不见
 # cat: f3: No such file or directory
 ```
 
+## 账户管理
 
+```sh
+useradd -m jack002 # 创建 user 并在 home 下创建对应的文件夹
+# root@945e2e63f891:/home# ls
+# f2  f3  jack  jack002
+# Linux 一切皆文件，添加用户其实就是往某一个文件中写入用户信息 /etc/passwd
+
+userdel -r jack002 # 删除 user 并清空文件夹
+
+usermod -d /home/233 jack002 # 修改用户目录, 233 并不存在，但是对应的信息还是设置到 passwd 中去了，所以修改前必须先手动创建文件夹
+# root@945e2e63f891:/home# cat /etc/passwd
+# jack002:x:1001:1001::/home/233:/bin/sh
+# root@945e2e63f891:/home# ls
+# f2  f3  jack  jack002
+
+root@945e2e63f891:/home#
+# root: 当前用户
+# 945e2e63f891: 主机名
+# /home: 当前路径
+# '#' 超级用户
+
+su username # 切换用户
+# $: 提示符也会跟着改
+
+exit # 退出用户切换
+
+hostname # 查看主机名
+hostname xxx # 修改主机名，需要重联生效
+
+passwd username # 修改密码
+
+passwd -l username # 锁用户
+passwd -d username # 用户密码清空，也不能登陆
+```
+
+## 用户组管理
+
+本质是对 /etc/group 进行修改
+
+```sh
+# -g        # 指定 gid, 不指定就自增
+groupadd jackgroup
+# root@945e2e63f891:/# cat /etc/group
+# jackgroup:x:1002:
+# jack520:x:520:
+
+groupdel jackgroup # 删除 group
+
+# -n    # 修改 id
+# -G    # 设置用户组
+groupmod -g 555 -n jack555 jack520
+
+newgroup root # 切换组
+```
+
+## 拓展
+
+/etc/passwd
+
+```txt
+jack002:x:1001:1001::/home/jack002:/bin/sh
+用户名：密码（不可见，所以是x）：用户标识号（自增）：组标识号：注释性描述：主目录：登陆 shell
+```
+
+密码放在 /etc/shadow 加密过的 jack002:$6$/me.SpanXkOPad04$XO/jFHniPIenQQXFZhSOfwL7eQ0hQ..X5EWNigGrfh8sqZ6KA8wAFQtzCPpwgf.Ov9RIVp8hr9GcXB3un4Oax1:18746:0:99999:7:::
+
+## 磁盘管理
+
+```sh
+df # 列出整体磁盘使用量
+# root@945e2e63f891:/# df -h
+# Filesystem      Size  Used Avail Use% Mounted on
+# overlay          59G   21G   35G  38% /
+# tmpfs            64M     0   64M   0% /dev
+# tmpfs           7.9G     0  7.9G   0% /sys/fs/cgroup
+# shm              64M     0   64M   0% /dev/shm
+# /dev/vda1        59G   21G   35G  38% /etc/hosts
+# tmpfs           7.9G     0  7.9G   0% /proc/acpi
+# tmpfs           7.9G     0  7.9G   0% /sys/firmware
+du # 当前磁盘使用量
+# root@945e2e63f891:/home# du -a
+# 4       ./jack002/.bashrc
+# 4       ./jack002/.profile
+# 4       ./jack002/.bash_logout
+# 16      ./jack002
+# 4       ./f2
+# 4       ./jack/f1/f2/f3
+# 8       ./jack/f1/f2
+# 12      ./jack/f1
+# 16      ./jack
+# 0       ./f3
+# 40      .
+
+du -sm /*       # 系统根目录下每个文件夹占用空间
+# 5       /bin
+# 1       /boot
+# 0       /dev
+
+mount /dev/jack /mnt/jack # 将外部设备 jack 挂载到 mnt 下，实现访问
+
+umount -f /mnt/jakc # 强制卸载
+```
+
+## 进程管理
+
+1. 每个进程都有父进程
+2. 两种运行方式：前台，后台
+3. 服务基本都是后台运行，程序都是前台运行
+4. 每个进程都有一个 id 号
+
+```sh
+# -a 当前终端运行的所有进程信息
+# -u 一用户的信息显示进程
+# -x 显示后台运行进程的参数
+ps # 查看当前正在运行的进程信息
+# ps -aux       
+# ps -ef 可以查看父进程
+
+# -p 显示父 id
+# -u 显示组信息
+pstree -pu # 进程树
+
+kill -9 pid # 结束进程
+```
