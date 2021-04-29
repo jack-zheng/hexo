@@ -52,7 +52,8 @@
 <li>两两合并，并确保合并后的数组有序 - 二路归并</li>
 <li>重复直到所有数组合并完成</li>
 </ol>
-]]></content>
+<p>时间复杂度 O(nlog<sup>n</sup>)</p>
+<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"><span class="keyword">import</span> java.util.Random;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MergeSort</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] sample = <span class="keyword">new</span> Random().ints(<span class="number">0</span>, <span class="number">100</span>).limit(<span class="number">10</span>).toArray();</span><br><span class="line">        System.out.println(<span class="string">&quot;Origin: &quot;</span> + Arrays.toString(sample));</span><br><span class="line"></span><br><span class="line">        mergeSort(sample, <span class="number">0</span>, sample.length - <span class="number">1</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;Origin: &quot;</span> + Arrays.toString(sample));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">mergeSort</span><span class="params">(<span class="keyword">int</span>[] sample, <span class="keyword">int</span> low, <span class="keyword">int</span> high)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 结束条件</span></span><br><span class="line">        <span class="keyword">if</span> (low &gt;= high)</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        <span class="comment">// 对半分</span></span><br><span class="line">        <span class="keyword">int</span> mid = (low + high) / <span class="number">2</span>;</span><br><span class="line">        <span class="comment">// 分别对两个子数组做归并排序</span></span><br><span class="line">        mergeSort(sample, low, mid);</span><br><span class="line">        mergeSort(sample, mid + <span class="number">1</span>, high);</span><br><span class="line">        <span class="comment">// 合并两个子数组</span></span><br><span class="line">        merge(sample, low, mid, high);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">merge</span><span class="params">(<span class="keyword">int</span>[] sample, <span class="keyword">int</span> low, <span class="keyword">int</span> mid, <span class="keyword">int</span> high)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 声明零时数组存放排序结果</span></span><br><span class="line">        <span class="keyword">int</span>[] tmp = <span class="keyword">new</span> <span class="keyword">int</span>[high - low + <span class="number">1</span>];</span><br><span class="line">        <span class="keyword">int</span> i = low, j = mid + <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">int</span> index = <span class="number">0</span>;</span><br><span class="line">        <span class="comment">// 比较两个子数组的最值，并放到临时数组中</span></span><br><span class="line">        <span class="keyword">while</span> (i &lt;= mid &amp;&amp; j &lt;= high) &#123;</span><br><span class="line">            <span class="keyword">if</span> (sample[i] &lt; sample[j]) &#123;</span><br><span class="line">                tmp[index++] = sample[i++];</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                tmp[index++] = sample[j++];</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 将子数组剩余值放入临时数组中，经过上一步之后其中一个数组已经空了，所以下面两个 while 先后顺序没关系</span></span><br><span class="line">        <span class="keyword">while</span> (i &lt;= mid) &#123;</span><br><span class="line">            tmp[index++] = sample[i++];</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (j &lt;= high) &#123;</span><br><span class="line">            tmp[index++] = sample[j++];</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 将临时数组中的结果覆盖到原数组中</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> pos = <span class="number">0</span>; pos &lt; tmp.length; pos++) &#123;</span><br><span class="line">            sample[low + pos] = tmp[pos];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>算法</category>
       </categories>
@@ -91,7 +92,7 @@
 <p>那数组的第一个元素作为 pivot，分别记录起止点下标i，j. 先从右向左找<strong>小于</strong>pivot的元素, 找到了就和 i 做交换。然后从左向右找<strong>大于</strong>pivot的元素，和j 做交换，知道 i &gt;= j结束。</p>
 <p>完了将 pivot 的值赋给 i 位置。这个时候 i 和 j 是相等的。经过这一次遍历，数组被分为以 pivot 为界的两个自数组，元素分别小于和大于 pivot。</p>
 <p>PS: 必须先从右向左扫描，不然我们就丢失了 j 的初始值引用了</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"><span class="keyword">import</span> java.util.Random;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">QuickSortDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] sample = <span class="keyword">new</span> Random().ints(<span class="number">0</span>, <span class="number">100</span>).limit(<span class="number">10</span>).toArray();</span><br><span class="line">        System.out.println(<span class="string">&quot;Origin: &quot;</span> + Arrays.toString(sample));</span><br><span class="line"></span><br><span class="line">        qsort(sample, <span class="number">0</span>, sample.length - <span class="number">1</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;After:  &quot;</span> + Arrays.toString(sample));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">qsort</span><span class="params">(<span class="keyword">int</span>[] arr, <span class="keyword">int</span> start, <span class="keyword">int</span> end)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (start &gt;= end) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span> pivot_index = partition(arr, start, end);</span><br><span class="line">        qsort(arr, start, pivot_index - <span class="number">1</span>);</span><br><span class="line">        qsort(arr, pivot_index + <span class="number">1</span>, end);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 以第一个元素为基准，对数组排序，排序完之后，格式为 [小于pivot + pivot + 大于pivot]</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> arr</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> start</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> end</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> pivot index</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">partition</span><span class="params">(<span class="keyword">int</span>[] arr, <span class="keyword">int</span> start, <span class="keyword">int</span> end)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> pivot = arr[start];</span><br><span class="line">        <span class="keyword">int</span> i = start, j = end;</span><br><span class="line">        <span class="keyword">while</span> (i &lt; j) &#123;</span><br><span class="line">            <span class="keyword">while</span> (arr[j] &gt; pivot &amp;&amp; i &lt; j) &#123;</span><br><span class="line">                j--;</span><br><span class="line">            &#125;</span><br><span class="line">            arr[i] = arr[j];</span><br><span class="line">            <span class="keyword">while</span> (arr[i] &lt;= pivot &amp;&amp; i &lt; j) &#123;</span><br><span class="line">                i++;</span><br><span class="line">            &#125;</span><br><span class="line">            arr[j] = arr[i];</span><br><span class="line">        &#125;</span><br><span class="line">        arr[i] = pivot;</span><br><span class="line">        <span class="keyword">return</span> i;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// [13, 40, 60, 68, 78, 82, 91, 92, 96, 99]</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"><span class="keyword">import</span> java.util.Random;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">QuickSortDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] sample = <span class="keyword">new</span> Random().ints(<span class="number">0</span>, <span class="number">100</span>).limit(<span class="number">10</span>).toArray();</span><br><span class="line">        System.out.println(<span class="string">&quot;Origin: &quot;</span> + Arrays.toString(sample));</span><br><span class="line"></span><br><span class="line">        qsort(sample, <span class="number">0</span>, sample.length - <span class="number">1</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;After:  &quot;</span> + Arrays.toString(sample));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">qsort</span><span class="params">(<span class="keyword">int</span>[] arr, <span class="keyword">int</span> start, <span class="keyword">int</span> end)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (start &gt;= end) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span> pivot_index = partition(arr, start, end);</span><br><span class="line">        <span class="comment">// 子数组排序的时候，pivot 是不需要参与的，不然结果会出错！！</span></span><br><span class="line">        qsort(arr, start, pivot_index - <span class="number">1</span>);</span><br><span class="line">        qsort(arr, pivot_index + <span class="number">1</span>, end);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 以第一个元素为基准，对数组排序，排序完之后，格式为 [小于pivot + pivot + 大于pivot]</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> arr</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> start</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> end</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> pivot index</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">partition</span><span class="params">(<span class="keyword">int</span>[] arr, <span class="keyword">int</span> start, <span class="keyword">int</span> end)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> pivot = arr[start];</span><br><span class="line">        <span class="keyword">int</span> i = start, j = end;</span><br><span class="line">        <span class="keyword">while</span> (i &lt; j) &#123;</span><br><span class="line">            <span class="keyword">while</span> (arr[j] &gt; pivot &amp;&amp; i &lt; j) &#123;</span><br><span class="line">                j--;</span><br><span class="line">            &#125;</span><br><span class="line">            arr[i] = arr[j];</span><br><span class="line">            <span class="keyword">while</span> (arr[i] &lt;= pivot &amp;&amp; i &lt; j) &#123;</span><br><span class="line">                i++;</span><br><span class="line">            &#125;</span><br><span class="line">            arr[j] = arr[i];</span><br><span class="line">        &#125;</span><br><span class="line">        arr[i] = pivot;</span><br><span class="line">        <span class="keyword">return</span> i;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// [13, 40, 60, 68, 78, 82, 91, 92, 96, 99]</span></span><br></pre></td></tr></table></figure>
 
 <h2 id="Arrays-sort-实现"><a href="#Arrays-sort-实现" class="headerlink" title="Arrays.sort 实现"></a>Arrays.sort 实现</h2><p>Arrays 在进行 sort 排序的时候可能会采用 插入排序，双轴快排 或 归并排序。具体判断流出如下</p>
 <figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">+--------------+                                                                                                                                      </span><br><span class="line">| Arrays.sort()|                                                                                                                                      </span><br><span class="line">+--------------+                                                                                                                                      </span><br><span class="line">        |                                                                                                                                             </span><br><span class="line">        |                                                                                                                                             </span><br><span class="line">        |                                                                                                                                             </span><br><span class="line">        |                                                                                                                                             </span><br><span class="line">        v                                                                                                                                             </span><br><span class="line"> +-------------+      N          +----------------------------+                                                                                       </span><br><span class="line"> |length &lt; 286 |---------------&gt; | check if arr nearly sorted |                                                                                       </span><br><span class="line"> +-------------+                 +----------------------------+                                                                                       </span><br><span class="line">        |             N                         |                                                                                                     </span><br><span class="line">        |&lt;--------------------------------------|                                                                                                     </span><br><span class="line">        |                                       |                                                                                                     </span><br><span class="line">        v                                       |                                                                                                     </span><br><span class="line"> +-------------+      N                         |                                                                                                     </span><br><span class="line"> |length &lt; 47  |--------------                  |Y                                                                                                    </span><br><span class="line"> +-------------+             |                  |                                                                                                     </span><br><span class="line">        |                    |                  |                                                                                                     </span><br><span class="line">        |Y                   |                  |                                                                                                     </span><br><span class="line">        |                    |                  |                                                                                                     </span><br><span class="line">        v                    v                  v                                                                                                     </span><br><span class="line">+----------------+     +------------+     +------------+                                                                                              </span><br><span class="line">| insertion sort |     | quick sort |     | merge sort |                                                                                              </span><br><span class="line">+----------------+     +------------+     +------------+                                                                                              </span><br><span class="line">        |                    |                  |                                                                                                     </span><br><span class="line">        |                    |                  |                                                                                                     </span><br><span class="line">        v                    |                  |                                                                                                     </span><br><span class="line">  +-------------+            |                  |                                                                                                     </span><br><span class="line">  | finish sort | &lt;------------------------------                                                                                                     </span><br><span class="line">  +-------------+                                                                                                                                     </span><br></pre></td></tr></table></figure>]]></content>
@@ -428,7 +429,7 @@
 </ul>
 <figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">                     +--------+                                                                                                                       </span><br><span class="line">        -------------| Client |-----------------                                                                                                      </span><br><span class="line">       |             +--------+                 |                                                                                                     </span><br><span class="line">       |                                        |                                                                                                     </span><br><span class="line">       |                                        |                                                                                                     </span><br><span class="line">       v                                        |                                                                                                     </span><br><span class="line">+-----------------+                             |                                                                                                     </span><br><span class="line">|    Director     |        +---------------+    |                                                                                                     </span><br><span class="line">|-----------------|&lt;&gt;-----&gt;|    Builder    |    |                                                                                                     </span><br><span class="line">| builder:Builder |        |---------------|    |                                                                                                     </span><br><span class="line">|-----------------|        |+ buildPart()  |    |                                                                                                     </span><br><span class="line">| construct()     |        +---------------+    |                                                                                                     </span><br><span class="line">|                 |              ^              |                                                                                                     </span><br><span class="line">+-----------------+              |              |                                                                                                     </span><br><span class="line">                                 |              |                                                                                                     </span><br><span class="line">                                 |              v                                                                                                     </span><br><span class="line">                           +----------------------+                                                                                                   </span><br><span class="line">                           |   ConcreateBuilder   |                                                                                                   </span><br><span class="line">                           |----------------------|                                                                                                   </span><br><span class="line">                           |+ buildPart()         |                                                                                                   </span><br><span class="line">                           |+ getResult():Product |                                                                                                   </span><br><span class="line">                           +----------------------+                                                                                                   </span><br><span class="line">                                             |                                                                                                        </span><br><span class="line">                                             |                                                                                                        </span><br><span class="line">                                             |                                                                                                        </span><br><span class="line">                                        +----v----+                                                                                                   </span><br><span class="line">                                        | Product |                                                                                                   </span><br><span class="line">                                        +---------+                                                                                                   </span><br></pre></td></tr></table></figure>
 
-<h2 id="大话设计模式-13-章摘录"><a href="#大话设计模式-13-章摘录" class="headerlink" title="大话设计模式 13 章摘录"></a>大话设计模式 13 章摘录</h2><h2 id="Java-简化版"><a href="#Java-简化版" class="headerlink" title="Java 简化版"></a>Java 简化版</h2><p>案例, 创建一个有五个属性的 computer 对象</p>
+<h2 id="Java-简化版"><a href="#Java-简化版" class="headerlink" title="Java 简化版"></a>Java 简化版</h2><p>案例, 创建一个有五个属性的 computer 对象</p>
 <p>创建方案有两种:</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 方案一, 重载构造函数</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Computer</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Computer</span><span class="params">(String cpu, String ram)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>(cpu, ram, <span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Computer</span><span class="params">(String cpu, String ram, <span class="keyword">int</span> usbCount)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>(cpu, ram, usbCount, <span class="string">&quot;罗技键盘&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Computer</span><span class="params">(String cpu, String ram, <span class="keyword">int</span> usbCount, String keyboard)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>(cpu, ram, usbCount, keyboard, <span class="string">&quot;三星显示器&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Computer</span><span class="params">(String cpu, String ram, <span class="keyword">int</span> usbCount, String keyboard, String display)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.cpu = cpu;</span><br><span class="line">        <span class="keyword">this</span>.ram = ram;</span><br><span class="line">        <span class="keyword">this</span>.usbCount = usbCount;</span><br><span class="line">        <span class="keyword">this</span>.keyboard = keyboard;</span><br><span class="line">        <span class="keyword">this</span>.display = display;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 方案二, 使用 new + set</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Computer</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setCpu</span><span class="params">(String cpu)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.cpu = cpu;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 省略其他 set 方法</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -529,7 +530,7 @@
 <blockquote>
 <p><strong>Design Principle:</strong> A class should have only one reason to change</p>
 </blockquote>
-<h2 id="缘起"><a href="#缘起" class="headerlink" title="缘起"></a>缘起</h2><p>现在你是餐饮部的大老板了，上周你刚收购了两家餐厅，现在你要整合他们的业务，将他们的菜单合并以统一的用户体验提供服务，所幸，他们的底层菜品条目是一致的</p>
+<h2 id="缘起"><a href="#缘起" class="headerlink" title="缘起"></a>缘起</h2><p>现在你是餐饮部的大老板了，上周你刚收购了两家餐厅，现在你要整合他们的业务，将他们的菜单合并以统一的用户体验，所幸，他们的底层菜品条目是一致的</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MenuItem</span> </span>&#123;</span><br><span class="line">    String name;</span><br><span class="line">    String description;</span><br><span class="line">    <span class="keyword">boolean</span> vegetarian;</span><br><span class="line">    <span class="keyword">double</span> price;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MenuItem</span><span class="params">(String name, String description, <span class="keyword">boolean</span> vegetarian, <span class="keyword">double</span> price)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">        <span class="keyword">this</span>.description = description;</span><br><span class="line">        <span class="keyword">this</span>.vegetarian = vegetarian;</span><br><span class="line">        <span class="keyword">this</span>.price = price;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// getter and setter</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> name + <span class="string">&quot;, desc:&#x27;&quot;</span> + description + <span class="string">&#x27;\&#x27;&#x27;</span> +  <span class="string">&quot;, vegetarian:&quot;</span> + vegetarian + <span class="string">&quot;, price:&quot;</span> + price;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>两家店铺的菜单实现代码如下</p>
@@ -547,11 +548,11 @@
 <p>对煎饼摊做同样的操作</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PancakeHouseMenuIterator</span> <span class="keyword">implements</span> <span class="title">Iterator</span> </span>&#123;</span><br><span class="line">    List&lt;MenuItem&gt; menuItemList;</span><br><span class="line">    <span class="keyword">int</span> position = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">PancakeHouseMenuIterator</span><span class="params">(List&lt;MenuItem&gt; menuItemList)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.menuItemList = menuItemList;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">hasNext</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> position &lt; menuItemList.size();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">next</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        MenuItem item = menuItemList.get(position);</span><br><span class="line">        position++;</span><br><span class="line">        <span class="keyword">return</span> item;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PancakeHouseMenu</span> </span>&#123;</span><br><span class="line">    <span class="comment">// duplicated before</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Iterator <span class="title">createIterator</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> PancakeHouseMenuIterator(menuItems);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>答应客户端的代码</p>
+<p>客户端的代码</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">IteratorClient</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Iterator it1 = <span class="keyword">new</span> PancakeHouseMenu().createIterator();</span><br><span class="line">        Iterator it2 = <span class="keyword">new</span> DinerMenu().createIterator();</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;MENU\n----\nBREAKFAST&quot;</span>);</span><br><span class="line">        printMenu(it1);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;\nLUNCH&quot;</span>);</span><br><span class="line">        printMenu(it2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">printMenu</span><span class="params">(Iterator it)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">while</span> (it.hasNext()) &#123;</span><br><span class="line">            System.out.println(it.next());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// MENU</span></span><br><span class="line"><span class="comment">// ----</span></span><br><span class="line"><span class="comment">// BREAKFAST</span></span><br><span class="line"><span class="comment">// K &amp; B’s Pancake Breakfast, 2.99 -- Pancakes with scrambled eggs, and toast</span></span><br><span class="line"><span class="comment">// Regular Pancake Breakfast, 2.99 -- Pancakes with fried eggs, sausage</span></span><br><span class="line"><span class="comment">// Blueberry Pancakes, 3.49 -- Pancakes made with fresh blueberries</span></span><br><span class="line"><span class="comment">// Waffles, 3.59 -- Waffles, with your choice of blueberries or strawberries</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// LUNCH</span></span><br><span class="line"><span class="comment">// Vegetarian BLT, 2.99 --  (Fakin’)Bacon with lettuce &amp; tomato on whole wheat</span></span><br><span class="line"><span class="comment">// BLT, 2.99 -- Bacon with lettuce &amp; tomato on whole wheat</span></span><br><span class="line"><span class="comment">// Soup of the day, 3.29 -- Soup of the day, with a side of potato salad</span></span><br><span class="line"><span class="comment">// Hotdog, 3.05 -- A hot dog, with saurkraut, relish, onions, topped with cheese</span></span><br><span class="line"><span class="comment">// Steamed Veggies and Brown Rice, 3.99 -- Steamed vegetables over brown rice</span></span><br><span class="line"><span class="comment">// Pasta, 3.89 -- Spaghetti with Marinara Sauce, and a slice of sourdough bread</span></span><br></pre></td></tr></table></figure>
 
 <p>其实 Java util 包下有自己的 Iterator 实现，集合类是这个设计模式的重度使用者，下面我们用官方实现替换我们自己的实现。</p>
-<p>代码会更简单，除了在各 class 文件中引入引用外，PancakeHouseMenuIterator 可以删除， 在 PancakeHouseMenu 的 createIterator() 直接返回 List.iterator() 即可。</p>
+<p>代码会更简单，除了在各 class 文件中引入的引用外，PancakeHouseMenuIterator 可以删除， 在 PancakeHouseMenu 的 createIterator() 直接返回 List.iterator() 即可。</p>
 <p>为了让实现更精简，我们还可以抽象出一个 Menu 类作为基类</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Menu</span> </span>&#123;</span><br><span class="line">    <span class="function">Iterator&lt;MenuItem&gt; <span class="title">createIterator</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -1688,47 +1689,84 @@
       </tags>
   </entry>
   <entry>
-    <title>Hexo 博客添加 sitemap</title>
-    <url>/hexo/2019/11/22/Hexo%20%E5%8D%9A%E5%AE%A2%E6%B7%BB%E5%8A%A0%20sitemap/</url>
-    <content><![CDATA[<p>为博客添加 sitemap 并将博客添加至搜索引擎</p>
-<h2 id="Google-Search-Console"><a href="#Google-Search-Console" class="headerlink" title="Google Search Console"></a>Google Search Console</h2><p>到博客根目录下运行 command 安装插件</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install hexo-generator-sitemap --save</span><br></pre></td></tr></table></figure>
+    <title>Hexo 搜索</title>
+    <url>/hexo/2020/05/28/Hexo-Search-Plugin/</url>
+    <content><![CDATA[<p>Hexo 提供全区搜索功能很方便，在两个 <code>_config.yml</code> 文件下添加配置就行了，一个在 hexo 下，一个在 next 皮肤下。</p>
+<p>root -&gt; _config.yml 添加配置</p>
+<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Config for search service</span></span><br><span class="line"><span class="attr">search:</span></span><br><span class="line">    <span class="attr">path:</span> <span class="string">search.xml</span></span><br><span class="line">    <span class="attr">field:</span> <span class="string">post</span></span><br><span class="line">    <span class="attr">format:</span> <span class="string">html</span></span><br><span class="line">    <span class="attr">limit:</span> <span class="number">10000</span></span><br></pre></td></tr></table></figure>
 
-<p>在根目录下的 _config.yml 中添加 sitemap 配置</p>
-<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Config sitemap to enable SEO</span></span><br><span class="line"><span class="attr">sitemap:</span></span><br><span class="line">  <span class="attr">path:</span> <span class="string">sitemap.xml</span></span><br></pre></td></tr></table></figure>
+<p>root -&gt; themes -&gt; next -&gt; _config.yml</p>
+<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="attr">local_search:</span></span><br><span class="line">  <span class="attr">enable:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
 
-<p>重新生成文件，启动 server</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo g</span><br><span class="line">hexo s</span><br></pre></td></tr></table></figure>
-
-<p>访问 url/sitemap.xml 可以看到新生成的 sitemap xml 文件</p>
-<p>访问 <a href="https://search.google.com/search-console/about">Google Search Console</a> 注册你的页面。<br>如果你的博客挂在 github 上，选右边的那个，输入你的 github 博客地址，比如我的是 <code>https://jack-zheng.github.io/hexo</code><br><img src="seo01.jpg" alt="资源类型"></p>
-<p>结下来是验证所有权, 选择 HTML 标记会简单一点。点击他，你会得到一串码。复制它然后到 themes/next/_config.yml 中，找到 <code>google_site_verification:</code> 将值写在后面</p>
-<p><img src="seo02.png" alt="所有权验证"></p>
-<p>添加完后，将你的博客部署，在次访问是查看页面源码，你会发现头部多了一段 meta 数据</p>
-<p><img src="seo_meta.png" alt="文件头"></p>
-<p>然后点击 Verify 按钮，验证成功</p>
-<p><img src="seo03.png" alt="所有权验证"></p>
-<p>点击 <code>站点地图</code> 在 1 处填写你的 sitemap 地址。添加完成后，他会显示在 2 处</p>
-<p><img src="seo04.png" alt="添加站点"></p>
-<p>等一段时间后，google 就会将你的博客抓去出来了， 通过在搜索框中输入 <code>site:https://jack-zheng.github.io/</code> 可以看到结果，我是在第二天看的，不是很清楚精确需要等多久</p>
-<p><img src="seo05.png" alt="Google Search 结果"></p>
-<h2 id="博客添加图片引用"><a href="#博客添加图片引用" class="headerlink" title="博客添加图片引用"></a>博客添加图片引用</h2><ul>
-<li><a href="https://hexo.io/zh-cn/docs/asset-folders.html">官方文档</a></li>
-</ul>
-<p>由于我的博客是挂载在 subdirectory 下面的，在 source 下面创建 images 的方案不生效，也没有找到对应的解决办法，我还以为可以在 _config.yml 里面配置来着，残念 ┑(￣Д ￣)┍</p>
-<p>最后采用了 post_asset_folder 的配置，这个配置默认就有的，默认关闭，把他设置成 true 打开，之后每次创建新 post 的时候，会在 _posts 下面新建文件夹，将你要上传的图片放在里面，在 post 正文中使用 <code>![Google Search 结果](seo05.png)</code> 引用即可</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># folder structure sample</span></span><br><span class="line"><span class="built_in">source</span></span><br><span class="line">├── _posts</span><br><span class="line">│   ├── git-commands.md</span><br><span class="line">│   ├── hexo-comments.md</span><br><span class="line">│   ├── hexo-search-seo</span><br><span class="line">│   │   ├── seo01.jpg</span><br><span class="line">│   │   ├── ...</span><br><span class="line">│   │   └── seo05.png</span><br><span class="line">│   ├── hexo-search-seo.md</span><br><span class="line">│   ├── ...</span><br><span class="line">│   └── setup-hexo-tag-category.md</span><br><span class="line">├── categories</span><br><span class="line">│   └── index.md</span><br><span class="line">└── tags</span><br><span class="line">    └── index.md</span><br></pre></td></tr></table></figure>
+<h2 id="Issues"><a href="#Issues" class="headerlink" title="Issues"></a>Issues</h2><p>某一天突然发现部分 Post 不能被 search 出来了，排查了好久，发现是 Splunk 之后一个都失效了。继续排查，是这片文章中有个 ‘Steps:’ 的节点，在编辑器里面查看是没什么问题的，但是贴到其他工具，比如 idea 或者 browser 里面时，他会带一个 [BS] 的前缀。太神奇了。。。所以之前一直没发现。</p>
+<p>在 VSCode 里面看结构还是 <code>&lt;p&gt;Steps&lt;/p&gt;</code> 但是用 linux cat 时就变成 <code>&lt;pSteps:&lt;/p&gt;</code> 所以后面的 search 解析就出问题了。查了下 BS 代表的是退格键 0x008, 也解释了为什么 xml p 标签会少一个尖括号了 ╮(￣▽￣””)╭</p>
 ]]></content>
       <categories>
-        <category>博客</category>
+        <category>hexo</category>
       </categories>
       <tags>
-        <tag>hexo</tag>
+        <tag>search</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hexo 博客 Setup</title>
+    <url>/hexo/2019/11/12/Hexo-blog-setup/</url>
+    <content><![CDATA[<p>Hexo setup 笔记。网上有好多 setup 的教程，这里就不赘述了。记录一下我 setup 时候用到的命令，作为备忘。</p>
+<p>这里使用的 Next 版本 <strong>V7.5.0</strong></p>
+<h3 id="Commands"><a href="#Commands" class="headerlink" title="Commands"></a>Commands</h3><ol>
+<li>安装 node/npm, <code>brew install node</code>, type <code>node -v</code>, <code>npm -v</code> to check if install successfully.</li>
+<li>run command: <code>npm install -g hexo-cli</code>, 安装 hexo 工具, 安装完成，type <code>hexo</code> to check</li>
+<li>Setup 博客基础架构 <code>hexo init &lt;folder&gt;</code>, cd &lt;folder&gt;, run command: <code>hexo server</code> 就可以得到一个本地可访问的 hello world 博客模版</li>
+<li><code>hexo new post_name</code>, 在 source 文件夹下面会创建一个新的 post_name.md 文件作为新博客的载体</li>
+<li>为你的博客新建一个git repo, repo name 必须是<strong>你的Git用户名.github.io</strong>, 如果已经创建了, rename 一下</li>
+<li>编辑 &lt;folder&gt;_config.yml 关联 git repo</li>
+<li><code>npm install hexo-deployer-git --save</code> 安装 git 集成工具</li>
+<li><code>hexo g</code> 生成工程目录及相关文件</li>
+<li><code>hexo s</code> 启动本地 server 验证</li>
+<li><code>hexo d</code> 部署发布到 github, 等一两分钟访问 <code>https://&lt;你的Git用户名&gt;.github.io</code> 就可以看到你的作品了 (^з^)-☆</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># Deployment</span><br><span class="line">## Docs: https:&#x2F;&#x2F;hexo.io&#x2F;docs&#x2F;deployment.html</span><br><span class="line">deploy:</span><br><span class="line">  type: git</span><br><span class="line">  repo: https:&#x2F;&#x2F;github.com&#x2F;&lt;username&gt;&#x2F;&lt;username&gt;.github.io.git</span><br><span class="line">  # SSH 格式的也OK, 简单理解就是去 github repo 页面, 把你的 repo 地址复制一下</span><br><span class="line">  branch: master</span><br></pre></td></tr></table></figure>
+
+<h3 id="异地环境-setup"><a href="#异地环境-setup" class="headerlink" title="异地环境 setup"></a>异地环境 setup</h3><h4 id="Win10"><a href="#Win10" class="headerlink" title="Win10"></a>Win10</h4><p>在其他机子上面重新 setup 环境只需要安装 git 和 nodejs, 把项目 clone 到本地之后 cd 到博客根目录下运行命令</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install -g hexo-cli</span><br></pre></td></tr></table></figure>
+
+<p>就行了，在 Windows 下使用 VS Code 的默认命令行时还遇到另外一个问题，hexo 命令不能执行，抛出 Exception:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">PS C:\Users\lanmo\gitStore\hexo&gt; hexo</span><br><span class="line">hexo : 无法加载文件 C:\Users\lanmo\AppData\Roaming\npm\hexo.ps1，因为在此系统上禁止运行脚本。有关详细信息，请参阅 https:/go.microsoft</span><br><span class="line">.com/fwlink/?LinkID=135170 中的 about_Execution_Policies。</span><br><span class="line">所在位置 行:1 字符: 1</span><br><span class="line">+ hexo</span><br><span class="line">+ ~~~~</span><br><span class="line">    + CategoryInfo          : SecurityError: (:) []，PSSecurityException</span><br><span class="line">    + FullyQualifiedErrorId : UnauthorizedAccess</span><br></pre></td></tr></table></figure>
+
+<p>这是由于 powershell 的默认脚本执行策略把这个 command 阻塞了，可以执行</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 允许本地脚本执行</span></span><br><span class="line">Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser</span><br></pre></td></tr></table></figure>
+
+<p>来开放权限，其他可用命令还有</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 查看可用策略</span></span><br><span class="line">Get-ExecutionPolicy -List</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看当前策略</span></span><br><span class="line">Get-ExecutionPolicy</span><br></pre></td></tr></table></figure>
+
+<p>更多可以参考官方文档 <a href="https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-6">About Execution Policies</a></p>
+<h4 id="Win10-WSL"><a href="#Win10-WSL" class="headerlink" title="Win10 WSL"></a>Win10 WSL</h4><p>WSL 默认已经安装了 git, 所以只需要额外安装 nodejs 就行了。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sudo apt-get install nodejs</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果速度慢可以使用 taobao 源加速</span></span><br><span class="line">npm --registry https://registry.npm.taobao.org install nodejs</span><br><span class="line"><span class="comment"># 配置永久源</span></span><br><span class="line">npm config <span class="built_in">set</span> registry https://registry.npm.taobao.org</span><br></pre></td></tr></table></figure>
+
+<p>安装完后运行 <code>node -v</code> 和 <code>npm -v</code> 查看是否安装成功。我本地安装完后，node 可以正常调用，但是 npm 不行，报错</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">jack@DESKTOP-9TGTFK1:~$ npm -v</span><br><span class="line">: not foundram Files/nodejs/npm: 3: /mnt/c/Program Files/nodejs/npm:</span><br><span class="line">: not foundram Files/nodejs/npm: 5: /mnt/c/Program Files/nodejs/npm:</span><br><span class="line">/mnt/c/Program Files/nodejs/npm: 6: /mnt/c/Program Files/nodejs/npm: Syntax error: word unexpected (expecting <span class="string">&quot;in&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 运行 which npm 查看路径</span></span><br><span class="line">jack@DESKTOP-9TGTFK1:~$ <span class="built_in">which</span> npm</span><br><span class="line">/usr/bin/npm</span><br></pre></td></tr></table></figure>
+
+<p>是应为路径有问题，修改 WSL 下的 <code>~/.profile</code> 文件，添加 npm 执行路径</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">PATH=<span class="string">&quot;<span class="variable">$HOME</span>/bin:<span class="variable">$HOME</span>/.local/bin:/usr/bin:<span class="variable">$PATH</span>&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>然后 <code>source ~/.profile</code> 在运行 <code>npm -v</code>, 成功。</p>
+<p>该问题可以参考 <a href="https://github.com/microsoft/WSL/issues/1512">VSCode Git Issue</a></p>
+<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><ul>
+<li><a href="https://hexo.io/docs/github-pages">Hexo 官方文档</a></li>
+<li><a href="https://juejin.im/post/5bebfe51e51d45332a456de0">Juejin-最全Hexo博客搭建+主题优化+插件配置+常用操作+错误分析</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/26625249">Zhihu-GitHub+Hexo 搭建个人网站详细教程</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>hexo</category>
+      </categories>
+      <tags>
+        <tag>setup</tag>
       </tags>
   </entry>
   <entry>
     <title>Hexo 换皮肤</title>
-    <url>/hexo/2019/11/15/Hexo%20%E6%8D%A2%E7%9A%AE%E8%82%A4/</url>
+    <url>/hexo/2019/11/15/Hexo-change-theme/</url>
     <content><![CDATA[<p>今天决定尝试一下给 blog 换皮肤。就拿时下最流行的 Next 主题好了，用的人多，文档齐全，熟悉了之后有需求再发挥。</p>
 <h3 id="安装过程"><a href="#安装过程" class="headerlink" title="安装过程"></a>安装过程</h3><p>安装很简单，官方地址 <a href="https://github.com/theme-next/hexo-theme-next">hexo-theme-next</a>。</p>
 <ol>
@@ -1744,39 +1782,67 @@
 <p>这是应为 git 是不支持嵌套 repo 管理的，你可以通过 submodules 来管理，不过使用上会有点冲突，按 submodules 的定义来说，它是为那些需要使用子模块但是那些模块不需要更新，或者只需要跟着官方的 branch 走就行了。就 hexo 这种情况，你可以自己 fork 一个，然后作为子模块管理，但是这样你 fork 的 repo 就不能跟进官方的 repo 了 ┑(￣Д ￣)┍， 反正就我的情况来说，用最简单的删 .git 就行了，真有需求以后在研究。</p>
 ]]></content>
       <categories>
-        <category>博客</category>
+        <category>hexo</category>
       </categories>
       <tags>
-        <tag>hexo</tag>
+        <tag>theme</tag>
       </tags>
   </entry>
   <entry>
-    <title>Hexo 添加字数显示，更改语言</title>
-    <url>/hexo/2019/11/19/Hexo%20%E6%B7%BB%E5%8A%A0%E5%AD%97%E6%95%B0%E6%98%BE%E7%A4%BA%EF%BC%8C%E6%9B%B4%E6%94%B9%E8%AF%AD%E8%A8%80/</url>
-    <content><![CDATA[<p>本篇包含两个配置</p>
-<ol>
-<li>文章字数，阅读时间显示</li>
-<li>语言设置，显示中文</li>
+    <title>Hexo embed plantuml</title>
+    <url>/hexo/2021/04/29/Hexo-embed-plantuml/</url>
+    <content><![CDATA[<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><ol>
+<li>安装插件 <code>npm install hexo-tag-plantuml --save</code></li>
+<li><code>_config.yml</code> 中添加配置</li>
 </ol>
-<h2 id="配置字数"><a href="#配置字数" class="headerlink" title="配置字数"></a>配置字数</h2><p>参靠 repo: <a href="https://github.com/theme-next/hexo-symbols-count-time">hexo-symbols-count-time</a></p>
-<ol>
-<li>到根目录下执行 <code>npm install hexo-symbols-count-time</code> 安装插件</li>
-<li>到根目录下的 _config.yml 中添加配置</li>
-</ol>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">symbols_count_time:</span><br><span class="line">  symbols: true</span><br><span class="line">  time: true</span><br><span class="line">  total_symbols: true</span><br><span class="line">  total_time: true</span><br><span class="line">  exclude_codeblock: false</span><br></pre></td></tr></table></figure>
+<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="attr">tag_plantuml:</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">static</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="配置中文显示"><a href="#配置中文显示" class="headerlink" title="配置中文显示"></a>配置中文显示</h2><p>查看 Next 主题下面的 language 文件夹，找到其中的中文显示文件名，把根目录下的 _config.yml 里的 language 改为这个名字就行了。我这边文件名为 <code>zh-CN.yml</code>，将 yml 中 language 改为 <code>zh-CN</code></p>
+<p>UML 测试</p>
+<img  src=http://www.plantuml.com/plantuml/svg/SyfFqhLppCbCJbMmKiX8pSd91m00>
+
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://github.com/two/hexo-tag-plantuml">插件地址</a></li>
+</ul>
 ]]></content>
       <categories>
-        <category>博客</category>
+        <category>hexo</category>
       </categories>
       <tags>
-        <tag>hexo</tag>
+        <tag>uml</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hexo 评论功能</title>
+    <url>/hexo/2019/11/18/Hexo-enable-comment/</url>
+    <content><![CDATA[<p>为博客增加评论功能，参考 next 的配置文件，截止 2019-11-18 号为止，next 已经默认支持了 changyan | disqus | disqusjs | gitalk | livere | valine 这些评论系统。这里出于兼容性和可靠性的原则，选择 gitalk 作为评论系统。</p>
+<p>Steps:</p>
+<ol>
+<li>github 创建一个新的 repo 用于存放 comments，比如叫做 hexo-comments</li>
+<li>去到 github 账号的配置页面新建一个 Oauth 授权，<a href="https://github.com/settings/applications/new">点这里快速跳转</a></li>
+<li>填写授权信息 Homepage URL 和 Authorization callback URL 都写自己的博客地址就行了</li>
+<li>确认后跳转到授权信息页面，记下他的 app id 和 secret</li>
+<li>配置 next 的 _config.yml 如下</li>
+<li>提交代码测试</li>
+</ol>
+<p>测试评论，成功。新添加的评论会出现在 hexo-comments 的 issues tab 下面，按这样的操作的话，我觉的可能都不需要自建创建 comments repo 了，直接放在一个 repo 下面就完事了</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">gitalk:</span><br><span class="line">  enable: true</span><br><span class="line">  github_id: jack-zheng # GitHub repo owner</span><br><span class="line">  repo: hexo-comments # 新建的用于存放评论的repo</span><br><span class="line">  client_id: d44xxxxxxe3a # GitHub Application Client ID</span><br><span class="line">  client_secret: 9b3c4xxxxxb708ef # GitHub Application Client Secret</span><br><span class="line">  admin_user: jack-zheng # GitHub repo owner and collaborators, only these guys can initialize gitHub issues</span><br><span class="line">  distraction_free_mode: true # Facebook-like distraction free mode</span><br><span class="line">  # Gitalk&#39;s display language depends on user&#39;s browser or system environment</span><br><span class="line">  # If you want everyone visiting your site to see a uniform language, you can set a force language value</span><br><span class="line">  # Available values: en | es-ES | fr | ru | zh-CN | zh-TW</span><br><span class="line">  language:</span><br></pre></td></tr></table></figure>
+
+<p>PS: 用这种方案的话，默认只有 github 的用户才能评论，不过看这种文章的应该都是github用户，所以问题不大<br>PPS: 网上很多文章都会要你去配置 swig 文件，最新版的 next 已经不需要这个步骤了</p>
+<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><ul>
+<li><a href="https://github.com/gitalk/gitalk">gitalk</a></li>
+<li><a href="https://www.jianshu.com/p/b5f509f25872">简书-Jonzzs</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>hexo</category>
+      </categories>
+      <tags>
+        <tag>comment</tag>
       </tags>
   </entry>
   <entry>
     <title>Hexo 设置 tags 和 Categories 分类</title>
-    <url>/hexo/2019/11/15/Hexo%20%E8%AE%BE%E7%BD%AE%20tags%20%E5%92%8C%20Categories%20%E5%88%86%E7%B1%BB/</url>
+    <url>/hexo/2019/11/15/Hexo-tags-and-categories/</url>
     <content><![CDATA[<p>默认设置下 Hexo Next 主题是关闭 <code>tag</code> 和 <code>categories</code> 的，你可以通过一下步骤打开它。</p>
 <ol>
 <li>去到 next folder 下，打开 <code>_config.yml</code>, 去掉 menu 下的 tags 和 categories 的注释。此时刷新页面，主页上会在 Archive 旁边多两个icon.</li>
@@ -1793,15 +1859,57 @@
 </ul>
 ]]></content>
       <categories>
-        <category>博客</category>
+        <category>hexo</category>
       </categories>
       <tags>
-        <tag>hexo</tag>
+        <tag>tags</tag>
+        <tag>categories</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hexo 保存博客源码</title>
+    <url>/hexo/2019/11/13/Hexo-use-travis-to-auto-publish/</url>
+    <content><![CDATA[<p>按照之前的教程，虽然 github page 上顺利发布了，但是 blog 的 source code 并没有一起同步过去，还在本地。Hexo 工具只是把你翻译之后的 web 信息同步过去了。search 了一下，想要同步 source 有大概三种路子：</p>
+<ol>
+<li>hexo 插件: hexo-git-backup</li>
+<li>在原来的 blog repo 里面新建分支存储</li>
+<li>官方方法，集成 Travis CI，每次 push 自动帮你部署</li>
+</ol>
+<p>本文只描述怎么集成 Travis CI, 其他的方案有机会再补，网上教程很多，随便找找就有了。</p>
+<blockquote>
+<p>采用 Travis CI 的方案之后，原来的 repo name 需要改变，不然 blog 访问不了, 针对这种情况，其实还有另一种解决方案，将 master 用来存放编译好的 blog, 源码用新的 branch 存放，和前面的那些原理都一样</p>
+</blockquote>
+<h3 id="Travis-CI-集成"><a href="#Travis-CI-集成" class="headerlink" title="Travis CI 集成"></a>Travis CI 集成</h3><ol>
+<li>新建一个 repo, 这里我用 hexo 作为 repo name</li>
+<li>clone 到本地，将之前的 blog source copy 进去，添加 <code>.gitignore</code> 文件，把 <code>public\</code> 添加进 list</li>
+<li>注册 Travis 账号，用 github 授权就行，授权 repo, 添加 token. 官方文档都有链接，很方便</li>
+<li>update <code>_config.yml</code> 里的 url 和 root 值</li>
+<li>添加 <code>.travis.yml</code> 做 CI 集成管理</li>
+<li>commit + push 这些改动，Travis 自动 build 就会被触发了</li>
+<li>build 完成后，repo 会有一个新的 branch 叫 gh-pages. 访问 <code>https://jack-zheng.github.io/hexo</code> 查看改动结果</li>
+</ol>
+<p>国内，第一次访问会比较慢，cache 了文件之后后面访问会快一点</p>
+<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># _config.yml setting</span></span><br><span class="line"><span class="attr">url:</span> <span class="string">https://jack-zheng.github.io/hexo</span></span><br><span class="line"><span class="attr">root:</span> <span class="string">/hexo/</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#.gitignore</span><br><span class="line">.DS_Store</span><br><span class="line">Thumbs.db</span><br><span class="line">db.json</span><br><span class="line">*.log</span><br><span class="line">node_modules&#x2F;</span><br><span class="line">public&#x2F;</span><br><span class="line">.deploy*&#x2F;</span><br><span class="line">.vscode</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># .travis.yml</span></span><br><span class="line"><span class="attr">sudo:</span> <span class="literal">false</span></span><br><span class="line"><span class="attr">language:</span> <span class="string">node_js</span></span><br><span class="line"><span class="attr">node_js:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="number">10</span> <span class="comment"># use nodejs v10 LTS</span></span><br><span class="line"><span class="attr">cache:</span> <span class="string">npm</span></span><br><span class="line"><span class="attr">branches:</span></span><br><span class="line">  <span class="attr">only:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">master</span> <span class="comment"># build master branch only</span></span><br><span class="line"><span class="attr">script:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">hexo</span> <span class="string">generate</span> <span class="comment"># generate static files</span></span><br><span class="line"><span class="attr">deploy:</span></span><br><span class="line">  <span class="attr">provider:</span> <span class="string">pages</span></span><br><span class="line">  <span class="attr">skip-cleanup:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">github-token:</span> <span class="string">$GH_TOKEN</span></span><br><span class="line">  <span class="attr">keep-history:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">on:</span></span><br><span class="line">    <span class="attr">branch:</span> <span class="string">master</span></span><br><span class="line">  <span class="attr">local-dir:</span> <span class="string">public</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Issue-Trace"><a href="#Issue-Trace" class="headerlink" title="Issue Trace"></a>Issue Trace</h3><p>在按照官方教程走完流程后，repo 的 setting page 会有如下 Warning, 删了 <code>themes/landscape/README.md</code> 这个文件再 build 一下就行了</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Your site is having problems building: The tag fancybox on line 77 in themes/landscape/README.md is not a recognized Liquid tag. For more information, see https://help.github.com/en/github/working-with-github-pages/troubleshooting-jekyll-build-errors-for-github-pages-sites#unknown-tag-error.</span><br></pre></td></tr></table></figure>
+
+<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><p><a href="https://hexo.io/docs/github-pages">Travis CI 集成 - 官方</a></p>
+]]></content>
+      <categories>
+        <category>hexo</category>
+      </categories>
+      <tags>
+        <tag>travis</tag>
       </tags>
   </entry>
   <entry>
     <title>Hexo 设置阅读数，文章授权</title>
-    <url>/hexo/2019/11/20/Hexo%20%E8%AE%BE%E7%BD%AE%E9%98%85%E8%AF%BB%E6%95%B0%EF%BC%8C%E6%96%87%E7%AB%A0%E6%8E%88%E6%9D%83/</url>
+    <url>/hexo/2019/11/20/Hexo-view-and-auth/</url>
     <content><![CDATA[<p>本篇将介绍如何设置统计文章阅读量和文章授权。</p>
 <h2 id="阅读量统计"><a href="#阅读量统计" class="headerlink" title="阅读量统计"></a>阅读量统计</h2><p>Hexo 默认使用’不蒜子’做阅读量统计，而且已经配置好了，如果想要开启它只需要到 <code>next/_config.yml</code> 下将 <code>busuanzi_count:</code> 下的 <code>enable:</code> 设置为 true 即可。重启后访问也看可以看到文章标题下多处一只眼睛标志，旁边就是总阅读量。</p>
 <p><a href="http://ibruce.info/2015/04/04/busuanzi/">不蒜子</a>, 貌似是某程序员建的站，托管在七牛上的，赞！</p>
@@ -1861,156 +1969,75 @@
 </tbody></table>
 ]]></content>
       <categories>
-        <category>博客</category>
+        <category>hexo</category>
       </categories>
       <tags>
-        <tag>hexo</tag>
+        <tag>auth</tag>
+        <tag>view count</tag>
       </tags>
   </entry>
   <entry>
-    <title>Hexo 评论功能</title>
-    <url>/hexo/2019/11/18/Hexo%20%E8%AF%84%E8%AE%BA%E5%8A%9F%E8%83%BD/</url>
-    <content><![CDATA[<p>为博客增加评论功能，参考 next 的配置文件，截止 2019-11-18 号为止，next 已经默认支持了 changyan | disqus | disqusjs | gitalk | livere | valine 这些评论系统。这里出于兼容性和可靠性的原则，选择 gitalk 作为评论系统。</p>
-<p>Steps:</p>
-<ol>
-<li>github 创建一个新的 repo 用于存放 comments，比如叫做 hexo-comments</li>
-<li>去到 github 账号的配置页面新建一个 Oauth 授权，<a href="https://github.com/settings/applications/new">点这里快速跳转</a></li>
-<li>填写授权信息 Homepage URL 和 Authorization callback URL 都写自己的博客地址就行了</li>
-<li>确认后跳转到授权信息页面，记下他的 app id 和 secret</li>
-<li>配置 next 的 _config.yml 如下</li>
-<li>提交代码测试</li>
-</ol>
-<p>测试评论，成功。新添加的评论会出现在 hexo-comments 的 issues tab 下面，按这样的操作的话，我觉的可能都不需要自建创建 comments repo 了，直接放在一个 repo 下面就完事了</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">gitalk:</span><br><span class="line">  enable: true</span><br><span class="line">  github_id: jack-zheng # GitHub repo owner</span><br><span class="line">  repo: hexo-comments # 新建的用于存放评论的repo</span><br><span class="line">  client_id: d44xxxxxxe3a # GitHub Application Client ID</span><br><span class="line">  client_secret: 9b3c4xxxxxb708ef # GitHub Application Client Secret</span><br><span class="line">  admin_user: jack-zheng # GitHub repo owner and collaborators, only these guys can initialize gitHub issues</span><br><span class="line">  distraction_free_mode: true # Facebook-like distraction free mode</span><br><span class="line">  # Gitalk&#39;s display language depends on user&#39;s browser or system environment</span><br><span class="line">  # If you want everyone visiting your site to see a uniform language, you can set a force language value</span><br><span class="line">  # Available values: en | es-ES | fr | ru | zh-CN | zh-TW</span><br><span class="line">  language:</span><br></pre></td></tr></table></figure>
+    <title>Hexo 博客添加 sitemap</title>
+    <url>/hexo/2019/11/22/Hexo-with-sitemap/</url>
+    <content><![CDATA[<p>为博客添加 sitemap 并将博客添加至搜索引擎</p>
+<h2 id="Google-Search-Console"><a href="#Google-Search-Console" class="headerlink" title="Google Search Console"></a>Google Search Console</h2><p>到博客根目录下运行 command 安装插件</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install hexo-generator-sitemap --save</span><br></pre></td></tr></table></figure>
 
-<p>PS: 用这种方案的话，默认只有 github 的用户才能评论，不过看这种文章的应该都是github用户，所以问题不大<br>PPS: 网上很多文章都会要你去配置 swig 文件，最新版的 next 已经不需要这个步骤了</p>
-<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><ul>
-<li><a href="https://github.com/gitalk/gitalk">gitalk</a></li>
-<li><a href="https://www.jianshu.com/p/b5f509f25872">简书-Jonzzs</a></li>
+<p>在根目录下的 _config.yml 中添加 sitemap 配置</p>
+<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Config sitemap to enable SEO</span></span><br><span class="line"><span class="attr">sitemap:</span></span><br><span class="line">  <span class="attr">path:</span> <span class="string">sitemap.xml</span></span><br></pre></td></tr></table></figure>
+
+<p>重新生成文件，启动 server</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo g</span><br><span class="line">hexo s</span><br></pre></td></tr></table></figure>
+
+<p>访问 url/sitemap.xml 可以看到新生成的 sitemap xml 文件</p>
+<p>访问 <a href="https://search.google.com/search-console/about">Google Search Console</a> 注册你的页面。<br>如果你的博客挂在 github 上，选右边的那个，输入你的 github 博客地址，比如我的是 <code>https://jack-zheng.github.io/hexo</code><br><img src="seo01.jpg" alt="资源类型"></p>
+<p>结下来是验证所有权, 选择 HTML 标记会简单一点。点击他，你会得到一串码。复制它然后到 themes/next/_config.yml 中，找到 <code>google_site_verification:</code> 将值写在后面</p>
+<p><img src="seo02.png" alt="所有权验证"></p>
+<p>添加完后，将你的博客部署，在次访问是查看页面源码，你会发现头部多了一段 meta 数据</p>
+<p><img src="seo_meta.png" alt="文件头"></p>
+<p>然后点击 Verify 按钮，验证成功</p>
+<p><img src="seo03.png" alt="所有权验证"></p>
+<p>点击 <code>站点地图</code> 在 1 处填写你的 sitemap 地址。添加完成后，他会显示在 2 处</p>
+<p><img src="seo04.png" alt="添加站点"></p>
+<p>等一段时间后，google 就会将你的博客抓去出来了， 通过在搜索框中输入 <code>site:https://jack-zheng.github.io/</code> 可以看到结果，我是在第二天看的，不是很清楚精确需要等多久</p>
+<p><img src="seo05.png" alt="Google Search 结果"></p>
+<h2 id="博客添加图片引用"><a href="#博客添加图片引用" class="headerlink" title="博客添加图片引用"></a>博客添加图片引用</h2><ul>
+<li><a href="https://hexo.io/zh-cn/docs/asset-folders.html">官方文档</a></li>
 </ul>
+<p>由于我的博客是挂载在 subdirectory 下面的，在 source 下面创建 images 的方案不生效，也没有找到对应的解决办法，我还以为可以在 _config.yml 里面配置来着，残念 ┑(￣Д ￣)┍</p>
+<p>最后采用了 post_asset_folder 的配置，这个配置默认就有的，默认关闭，把他设置成 true 打开，之后每次创建新 post 的时候，会在 _posts 下面新建文件夹，将你要上传的图片放在里面，在 post 正文中使用 <code>![Google Search 结果](seo05.png)</code> 引用即可</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># folder structure sample</span></span><br><span class="line"><span class="built_in">source</span></span><br><span class="line">├── _posts</span><br><span class="line">│   ├── git-commands.md</span><br><span class="line">│   ├── hexo-comments.md</span><br><span class="line">│   ├── hexo-search-seo</span><br><span class="line">│   │   ├── seo01.jpg</span><br><span class="line">│   │   ├── ...</span><br><span class="line">│   │   └── seo05.png</span><br><span class="line">│   ├── hexo-search-seo.md</span><br><span class="line">│   ├── ...</span><br><span class="line">│   └── setup-hexo-tag-category.md</span><br><span class="line">├── categories</span><br><span class="line">│   └── index.md</span><br><span class="line">└── tags</span><br><span class="line">    └── index.md</span><br></pre></td></tr></table></figure>
 ]]></content>
       <categories>
-        <category>博客</category>
+        <category>hexo</category>
       </categories>
       <tags>
-        <tag>hexo</tag>
+        <tag>sitemap</tag>
       </tags>
   </entry>
   <entry>
-    <title>Hexo 搜索</title>
-    <url>/hexo/2020/05/28/Hexo-Search-Plugin/</url>
-    <content><![CDATA[<p>Hexo 提供全区搜索功能很方便，在两个 <code>_config.yml</code> 文件下添加配置就行了，一个在 hexo 下，一个在 next 皮肤下。</p>
-<p>root -&gt; _config.yml 添加配置</p>
-<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Config for search service</span></span><br><span class="line"><span class="attr">search:</span></span><br><span class="line">    <span class="attr">path:</span> <span class="string">search.xml</span></span><br><span class="line">    <span class="attr">field:</span> <span class="string">post</span></span><br><span class="line">    <span class="attr">format:</span> <span class="string">html</span></span><br><span class="line">    <span class="attr">limit:</span> <span class="number">10000</span></span><br></pre></td></tr></table></figure>
-
-<p>root -&gt; themes -&gt; next -&gt; _config.yml</p>
-<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="attr">local_search:</span></span><br><span class="line">  <span class="attr">enable:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="Issues"><a href="#Issues" class="headerlink" title="Issues"></a>Issues</h2><p>某一天突然发现部分 Post 不能被 search 出来了，排查了好久，发现是 Splunk 之后一个都失效了。继续排查，是这片文章中有个 ‘Steps:’ 的节点，在编辑器里面查看是没什么问题的，但是贴到其他工具，比如 idea 或者 browser 里面时，他会带一个 [BS] 的前缀。太神奇了。。。所以之前一直没发现。</p>
-<p>在 VSCode 里面看结构还是 <code>&lt;p&gt;Steps&lt;/p&gt;</code> 但是用 linux cat 时就变成 <code>&lt;pSteps:&lt;/p&gt;</code> 所以后面的 search 解析就出问题了。查了下 BS 代表的是退格键 0x008, 也解释了为什么 xml p 标签会少一个尖括号了 ╮(￣▽￣””)╭</p>
-]]></content>
-      <categories>
-        <category>博客</category>
-      </categories>
-      <tags>
-        <tag>hexo</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Hexo 博客 Setup</title>
-    <url>/hexo/2019/11/12/Hexo-blog-setup/</url>
-    <content><![CDATA[<p>Hexo setup 笔记。网上有好多 setup 的教程，这里就不赘述了。记录一下我 setup 时候用到的命令，作为备忘。</p>
-<p>这里使用的 Next 版本 <strong>V7.5.0</strong></p>
-<h3 id="Commands"><a href="#Commands" class="headerlink" title="Commands"></a>Commands</h3><ol>
-<li>安装 node/npm, <code>brew install node</code>, type <code>node -v</code>, <code>npm -v</code> to check if install successfully.</li>
-<li>run command: <code>npm install -g hexo-cli</code>, 安装 hexo 工具, 安装完成，type <code>hexo</code> to check</li>
-<li>Setup 博客基础架构 <code>hexo init &lt;folder&gt;</code>, cd &lt;folder&gt;, run command: <code>hexo server</code> 就可以得到一个本地可访问的 hello world 博客模版</li>
-<li><code>hexo new post_name</code>, 在 source 文件夹下面会创建一个新的 post_name.md 文件作为新博客的载体</li>
-<li>为你的博客新建一个git repo, repo name 必须是<strong>你的Git用户名.github.io</strong>, 如果已经创建了, rename 一下</li>
-<li>编辑 &lt;folder&gt;_config.yml 关联 git repo</li>
-<li><code>npm install hexo-deployer-git --save</code> 安装 git 集成工具</li>
-<li><code>hexo g</code> 生成工程目录及相关文件</li>
-<li><code>hexo s</code> 启动本地 server 验证</li>
-<li><code>hexo d</code> 部署发布到 github, 等一两分钟访问 <code>https://&lt;你的Git用户名&gt;.github.io</code> 就可以看到你的作品了 (^з^)-☆</li>
-</ol>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># Deployment</span><br><span class="line">## Docs: https:&#x2F;&#x2F;hexo.io&#x2F;docs&#x2F;deployment.html</span><br><span class="line">deploy:</span><br><span class="line">  type: git</span><br><span class="line">  repo: https:&#x2F;&#x2F;github.com&#x2F;&lt;username&gt;&#x2F;&lt;username&gt;.github.io.git</span><br><span class="line">  # SSH 格式的也OK, 简单理解就是去 github repo 页面, 把你的 repo 地址复制一下</span><br><span class="line">  branch: master</span><br></pre></td></tr></table></figure>
-
-<h3 id="异地环境-setup"><a href="#异地环境-setup" class="headerlink" title="异地环境 setup"></a>异地环境 setup</h3><h4 id="Win10"><a href="#Win10" class="headerlink" title="Win10"></a>Win10</h4><p>在其他机子上面重新 setup 环境只需要安装 git 和 nodejs, 把项目 clone 到本地之后 cd 到博客根目录下运行命令</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install -g hexo-cli</span><br></pre></td></tr></table></figure>
-
-<p>就行了，在 Windows 下使用 VS Code 的默认命令行时还遇到另外一个问题，hexo 命令不能执行，抛出 Exception:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">PS C:\Users\lanmo\gitStore\hexo&gt; hexo</span><br><span class="line">hexo : 无法加载文件 C:\Users\lanmo\AppData\Roaming\npm\hexo.ps1，因为在此系统上禁止运行脚本。有关详细信息，请参阅 https:/go.microsoft</span><br><span class="line">.com/fwlink/?LinkID=135170 中的 about_Execution_Policies。</span><br><span class="line">所在位置 行:1 字符: 1</span><br><span class="line">+ hexo</span><br><span class="line">+ ~~~~</span><br><span class="line">    + CategoryInfo          : SecurityError: (:) []，PSSecurityException</span><br><span class="line">    + FullyQualifiedErrorId : UnauthorizedAccess</span><br></pre></td></tr></table></figure>
-
-<p>这是由于 powershell 的默认脚本执行策略把这个 command 阻塞了，可以执行</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 允许本地脚本执行</span></span><br><span class="line">Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser</span><br></pre></td></tr></table></figure>
-
-<p>来开放权限，其他可用命令还有</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 查看可用策略</span></span><br><span class="line">Get-ExecutionPolicy -List</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看当前策略</span></span><br><span class="line">Get-ExecutionPolicy</span><br></pre></td></tr></table></figure>
-
-<p>更多可以参考官方文档 <a href="https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-6">About Execution Policies</a></p>
-<h4 id="Win10-WSL"><a href="#Win10-WSL" class="headerlink" title="Win10 WSL"></a>Win10 WSL</h4><p>WSL 默认已经安装了 git, 所以只需要额外安装 nodejs 就行了。</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sudo apt-get install nodejs</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果速度慢可以使用 taobao 源加速</span></span><br><span class="line">npm --registry https://registry.npm.taobao.org install nodejs</span><br><span class="line"><span class="comment"># 配置永久源</span></span><br><span class="line">npm config <span class="built_in">set</span> registry https://registry.npm.taobao.org</span><br></pre></td></tr></table></figure>
-
-<p>安装完后运行 <code>node -v</code> 和 <code>npm -v</code> 查看是否安装成功。我本地安装完后，node 可以正常调用，但是 npm 不行，报错</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">jack@DESKTOP-9TGTFK1:~$ npm -v</span><br><span class="line">: not foundram Files/nodejs/npm: 3: /mnt/c/Program Files/nodejs/npm:</span><br><span class="line">: not foundram Files/nodejs/npm: 5: /mnt/c/Program Files/nodejs/npm:</span><br><span class="line">/mnt/c/Program Files/nodejs/npm: 6: /mnt/c/Program Files/nodejs/npm: Syntax error: word unexpected (expecting <span class="string">&quot;in&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 运行 which npm 查看路径</span></span><br><span class="line">jack@DESKTOP-9TGTFK1:~$ <span class="built_in">which</span> npm</span><br><span class="line">/usr/bin/npm</span><br></pre></td></tr></table></figure>
-
-<p>是应为路径有问题，修改 WSL 下的 <code>~/.profile</code> 文件，添加 npm 执行路径</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">PATH=<span class="string">&quot;<span class="variable">$HOME</span>/bin:<span class="variable">$HOME</span>/.local/bin:/usr/bin:<span class="variable">$PATH</span>&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>然后 <code>source ~/.profile</code> 在运行 <code>npm -v</code>, 成功。</p>
-<p>该问题可以参考 <a href="https://github.com/microsoft/WSL/issues/1512">VSCode Git Issue</a></p>
-<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><ul>
-<li><a href="https://hexo.io/docs/github-pages">Hexo 官方文档</a></li>
-<li><a href="https://juejin.im/post/5bebfe51e51d45332a456de0">Juejin-最全Hexo博客搭建+主题优化+插件配置+常用操作+错误分析</a></li>
-<li><a href="https://zhuanlan.zhihu.com/p/26625249">Zhihu-GitHub+Hexo 搭建个人网站详细教程</a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>博客</category>
-      </categories>
-      <tags>
-        <tag>hexo</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Hexo 保存博客源码</title>
-    <url>/hexo/2019/11/13/Hexo-use-travis-to-auto-publish/</url>
-    <content><![CDATA[<p>按照之前的教程，虽然 github page 上顺利发布了，但是 blog 的 source code 并没有一起同步过去，还在本地。Hexo 工具只是把你翻译之后的 web 信息同步过去了。search 了一下，想要同步 source 有大概三种路子：</p>
+    <title>Hexo 添加字数显示，更改语言</title>
+    <url>/hexo/2019/11/19/Hexo-word-count-and-language/</url>
+    <content><![CDATA[<p>本篇包含两个配置</p>
 <ol>
-<li>hexo 插件: hexo-git-backup</li>
-<li>在原来的 blog repo 里面新建分支存储</li>
-<li>官方方法，集成 Travis CI，每次 push 自动帮你部署</li>
+<li>文章字数，阅读时间显示</li>
+<li>语言设置，显示中文</li>
 </ol>
-<p>本文只描述怎么集成 Travis CI, 其他的方案有机会再补，网上教程很多，随便找找就有了。</p>
-<blockquote>
-<p>采用 Travis CI 的方案之后，原来的 repo name 需要改变，不然 blog 访问不了, 针对这种情况，其实还有另一种解决方案，将 master 用来存放编译好的 blog, 源码用新的 branch 存放，和前面的那些原理都一样</p>
-</blockquote>
-<h3 id="Travis-CI-集成"><a href="#Travis-CI-集成" class="headerlink" title="Travis CI 集成"></a>Travis CI 集成</h3><ol>
-<li>新建一个 repo, 这里我用 hexo 作为 repo name</li>
-<li>clone 到本地，将之前的 blog source copy 进去，添加 <code>.gitignore</code> 文件，把 <code>public\</code> 添加进 list</li>
-<li>注册 Travis 账号，用 github 授权就行，授权 repo, 添加 token. 官方文档都有链接，很方便</li>
-<li>update <code>_config.yml</code> 里的 url 和 root 值</li>
-<li>添加 <code>.travis.yml</code> 做 CI 集成管理</li>
-<li>commit + push 这些改动，Travis 自动 build 就会被触发了</li>
-<li>build 完成后，repo 会有一个新的 branch 叫 gh-pages. 访问 <code>https://jack-zheng.github.io/hexo</code> 查看改动结果</li>
+<h2 id="配置字数"><a href="#配置字数" class="headerlink" title="配置字数"></a>配置字数</h2><p>参靠 repo: <a href="https://github.com/theme-next/hexo-symbols-count-time">hexo-symbols-count-time</a></p>
+<ol>
+<li>到根目录下执行 <code>npm install hexo-symbols-count-time</code> 安装插件</li>
+<li>到根目录下的 _config.yml 中添加配置</li>
 </ol>
-<p>国内，第一次访问会比较慢，cache 了文件之后后面访问会快一点</p>
-<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># _config.yml setting</span></span><br><span class="line"><span class="attr">url:</span> <span class="string">https://jack-zheng.github.io/hexo</span></span><br><span class="line"><span class="attr">root:</span> <span class="string">/hexo/</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">symbols_count_time:</span><br><span class="line">  symbols: true</span><br><span class="line">  time: true</span><br><span class="line">  total_symbols: true</span><br><span class="line">  total_time: true</span><br><span class="line">  exclude_codeblock: false</span><br></pre></td></tr></table></figure>
 
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#.gitignore</span><br><span class="line">.DS_Store</span><br><span class="line">Thumbs.db</span><br><span class="line">db.json</span><br><span class="line">*.log</span><br><span class="line">node_modules&#x2F;</span><br><span class="line">public&#x2F;</span><br><span class="line">.deploy*&#x2F;</span><br><span class="line">.vscode</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># .travis.yml</span></span><br><span class="line"><span class="attr">sudo:</span> <span class="literal">false</span></span><br><span class="line"><span class="attr">language:</span> <span class="string">node_js</span></span><br><span class="line"><span class="attr">node_js:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="number">10</span> <span class="comment"># use nodejs v10 LTS</span></span><br><span class="line"><span class="attr">cache:</span> <span class="string">npm</span></span><br><span class="line"><span class="attr">branches:</span></span><br><span class="line">  <span class="attr">only:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">master</span> <span class="comment"># build master branch only</span></span><br><span class="line"><span class="attr">script:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">hexo</span> <span class="string">generate</span> <span class="comment"># generate static files</span></span><br><span class="line"><span class="attr">deploy:</span></span><br><span class="line">  <span class="attr">provider:</span> <span class="string">pages</span></span><br><span class="line">  <span class="attr">skip-cleanup:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">github-token:</span> <span class="string">$GH_TOKEN</span></span><br><span class="line">  <span class="attr">keep-history:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">on:</span></span><br><span class="line">    <span class="attr">branch:</span> <span class="string">master</span></span><br><span class="line">  <span class="attr">local-dir:</span> <span class="string">public</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Issue-Trace"><a href="#Issue-Trace" class="headerlink" title="Issue Trace"></a>Issue Trace</h3><p>在按照官方教程走完流程后，repo 的 setting page 会有如下 Warning, 删了 <code>themes/landscape/README.md</code> 这个文件再 build 一下就行了</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Your site is having problems building: The tag fancybox on line 77 in themes/landscape/README.md is not a recognized Liquid tag. For more information, see https://help.github.com/en/github/working-with-github-pages/troubleshooting-jekyll-build-errors-for-github-pages-sites#unknown-tag-error.</span><br></pre></td></tr></table></figure>
-
-<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><p><a href="https://hexo.io/docs/github-pages">Travis CI 集成 - 官方</a></p>
+<h2 id="配置中文显示"><a href="#配置中文显示" class="headerlink" title="配置中文显示"></a>配置中文显示</h2><p>查看 Next 主题下面的 language 文件夹，找到其中的中文显示文件名，把根目录下的 _config.yml 里的 language 改为这个名字就行了。我这边文件名为 <code>zh-CN.yml</code>，将 yml 中 language 改为 <code>zh-CN</code></p>
 ]]></content>
       <categories>
-        <category>博客</category>
+        <category>hexo</category>
       </categories>
       <tags>
-        <tag>hexo</tag>
+        <tag>word count</tag>
+        <tag>language</tag>
       </tags>
   </entry>
   <entry>
@@ -4848,6 +4875,16 @@
 <li>Bracket Pair Colorizer: 括号色彩标识</li>
 <li>rainbow csv: CSV 文件色彩标识</li>
 </ul>
+<h3 id="PlantUML"><a href="#PlantUML" class="headerlink" title="PlantUML"></a>PlantUML</h3><p>此插件用于生成 UML，甚好（≧∇≦）</p>
+<ol>
+<li>打开 VSCode, 在插件列表中搜索 PlantUML 并安装</li>
+<li>设置 render server, 有两个可选项，一个是用官方的，另一个是用 local 的<ol>
+<li>local 的话，可以参照 <a href="https://github.com/plantuml/plantuml-server">Git project</a> 安装 docker 版本的</li>
+<li><code>cmd + ,</code> 打开配置页，搜索 plantuml, 更具实际情况，修改 render 和 server 的配置，都有提示的</li>
+<li>如果用的 local 的 server，还需要改一个配置，这个配置会在生产图片后通过 popup 的形式提示，选择第二个即可</li>
+</ol>
+</li>
+</ol>
 ]]></content>
       <categories>
         <category>小工具</category>
