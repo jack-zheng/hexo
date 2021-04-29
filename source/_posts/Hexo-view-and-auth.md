@@ -2,9 +2,10 @@
 title: Hexo 设置阅读数，文章授权
 date: 2019-11-20 18:57:02
 categories:
-- 博客
-tags:
 - hexo
+tags:
+- auth
+- view count
 ---
 本篇将介绍如何设置统计文章阅读量和文章授权。
 

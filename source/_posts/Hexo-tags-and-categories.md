@@ -2,9 +2,10 @@
 title: Hexo 设置 tags 和 Categories 分类
 date: 2019-11-15 16:44:32
 categories:
-- 博客
-tags:
 - hexo
+tags:
+- tags
+- categories
 ---
 默认设置下 Hexo Next 主题是关闭 `tag` 和 `categories` 的，你可以通过一下步骤打开它。
 

@@ -2,9 +2,9 @@
 title: Hexo 换皮肤
 date: 2019-11-15 13:42:26
 categories:
-- 博客
-tags:
 - hexo
+tags:
+- theme
 ---
 今天决定尝试一下给 blog 换皮肤。就拿时下最流行的 Next 主题好了，用的人多，文档齐全，熟悉了之后有需求再发挥。
 

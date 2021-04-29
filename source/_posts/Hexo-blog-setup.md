@@ -2,9 +2,9 @@
 title: Hexo 博客 Setup 
 date: 2019-11-12 17:58:11
 categories:
-- 博客
-tags: 
 - hexo
+tags: 
+- setup
 ---
 Hexo setup 笔记。网上有好多 setup 的教程，这里就不赘述了。记录一下我 setup 时候用到的命令，作为备忘。
 

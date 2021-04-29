@@ -40,3 +40,13 @@ Preference -> settings, 搜索关键字 editor.copyWithSyntaxHighlighting 然后
 * VSCode Icons: 为目录树上中的文件添加类型图标
 * Bracket Pair Colorizer: 括号色彩标识
 * rainbow csv: CSV 文件色彩标识
+
+### PlantUML
+
+此插件用于生成 UML，甚好（≧∇≦）
+
+1. 打开 VSCode, 在插件列表中搜索 PlantUML 并安装
+2. 设置 render server, 有两个可选项，一个是用官方的，另一个是用 local 的
+   1. local 的话，可以参照 [Git project](https://github.com/plantuml/plantuml-server) 安装 docker 版本的
+   2. `cmd + ,` 打开配置页，搜索 plantuml, 更具实际情况，修改 render 和 server 的配置，都有提示的
+   3. 如果用的 local 的 server，还需要改一个配置，这个配置会在生产图片后通过 popup 的形式提示，选择第二个即可

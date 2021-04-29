@@ -2,9 +2,10 @@
 title: Hexo 添加字数显示，更改语言
 date: 2019-11-19 17:58:31
 categories:
-- 博客
-tags:
 - hexo
+tags:
+- word count
+- language
 ---
 本篇包含两个配置
 

@@ -115,6 +115,7 @@ public class QuickSortDemo {
         }
 
         int pivot_index = partition(arr, start, end);
+        // 子数组排序的时候，pivot 是不需要参与的，不然结果会出错！！
         qsort(arr, start, pivot_index - 1);
         qsort(arr, pivot_index + 1, end);
     }

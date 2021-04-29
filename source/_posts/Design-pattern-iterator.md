@@ -18,7 +18,7 @@ it also places the task of traveral(遍历) on the iterator object, not on the a
 
 ## 缘起
 
-现在你是餐饮部的大老板了，上周你刚收购了两家餐厅，现在你要整合他们的业务，将他们的菜单合并以统一的用户体验提供服务，所幸，他们的底层菜品条目是一致的
+现在你是餐饮部的大老板了，上周你刚收购了两家餐厅，现在你要整合他们的业务，将他们的菜单合并以统一的用户体验，所幸，他们的底层菜品条目是一致的
 
 ```java
 public class MenuItem {
@@ -193,7 +193,7 @@ public class PancakeHouseMenu {
 }
 ```
 
-答应客户端的代码
+客户端的代码
 
 ```java
 public class IteratorClient {
@@ -234,7 +234,7 @@ public class IteratorClient {
 
 其实 Java util 包下有自己的 Iterator 实现，集合类是这个设计模式的重度使用者，下面我们用官方实现替换我们自己的实现。
 
-代码会更简单，除了在各 class 文件中引入引用外，PancakeHouseMenuIterator 可以删除， 在 PancakeHouseMenu 的 createIterator() 直接返回 List.iterator() 即可。
+代码会更简单，除了在各 class 文件中引入的引用外，PancakeHouseMenuIterator 可以删除， 在 PancakeHouseMenu 的 createIterator() 直接返回 List.iterator() 即可。
 
 为了让实现更精简，我们还可以抽象出一个 Menu 类作为基类
 

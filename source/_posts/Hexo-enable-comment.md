@@ -2,9 +2,9 @@
 title: Hexo 评论功能
 date: 2019-11-18 13:55:13
 categories:
-- 博客
-tags:
 - hexo
+tags:
+- comment
 ---
 为博客增加评论功能，参考 next 的配置文件，截止 2019-11-18 号为止，next 已经默认支持了 changyan | disqus | disqusjs | gitalk | livere | valine 这些评论系统。这里出于兼容性和可靠性的原则，选择 gitalk 作为评论系统。
 
