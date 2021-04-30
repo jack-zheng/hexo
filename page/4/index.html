@@ -206,6 +206,116 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/01/20/TIJ4-arrays/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/01/20/TIJ4-arrays/" class="post-title-link" itemprop="url">TIJ4 数组 Arrays</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-01-20 19:45:19" itemprop="dateCreated datePublished" datetime="2021-01-20T19:45:19+08:00">2021-01-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-30 23:25:40" itemprop="dateModified" datetime="2021-04-30T23:25:40+08:00">2021-04-30</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/TIJ4/" itemprop="url" rel="index">
+                    <span itemprop="name">TIJ4</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.7k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="前述"><a href="#前述" class="headerlink" title="前述"></a>前述</h2><p>这个章节将深入讲解 Arrays 的使用</p>
+<h2 id="Why-arrays-are-special"><a href="#Why-arrays-are-special" class="headerlink" title="Why arrays are special"></a>Why arrays are special</h2><p>array 持有对象的特点：高效，可指定类型，可以存储原始类型的数据</p>
+<ul>
+<li>数组是最高效的存储结构，代价是容量固定，不可变</li>
+<li>ArrayList 可以自动扩容，但是每次扩容都需要重新拷贝引用</li>
+<li>泛型没出来前，Array 有类型检查的优势</li>
+<li>数组可以装载原始数据类型，容器则需要通过自动开箱，装箱实现</li>
+</ul>
+<p>以下示例对比数组和容器</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.ArrayList;</span><br><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BerylliumSphere</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">long</span> counter;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">long</span> id = counter++;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> <span class="string">&quot;Sphere &quot;</span> + id; &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ContainerComparison</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        BerylliumSphere[] spheres = <span class="keyword">new</span> BerylliumSphere[<span class="number">10</span>];</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">5</span>; i++)</span><br><span class="line">            spheres[i] = <span class="keyword">new</span> BerylliumSphere();</span><br><span class="line">        System.out.println(Arrays.toString(spheres));</span><br><span class="line">        System.out.println(spheres[<span class="number">4</span>]);</span><br><span class="line"></span><br><span class="line">        List&lt;BerylliumSphere&gt; sphereList = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">5</span>; i++)</span><br><span class="line">            sphereList.add(<span class="keyword">new</span> BerylliumSphere());</span><br><span class="line">        System.out.println(sphereList);</span><br><span class="line">        System.out.println(sphereList.get(<span class="number">4</span>));</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span>[] integers = &#123;<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>&#125;;</span><br><span class="line">        System.out.println(Arrays.toString(integers));</span><br><span class="line">        System.out.println(integers[<span class="number">4</span>]);</span><br><span class="line"></span><br><span class="line">        List&lt;Integer&gt; intList = <span class="keyword">new</span> ArrayList&lt;&gt;(Arrays.asList(<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>));</span><br><span class="line">        intList.add(<span class="number">97</span>);</span><br><span class="line">        System.out.println(intList);</span><br><span class="line">        System.out.println(intList.get(<span class="number">4</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>两种方式都会做类型检测，唯一的不同体现在，使用数组时我们通过 <code>[ ]</code> 访问元素，使用容器时我们通过 <code>add( )</code> 和 <code>get( )</code> 来访问。两者很类似是有意为之，为了减少两者之间 migration 的effort。</p>
+<p>容器支持的功能更多，现在使用数组的唯一理由就是<strong>快</strong>。但是当你需要应付一些复杂的情况时，数组的这种严格限制就会制约你，你可能需要用容器来代替它。</p>
+<h2 id="Arrays-are-first-class-objects"><a href="#Arrays-are-first-class-objects" class="headerlink" title="Arrays are first-class objects"></a>Arrays are first-class objects</h2><p>抛开数组的类型不说，数组修饰符是指向对内对象的引用。它存储了其他对象的引用，你可以通过数组初始化语句隐式创建它，也可以通过 new 的方式显示的创建。整个数组对象基本上只提供一个只读属性(length)给你使用，你还可以通过 <code>[ ]</code> 语法访问数组元素。</p>
+<p>下面的例子展示了初始化数组的各种方式，和各种赋值方法。存储原始类型和对象类型的数据基本上一致的，唯一的不同是，如果存储的是对象，那么数组持有的是对象的引用。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BerylliumSphere</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">long</span> counter;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">long</span> id = counter++;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;Sphere &quot;</span> + id;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ArrayOptions</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// Arrays of objects:</span></span><br><span class="line">        BerylliumSphere[] a; <span class="comment">// Local uninitialized variable</span></span><br><span class="line">        BerylliumSphere[] b = <span class="keyword">new</span> BerylliumSphere[<span class="number">5</span>];</span><br><span class="line">        <span class="comment">// The references inside the array are</span></span><br><span class="line">        <span class="comment">// automatically initialized to null:</span></span><br><span class="line">        System.out.println(<span class="string">&quot;b: &quot;</span> + Arrays.toString(b));</span><br><span class="line">        BerylliumSphere[] c = <span class="keyword">new</span> BerylliumSphere[<span class="number">4</span>];</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; c.length; i++)</span><br><span class="line">            <span class="keyword">if</span> (c[i] == <span class="keyword">null</span>) <span class="comment">// Can test for null reference</span></span><br><span class="line">                c[i] = <span class="keyword">new</span> BerylliumSphere();</span><br><span class="line">        <span class="comment">// Aggregate initialization:</span></span><br><span class="line">        BerylliumSphere[] d = &#123;<span class="keyword">new</span> BerylliumSphere(),</span><br><span class="line">                <span class="keyword">new</span> BerylliumSphere(), <span class="keyword">new</span> BerylliumSphere()</span><br><span class="line">        &#125;;</span><br><span class="line">        <span class="comment">// Dynamic aggregate initialization:</span></span><br><span class="line">        a = <span class="keyword">new</span> BerylliumSphere[]&#123;</span><br><span class="line">                <span class="keyword">new</span> BerylliumSphere(), <span class="keyword">new</span> BerylliumSphere(),</span><br><span class="line">        &#125;;</span><br><span class="line">        <span class="comment">// (Trailing comma is optional in both cases)</span></span><br><span class="line">        System.out.println(<span class="string">&quot;a.length = &quot;</span> + a.length);</span><br><span class="line">        System.out.println(<span class="string">&quot;b.length = &quot;</span> + b.length);</span><br><span class="line">        System.out.println(<span class="string">&quot;c.length = &quot;</span> + c.length);</span><br><span class="line">        System.out.println(<span class="string">&quot;d.length = &quot;</span> + d.length);</span><br><span class="line">        a = d;</span><br><span class="line">        System.out.println(<span class="string">&quot;a.length = &quot;</span> + a.length);</span><br><span class="line">        <span class="comment">// Arrays of primitives:</span></span><br><span class="line">        <span class="keyword">int</span>[] e; <span class="comment">// Null reference</span></span><br><span class="line">        <span class="keyword">int</span>[] f = <span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">5</span>];</span><br><span class="line">        <span class="comment">// The primitives inside the array are</span></span><br><span class="line">        <span class="comment">// automatically initialized to zero:</span></span><br><span class="line">        System.out.println(<span class="string">&quot;f: &quot;</span> + Arrays.toString(f));</span><br><span class="line">        <span class="keyword">int</span>[] g = <span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">4</span>];</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; g.length; i++)</span><br><span class="line">            g[i] = i * i;</span><br><span class="line">        <span class="keyword">int</span>[] h = &#123;<span class="number">11</span>, <span class="number">47</span>, <span class="number">93</span>&#125;;</span><br><span class="line">        <span class="comment">// Compile error: variable e not initialized:</span></span><br><span class="line">        <span class="comment">//!System.out.println(&quot;e.length = &quot; + e.length);</span></span><br><span class="line">        System.out.println(<span class="string">&quot;f.length = &quot;</span> + f.length);</span><br><span class="line">        System.out.println(<span class="string">&quot;g.length = &quot;</span> + g.length);</span><br><span class="line">        System.out.println(<span class="string">&quot;h.length = &quot;</span> + h.length);</span><br><span class="line">        e = h;</span><br><span class="line">        System.out.println(<span class="string">&quot;e.length = &quot;</span> + e.length);</span><br><span class="line">        e = <span class="keyword">new</span> <span class="keyword">int</span>[]&#123;<span class="number">1</span>, <span class="number">2</span>&#125;;</span><br><span class="line">        System.out.println(<span class="string">&quot;e.length = &quot;</span> + e.length);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// output</span></span><br><span class="line"><span class="comment">// b: [null, null, null, null, null]</span></span><br><span class="line"><span class="comment">// a.length = 2</span></span><br><span class="line"><span class="comment">// b.length = 5</span></span><br><span class="line"><span class="comment">// c.length = 4</span></span><br><span class="line"><span class="comment">// d.length = 3</span></span><br><span class="line"><span class="comment">// a.length = 3</span></span><br><span class="line"><span class="comment">// f: [0, 0, 0, 0, 0]</span></span><br><span class="line"><span class="comment">// f.length = 5</span></span><br><span class="line"><span class="comment">// g.length = 4</span></span><br><span class="line"><span class="comment">// h.length = 3</span></span><br><span class="line"><span class="comment">// e.length = 3</span></span><br><span class="line"><span class="comment">// e.length = 2</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>数组 a 未初始化，编译器在你赋值之前会阻止你做任何操作</li>
+<li></li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/01/20/Python-build-and-test-a-cmd-interface-with-poetry-and-click/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +347,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-30 20:10:38" itemprop="dateModified" datetime="2021-04-30T20:10:38+08:00">2021-04-30</time>
+                <time title="修改时间：2021-04-30 23:25:40" itemprop="dateModified" datetime="2021-04-30T23:25:40+08:00">2021-04-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -375,7 +485,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-30 20:10:38" itemprop="dateModified" datetime="2021-04-30T20:10:38+08:00">2021-04-30</time>
+                <time title="修改时间：2021-04-30 23:25:40" itemprop="dateModified" datetime="2021-04-30T23:25:40+08:00">2021-04-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -489,7 +599,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-30 20:10:38" itemprop="dateModified" datetime="2021-04-30T20:10:38+08:00">2021-04-30</time>
+                <time title="修改时间：2021-04-30 23:25:40" itemprop="dateModified" datetime="2021-04-30T23:25:40+08:00">2021-04-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -590,7 +700,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-30 20:10:38" itemprop="dateModified" datetime="2021-04-30T20:10:38+08:00">2021-04-30</time>
+                <time title="修改时间：2021-04-30 23:25:40" itemprop="dateModified" datetime="2021-04-30T23:25:40+08:00">2021-04-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -680,7 +790,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-30 20:10:38" itemprop="dateModified" datetime="2021-04-30T20:10:38+08:00">2021-04-30</time>
+                <time title="修改时间：2021-04-30 23:25:40" itemprop="dateModified" datetime="2021-04-30T23:25:40+08:00">2021-04-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -771,7 +881,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-30 20:10:38" itemprop="dateModified" datetime="2021-04-30T20:10:38+08:00">2021-04-30</time>
+                <time title="修改时间：2021-04-30 23:25:40" itemprop="dateModified" datetime="2021-04-30T23:25:40+08:00">2021-04-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1034,7 +1144,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-30 20:10:38" itemprop="dateModified" datetime="2021-04-30T20:10:38+08:00">2021-04-30</time>
+                <time title="修改时间：2021-04-30 23:25:40" itemprop="dateModified" datetime="2021-04-30T23:25:40+08:00">2021-04-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1156,7 +1266,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-30 20:10:38" itemprop="dateModified" datetime="2021-04-30T20:10:38+08:00">2021-04-30</time>
+                <time title="修改时间：2021-04-30 23:25:40" itemprop="dateModified" datetime="2021-04-30T23:25:40+08:00">2021-04-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1305,7 +1415,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-30 20:10:38" itemprop="dateModified" datetime="2021-04-30T20:10:38+08:00">2021-04-30</time>
+                <time title="修改时间：2021-04-30 23:25:40" itemprop="dateModified" datetime="2021-04-30T23:25:40+08:00">2021-04-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1434,99 +1544,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/12/15/Code-snippet-use-html-show-ul-tag-in-tree-format/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2020/12/15/Code-snippet-use-html-show-ul-tag-in-tree-format/" class="post-title-link" itemprop="url">CSS 渲染 ul 为树结构</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-12-15 16:11:57" itemprop="dateCreated datePublished" datetime="2020-12-15T16:11:57+08:00">2020-12-15</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-30 20:10:38" itemprop="dateModified" datetime="2021-04-30T20:10:38+08:00">2021-04-30</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
-                    <span itemprop="name">编程</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.9k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>2 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>看到网上有一段代码通过 CSS 把 ul+li 块渲染成目录树结构，很赞，加入收集。源代码链接: <a target="_blank" rel="noopener" href="https://bootsnipp.com/snippets/ypNAe">bootsnipp</a></p>
-<p>PS: 这个 post 最好是在这段代码下面嵌入一个页面显示效果，但是目前没时间做这方面的 re-search，以后如果有很多 html 示例的化可以考虑一下。</p>
-<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">&quot;en&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;utf-8&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">&quot;robots&quot;</span> <span class="attr">content</span>=<span class="string">&quot;noindex, nofollow&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>My Tree<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">link</span> <span class="attr">href</span>=<span class="string">&quot;css/tree3.css&quot;</span> <span class="attr">rel</span>=<span class="string">&quot;stylesheet&quot;</span> <span class="attr">id</span>=<span class="string">&quot;bootstrap-css&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">ul</span> <span class="attr">id</span>=<span class="string">&quot;tree1&quot;</span> <span class="attr">class</span>=<span class="string">&quot;tree&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">li</span>&gt;</span>Node1</span><br><span class="line">            <span class="tag">&lt;<span class="name">ul</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">li</span>&gt;</span>Node11<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">li</span>&gt;</span>Node12<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">li</span>&gt;</span>Node13<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">ul</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">li</span>&gt;</span>Node2</span><br><span class="line">            <span class="tag">&lt;<span class="name">ul</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">li</span>&gt;</span>Company Maintenance<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">li</span>&gt;</span>Employee</span><br><span class="line">                    <span class="tag">&lt;<span class="name">ul</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">li</span>&gt;</span>Reports</span><br><span class="line">                            <span class="tag">&lt;<span class="name">ul</span>&gt;</span></span><br><span class="line">                                <span class="tag">&lt;<span class="name">li</span>&gt;</span>Report1<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">                                <span class="tag">&lt;<span class="name">li</span>&gt;</span>Report2<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">                                <span class="tag">&lt;<span class="name">li</span>&gt;</span>Report3<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">                            <span class="tag">&lt;/<span class="name">ul</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">li</span>&gt;</span>Employee Maint<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">ul</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">li</span>&gt;</span>Human Resources<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">ul</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">ul</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">ul</span> &#123;</span><br><span class="line">    <span class="attribute">margin</span>: <span class="number">0</span>;</span><br><span class="line">    <span class="attribute">padding</span>: <span class="number">0</span>;</span><br><span class="line">    <span class="attribute">list-style</span>: none;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="selector-class">.tree</span> <span class="selector-tag">ul</span> &#123;</span><br><span class="line">    <span class="attribute">margin-left</span>: <span class="number">1em</span>;</span><br><span class="line">    <span class="comment">/* 画一条最外层 ul 边框的辅助线 */</span></span><br><span class="line">    <span class="comment">/* border: 1px solid red; */</span></span><br><span class="line">    <span class="attribute">position</span>: relative</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* 树状结构竖线部分 */</span></span><br><span class="line"><span class="selector-class">.tree</span> <span class="selector-tag">ul</span><span class="selector-pseudo">:before</span> &#123;</span><br><span class="line">    <span class="comment">/* 伪类选择器，会选中 ul 的第一个元素 */</span></span><br><span class="line">    <span class="attribute">content</span>: <span class="string">&quot;&quot;</span>;</span><br><span class="line">    <span class="attribute">display</span>: block;</span><br><span class="line">    <span class="attribute">width</span>: <span class="number">0</span>;</span><br><span class="line">    <span class="attribute">position</span>: absolute;</span><br><span class="line">    <span class="attribute">top</span>: <span class="number">0</span>;</span><br><span class="line">    <span class="attribute">bottom</span>: <span class="number">0</span>;</span><br><span class="line">    <span class="attribute">left</span>: <span class="number">0</span>;</span><br><span class="line">    <span class="attribute">border-left</span>: <span class="number">1px</span> solid;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="selector-class">.tree</span> <span class="selector-tag">li</span> &#123;</span><br><span class="line">    <span class="attribute">margin</span>: <span class="number">0</span>;</span><br><span class="line">    <span class="attribute">padding</span>: <span class="number">0</span> <span class="number">1em</span>;</span><br><span class="line">    <span class="attribute">line-height</span>: <span class="number">2em</span>;</span><br><span class="line">    <span class="attribute">color</span>: <span class="number">#369</span>;</span><br><span class="line">    <span class="attribute">font-weight</span>: <span class="number">700</span>;</span><br><span class="line">    <span class="attribute">position</span>: relative;</span><br><span class="line">    <span class="comment">/* font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; */</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* 树状结构横线部分 */</span></span><br><span class="line"> <span class="selector-class">.tree</span> <span class="selector-tag">ul</span> <span class="selector-tag">li</span><span class="selector-pseudo">:before</span> &#123;</span><br><span class="line">    <span class="attribute">content</span>: <span class="string">&quot;&quot;</span>;</span><br><span class="line">    <span class="attribute">display</span>: block;</span><br><span class="line">    <span class="attribute">width</span>: <span class="number">10px</span>;</span><br><span class="line">    <span class="attribute">height</span>: <span class="number">0</span>;</span><br><span class="line">    <span class="attribute">border-top</span>: <span class="number">1px</span> solid;</span><br><span class="line">    <span class="attribute">margin-top</span>: -<span class="number">1px</span>;</span><br><span class="line">    <span class="attribute">position</span>: absolute;</span><br><span class="line">    <span class="attribute">top</span>: <span class="number">1em</span>;</span><br><span class="line">    <span class="attribute">left</span>: <span class="number">0</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*  覆盖最后一个节点多余的半截竖线 */</span></span><br><span class="line"><span class="selector-class">.tree</span> <span class="selector-tag">ul</span> <span class="selector-tag">li</span><span class="selector-pseudo">:last-child</span><span class="selector-pseudo">:before</span> &#123;</span><br><span class="line">    <span class="attribute">background</span>: <span class="number">#fff</span>;</span><br><span class="line">    <span class="attribute">height</span>: auto;</span><br><span class="line">    <span class="attribute">top</span>: <span class="number">1em</span>;</span><br><span class="line">    <span class="attribute">bottom</span>: <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1577,20 +1594,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">133</span>
+          <span class="site-state-item-count">134</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/hexo/categories/">
           
-        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-count">28</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">155</span>
+        <span class="site-state-item-count">156</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1624,12 +1641,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">568k</span>
+    <span title="站点总字数">573k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">8:36</span>
+    <span title="站点阅读时长">8:41</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
