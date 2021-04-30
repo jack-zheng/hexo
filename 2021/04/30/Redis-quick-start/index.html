@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/hexo/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/hexo/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/hexo/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/hexo/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="UgODgWVmvTsdD--vjodDR3tPUZRWM3i7JpHzbYejxUM">
+
+<link rel="stylesheet" href="/hexo/css/main.css">
+
+
+<link rel="stylesheet" href="/hexo/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/hexo/',
+    scheme: 'Muse',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="Nosql 概述 单机数据库：   数据量如果太大，一个机器放不下 数据的索引，一个机器内存放不下 访问量，一个服务器承受不了   Memcached(缓存) + MySQL+ 垂直拆分  网站 80% 的情况都是在读数据，每次都查 DB 就十分慢，采用缓存保证效率 发展过程：优化数据结构和索引 -&gt; 文件缓存(IO) -&gt; Memcached  分库分表 + 水平拆分 + MySQL">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis quick start">
+<meta property="og:url" content="https://jack-zheng.github.io/hexo/2021/04/30/Redis-quick-start/index.html">
+<meta property="og:site_name" content="Jackpot">
+<meta property="og:description" content="Nosql 概述 单机数据库：   数据量如果太大，一个机器放不下 数据的索引，一个机器内存放不下 访问量，一个服务器承受不了   Memcached(缓存) + MySQL+ 垂直拆分  网站 80% 的情况都是在读数据，每次都查 DB 就十分慢，采用缓存保证效率 发展过程：优化数据结构和索引 -&gt; 文件缓存(IO) -&gt; Memcached  分库分表 + 水平拆分 + MySQL">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-04-30T10:19:46.000Z">
+<meta property="article:modified_time" content="2021-04-30T12:10:38.428Z">
+<meta property="article:author" content="Jack Zheng">
+<meta property="article:tag" content="redis">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://jack-zheng.github.io/hexo/2021/04/30/Redis-quick-start/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>Redis quick start | Jackpot</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/hexo/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jackpot</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-tags">
+
+    <a href="/hexo/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/hexo/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/hexo/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/jack-zheng" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/04/30/Redis-quick-start/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Redis quick start
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-04-30 18:19:46 / 修改时间：20:10:38" itemprop="dateCreated datePublished" datetime="2021-04-30T18:19:46+08:00">2021-04-30</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E5%BC%B9%E5%B0%84%E8%B5%B7%E6%AD%A5/" itemprop="url" rel="index">
+                    <span itemprop="name">弹射起步</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="Nosql-概述"><a href="#Nosql-概述" class="headerlink" title="Nosql 概述"></a>Nosql 概述</h2><blockquote>
+<p>单机数据库：</p>
+</blockquote>
+<ol>
+<li>数据量如果太大，一个机器放不下</li>
+<li>数据的索引，一个机器内存放不下</li>
+<li>访问量，一个服务器承受不了</li>
+</ol>
+<blockquote>
+<p>Memcached(缓存) + MySQL+ 垂直拆分</p>
+</blockquote>
+<p>网站 80% 的情况都是在读数据，每次都查 DB 就十分慢，采用缓存保证效率</p>
+<p>发展过程：优化数据结构和索引 -&gt; 文件缓存(IO) -&gt; Memcached</p>
+<blockquote>
+<p>分库分表 + 水平拆分 + MySQL 集群</p>
+</blockquote>
+<ul>
+<li>ISAM：早期，表锁，效率低</li>
+<li>Innodb: 行所</li>
+</ul>
+<blockquote>
+<p>如今，数据量大，变化快，MySQL 不太适用这种场景了</p>
+</blockquote>
+<p>MySQL 也不适合存储比较大的文件，博客，图片。表大，效率低，需要专门的数据库</p>
+<blockquote>
+<p>为什么用 NoSQL</p>
+</blockquote>
+<p>用户信息爆发式增长，NoSQL 可以解决上面的问题</p>
+<p>NoSQL = Not Only SQL</p>
+<p>关系型数据库 = 表 + 行 + 列</p>
+<p>泛指非关系型数据库，随着 web2.0 互联网的诞生，传统的关系型数据库很难对付，尤其是超大规模的高并发社区。</p>
+<p>很多数据类型，比如个人信息，社交网络，地理位置不需要一个固定格式，不需要过多操作就能横向操作</p>
+<blockquote>
+<p>特点</p>
+</blockquote>
+<ol>
+<li>方便扩展</li>
+<li>大数据量高性能 (redis 写 8w/s, 读 11w/s, NoSQL 的缓存记录级，是一种细粒度的缓存，性能会比较高)</li>
+<li>数据类型是多样型的(不需要事先设计数据库)</li>
+</ol>
+<blockquote>
+<p>RDBMS Vs NoSQL</p>
+</blockquote>
+<p>RDBMS</p>
+<ul>
+<li>结构化组织(表/列)</li>
+<li>SQL</li>
+<li>数据和关系都存在单独的表中</li>
+<li>数据操作语言，数据定义语言(DSL, DML)</li>
+<li>严格的一致性</li>
+</ul>
+<p>NoSQL</p>
+<ul>
+<li>不仅仅是SQL</li>
+<li>没有固定的查询语言</li>
+<li>存储类型多样(键值，文档，列存储，图形数据-社交关系)</li>
+<li>最终一致性</li>
+<li>CAP定理和BASE 异地多活</li>
+<li>高性能，高可用，高可扩</li>
+</ul>
+<blockquote>
+<p>3v + 3高</p>
+</blockquote>
+<p>3v: 主要描述问题</p>
+<ol>
+<li>海量Volume</li>
+<li>多样Variety</li>
+<li>实时Velocity</li>
+</ol>
+<p>3 高:</p>
+<ol>
+<li>高并发</li>
+<li>高可扩</li>
+<li>高性能</li>
+</ol>
+<p>真实情况：NoSQL + RDBMS</p>
+<h2 id="典型电商网站分析"><a href="#典型电商网站分析" class="headerlink" title="典型电商网站分析"></a>典型电商网站分析</h2><ol>
+<li>商品基本信息，名称，价格，商家信息，存关系型数据库</li>
+<li>商品描述，评论(文字较多) MongoDB</li>
+<li>图片，分布式文件系统 FastDFS, 淘宝 TFS，Google GFS， Hadoop HDFD, 阿里云 OSS</li>
+<li>商品关键字，搜索，solr, ES, ISearch</li>
+<li>商品热门的波段信息，内存数据库，Redis, Tair, Memcache</li>
+<li>商品交易 - 第三方接口</li>
+</ol>
+<h2 id="NoSQL-四大分类"><a href="#NoSQL-四大分类" class="headerlink" title="NoSQL 四大分类"></a>NoSQL 四大分类</h2><p>KV键值对:</p>
+<ul>
+<li>新浪： Redis</li>
+<li>美团：Redis + Tair</li>
+<li>阿里，百度：Redis + memocache</li>
+</ul>
+<p>文档型数据库(bson)</p>
+<ul>
+<li>MongoDB(一般需要掌握)<ul>
+<li>MongoDB 是一个给予分布式文件存储的数据库，C++ 编写，主要用来处理大量文档</li>
+<li>MongoDB 是一个介于关系型数据库和非关系型数据库的中间产品</li>
+</ul>
+</li>
+</ul>
+<p>列存储数据库：</p>
+<ul>
+<li>HBase</li>
+<li>分布式文件系统</li>
+</ul>
+<p>图关系数据库：</p>
+<ul>
+<li>社交网络</li>
+<li>Neo4j</li>
+</ul>
+<h2 id="Redis-入门"><a href="#Redis-入门" class="headerlink" title="Redis 入门"></a>Redis 入门</h2><p>Remote Dictionary Server: c，基于内存，可持久化， KV，多语言 API</p>
+<blockquote>
+<p>能干嘛</p>
+</blockquote>
+<ol>
+<li>内存存储，可持久化(RDB, AOF)</li>
+<li>效率高，可高速缓存</li>
+<li>发布订阅系统</li>
+<li>地图信息分析</li>
+<li>计数器 - 订阅量，计时器</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Jack Zheng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://jack-zheng.github.io/hexo/2021/04/30/Redis-quick-start/" title="Redis quick start">https://jack-zheng.github.io/hexo/2021/04/30/Redis-quick-start/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/null" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/hexo/tags/redis/" rel="tag"># redis</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+                <a href="/hexo/2021/04/29/Hexo-embed-plantuml/" rel="next" title="Hexo 中插入 UML">
+                  <i class="fa fa-chevron-left"></i> Hexo 中插入 UML
+                </a>
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+            </div>
+          </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Nosql-%E6%A6%82%E8%BF%B0"><span class="nav-number">1.</span> <span class="nav-text">Nosql 概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B8%E5%9E%8B%E7%94%B5%E5%95%86%E7%BD%91%E7%AB%99%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">典型电商网站分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NoSQL-%E5%9B%9B%E5%A4%A7%E5%88%86%E7%B1%BB"><span class="nav-number">3.</span> <span class="nav-text">NoSQL 四大分类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Redis-%E5%85%A5%E9%97%A8"><span class="nav-number">4.</span> <span class="nav-text">Redis 入门</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Jack Zheng"
+      src="/hexo/images/jack.jpg">
+  <p class="site-author-name" itemprop="name">Jack Zheng</p>
+  <div class="site-description" itemprop="description">我是张江搬砖小码农, 知识搬运工</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/hexo/archives/">
+        
+          <span class="site-state-item-count">133</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/hexo/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/hexo/tags/">
+          
+        <span class="site-state-item-count">155</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jack Zheng</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">568k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">8:36</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.5.0
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/hexo/lib/anime.min.js"></script>
+  <script src="/hexo/lib/velocity/velocity.min.js"></script>
+  <script src="/hexo/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/hexo/js/utils.js"></script>
+
+<script src="/hexo/js/motion.js"></script>
+
+
+<script src="/hexo/js/schemes/muse.js"></script>
+
+
+<script src="/hexo/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/hexo/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'd444c814810f7e73ee3a',
+      clientSecret: '9b3c417a0c1076887b3cf583c7d7a27456b708ef',
+      repo: 'hexo-comments',
+      owner: 'jack-zheng',
+      admin: ['jack-zheng'],
+      id: 'bd72be618a1c5355cdb5bfb0db9497d8',
+        language: '',
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>
