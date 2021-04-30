@@ -16,6 +16,91 @@ it also places the task of traveral(遍历) on the iterator object, not on the a
 
 > **Design Principle:** A class should have only one reason to change
 
+## UML
+
+```plantuml
+@startuml
+skinparam linetype ortho
+
+Interface Aggregate {
+	+Iterator createIterator()
+}
+
+Interface Iterator {
+	+Object next()
+    +boolean hasNext()
+}
+
+class ConcreateAgg implements Aggregate {
+	+Iterator createIterator()
+}
+
+class ConcreateIter implements Iterator {
+	+Object next()
+    +boolean hasNext()
+}
+
+class Client
+
+Aggregate -> Client
+Client -> Iterator
+ConcreateAgg -> ConcreateIter
+@enduml
+```
+
+{% plantuml %}
+@startuml
+skinparam linetype ortho
+
+Interface Aggregate {
+	+Iterator createIterator()
+}
+
+Interface Iterator {
+	+Object next()
+    +boolean hasNext()
+}
+
+class ConcreateAgg implements Aggregate {
+	+Iterator createIterator()
+}
+
+class ConcreateIter implements Iterator {
+	+Object next()
+    +boolean hasNext()
+}
+
+class Client
+
+Aggregate -> Client
+Client -> Iterator
+ConcreateAgg -> ConcreateIter
+{% endplantuml %}
+
+ASCII 版本图示:
+
+```txt
++------------------+                              +--------------------+                                                                             
+|  <<interface>>   |         +-----------+        |   <<interface>>    |                                                                             
+|    Aggregate     |<--------|  Client   |------> |      Iterator      |                                                                             
+|------------------|         |           |        |--------------------|                                                                             
+| createIterator() |         +-----------+        | hasNext()          |                                                                             
+|                  |                              | next()             |                                                                             
++------------------+                              | remove()           |                                                                             
+        ^                                         +--------------------+                                                                             
+        |                                                     ^                                                                                      
+        |                                                     |                                                                                      
+        |                                                     |                                                                                      
+        |                                                     |                                                                                      
++--------------------+                            +--------------------+                                                                             
+| ConcreateAggregate |--------------------------->| ConcreateIterator  |                                                                             
+|--------------------|                            |--------------------|                                                                             
+| createIterator()   |                            | hasNext()          |                                                                             
+|                    |                            | next()             |                                                                             
++--------------------+                            | remove()           |                                                                             
+                                                  +--------------------+                                                                             
+```
+
 ## 缘起
 
 现在你是餐饮部的大老板了，上周你刚收购了两家餐厅，现在你要整合他们的业务，将他们的菜单合并以统一的用户体验，所幸，他们的底层菜品条目是一致的
@@ -381,33 +466,3 @@ public class IteratorClient {
 ```
 
 一切和预期的一样 ╮(￣▽￣"")╭
-
-## UML
-
-图示说明：
-
-* interface 到实例之间是 虚线空心三角，表示接口实现
-* ConcreateAggregate 到 ConcreateIterator 是实线普通三角，表示拥有，回想一下 DinerHouse 是需要返回 DinerHouseMenuIterator 来做遍历的
-* Client 对两个 interface 也是 实线普通三角，也是表示拥有
-
-```txt
-+------------------+                              +--------------------+                                                                             
-|  <<interface>>   |         +-----------+        |   <<interface>>    |                                                                             
-|    Aggregate     |<--------|  Client   |------> |      Iterator      |                                                                             
-|------------------|         |           |        |--------------------|                                                                             
-| createIterator() |         +-----------+        | hasNext()          |                                                                             
-|                  |                              | next()             |                                                                             
-+------------------+                              | remove()           |                                                                             
-        ^                                         +--------------------+                                                                             
-        |                                                     ^                                                                                      
-        |                                                     |                                                                                      
-        |                                                     |                                                                                      
-        |                                                     |                                                                                      
-+--------------------+                            +--------------------+                                                                             
-| ConcreateAggregate |--------------------------->| ConcreateIterator  |                                                                             
-|--------------------|                            |--------------------|                                                                             
-| createIterator()   |                            | hasNext()          |                                                                             
-|                    |                            | next()             |                                                                             
-+--------------------+                            | remove()           |                                                                             
-                                                  +--------------------+                                                                             
-```
