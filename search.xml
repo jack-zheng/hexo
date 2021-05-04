@@ -159,6 +159,64 @@
       </tags>
   </entry>
   <entry>
+    <title>希尔排序</title>
+    <url>/hexo/2021/05/04/Algorithm-shell-sort/</url>
+    <content><![CDATA[<p>希尔排序是快排的一个变种，是首个突破 O(n<sup>2</sup>) 的排序算法。但是为什么说他快，看了一些知乎上的解释，这是一种实现简单，但是证明很难的算法。要用到很多数学概念，这里就算了。</p>
+<p>算法说明：</p>
+<ol>
+<li>取一个固定的步长(通常为待排数组长度的一半), 将数组分组，进行插入排序。<ol>
+<li>这里的分组并不是对半分，举例如下：假设有数组 [0, 1, 2, 3, 4, 5, 6, 7] 取步长 4，则 0，4 为一组，1，5为一组依次类推</li>
+<li>分组后的排序，因为只有两个数比较，我也看到有直接用比较之后交换的，不一定是插入排序</li>
+</ol>
+</li>
+<li>将固定步长取半重复之前的运算规则</li>
+<li>直到排序完步长为 1 的情况，排序结束</li>
+</ol>
+<p>时间复杂度：</p>
+<p>平均和最好： O(nlong<sup>n</sup>)<br>最坏： O(n<sup>2</sup>)</p>
+<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><p>说实话，道理我都懂，但是在看 Java 版本的希尔排序实现的时候，我看是看了半天，加上搜索视频教程和本地 debug 才理解下来的，他别是在这个交替进行的点，奇数个元素分组规则上，卡了挺久的。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ShellSort</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] sample = <span class="keyword">new</span> Random().ints(<span class="number">0</span>, <span class="number">100</span>).limit(<span class="number">11</span>).toArray();</span><br><span class="line">        System.out.println(<span class="string">&quot;Origin: &quot;</span> + Arrays.toString(sample));</span><br><span class="line">        shellSort(sample);</span><br><span class="line">        System.out.println(<span class="string">&quot;After:  &quot;</span> + Arrays.toString(sample));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">shellSort</span><span class="params">(<span class="keyword">int</span>[] sample)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 步长操作</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> step = sample.length / <span class="number">2</span>; step &gt; <span class="number">0</span>; step /= <span class="number">2</span>) &#123;</span><br><span class="line">            <span class="comment">//分组进行插入排序，这里需要注意的是，这个插入排序是交替进行的，这里困惑了很久</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = step; i &lt; sample.length; i++) &#123;</span><br><span class="line">                <span class="comment">// 以步长为基本单位做插入排序</span></span><br><span class="line">                <span class="keyword">int</span> j = i - step;</span><br><span class="line">                <span class="keyword">while</span> (j &gt;= <span class="number">0</span> &amp;&amp; sample[j] &gt; sample[j + step]) &#123;</span><br><span class="line">                    <span class="keyword">int</span> temp = sample[j + step];</span><br><span class="line">                    sample[j + step] = sample[j];</span><br><span class="line">                    sample[j] = temp;</span><br><span class="line">                    j = j - step;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Origin: [84, 32, 55, 3, 57, 68, 75, 71, 12, 43, 50]</span></span><br><span class="line"><span class="comment">// After:  [3, 12, 32, 43, 50, 55, 57, 68, 71, 75, 84]</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="细节分析"><a href="#细节分析" class="headerlink" title="细节分析"></a>细节分析</h2><p>以 [84, 32, 55, 3, 57, 68, 75, 71, 12, 43, 50] 为例子分析</p>
+<p>第一次分组，对半分，由于元素格式 11 个，步长 5，将整个数组分为了五组</p>
+<table>
+<thead>
+<tr>
+<th align="center">num</th>
+<th align="center">elements</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">1</td>
+<td align="center">84, 68, 50</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td align="center">32, 75</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td align="center">55, 71</td>
+</tr>
+<tr>
+<td align="center">4</td>
+<td align="center">3, 12</td>
+</tr>
+<tr>
+<td align="center">5</td>
+<td align="center">57, 43</td>
+</tr>
+</tbody></table>
+<p>我一开始以为代码实现的时候会先将 1 组中的各个元素抽出来，然后做一次插入排序，然后进行下第二组排序，一次类推。但实际上，在实现过程中，他会先将一组中第1，2 个元素用插入排序排完，然后直接跳到第二组，对1，2号元素排序，依次类推。等五个组的1，2 号元素都排完了，再回到第一组，对3号元素进行插入排序</p>
+]]></content>
+      <categories>
+        <category>算法</category>
+      </categories>
+      <tags>
+        <tag>希尔排序</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>阿里云购买服务器</title>
     <url>/hexo/2021/04/25/Alicloud-apply-new-service/</url>
     <content><![CDATA[<p>阿里云购买云服务，本地通过终端连接使用，终端工具，弹幕各种推荐 Mobaxtream, 打算试用一下</p>
@@ -302,17 +360,6 @@
       <tags>
         <tag>java</tag>
         <tag>编译器</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Computer Networkding a top down approach</title>
-    <url>/hexo/2021/04/28/Computer-Networkding-a-top-down-approach/</url>
-    <content><![CDATA[]]></content>
-      <categories>
-        <category>计算机网络</category>
-      </categories>
-      <tags>
-        <tag>计算机网络</tag>
       </tags>
   </entry>
   <entry>
@@ -2411,6 +2458,45 @@
       </categories>
       <tags>
         <tag>snippet</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java clone object</title>
+    <url>/hexo/2021/05/04/Java-clone-object/</url>
+    <content><![CDATA[<h2 id="为什么要拷贝"><a href="#为什么要拷贝" class="headerlink" title="为什么要拷贝"></a>为什么要拷贝</h2><p>因为方便，如果我有一个类有好多属性，固然可以用 new Object + set attribute 的方式达到拷贝的目的，但是麻烦。。。</p>
+<h2 id="如何拷贝"><a href="#如何拷贝" class="headerlink" title="如何拷贝"></a>如何拷贝</h2><ol>
+<li>实现 Cloneable 接口，否则会抛 CloneNotSupportedException </li>
+<li>重写 clone 方法，修改修饰符为 public</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CloneTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Person person = <span class="keyword">new</span> Person(<span class="number">1</span>, <span class="string">&quot;jack&quot;</span>);</span><br><span class="line">        System.out.println(person);</span><br><span class="line">        Person clone = person.clone();</span><br><span class="line">        System.out.println(clone);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span> <span class="keyword">implements</span> <span class="title">Cloneable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> age;</span><br><span class="line">    String name;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// constructor + toString</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Person <span class="title">clone</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Person clone = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            clone = (Person)<span class="keyword">super</span>.clone();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (CloneNotSupportedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> clone;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Person&#123;age=1, name=&#x27;jack&#x27;&#125;</span></span><br><span class="line"><span class="comment">// Person&#123;age=1, name=&#x27;jack&#x27;&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="浅拷贝-shallow-Vs-深拷贝-deep"><a href="#浅拷贝-shallow-Vs-深拷贝-deep" class="headerlink" title="浅拷贝(shallow) Vs 深拷贝(deep)"></a>浅拷贝(shallow) Vs 深拷贝(deep)</h2><blockquote>
+<p>浅拷贝</p>
+</blockquote>
+<p>引用类型(接口，对象等复杂类型)的成员变量不会做拷贝，克隆对象会持有和原对象同一个引用</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* 修改 Person 类定义，新增一个引用类型的成员变量 Address</span></span><br><span class="line"><span class="comment">* 为原型 person 设置 Address 变量，并设置值为 shanghai</span></span><br><span class="line"><span class="comment">* clone 一个 person，然后修改 Address 值为 hangzhou</span></span><br><span class="line"><span class="comment">* 由于是浅拷贝，持有的 Address 引用是同一个，所以两个 Person 实例的 Address 都改变了</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CloneTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> CloneNotSupportedException </span>&#123;</span><br><span class="line">        Person person = <span class="keyword">new</span> Person(<span class="number">1</span>, <span class="string">&quot;jack&quot;</span>);</span><br><span class="line">        Address addr = <span class="keyword">new</span> Address(<span class="string">&quot;shanghai&quot;</span>);</span><br><span class="line">        person.addr = addr;</span><br><span class="line"></span><br><span class="line">        Person clone = person.clone();</span><br><span class="line">        addr.addr = <span class="string">&quot;hangzhou&quot;</span>;</span><br><span class="line"></span><br><span class="line">        System.out.println(person);</span><br><span class="line">        System.out.println(clone);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span> <span class="keyword">implements</span> <span class="title">Cloneable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> age;</span><br><span class="line">    String name;</span><br><span class="line">    Address addr;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// constructor + toString</span></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Person <span class="title">clone</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Person clone = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            clone = (Person)<span class="keyword">super</span>.clone();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (CloneNotSupportedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> clone;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Address</span> </span>&#123;</span><br><span class="line">    String addr;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// constructor + toString </span></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>上面这种表现方式和我们想要的有很大的出入, 我们想要的是连这些 field 也一起拷贝，深拷贝由此而来</p>
+<blockquote>
+<p>深拷贝</p>
+</blockquote>
+<p>在浅拷贝的基础上，你还需要做如下事情</p>
+<ol>
+<li>成员变量也需要实现 Cloneable 接口并重写 clone 方法</li>
+<li>在原来 clone 方法后面，添加成员变量的 clone 调用并赋值</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CloneTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> CloneNotSupportedException </span>&#123;</span><br><span class="line">        Person person = <span class="keyword">new</span> Person(<span class="number">1</span>, <span class="string">&quot;jack&quot;</span>);</span><br><span class="line">        Address addr = <span class="keyword">new</span> Address(<span class="string">&quot;shanghai&quot;</span>);</span><br><span class="line">        person.addr = addr;</span><br><span class="line"></span><br><span class="line">        Person clone = person.clone();</span><br><span class="line">        addr.addr = <span class="string">&quot;hangzhou&quot;</span>;</span><br><span class="line"></span><br><span class="line">        System.out.println(person);</span><br><span class="line">        System.out.println(clone);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span> <span class="keyword">implements</span> <span class="title">Cloneable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> age;</span><br><span class="line">    String name;</span><br><span class="line">    Address addr;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// constructor + toString</span></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Person <span class="title">clone</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Person clone = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            clone = (Person)<span class="keyword">super</span>.clone();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (CloneNotSupportedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        clone.addr = addr.clone(); <span class="comment">// field 的 clone 调用和赋值</span></span><br><span class="line">        <span class="keyword">return</span> clone;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Address</span> <span class="keyword">implements</span> <span class="title">Cloneable</span> </span>&#123;</span><br><span class="line">    String addr;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// constructor + toString</span></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> Address <span class="title">clone</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Address addr = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            addr = (Address) <span class="keyword">super</span>.clone();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (CloneNotSupportedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> addr;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Person&#123;age=1, name=&#x27;jack&#x27;, addr=Address&#123;addr=&#x27;hangzhou&#x27;&#125;&#125;</span></span><br><span class="line"><span class="comment">// Person&#123;age=1, name=&#x27;jack&#x27;, addr=Address&#123;addr=&#x27;shanghai&#x27;&#125;&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="解决多层-clone-问题"><a href="#解决多层-clone-问题" class="headerlink" title="解决多层 clone 问题"></a>解决多层 clone 问题</h2><p>如果需要复制的对象包含很多成员变量，或者潜逃了很多层，那么重写 clone 也会变得相当麻烦，这个时候可以使用 Serializable 接口来简化序列化操作</p>
+<p>这种实现不需要实现 Cloneable 接口，只需要相关的类实现 Serializable 接口即可，感觉就是代码看着会复杂一点，其他倒是没什么弊端</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CloneTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> CloneNotSupportedException </span>&#123;</span><br><span class="line">        Person person = <span class="keyword">new</span> Person(<span class="number">1</span>, <span class="string">&quot;jack&quot;</span>);</span><br><span class="line">        Address addr = <span class="keyword">new</span> Address(<span class="string">&quot;shanghai&quot;</span>);</span><br><span class="line">        person.addr = addr;</span><br><span class="line"></span><br><span class="line">        Person clone = person.clone();</span><br><span class="line">        addr.addr = <span class="string">&quot;hangzhou&quot;</span>;</span><br><span class="line"></span><br><span class="line">        System.out.println(person);</span><br><span class="line">        System.out.println(clone);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span> <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = -<span class="number">926205369611773951L</span>;</span><br><span class="line">    <span class="keyword">int</span> age;</span><br><span class="line">    String name;</span><br><span class="line">    Address addr;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// constructor + toString</span></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Person <span class="title">clone</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Person clone = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">// 将该对象序列化成流,因为写在流里的是对象的一个拷贝，而原对象仍然存在于JVM里面。所以利用这个特性可以实现对象的深拷贝</span></span><br><span class="line">            ByteArrayOutputStream baos = <span class="keyword">new</span> ByteArrayOutputStream();</span><br><span class="line">            ObjectOutputStream oos = <span class="keyword">new</span> ObjectOutputStream(baos);</span><br><span class="line">            oos.writeObject(<span class="keyword">this</span>);</span><br><span class="line">            <span class="comment">// 将流序列化成对象</span></span><br><span class="line">            ByteArrayInputStream bais = <span class="keyword">new</span> ByteArrayInputStream(baos.toByteArray());</span><br><span class="line">            ObjectInputStream ois = <span class="keyword">new</span> ObjectInputStream(bais);</span><br><span class="line">            clone = (Person) ois.readObject();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException | ClassNotFoundException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> clone;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Address</span> <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = -<span class="number">1360519918551295988L</span>;</span><br><span class="line">    String addr;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// constructor + toString</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// Person&#123;age=1, name=&#x27;jack&#x27;, addr=Address&#123;addr=&#x27;hangzhou&#x27;&#125;&#125;</span></span><br><span class="line"><span class="comment">// Person&#123;age=1, name=&#x27;jack&#x27;, addr=Address&#123;addr=&#x27;shanghai&#x27;&#125;&#125;</span></span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>java</category>
+      </categories>
+      <tags>
+        <tag>拷贝</tag>
+        <tag>clone</tag>
       </tags>
   </entry>
   <entry>
