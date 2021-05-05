@@ -27,6 +27,92 @@
       </tags>
   </entry>
   <entry>
+    <title>冒泡排序</title>
+    <url>/hexo/2021/04/20/Algorithm-bubble-sort/</url>
+    <content><![CDATA[<ul>
+<li><a href="https://zhuanlan.zhihu.com/p/42586566">示例带图</a></li>
+</ul>
+<p>算法描述</p>
+<ol>
+<li>遍历数组，比较相邻的两个元素的大小，如果前一个比后一个大就交换位置，如此循环，最后一个位置即最大值</li>
+<li>重复上述过程，对前 n-1 个元素排序</li>
+<li>重复直到所有元素都完成排序</li>
+</ol>
+<p>操作没问题，但是你难道不觉得，这个比较中间过程中的交换过程很浪费资源吗？为了省去中间的交换过程，我们有了选择排序。</p>
+<p>时间复杂度：O(n<sup>2</sup>)</p>
+<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 1. 遍历数组，比较相邻的两个元素的大小，如果前一个比后一个大就交换位置，如此循环，最后一个位置即最大值</span></span><br><span class="line"><span class="comment"> * 2. 重复上述过程，对前 n-1 个元素排序</span></span><br><span class="line"><span class="comment"> * 3. 重复直到所有元素都完成排序</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BubbleSortDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] sample = <span class="keyword">new</span> Random().ints(<span class="number">0</span>, <span class="number">100</span>).limit(<span class="number">10</span>).toArray();</span><br><span class="line">        System.out.println(<span class="string">&quot;Origin: &quot;</span> + Arrays.toString(sample));</span><br><span class="line">        bubbleSort(sample);</span><br><span class="line">        System.out.println(<span class="string">&quot;After:  &quot;</span> + Arrays.toString(sample));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">bubbleSort</span><span class="params">(<span class="keyword">int</span>[] sample)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = sample.length - <span class="number">1</span>; i &gt; <span class="number">0</span>; i--) &#123; <span class="comment">// 这里使用 i=length-1 的表达方式，第二层直接 j &lt; i, 书写起来比较好看</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; i; j++) &#123;</span><br><span class="line">                <span class="keyword">if</span> (sample[j] &gt; sample[j + <span class="number">1</span>]) &#123;</span><br><span class="line">                    swap(sample, j, j + <span class="number">1</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">swap</span><span class="params">(<span class="keyword">int</span>[] arr, <span class="keyword">int</span> pos1, <span class="keyword">int</span> pos2)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> tmp = arr[pos1];</span><br><span class="line">        arr[pos1] = arr[pos2];</span><br><span class="line">        arr[pos2] = tmp;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// Origin: [62, 39, 37, 64, 84, 27, 68, 90, 55, 63]</span></span><br><span class="line"><span class="comment">// After:  [27, 37, 39, 55, 62, 63, 64, 68, 84, 90]</span></span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>算法</category>
+      </categories>
+      <tags>
+        <tag>冒泡排序</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>堆排序</title>
+    <url>/hexo/2021/05/05/Algorithm-heap-sort/</url>
+    <content><![CDATA[<p>堆排序是一种利用堆特性的选择排序，复杂度为 O(nlog<sup>n</sup>)</p>
+<p>堆是一颗完全二叉树</p>
+<p>堆排序的基本思想是：将待排序序列构造成一个大顶堆，此时，整个序列的最大值就是堆顶的根节点。将其与末尾元素进行交换，此时末尾就为最大值。然后将剩余n-1个元素重新构造成一个堆，这样会得到n个元素的次小值。如此反复执行，便能得到一个有序序列了</p>
+<p>将数组映射为二叉树结构，对应关系如下</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@startuml</span><br><span class="line">(50) --&gt; (45)</span><br><span class="line">(50) --&gt; (40)</span><br><span class="line">(45) --&gt; (20)</span><br><span class="line">(45) --&gt; (25)</span><br><span class="line">(40) --&gt; (35)</span><br><span class="line">(40) --&gt; (30)</span><br><span class="line">(20) --&gt; (10)</span><br><span class="line">(20) --&gt; (15)</span><br><span class="line">@enduml</span><br></pre></td></tr></table></figure>
+
+<img  src=http://www.plantuml.com/plantuml/svg/qp0rq5JGrRLJq30nrUJIGF0CW3oW48HdXCe3gJI1gJH6vO5K6i5uXgWyKqq0>
+
+<table>
+<thead>
+<tr>
+<th align="center">#</th>
+<th align="center">0</th>
+<th align="center">1</th>
+<th align="center">2</th>
+<th align="center">3</th>
+<th align="center">4</th>
+<th align="center">5</th>
+<th align="center">6</th>
+<th align="center">7</th>
+<th align="center">8</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">arr</td>
+<td align="center">50</td>
+<td align="center">45</td>
+<td align="center">40</td>
+<td align="center">20</td>
+<td align="center">25</td>
+<td align="center">35</td>
+<td align="center">30</td>
+<td align="center">10</td>
+<td align="center">15</td>
+</tr>
+</tbody></table>
+<p>该数组从逻辑上讲就是一个堆结构，我们用简单的公式来描述一下堆的定义就是：</p>
+<p>大顶堆：arr[i] &gt;= arr[2i+1] &amp;&amp; arr[i] &gt;= arr[2i+2]  </p>
+<p>小顶堆：arr[i] &lt;= arr[2i+1] &amp;&amp; arr[i] &lt;= arr[2i+2]  </p>
+<p>下标与节点位置关系：</p>
+<ul>
+<li>下标为 i 的节点父节点下标： (i-1)/2 整数除法</li>
+<li>下标为 i 的节点的左孩子下标：i*2 + 1</li>
+<li>下标为 i 的节点的右孩子下标：i*2 + 2</li>
+<li>最后一个非叶子节点位置：(数组长度/2) - 1</li>
+</ul>
+<p>最后一点是怎么得到的？隐隐记得之前看过的那本数据结构数上貌似有类似的答案。。。</p>
+<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HeapSort</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] arr = <span class="keyword">new</span> <span class="keyword">int</span>[]&#123; <span class="number">50</span>, <span class="number">45</span>, <span class="number">40</span>, <span class="number">20</span>, <span class="number">25</span>, <span class="number">35</span>, <span class="number">30</span>, <span class="number">10</span>, <span class="number">15</span> &#125;;</span><br><span class="line">        System.out.println(<span class="string">&quot;Origin: &quot;</span> + Arrays.toString(arr));</span><br><span class="line">        heapSort(arr);</span><br><span class="line">        System.out.println(<span class="string">&quot;After:  &quot;</span> + Arrays.toString(arr));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">heapSort</span><span class="params">(<span class="keyword">int</span>[] arr)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 构建大顶堆, 即从最后一个非叶子节点开始对之前的节点分别做大顶堆调整</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = arr.length / <span class="number">2</span> - <span class="number">1</span>; i &gt; <span class="number">0</span>; i--) &#123;</span><br><span class="line">            heapify(arr, arr.length, i);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 已经是大顶堆了，先交换，在调整，一直重复 n-1 次</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = arr.length - <span class="number">1</span>; i &gt; <span class="number">0</span>; i--) &#123;</span><br><span class="line">            swap(arr, <span class="number">0</span>, i);</span><br><span class="line">            heapify(arr, i, <span class="number">0</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">heapify</span><span class="params">(<span class="keyword">int</span>[] arr, <span class="keyword">int</span> length, <span class="keyword">int</span> pos)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> largest = pos;</span><br><span class="line">        <span class="keyword">int</span> lson = pos * <span class="number">2</span> + <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">int</span> rson = pos * <span class="number">2</span> + <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (lson &lt; length &amp;&amp; arr[largest] &lt; arr[lson]) &#123;</span><br><span class="line">            largest = lson;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (rson &lt; length &amp;&amp; arr[largest] &lt; arr[rson]) &#123;</span><br><span class="line">            largest = rson;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (largest != pos) &#123;</span><br><span class="line">            swap(arr, largest, pos);</span><br><span class="line">            heapify(arr, length, largest);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">swap</span><span class="params">(<span class="keyword">int</span>[] arr, <span class="keyword">int</span> pos1, <span class="keyword">int</span> pos2)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> tmp = arr[pos1];</span><br><span class="line">        arr[pos1] = arr[pos2];</span><br><span class="line">        arr[pos2] = tmp;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Refer"><a href="#Refer" class="headerlink" title="Refer"></a>Refer</h2><ul>
+<li><a href="https://www.cnblogs.com/chengxiao/p/6129630.html">CNBLOG</a></li>
+<li><a href="https://www.bilibili.com/video/BV1fp4y1D7cj?from=search&seid=3873546409410814895">虽然是 C 实现，但是思路很清晰</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>算法</category>
+      </categories>
+      <tags>
+        <tag>堆排序</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>插入排序</title>
     <url>/hexo/2021/04/20/Algorithm-insertion-sort/</url>
     <content><![CDATA[<ul>
@@ -175,7 +261,7 @@
 <p>时间复杂度：</p>
 <p>平均和最好： O(nlong<sup>n</sup>)<br>最坏： O(n<sup>2</sup>)</p>
 <h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><p>说实话，道理我都懂，但是在看 Java 版本的希尔排序实现的时候，我看是看了半天，加上搜索视频教程和本地 debug 才理解下来的，他别是在这个交替进行的点，奇数个元素分组规则上，卡了挺久的。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ShellSort</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] sample = <span class="keyword">new</span> Random().ints(<span class="number">0</span>, <span class="number">100</span>).limit(<span class="number">11</span>).toArray();</span><br><span class="line">        System.out.println(<span class="string">&quot;Origin: &quot;</span> + Arrays.toString(sample));</span><br><span class="line">        shellSort(sample);</span><br><span class="line">        System.out.println(<span class="string">&quot;After:  &quot;</span> + Arrays.toString(sample));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">shellSort</span><span class="params">(<span class="keyword">int</span>[] sample)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 步长操作</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> step = sample.length / <span class="number">2</span>; step &gt; <span class="number">0</span>; step /= <span class="number">2</span>) &#123;</span><br><span class="line">            <span class="comment">//分组进行插入排序，这里需要注意的是，这个插入排序是交替进行的，这里困惑了很久</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = step; i &lt; sample.length; i++) &#123;</span><br><span class="line">                <span class="comment">// 以步长为基本单位做插入排序</span></span><br><span class="line">                <span class="keyword">int</span> j = i - step;</span><br><span class="line">                <span class="keyword">while</span> (j &gt;= <span class="number">0</span> &amp;&amp; sample[j] &gt; sample[j + step]) &#123;</span><br><span class="line">                    <span class="keyword">int</span> temp = sample[j + step];</span><br><span class="line">                    sample[j + step] = sample[j];</span><br><span class="line">                    sample[j] = temp;</span><br><span class="line">                    j = j - step;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Origin: [84, 32, 55, 3, 57, 68, 75, 71, 12, 43, 50]</span></span><br><span class="line"><span class="comment">// After:  [3, 12, 32, 43, 50, 55, 57, 68, 71, 75, 84]</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ShellSort</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] sample = <span class="keyword">new</span> Random().ints(<span class="number">0</span>, <span class="number">100</span>).limit(<span class="number">11</span>).toArray();</span><br><span class="line">        System.out.println(<span class="string">&quot;Origin: &quot;</span> + Arrays.toString(sample));</span><br><span class="line">        shellSort(sample);</span><br><span class="line">        System.out.println(<span class="string">&quot;After:  &quot;</span> + Arrays.toString(sample));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">shellSort</span><span class="params">(<span class="keyword">int</span>[] sample)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 步长操作</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> step = sample.length / <span class="number">2</span>; step &gt; <span class="number">0</span>; step /= <span class="number">2</span>) &#123;</span><br><span class="line">            <span class="comment">//分组进行插入排序，这里需要注意的是，这个插入排序是交替进行的，这里困惑了很久</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = step; i &lt; sample.length; i++) &#123;</span><br><span class="line">                <span class="comment">// 以步长为基本单位做插入排序</span></span><br><span class="line">                <span class="keyword">int</span> j = i - step;</span><br><span class="line">                <span class="keyword">while</span> (j &gt;= <span class="number">0</span> &amp;&amp; sample[j] &gt; sample[j + step]) &#123;</span><br><span class="line">                    <span class="comment">// 典型的通过中间变量交换值的逻辑</span></span><br><span class="line">                    <span class="keyword">int</span> temp = sample[j + step];</span><br><span class="line">                    sample[j + step] = sample[j];</span><br><span class="line">                    sample[j] = temp;</span><br><span class="line">                    j = j - step;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Origin: [84, 32, 55, 3, 57, 68, 75, 71, 12, 43, 50]</span></span><br><span class="line"><span class="comment">// After:  [3, 12, 32, 43, 50, 55, 57, 68, 71, 75, 84]</span></span><br></pre></td></tr></table></figure>
 
 <h2 id="细节分析"><a href="#细节分析" class="headerlink" title="细节分析"></a>细节分析</h2><p>以 [84, 32, 55, 3, 57, 68, 75, 71, 12, 43, 50] 为例子分析</p>
 <p>第一次分组，对半分，由于元素格式 11 个，步长 5，将整个数组分为了五组</p>

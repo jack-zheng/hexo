@@ -206,6 +206,212 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/11/18/ASM-basic-concept/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2020/11/18/ASM-basic-concept/" class="post-title-link" itemprop="url">ASM 中的一些基本概念</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-11-18 15:43:43" itemprop="dateCreated datePublished" datetime="2020-11-18T15:43:43+08:00">2020-11-18</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-05 20:09:56" itemprop="dateModified" datetime="2021-05-05T20:09:56+08:00">2021-05-05</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
+                    <span itemprop="name">编程</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>记录下收集到的 ASM 的基础概念和例子</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://gitlab.ow2.org/asm/asm/-/blob/master/asm/src/test/java/org/objectweb/asm/TypeTest.java">ASM 官方 repo</a></p>
+<h2 id="Type"><a href="#Type" class="headerlink" title="Type"></a>Type</h2><p>Type 类代 field 和 method 的 descriptor 属性。就是类似 <code>(Ljava/lang/String;)V</code> 这种表达式。该类中所有的方法几乎都是静态的，提供的功能也基本一致，传入某种类型的参数，然后返回代表 descriptor 的 type 对象。当传入为 method 类型的参数时，type 中会包含 <code>参数 + 返回值</code> 类型信息。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test</span><span class="params">()</span> <span class="keyword">throws</span> NoSuchMethodException </span>&#123;</span><br><span class="line">    System.out.println(Type.getType(String.class));</span><br><span class="line">    System.out.println(Type.getType(<span class="keyword">this</span>.getClass().getMethod(<span class="string">&quot;testGetTypeFromDescriptor&quot;</span>, String.class)));</span><br><span class="line">    System.out.println(Arrays.toString(Type.getArgumentTypes(<span class="string">&quot;(Ljava/lang/String;)V&quot;</span>)));</span><br><span class="line">    System.out.println(Type.getType(<span class="keyword">this</span>.getClass().getMethod(<span class="string">&quot;getList&quot;</span>)));</span><br><span class="line">    System.out.println(Type.getType(<span class="keyword">this</span>.getClass().getMethod(<span class="string">&quot;getArr&quot;</span>)));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testGetTypeFromDescriptor</span><span class="params">(<span class="keyword">final</span> String descriptor)</span> </span>&#123;&#125;</span><br><span class="line"><span class="function"><span class="keyword">public</span> List&lt;String&gt; <span class="title">getList</span><span class="params">()</span> </span>&#123;<span class="keyword">return</span> Collections.emptyList();&#125;</span><br><span class="line"><span class="keyword">public</span> String[] getArr() &#123;<span class="keyword">return</span> <span class="keyword">new</span> String[]&#123;<span class="string">&quot;A&quot;</span>&#125;;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// output:</span></span><br><span class="line"><span class="comment">// Ljava/lang/String;</span></span><br><span class="line"><span class="comment">// (Ljava/lang/String;)V</span></span><br><span class="line"><span class="comment">// [Ljava/lang/String;]</span></span><br><span class="line"><span class="comment">// ()Ljava/util/List;</span></span><br><span class="line"><span class="comment">// ()[Ljava/lang/String;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="Junit5-是怎么实现-Excutable-接口的？-看不懂"><a href="#Junit5-是怎么实现-Excutable-接口的？-看不懂" class="headerlink" title="Junit5 是怎么实现 Excutable 接口的？ 看不懂"></a>Junit5 是怎么实现 Excutable 接口的？ 看不懂</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testConstructor_validApi</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Executable constructor = () -&gt; <span class="keyword">new</span> ClassVisitor(Opcodes.ASM4) &#123;&#125;;</span><br><span class="line"></span><br><span class="line">    assertDoesNotThrow(constructor);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="ClassReader"><a href="#ClassReader" class="headerlink" title="ClassReader"></a>ClassReader</h2><p>这个类可以看作字节码文件的读操作的入口，只负责读取，其他处理逻辑是在 XXXVisitor 里面实现的。</p>
+<p>PS: 该类方法打印的类信息都是斜线 <code>/</code> 分割的</p>
+<h2 id="官方测试是怎么测试-ClassReader-ClassVisitor-等类的"><a href="#官方测试是怎么测试-ClassReader-ClassVisitor-等类的" class="headerlink" title="官方测试是怎么测试 ClassReader, ClassVisitor 等类的"></a>官方测试是怎么测试 ClassReader, ClassVisitor 等类的</h2><p>ClassReader 其核心功能有两个，一个是解析文件流，拿到基本信息，比如编译版本，常量池信息等。另一个是定义 Visitor 接解析顺序。</p>
+<p>测试时官方也分两类，第一类就是测试解析出来的信息，比如 ‘testGetClassName’ 等，第二类就是测试流程的，比如 ‘testAccept_emptyVisitor’。</p>
+<p>测试 Visitor 时也很简单，定义一个自己的 Visitor，官方示例中是定义一个 LogMethodVisitor，然后直接调用对应 visitor.visitMethodInsn 等方法，测试自定义在 LogMethodVisitor 里的逻辑是不是符合预期就行了。这个还是很有启发的，可以用这种方法来完善 TraceSonar 的项目。</p>
+<h2 id="Class-文件的格式"><a href="#Class-文件的格式" class="headerlink" title="Class 文件的格式"></a>Class 文件的格式</h2><p>以 ASM 官方例子的 <code>ClassVisitorTest.class</code> 为例，注意查看的是 <code>.class</code> 文件，不是 <code>.java</code> 文件。下载插件 BinEd 可以查看文件在不同进制下的内容。右键 class 文件 <code>open as Binary</code> 即可。</p>
+<p>Class 文件在格式上有特殊的规定，比如以 16 进制打开 class 可以看到前 4 位值为：0xCAFE(B1100 1010 1111 1110/202 254)</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testReadByte</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">    ClassReader classReader = <span class="keyword">new</span> ClassReader(getClass().getName());</span><br><span class="line">    System.out.println(bytesToHex(Arrays.copyOf(classReader.classFileBuffer, <span class="number">2</span>)));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">char</span>[] HEX_ARRAY = <span class="string">&quot;0123456789ABCDEF&quot;</span>.toCharArray();</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">bytesToHex</span><span class="params">(<span class="keyword">byte</span>[] bytes)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">char</span>[] hexChars = <span class="keyword">new</span> <span class="keyword">char</span>[bytes.length * <span class="number">2</span>];</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; bytes.length; j++) &#123;</span><br><span class="line">        <span class="keyword">int</span> v = bytes[j] &amp; <span class="number">0xFF</span>;</span><br><span class="line">        hexChars[j * <span class="number">2</span>] = HEX_ARRAY[v &gt;&gt;&gt; <span class="number">4</span>];</span><br><span class="line">        hexChars[j * <span class="number">2</span> + <span class="number">1</span>] = HEX_ARRAY[v &amp; <span class="number">0x0F</span>];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> String(hexChars);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// output: CAFE</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/11/12/Spring-service-run-once-after-server-up/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2020/11/12/Spring-service-run-once-after-server-up/" class="post-title-link" itemprop="url">Spring 怎么实现 server 启动之后立刻执行一个服务</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-11-12 12:59:19" itemprop="dateCreated datePublished" datetime="2020-11-12T12:59:19+08:00">2020-11-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-05 20:09:56" itemprop="dateModified" datetime="2021-05-05T20:09:56+08:00">2021-05-05</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/spring/" itemprop="url" rel="index">
+                    <span itemprop="name">spring</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>最近遇到一个需求需要在 Spring web service 启动之后立即执行，类似一个初始化的工作，搜出来有好多实现方式，稍微记录一下他们的区别</p>
+<h2 id="ApplicationListener"><a href="#ApplicationListener" class="headerlink" title="ApplicationListener"></a>ApplicationListener</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">InitTraceSourceEventListener</span> <span class="keyword">implements</span> <span class="title">ApplicationListener</span>&lt;<span class="title">ApplicationReadyEvent</span>&gt; </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onApplicationEvent</span><span class="params">(ApplicationReadyEvent applicationReadyEvent)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;InitTraceSourceEventListener triggered...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>或者</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ProjectConfiguration</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger log = </span><br><span class="line">   LoggerFactory.getLogger(ProjectConfiguration.class);</span><br><span class="line"></span><br><span class="line">   <span class="meta">@EventListener(ApplicationReadyEvent.class)</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doSomethingAfterStartup</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    log.info(<span class="string">&quot;hello world, I have just started up&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="SpringBootServletInitializer"><a href="#SpringBootServletInitializer" class="headerlink" title="SpringBootServletInitializer"></a>SpringBootServletInitializer</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableAutoConfiguration</span></span><br><span class="line"><span class="meta">@ComponentScan</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Application</span> <span class="keyword">extends</span> <span class="title">SpringBootServletInitializer</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@SuppressWarnings(&quot;resource&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(<span class="keyword">final</span> String[] args)</span> </span>&#123;</span><br><span class="line">        ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);</span><br><span class="line"></span><br><span class="line">        context.getBean(Table.class).fillWithTestdata(); // &lt;-- here</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="PostConstruct"><a href="#PostConstruct" class="headerlink" title="@PostConstruct"></a>@PostConstruct</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Monitor</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Autowired</span> <span class="keyword">private</span> SomeService service</span><br><span class="line"></span><br><span class="line">    <span class="meta">@PostConstruct</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="comment">// start your monitoring in here</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="ApplicationRunner"><a href="#ApplicationRunner" class="headerlink" title="ApplicationRunner"></a>ApplicationRunner</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.springframework.boot.ApplicationRunner;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ServerInitializer</span> <span class="keyword">implements</span> <span class="title">ApplicationRunner</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">(ApplicationArguments applicationArguments)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//code goes here</span></span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="CommandLineRunner"><a href="#CommandLineRunner" class="headerlink" title="CommandLineRunner"></a>CommandLineRunner</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CommandLineAppStartupRunner</span> <span class="keyword">implements</span> <span class="title">CommandLineRunner</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = LoggerFactory.getLogger(CommandLineAppStartupRunner.class);</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">(String...args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        logger.info(<span class="string">&quot;Application started with command-line arguments: &#123;&#125; . \n To kill this application, press Ctrl + C.&quot;</span>, Arrays.toString(args));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="InitializingBean"><a href="#InitializingBean" class="headerlink" title="InitializingBean"></a>InitializingBean</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyInitializingBean</span> <span class="keyword">implements</span> <span class="title">InitializingBean</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = ...;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">afterPropertiesSet</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    logger.info(<span class="string">&quot;InitializingBean#afterPropertiesSet()&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/11/11/Springboot-add-local-jar-into-dependency/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +443,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-04 20:03:33" itemprop="dateModified" datetime="2021-05-04T20:03:33+08:00">2021-05-04</time>
+                <time title="修改时间：2021-05-05 20:09:56" itemprop="dateModified" datetime="2021-05-05T20:09:56+08:00">2021-05-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -334,7 +540,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-04 20:03:33" itemprop="dateModified" datetime="2021-05-04T20:03:33+08:00">2021-05-04</time>
+                <time title="修改时间：2021-05-05 20:09:56" itemprop="dateModified" datetime="2021-05-05T20:09:56+08:00">2021-05-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -428,7 +634,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-04 20:03:33" itemprop="dateModified" datetime="2021-05-04T20:03:33+08:00">2021-05-04</time>
+                <time title="修改时间：2021-05-05 20:09:56" itemprop="dateModified" datetime="2021-05-05T20:09:56+08:00">2021-05-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -521,7 +727,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-04 20:03:33" itemprop="dateModified" datetime="2021-05-04T20:03:33+08:00">2021-05-04</time>
+                <time title="修改时间：2021-05-05 20:09:56" itemprop="dateModified" datetime="2021-05-05T20:09:56+08:00">2021-05-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -755,7 +961,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-04 20:03:33" itemprop="dateModified" datetime="2021-05-04T20:03:33+08:00">2021-05-04</time>
+                <time title="修改时间：2021-05-05 20:09:56" itemprop="dateModified" datetime="2021-05-05T20:09:56+08:00">2021-05-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -856,7 +1062,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-04 20:03:33" itemprop="dateModified" datetime="2021-05-04T20:03:33+08:00">2021-05-04</time>
+                <time title="修改时间：2021-05-05 20:09:56" itemprop="dateModified" datetime="2021-05-05T20:09:56+08:00">2021-05-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1004,7 +1210,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-04 20:03:33" itemprop="dateModified" datetime="2021-05-04T20:03:33+08:00">2021-05-04</time>
+                <time title="修改时间：2021-05-05 20:09:56" itemprop="dateModified" datetime="2021-05-05T20:09:56+08:00">2021-05-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1102,7 +1308,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-04 20:03:33" itemprop="dateModified" datetime="2021-05-04T20:03:33+08:00">2021-05-04</time>
+                <time title="修改时间：2021-05-05 20:09:56" itemprop="dateModified" datetime="2021-05-05T20:09:56+08:00">2021-05-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1169,296 +1375,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/10/22/Java-operator-precedence/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2020/10/22/Java-operator-precedence/" class="post-title-link" itemprop="url">Java 操作符优先级</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-10-22 15:14:01" itemprop="dateCreated datePublished" datetime="2020-10-22T15:14:01+08:00">2020-10-22</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-04 20:03:33" itemprop="dateModified" datetime="2021-05-04T20:03:33+08:00">2021-05-04</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/java/" itemprop="url" rel="index">
-                    <span itemprop="name">java</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>745</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>记录一下工作中遇到的操作符优先级的问题，总体的逻辑是：从左到右依次计算</p>
-<p><a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/tutorial/java/nutsandbolts/operators.html">Java Operator Precedence</a></p>
-<table>
-<thead>
-<tr>
-<th align="center">Operators</th>
-<th align="center">Precedence</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="center">postfix</td>
-<td align="center">expr++ expr–</td>
-</tr>
-<tr>
-<td align="center">unary</td>
-<td align="center">++expr –expr +expr -expr ~ !</td>
-</tr>
-<tr>
-<td align="center">multiplicative</td>
-<td align="center">* / %</td>
-</tr>
-<tr>
-<td align="center">additive</td>
-<td align="center">+ -</td>
-</tr>
-<tr>
-<td align="center">shift</td>
-<td align="center">&lt;&lt; &gt;&gt; &gt;&gt;&gt;</td>
-</tr>
-<tr>
-<td align="center">relational</td>
-<td align="center">&lt; &gt; &lt;= &gt;= instanceof</td>
-</tr>
-<tr>
-<td align="center">equality</td>
-<td align="center">== !=</td>
-</tr>
-<tr>
-<td align="center">bitwise AND</td>
-<td align="center">&amp;</td>
-</tr>
-<tr>
-<td align="center">bitwise exclusive OR</td>
-<td align="center">^</td>
-</tr>
-<tr>
-<td align="center">bitwise inclusive OR</td>
-<td align="center">|</td>
-</tr>
-<tr>
-<td align="center">logical AND</td>
-<td align="center">&amp;&amp;</td>
-</tr>
-<tr>
-<td align="center">logical OR</td>
-<td align="center">||</td>
-</tr>
-<tr>
-<td align="center">ternary</td>
-<td align="center">? :</td>
-</tr>
-<tr>
-<td align="center">assignment</td>
-<td align="center">= += -= *= /= %= &amp;= ^= | = &lt;&lt;= &gt;&gt;= &gt;&gt;&gt;=</td>
-</tr>
-</tbody></table>
-<h2 id="逻辑与-和-逻辑非"><a href="#逻辑与-和-逻辑非" class="headerlink" title="逻辑与 和 逻辑非"></a>逻辑与 和 逻辑非</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (<span class="keyword">null</span> != params &amp;&amp; params.isFeatureExist(FeatureEnum.FEATURE_01) &amp;&amp; !(ElementTypeEnum.ADDRESS.equals(Element.getElementTypeEnum()) || ElementTypeEnum.BUSINESS_ADDRESS.equals(Element.getElementTypeEnum())) &amp;&amp; !ElementTypeEnum.PERSON_GLOBAL_INFO.getElementId().equals(Element.getId()))</span><br></pre></td></tr></table></figure>
-
-<p>从左到右依次判断就完事儿啦。。。感觉上面表格中的 逻辑与 &gt; 逻辑非 的表示还混淆了我的判断（；￣ェ￣）</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/10/20/Effective-Java-chapter-2-creating-and-destorying-objects/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2020/10/20/Effective-Java-chapter-2-creating-and-destorying-objects/" class="post-title-link" itemprop="url">Effective Java chapter 2 creating and destorying objects</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-10-20 10:48:50" itemprop="dateCreated datePublished" datetime="2020-10-20T10:48:50+08:00">2020-10-20</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-04 20:03:33" itemprop="dateModified" datetime="2021-05-04T20:03:33+08:00">2021-05-04</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
-                    <span itemprop="name">编程</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>6.4k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>6 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>第二章 对象的生成和销毁 读书笔记</p>
-<h2 id="实体类有很多构造函数的时候，使用-Builder"><a href="#实体类有很多构造函数的时候，使用-Builder" class="headerlink" title="实体类有很多构造函数的时候，使用 Builder"></a>实体类有很多构造函数的时候，使用 Builder</h2><blockquote>
-<p>In summary, the Builder pattern is a good choice when designing classes whose constructors or static factories would have more than a handful of parameters, especially if many of the parameters are optional or of identical type. Client code is much easier to read and write with builders than with telescoping constructors, and builders are much safer than JavaBeans.</p>
-<p>总的来说，builder 模式适用于实体类有多个构造函数并且参数大于 5 个，参数可选并且参数类型相同的情况。</p>
-</blockquote>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 简单的多构造函数实体类例子</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">NutritionFacts</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> servingSize;  <span class="comment">// (mL)            required</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> servings;     <span class="comment">// (per container) required</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> calories;     <span class="comment">// (per serving)   optional</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> fat;          <span class="comment">// (g/serving)     optional</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> sodium;       <span class="comment">// (mg/serving)    optional</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> carbohydrate; <span class="comment">// (g/serving)     optional</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">NutritionFacts</span><span class="params">(<span class="keyword">int</span> servingSize, <span class="keyword">int</span> servings)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>(servingSize, servings, <span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">NutritionFacts</span><span class="params">(<span class="keyword">int</span> servingSize, <span class="keyword">int</span> servings, <span class="keyword">int</span> calories)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>(servingSize, servings, calories, <span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">NutritionFacts</span><span class="params">(<span class="keyword">int</span> servingSize, <span class="keyword">int</span> servings, <span class="keyword">int</span> calories, <span class="keyword">int</span> fat)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>(servingSize, servings, calories, fat, <span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">NutritionFacts</span><span class="params">(<span class="keyword">int</span> servingSize, <span class="keyword">int</span> servings, <span class="keyword">int</span> calories, <span class="keyword">int</span> fat, <span class="keyword">int</span> sodium)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>(servingSize, servings, calories, fat, sodium, <span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">NutritionFacts</span><span class="params">(<span class="keyword">int</span> servingSize, <span class="keyword">int</span> servings, <span class="keyword">int</span> calories, <span class="keyword">int</span> fat, <span class="keyword">int</span> sodium, <span class="keyword">int</span> carbohydrate)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.servingSize = servingSize;</span><br><span class="line">        <span class="keyword">this</span>.servings = servings;</span><br><span class="line">        <span class="keyword">this</span>.calories = calories;</span><br><span class="line">        <span class="keyword">this</span>.fat = fat;</span><br><span class="line">        <span class="keyword">this</span>.sodium = sodium;</span><br><span class="line">        <span class="keyword">this</span>.carbohydrate = carbohydrate;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>多构造函数能够工作，但是对客户端来说多个参数的构造函数在调用和阅读上比较容易出错。</p>
-<p>为了解决上面的多构造器模式的弊端，还有一种解决方案是采用 简单构造函数 + setter 的方式</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 简单构造函数 + Setter 的模式</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">NutritionFactsV2</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Parameters initialized to default values (if any)</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> servingSize = -<span class="number">1</span>; <span class="comment">// Required; no default value</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> servings = -<span class="number">1</span>; <span class="comment">// Required; no default value</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> calories = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> fat = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> sodium = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> carbohydrate = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">NutritionFactsV2</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Setter</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setServingSize</span><span class="params">(<span class="keyword">int</span> val)</span> </span>&#123;</span><br><span class="line">        servingSize = val;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setServings</span><span class="params">(<span class="keyword">int</span> val)</span> </span>&#123;</span><br><span class="line">        servings = val;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setCalories</span><span class="params">(<span class="keyword">int</span> val)</span> </span>&#123;</span><br><span class="line">        calories = val;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setFat</span><span class="params">(<span class="keyword">int</span> val)</span> </span>&#123;</span><br><span class="line">        fat = val;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setSodium</span><span class="params">(<span class="keyword">int</span> val)</span> </span>&#123;</span><br><span class="line">        sodium = val;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setCarbohydrate</span><span class="params">(<span class="keyword">int</span> val)</span> </span>&#123;</span><br><span class="line">        carbohydrate = val;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>弊端：调用是分散的，类属性可能存在不一致；这种模式不可能把一类做成不可变，需要额外的努力来确保线程安全。</p>
-<p>以下是建造者模式的实现</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">NutritionFacts</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> servingSize;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> servings;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> calories;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> fat;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> sodium;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> carbohydrate;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Builder</span> </span>&#123;</span><br><span class="line">        <span class="comment">// Required parameters</span></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> servingSize;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> servings;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Optional parameters - initialized to default values</span></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">int</span> calories = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">int</span> fat = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">int</span> sodium = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">int</span> carbohydrate = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="title">Builder</span><span class="params">(<span class="keyword">int</span> servingSize, <span class="keyword">int</span> servings)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">this</span>.servingSize = servingSize;</span><br><span class="line">            <span class="keyword">this</span>.servings = servings;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> Builder <span class="title">calories</span><span class="params">(<span class="keyword">int</span> val)</span> </span>&#123;</span><br><span class="line">            calories = val;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> Builder <span class="title">fat</span><span class="params">(<span class="keyword">int</span> val)</span> </span>&#123;</span><br><span class="line">            fat = val;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> Builder <span class="title">sodium</span><span class="params">(<span class="keyword">int</span> val)</span> </span>&#123;</span><br><span class="line">            sodium = val;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> Builder <span class="title">carbohydrate</span><span class="params">(<span class="keyword">int</span> val)</span> </span>&#123;</span><br><span class="line">            carbohydrate = val;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> NutritionFacts <span class="title">build</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> NutritionFacts(<span class="keyword">this</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">NutritionFacts</span><span class="params">(Builder builder)</span> </span>&#123;</span><br><span class="line">        servingSize = builder.servingSize;</span><br><span class="line">        servings = builder.servings;</span><br><span class="line">        calories = builder.calories;</span><br><span class="line">        fat = builder.fat;</span><br><span class="line">        sodium = builder.sodium;</span><br><span class="line">        carbohydrate = builder.carbohydrate;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>客户端调用代码如下</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">NutritionFacts cocaCola = <span class="keyword">new</span> NutritionFacts.Builder(<span class="number">240</span>, <span class="number">8</span>).calories(<span class="number">100</span>).sodium(<span class="number">35</span>).carbohydrate(<span class="number">27</span>).build();</span><br></pre></td></tr></table></figure>
-
-<p>多态下使用 Builder 模式</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 父类</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">Pizza</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">enum</span> Topping &#123;HAM, MUSHROOM, ONION, PEPPER, SAUSAGE&#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> Set&lt;Topping&gt; toppings;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">abstract</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Builder</span>&lt;<span class="title">T</span> <span class="keyword">extends</span> <span class="title">Builder</span>&lt;<span class="title">T</span>&gt;&gt; </span>&#123;</span><br><span class="line">        <span class="keyword">private</span> EnumSet&lt;Topping&gt; toppings = EnumSet.noneOf(Topping.class);</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> T <span class="title">addTopping</span><span class="params">(Topping topping)</span> </span>&#123;</span><br><span class="line">            toppings.add(Objects.requireNonNull(topping));</span><br><span class="line">            <span class="keyword">return</span> self();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">abstract</span> Pizza <span class="title">build</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Subclasses must override this method to return &quot;this&quot;</span></span><br><span class="line">        <span class="function"><span class="keyword">protected</span> <span class="keyword">abstract</span> T <span class="title">self</span><span class="params">()</span></span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Pizza(Builder&lt;?&gt; builder) &#123;</span><br><span class="line">        toppings = builder.toppings.clone(); <span class="comment">// See Item 50&#125;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 子类其一</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">NYPizza</span> <span class="keyword">extends</span> <span class="title">Pizza</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">enum</span> Size &#123;SMALL, MEDIUM, LARGE&#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Size size;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">NYPizza</span><span class="params">(Builder builder)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(builder);</span><br><span class="line">        <span class="keyword">this</span>.size = builder.size;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;NYPizza&#123;&quot;</span> +</span><br><span class="line">                <span class="string">&quot;size=&quot;</span> + size +</span><br><span class="line">                <span class="string">&quot;, toppings=&quot;</span> + toppings +</span><br><span class="line">                <span class="string">&#x27;&#125;&#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Builder</span> <span class="keyword">extends</span> <span class="title">Pizza</span>.<span class="title">Builder</span>&lt;<span class="title">Builder</span>&gt; </span>&#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">final</span> Size size;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="title">Builder</span><span class="params">(Size size)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">this</span>.size = Objects.requireNonNull(size);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function">NYPizza <span class="title">build</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> NYPizza(<span class="keyword">this</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">protected</span> Builder <span class="title">self</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 子类其二</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Calzone</span> <span class="keyword">extends</span> <span class="title">Pizza</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">boolean</span> sauceInside;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Calzone</span><span class="params">(Builder builder)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(builder);</span><br><span class="line">        <span class="keyword">this</span>.sauceInside = builder.sauceInside;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;Calzone&#123;&quot;</span> +</span><br><span class="line">                <span class="string">&quot;sauceInside=&quot;</span> + sauceInside +</span><br><span class="line">                <span class="string">&quot;, toppings=&quot;</span> + toppings +</span><br><span class="line">                <span class="string">&#x27;&#125;&#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Builder</span> <span class="keyword">extends</span> <span class="title">Pizza</span>.<span class="title">Builder</span>&lt;<span class="title">Builder</span>&gt; </span>&#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">boolean</span> sauceInside = <span class="keyword">false</span>; <span class="comment">// Default</span></span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> Builder <span class="title">sauceInside</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            sauceInside = <span class="keyword">true</span>;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function">Calzone <span class="title">build</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> Calzone(<span class="keyword">this</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">protected</span> Builder <span class="title">self</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 调用</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        NYPizza nyPizza = <span class="keyword">new</span> NYPizza.Builder(NYPizza.Size.LARGE).addTopping(Pizza.Topping.ONION).addTopping(Pizza.Topping.HAM).build();</span><br><span class="line">        System.out.println(nyPizza);</span><br><span class="line"></span><br><span class="line">        Calzone calzone = <span class="keyword">new</span> Calzone.Builder().sauceInside().addTopping(Pizza.Topping.HAM).addTopping(Pizza.Topping.SAUSAGE).build();</span><br><span class="line">        System.out.println(calzone);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>Builder 模式出了比较冗长之外没有其他坏处，而且扩展性好。</p>
-<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><ul>
-<li>使用 final 修饰属性有什么好处?<ul>
-<li>可以保证对应的变量只被赋值一次，并且 final 修饰的变量必须得赋值</li>
-</ul>
-</li>
-</ul>
-<p>PS: 外部类可以访问内部类的私有变量，这个我之前倒是没有想到的</p>
-<ul>
-<li><p><code>Builder&lt;T extends Builder&lt;T&gt;&gt;</code> 语法</p>
-<ul>
-<li>这种语法叫做 递归类型参数(recursive type parameter), 是泛型的一种，指代泛型参数必须是自己的子类，不理解可以先记着</li>
-</ul>
-</li>
-<li><p><code>protected abstract T self();</code> 为什么不直接返回 <code>this</code>?</p>
-<ul>
-<li>亲自写一下就会发现，builder 本身是个抽象类，所以是没有 <code>this</code> 这个指代的</li>
-</ul>
-</li>
-<li><p>父类的构造器是 <code>protected</code> 的，不然子类无法继承, 同理 <code>toppings</code> 也应该是 protected 的，不然子类根本就访问不了 (´Д` )</p>
-</li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1509,7 +1425,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">135</span>
+          <span class="site-state-item-count">137</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1522,7 +1438,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">158</span>
+        <span class="site-state-item-count">160</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1556,12 +1472,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">579k</span>
+    <span title="站点总字数">582k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">8:46</span>
+    <span title="站点阅读时长">8:49</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>

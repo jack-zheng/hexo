@@ -59,7 +59,7 @@
 <meta property="og:description" content="希尔排序是快排的一个变种，是首个突破 O(n2) 的排序算法。但是为什么说他快，看了一些知乎上的解释，这是一种实现简单，但是证明很难的算法。要用到很多数学概念，这里就算了。 算法说明：  取一个固定的步长(通常为待排数组长度的一半), 将数组分组，进行插入排序。 这里的分组并不是对半分，举例如下：假设有数组 [0, 1, 2, 3, 4, 5, 6, 7] 取步长 4，则 0，4 为一组，1，5为">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-05-04T05:05:25.000Z">
-<meta property="article:modified_time" content="2021-05-04T12:03:33.967Z">
+<meta property="article:modified_time" content="2021-05-05T12:09:56.265Z">
 <meta property="article:author" content="Jack Zheng">
 <meta property="article:tag" content="希尔排序">
 <meta name="twitter:card" content="summary">
@@ -231,10 +231,16 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2021-05-04 13:05:25 / 修改时间：20:03:33" itemprop="dateCreated datePublished" datetime="2021-05-04T13:05:25+08:00">2021-05-04</time>
+              <time title="创建时间：2021-05-04 13:05:25" itemprop="dateCreated datePublished" datetime="2021-05-04T13:05:25+08:00">2021-05-04</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-05 20:09:56" itemprop="dateModified" datetime="2021-05-05T20:09:56+08:00">2021-05-05</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
@@ -293,7 +299,7 @@
 <p>时间复杂度：</p>
 <p>平均和最好： O(nlong<sup>n</sup>)<br>最坏： O(n<sup>2</sup>)</p>
 <h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><p>说实话，道理我都懂，但是在看 Java 版本的希尔排序实现的时候，我看是看了半天，加上搜索视频教程和本地 debug 才理解下来的，他别是在这个交替进行的点，奇数个元素分组规则上，卡了挺久的。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ShellSort</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] sample = <span class="keyword">new</span> Random().ints(<span class="number">0</span>, <span class="number">100</span>).limit(<span class="number">11</span>).toArray();</span><br><span class="line">        System.out.println(<span class="string">&quot;Origin: &quot;</span> + Arrays.toString(sample));</span><br><span class="line">        shellSort(sample);</span><br><span class="line">        System.out.println(<span class="string">&quot;After:  &quot;</span> + Arrays.toString(sample));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">shellSort</span><span class="params">(<span class="keyword">int</span>[] sample)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 步长操作</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> step = sample.length / <span class="number">2</span>; step &gt; <span class="number">0</span>; step /= <span class="number">2</span>) &#123;</span><br><span class="line">            <span class="comment">//分组进行插入排序，这里需要注意的是，这个插入排序是交替进行的，这里困惑了很久</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = step; i &lt; sample.length; i++) &#123;</span><br><span class="line">                <span class="comment">// 以步长为基本单位做插入排序</span></span><br><span class="line">                <span class="keyword">int</span> j = i - step;</span><br><span class="line">                <span class="keyword">while</span> (j &gt;= <span class="number">0</span> &amp;&amp; sample[j] &gt; sample[j + step]) &#123;</span><br><span class="line">                    <span class="keyword">int</span> temp = sample[j + step];</span><br><span class="line">                    sample[j + step] = sample[j];</span><br><span class="line">                    sample[j] = temp;</span><br><span class="line">                    j = j - step;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Origin: [84, 32, 55, 3, 57, 68, 75, 71, 12, 43, 50]</span></span><br><span class="line"><span class="comment">// After:  [3, 12, 32, 43, 50, 55, 57, 68, 71, 75, 84]</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ShellSort</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] sample = <span class="keyword">new</span> Random().ints(<span class="number">0</span>, <span class="number">100</span>).limit(<span class="number">11</span>).toArray();</span><br><span class="line">        System.out.println(<span class="string">&quot;Origin: &quot;</span> + Arrays.toString(sample));</span><br><span class="line">        shellSort(sample);</span><br><span class="line">        System.out.println(<span class="string">&quot;After:  &quot;</span> + Arrays.toString(sample));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">shellSort</span><span class="params">(<span class="keyword">int</span>[] sample)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 步长操作</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> step = sample.length / <span class="number">2</span>; step &gt; <span class="number">0</span>; step /= <span class="number">2</span>) &#123;</span><br><span class="line">            <span class="comment">//分组进行插入排序，这里需要注意的是，这个插入排序是交替进行的，这里困惑了很久</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = step; i &lt; sample.length; i++) &#123;</span><br><span class="line">                <span class="comment">// 以步长为基本单位做插入排序</span></span><br><span class="line">                <span class="keyword">int</span> j = i - step;</span><br><span class="line">                <span class="keyword">while</span> (j &gt;= <span class="number">0</span> &amp;&amp; sample[j] &gt; sample[j + step]) &#123;</span><br><span class="line">                    <span class="comment">// 典型的通过中间变量交换值的逻辑</span></span><br><span class="line">                    <span class="keyword">int</span> temp = sample[j + step];</span><br><span class="line">                    sample[j + step] = sample[j];</span><br><span class="line">                    sample[j] = temp;</span><br><span class="line">                    j = j - step;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Origin: [84, 32, 55, 3, 57, 68, 75, 71, 12, 43, 50]</span></span><br><span class="line"><span class="comment">// After:  [3, 12, 32, 43, 50, 55, 57, 68, 71, 75, 84]</span></span><br></pre></td></tr></table></figure>
 
 <h2 id="细节分析"><a href="#细节分析" class="headerlink" title="细节分析"></a>细节分析</h2><p>以 [84, 32, 55, 3, 57, 68, 75, 71, 12, 43, 50] 为例子分析</p>
 <p>第一次分组，对半分，由于元素格式 11 个，步长 5，将整个数组分为了五组</p>
@@ -425,7 +431,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">135</span>
+          <span class="site-state-item-count">137</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -438,7 +444,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">158</span>
+        <span class="site-state-item-count">160</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -472,12 +478,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">579k</span>
+    <span title="站点总字数">582k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">8:46</span>
+    <span title="站点阅读时长">8:49</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
