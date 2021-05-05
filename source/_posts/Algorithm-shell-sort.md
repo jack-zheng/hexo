@@ -43,6 +43,7 @@ public class ShellSort {
                 // 以步长为基本单位做插入排序
                 int j = i - step;
                 while (j >= 0 && sample[j] > sample[j + step]) {
+                    // 典型的通过中间变量交换值的逻辑
                     int temp = sample[j + step];
                     sample[j + step] = sample[j];
                     sample[j] = temp;
