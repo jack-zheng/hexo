@@ -42,6 +42,7 @@ public class ShellSort {
             for (int i = step; i < sample.length; i++) {
                 // 以步长为基本单位做插入排序
                 int j = i - step;
+                // j >= 0, 0 的时候也是合法的
                 while (j >= 0 && sample[j] > sample[j + step]) {
                     // 典型的通过中间变量交换值的逻辑
                     int temp = sample[j + step];

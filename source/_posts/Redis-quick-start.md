@@ -1,5 +1,5 @@
 ---
-title: Redis quick start
+title: Redis 弹射起步
 date: 2021-04-30 18:19:46
 categories:
 - 弹射起步
