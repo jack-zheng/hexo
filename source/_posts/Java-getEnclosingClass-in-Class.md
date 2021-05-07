@@ -1,5 +1,5 @@
 ---
-title: Java getEnclosingClass in Class
+title: Class 类下的 getEnclosingClass() 方法使用案例
 date: 2021-05-06 18:45:35
 categories:
 - java
