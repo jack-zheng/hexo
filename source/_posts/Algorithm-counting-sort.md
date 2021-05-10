@@ -242,7 +242,7 @@ public class CountingSort {
         // 遍历 bucket 数组，将统计结果塞到新建结果集中
         int[] result = new int[arr.length];
         for (int i = arr.length - 1; i >= 0; i--) {
-            result[bucket[arr[i] - min] - 1] = arr[i];
+            result[bucket[arr[i] - min] - 1] = arr[i]; // 下标计算注意一下，arr[i] - min 取出 bucket 存储的位置值，但是这个值比下标大1
             bucket[arr[i] - min]--;
         }
         return result;

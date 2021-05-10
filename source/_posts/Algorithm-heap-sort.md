@@ -73,7 +73,7 @@ public class HeapSort {
     private static void heapSort(int[] arr) {
         // 构建大顶堆, 即从最后一个非叶子节点开始对之前的节点分别做大顶堆调整
         for (int i = arr.length / 2 - 1; i > 0; i--) {
-            heapify(arr, arr.length, i);
+            heapify(arr, arr.length, i); // 起始点是最后一个节点，有时候我会写成 0
         }
 
         // 已经是大顶堆了，先交换，在调整，一直重复 n-1 次
@@ -89,6 +89,7 @@ public class HeapSort {
         int lson = pos * 2 + 1;
         int rson = pos * 2 + 2;
 
+        // lson < length, 不包含相等的情况，不然数组越界了
         if (lson < length && arr[largest] < arr[lson]) {
             largest = lson;
         }
