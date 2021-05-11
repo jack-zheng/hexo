@@ -15,7 +15,7 @@ tags:
 
 Python: 3.7.3
 pip: 19.3.1
-OS:       posix
+OS: posix
 
 ## 创建工程
 

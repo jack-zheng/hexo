@@ -61,9 +61,9 @@ public class RadixSort {
 
             for (int j = arr.length - 1; j >= 0; j--) { // 等于 0 时也要计算
                 System.out.println("arr[j]: " + arr[j] + "; division: " + division + "; reminder: " + arr[j] / division % 10);
-                int index = bucket[arr[j] / division % 10];
+                int indexOfBucket = bucket[arr[j] / division % 10];
                 System.out.println("index: " + index);
-                result[index - 1] = arr[j];
+                result[indexOfBucket - 1] = arr[j];
                 bucket[arr[j] / division % 10]--;
                 System.out.println(Arrays.toString(result));
             }

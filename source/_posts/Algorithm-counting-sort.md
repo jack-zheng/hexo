@@ -232,10 +232,8 @@ public class CountingSort {
         System.out.printf("%-10s: %s%n", "Bucket", Arrays.toString(bucket));
 
         // 新建一个数组存储下标结束的值，用于保证排序稳定性
-        int sum = 0;
-        for (int i = 0; i < bucket.length; i++) {
-            sum += bucket[i];
-            bucket[i] = sum;
+        for (int i = 1; i < bucket.length; i++) {
+            bucket[i] = bucket[i] + bucket[i - 1];
         }
         System.out.printf("%-10s: %s%n", "Index", Arrays.toString(bucket));
 
