@@ -2,7 +2,7 @@
 title: Hexo 博客添加 sitemap
 date: 2019-11-22 19:20:20
 categories:
-- hexo
+- Hexo
 tags:
 - sitemap
 ---

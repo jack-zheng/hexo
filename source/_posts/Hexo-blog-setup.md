@@ -2,7 +2,7 @@
 title: Hexo 博客 Setup 
 date: 2019-11-12 17:58:11
 categories:
-- hexo
+- Hexo
 tags: 
 - setup
 ---

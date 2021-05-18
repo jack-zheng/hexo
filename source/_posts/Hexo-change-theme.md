@@ -2,7 +2,7 @@
 title: Hexo 换皮肤
 date: 2019-11-15 13:42:26
 categories:
-- hexo
+- Hexo
 tags:
 - theme
 ---

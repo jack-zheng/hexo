@@ -2,7 +2,7 @@
 title: Hexo 设置阅读数，文章授权
 date: 2019-11-20 18:57:02
 categories:
-- hexo
+- Hexo
 tags:
 - auth
 - view count

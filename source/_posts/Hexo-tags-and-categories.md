@@ -2,7 +2,7 @@
 title: Hexo 设置 tags 和 Categories 分类
 date: 2019-11-15 16:44:32
 categories:
-- hexo
+- Hexo
 tags:
 - tags
 - categories

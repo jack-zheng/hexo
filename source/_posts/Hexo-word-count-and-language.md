@@ -2,7 +2,7 @@
 title: Hexo 添加字数显示，更改语言
 date: 2019-11-19 17:58:31
 categories:
-- hexo
+- Hexo
 tags:
 - word count
 - language

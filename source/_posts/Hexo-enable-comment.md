@@ -2,7 +2,7 @@
 title: Hexo 评论功能
 date: 2019-11-18 13:55:13
 categories:
-- hexo
+- Hexo
 tags:
 - comment
 ---

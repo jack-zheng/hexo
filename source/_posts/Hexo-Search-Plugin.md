@@ -2,7 +2,7 @@
 title: Hexo 搜索
 date: 2020-05-28 17:10:27
 categories:
-- hexo
+- Hexo
 tags:
 - search
 ---

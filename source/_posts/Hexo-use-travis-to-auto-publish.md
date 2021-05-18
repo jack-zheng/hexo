@@ -2,7 +2,7 @@
 title: Hexo 保存博客源码
 date: 2019-11-13 13:29:29
 categories:
-- hexo
+- Hexo
 tags: 
 - travis
 ---

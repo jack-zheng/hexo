@@ -2,7 +2,7 @@
 title: Hexo 中插入 UML
 date: 2021-04-29 18:41:22
 categories:
-- hexo
+- Hexo
 tags:
 - uml
 ---
