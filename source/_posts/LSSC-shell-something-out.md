@@ -249,3 +249,146 @@ echo "${COMPANY:+Company has been overridden}"
 # && 什么意思
 # 逻辑与，前面条件成立才能执行后面的逻辑
 ```
+
+## Math with the shell
+
+体验下来就一个感觉，bash 下的计算略微繁琐
+
+```bash
+# 准备变量
+no1=4; no2=5
+
+# 使用 let 关键字
+# 整个表达式没有空格，不然报错！！！
+let result=no1+no2
+echo $result
+# 9
+
+# 支持自增/减
+let no1++ # 也支持写成 no1+=1
+let no2-- # 也支持写成 no2-=1
+echo $no1 $no2
+# 6 4
+
+# 和 let 功能相同的还有 []
+result=$[ no1 + no2 ]   # 等号两边不能有空格，中括号中间无所谓
+echo $result
+# 10
+
+# 方括号中间的变量可以带 $，不影响结果
+result=$[ $no1 + 100 ]
+echo $result
+# 106
+
+# 相同的功能还有 (()), 用法和 [] 一致
+result=$(( $no1 + 50 ))
+echo $result
+# 56
+
+# 相同功能的还有 expr
+result=`expr $no1 + 4`
+echo $result
+# 10
+
+# 但是它们貌似都只能做整数计算
+let result=3+4.0
+# bash: let: result=3+4.0: syntax error: invalid arithmetic operator (error token is ".0")
+result=$[expr $no1 + 4.0]
+# bash: expr 6 + 4.0: syntax error in expression (error token is "6 + 4.0")
+bash-3.2$ result=$((expr $no1 + 4.0))
+# bash: expr 6 + 4.0: syntax error in expression (error token is "6 + 4.0")
+result=`expr $no1 + 4.0`
+# expr: not a decimal number: '4.0'
+```
+
+如果想要有精度的计算，可以使用 `bc`, bc 是basic calculator/bench calculator的简称。其语法类似于C语言，支持加减乘除还有更多复杂的运算。
+
+```bash
+>>> bc
+1+2
+# 3
+quit
+
+echo "4 * 0.56" | bc
+# 2.24
+
+result=`echo "$no * 1.5" | bc`
+echo $result
+# 81.0
+
+# 可以指定精确的位数
+echo "scale=2;3/8" | bc
+# .37
+
+# 可以做进制转化, 而且必须先设置 obase 在设置 ibase
+no=100
+echo "obase=2;$no" | bc
+# 1100100
+echo "obase=10;ibase=2;1100100" | bc
+100
+
+# echo 也可以达到进制转化的效果，不过只能转成 10 进制
+echo $[8#11] # 效果等同与 $((8#11))
+# 11
+
+# bash 中也有自带的函数，比如次方和开方
+echo "10^2" | bc
+# 100
+echo "sqrt(100)" | bc
+# 10
+```
+
+> man page 说明如下: 
+> There are four special variables, scale, ibase, obase, and last. scale defines how some operations use digits after the decimal point. The default value of scale is 0.
+> ibase and obase define the conversion base for input and output numbers. The default for both input and output is base 10.
+> last (an extension) is a variable that has the value of the last printed number. These will be discussed in further detail where appropriate.
+> All of these variables may have values assigned to them as well as used in expressions.
+
+## Playing with file descriptors and redirection
+
+文件描述符：
+
+* 0: stdin
+* 1: stdout
+* 2: stderr
+
+```bash
+# 基操，输入到文件，如果原来有值，会覆盖
+echo "This is a sample text 1" > tmp.txt
+ls
+# tmp.txt
+
+# append 内容
+echo "This is a sample text 2" >> tmp.txt
+cat tmp.txt
+# This is a sample text 1
+# This is a sample text 2
+
+# 重定向错误信息
+ls +
+# ls: +: No such file or directory
+# 打印命令返回值，非 0 都是失败
+echo $?
+# 1
+
+# 尝试将 err 导入文件
+ls + > out.txt
+# ls: +: No such file or directory
+cat out.txt
+# 无内容
+
+# stderr 标识符 2，所以 2> 表示把错误信息导入到某个流处理的意思
+ls + 2> out.txt
+cat out.txt 
+# ls: +: No such file or directory
+
+# 还可以分别指定流出口
+cmd 2>stderr.txt 1>stdout.txt
+cat stderr.txt 
+# bash: cmd: command not found
+
+# 将标准输出和错误信息一起写入文件
+cmd > out.txt 2>&1
+# 他还有一个简写方式
+cmd &> out.txt
+```
