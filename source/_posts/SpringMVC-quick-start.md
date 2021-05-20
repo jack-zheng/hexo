@@ -2,7 +2,7 @@
 title: SpringMVC 视频笔记
 date: 2020-10-14 21:17:02
 categories:
-- spring
+- Spring
 tags:
 - springmvc
 - 视频笔记

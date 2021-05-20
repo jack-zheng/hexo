@@ -391,4 +391,201 @@ cat stderr.txt
 cmd > out.txt 2>&1
 # 他还有一个简写方式
 cmd &> out.txt
+
+# 测试 /dev/null
+# 这个测试感觉上不怎么贴切，但是，它用来生产 err 的方式还是很可以的
+# 测试描述：生产三个文件，将其中一个权限变为 000, cat 这三个文件就会抛异常
+echo a1 > a1; cp a1 a2; cp a1 a3; chmod 000 a1;
+cat a* 2> err.txt
+# a1
+# a1
+cat err.txt
+# cat: a1: Permission denied
+# 将 err 导向 /dev/null 则没有输出
+cmd 2> /dev/null
+
+# tee 将输出写入文件的同时，给一份到 stdout
+# 默认情况下 tee 会覆盖原文件，用 tee -a 可以达到 append 的效果
+cat a* | tee out.txt | cat -n
+# cat: a1: Permission denied
+#      1	a1
+#      2	a1
+cat out.txt
+# a1
+# a1
+
+# tee 后接多个 file，内容都是重复的
+echo aaa | tee f1 f2
+cat f1 f2
+# aaa
+# aaa
+
+# `-` 代表标准输入, 
+echo who is this | tee -
+# who is this
+```
+
+`>` Vs `>>`: 前者是覆盖，后者是续接
+
+> ./dev/null is a special device file where any data received by the file is discarded. The null device is often known as a black hole as all the data that goes into it is lost forever.
+> /dev/null 是一个特殊的设备，可以将它看作一个黑洞，所有进去的东西都没了 
+
+```bash
+# 终端多行输入
+cat << EOF > log.txt
+LOG FILE HEADER
+This is a test log file
+Function: System statistics
+EOF
+
+cat log.txt
+# LOG FILE HEADER
+# This is a test log file
+# Function: System statistics
+```
+
+自定义文件描述符
+
+可用模式：Read mode, Write with truncate mode, Write with append mode
+
+```bash
+# `<` 用于将文件导向 stdin
+echo this is a test line > input.txt
+exec 3<input.txt
+cat <&3
+# this is a test line
+cat <&3
+# 没有输出，这种方式不能复用，需要重新赋值
+```
+
+为写操作自定义文件描述符
+
+```bash
+exec 4> output.txt
+echo newline >&4
+cat output.txt
+# newline
+# 书上说这种方式再次调用会覆盖的才对，我这边测试是以 append 方式附加的
+echo aaa >&4
+cat output.txt
+# newline
+# aaa
+```
+
+为 append 模式的 write 定义文件描述符
+
+```bash
+exec 5>>out.txt
+echo appended line >&5
+cat out.txt
+# appended line
+echo appended line2 >&5
+cat out.txt
+# appended line
+# appended line2
+```
+
+## Arrays and associative arrays
+
+```bash
+# 数组声明及调用
+array_var=(1 2 3 4 5 6)
+echo ${array_var[0]}
+# 1
+# 输出全部
+echo ${array_var[*]}  # or echo ${array_var[@]}
+# 1 2 3 4 5 6
+# 打印长度
+echo ${#array_var[*]}
+# 6
+
+# 输出 index 下标
+echo ${!array_var[*]} # or echo ${!array_var[@]}
+# 0 1 2 3 4 5
+```
+
+Associative arrays: 关系型数组，普通数组只能存整形，但是关系型数组可以存储混合的，任何 text 格式的数据。这种数据类型是在 Bash 4.0 引入的
+
+Mac 升级 Bash 版本
+
+```bash
+# 查看当前版本
+bash --version
+# GNU bash, version 3.2.57(1)-release (x86_64-apple-darwin20)
+# Copyright (C) 2007 Free Software Foundation, Inc.
+
+# 小八卦：Bash 在 3.2 后的版本改了协议，开始使用 GPLv3 许可，Apple 不想支持，所以 Mac 上默认 Bash 只到 3.2 为止
+# 新的 Bash 有很强的 tab 补全，值得期待
+
+# 查看以安装 bash 路径
+which bash
+# /bin/bash
+
+brew install bash
+# Updating Homebrew...
+# ==> Downloading https://mirrors.ustc.edu.cn/homebrew-bottles/bash-5.1.8.big_sur.bottle.tar.gz
+# ######################################################################## 100.0%
+# ==> Pouring bash-5.1.8.big_sur.bottle.tar.gz
+# /usr/local/Cellar/bash/5.1.8: 157 files, 10.9MB
+
+which bash
+/usr/local/bin/bash
+
+bash --version
+# GNU bash, version 5.1.8(1)-release (x86_64-apple-darwin20.3.0)
+# Copyright (C) 2020 Free Software Foundation, Inc.
+# License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+
+# This is free software; you are free to change and redistribute it.
+# There is NO WARRANTY, to the extent permitted by law.
+
+## 安装结束
+```
+
+Associative arrays 使用案例
+
+```bash
+declare -A fruits_value
+fruits_value=([apple]='100 dollars' [orange]='150 dollars')
+echo "Apple costs ${fruits_value[apple]}"
+# Apple costs 100 dollars
+
+# 输出下标，或者索引更贴切
+echo ${!fruits_value[*]}
+# orange apple
+```
+
+PS: 感觉被骗了，这 TM 叫数组？！！命名就是字典嘛
+
+## Visiting aliases
+
+alias: 将很长的命令用一个简写来代替， 声明形式 `alias new_command='command sequence'`, 例如 `alias install='sudo apt-get install'`
+
+终端声明的 alias 是零时的，重启终端后失效，可以将其写入 rc 文件 `echo 'alias cmd="command seq"' >> ~/.bashrc`
+
+```bash
+# 显示所有可用的别名
+alias 
+
+# 重新定义 rm 行为，删除文件时将它备份
+# 测试失败。。。
+alias rm='cp $@ ~/backup && rm $@'
+
+# 这应该就是持续失败的原因，参数为止调换了
+# 搜了下好像每有类似的问题，难道我系统坏了？？
+alias mycp='echo "cp $@ ~/backup"'
+mycp aaa.txt
+# cp  ~/backup aaa.txt
+
+# disable alias, 前面加一个反斜杠
+\command
+
+# 显示定义的 alias
+alias rm
+# alias rm='cp $@ ~/backup && rm $@'
+
+# 删除
+unalias rm
+alias rm
+# bash: alias: rm: not found
 ```

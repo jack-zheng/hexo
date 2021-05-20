@@ -2,7 +2,7 @@
 title: Springboot 视频笔记
 date: 2020-11-05 21:42:07
 categories:
-- spring
+- Spring
 tags:
 - 视频笔记
 - springboot

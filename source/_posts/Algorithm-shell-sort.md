@@ -37,6 +37,7 @@ public class ShellSort {
 
     private static void shellSort(int[] sample) {
         // 步长操作
+        // 边界条件为 step > 0, 当 step = 1 时，即对整个 arr 做一次插入排序
         for (int step = sample.length / 2; step > 0; step /= 2) {
             //分组进行插入排序，这里需要注意的是，这个插入排序是交替进行的，这里困惑了很久
             for (int i = step; i < sample.length; i++) {

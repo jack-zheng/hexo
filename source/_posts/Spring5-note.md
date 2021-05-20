@@ -2,10 +2,10 @@
 title: Spring5 视频笔记
 date: 2020-09-08 21:28:47
 categories:
-- spring
+- Spring
 tags:
 - 视频笔记
-- spring
+- Spring
 ---
 
 [B 站狂神 Spring5 教程笔记](https://www.bilibili.com/video/BV1WE411d7Dv)

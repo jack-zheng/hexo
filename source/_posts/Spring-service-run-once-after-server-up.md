@@ -2,7 +2,7 @@
 title: Spring 怎么实现 server 启动之后立刻执行一个服务
 date: 2020-11-12 12:59:19
 categories:
-- spring
+- Spring
 tags:
 - howto
 ---

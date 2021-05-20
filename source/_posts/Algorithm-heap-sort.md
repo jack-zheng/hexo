@@ -72,7 +72,8 @@ public class HeapSort {
 
     private static void heapSort(int[] arr) {
         // 构建大顶堆, 即从最后一个非叶子节点开始对之前的节点分别做大顶堆调整
-        for (int i = arr.length / 2 - 1; i > 0; i--) {
+        // i=0 时也需要计算，指的时 0 号位元素的排序
+        for (int i = arr.length / 2 - 1; i >= 0; i--) {
             heapify(arr, arr.length, i); // 起始点是最后一个节点，有时候我会写成 0
         }
 

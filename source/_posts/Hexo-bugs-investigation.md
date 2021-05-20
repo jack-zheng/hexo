@@ -41,7 +41,3 @@ Outline 中的中文导航会失败，英文的可以正常工作
 ![Outline display issue](outline.png)
 
 怎么修还不清楚，简单搜索了一下并没有查到解决方案，有机会的话可以看看 Hexo 源码再提一个 fix 的 PR ╮(￣▽￣"")╭
-
-## build no search index
-
-Docker 弹射起步的那篇文章并没有建立索引，搜索不到，只能通过 tag 导航过去。稍微检查了一下，和之前的文章里面混入了特殊字符的问题还不一样，有待查证
