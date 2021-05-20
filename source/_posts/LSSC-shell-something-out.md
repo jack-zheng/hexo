@@ -6,6 +6,7 @@ categories:
 tags:
 - bash
 - shell
+- TODO
 ---
 
 ## Introduce
@@ -572,7 +573,7 @@ alias
 alias rm='cp $@ ~/backup && rm $@'
 
 # 这应该就是持续失败的原因，参数为止调换了
-# 搜了下好像每有类似的问题，难道我系统坏了？？
+# 搜了下好像每有类似的问题，难道我系统坏了？？ - 可以在 docker 里面试试
 alias mycp='echo "cp $@ ~/backup"'
 mycp aaa.txt
 # cp  ~/backup aaa.txt
