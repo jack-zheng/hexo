@@ -9,6 +9,19 @@ tags:
 - TODO
 ---
 
+**Man** 帮助文档操作方式
+
+* ctrl + F或者 Page Down：向下翻页
+* ctrl + B或者 Page Up：向上翻页
+* gg到第一行
+* GG到最后一行
+* /start：能在整手册中搜索start相关字符，使用n查找下一个，使用N查找上一个
+* j，k与vi中一样使用，j向下一行，k向上一行
+* d下翻半页
+* u上翻半页
+* h获取man使用帮助
+* q退出man
+
 ## Introduce
 
 以下实验均基于 bas
@@ -486,6 +499,8 @@ cat out.txt
 # appended line2
 ```
 
+PS: `>>` 自带会车，如果不想要，需要用可以用 `echo -n` 或者 `printf "%s" "$(value)"`
+
 ## Arrays and associative arrays
 
 ```bash
@@ -573,10 +588,32 @@ alias
 alias rm='cp $@ ~/backup && rm $@'
 
 # 这应该就是持续失败的原因，参数为止调换了
-# 搜了下好像每有类似的问题，难道我系统坏了？？ - 可以在 docker 里面试试
+# 搜了下好像每有类似的问题，难道我系统坏了？？ 在 docker 容器中可以重现这个错误
 alias mycp='echo "cp $@ ~/backup"'
 mycp aaa.txt
 # cp  ~/backup aaa.txt
+
+# 经过多方查证，作者这里的脚本写的有问题。按官方的原画，alias 是不支持传入参数的(补贴切)
+# 这里可以用函数代替，在 alias 里面定义函数格式和外面不一样
+alias mycp='function _mycp() { echo "aaa $@ bbb"; };_mycp'
+mycp xxx
+# aaa xxx bbb
+alias mycp='function _mycp() { echo "aaa $1 bbb $2 ccc"; };_mycp'
+mycp xxx yyy
+# aaa xxx bbb yyy ccc
+
+# PS: 另外，如果只需要在末尾添加参数的话，alias 还是可以做到的
+alias myls='ls -al $@' # 或者 alias myls='ls -al'
+myls ~/backup
+# total 0
+# drwxr-xr-x   2 i306454  staff    64 May 20 20:25 .
+# drwxr-xr-x+ 76 i306454  staff  2432 May 21 13:05 ..
+
+# 宗上所属，定制的 rm 应该写成如下形式
+alias rm='function _rm() { cp $@ ~/backup && rm $@;  }; _rm'
+rm java_error_in_idea_12605.log
+ls ./backup
+# java_error_in_idea_12605.log
 
 # disable alias, 前面加一个反斜杠
 \command
@@ -590,3 +627,7 @@ unalias rm
 alias rm
 # bash: alias: rm: not found
 ```
+
+* [Gun - Alias](https://www.gnu.org/software/bash/manual/html_node/Aliases.html)
+
+> There is no mechanism for using arguments in the replacement text, as in csh. If arguments are needed, a shell function should be used (see Shell Functions).

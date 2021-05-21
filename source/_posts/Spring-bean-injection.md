@@ -1,13 +1,14 @@
 ---
-title: Spring usage collections
+title: Spring 如何注入 bean
 date: 2021-05-20 16:47:39
 categories:
 - Spring
 tags:
 - Spring
+- bean
 ---
 
-## 通过工行方法 + 注解注入 bean
+## 通过工长方法 + 注解注入 bean
 
 今天接到一个任务，需要通过工厂方法注入一个 bean 到 context 中，抄了别人的代码，但是还是不生效，再三测试，发现是类型赋错了。简化后，示例如下
 

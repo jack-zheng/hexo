@@ -2,7 +2,7 @@
 title: Zsh 配置文件的 load 顺序
 date: 2021-05-07 15:59:38
 categories:
-- 小工具
+- Shell
 tags:
 - zsh
 ---
