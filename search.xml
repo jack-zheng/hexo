@@ -3237,6 +3237,218 @@
       </tags>
   </entry>
   <entry>
+    <title>LSCASSB partii shell scripting basics</title>
+    <url>/hexo/2021/05/24/LSCASSB-partii-shell-scripting-basics/</url>
+    <content><![CDATA[<p>Linux命令行与shell脚本编程大全 3rd 第二部分命令实验记录</p>
+<h2 id="Chapter-11-Basic-Script-building"><a href="#Chapter-11-Basic-Script-building" class="headerlink" title="Chapter 11: Basic Script building"></a>Chapter 11: Basic Script building</h2><h3 id="Using-Multiple-Commands"><a href="#Using-Multiple-Commands" class="headerlink" title="Using Multiple Commands"></a>Using Multiple Commands</h3><p>使用分号分隔命令</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">date ; who</span><br><span class="line"><span class="comment"># Mon May 24 12:36:11 CST 2021</span></span><br><span class="line"><span class="comment"># i306454  console  May 24 11:18 </span></span><br><span class="line"><span class="comment"># i306454  ttys000  May 24 11:18 </span></span><br><span class="line"><span class="comment"># i306454  ttys003  May 24 11:33</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Creating-a-Script-File"><a href="#Creating-a-Script-File" class="headerlink" title="Creating a Script File"></a>Creating a Script File</h3><ol>
+<li>新建文件 mysh.sh</li>
+<li>填入内容</li>
+<li>设置环境</li>
+<li>运行</li>
+</ol>
+<blockquote>
+<p>However, the fi rst line of a shell script fi le is a special case, and the pound sign followed by the exclamation point tells the shell what shell to run the script under<br>Shell script 的第一行表示你想要用哪个 Shell 运行你的脚本</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="comment"># This scri displays the date and who&#x27;s logged on</span></span><br><span class="line">date</span><br><span class="line">who</span><br></pre></td></tr></table></figure>
+
+<p>尝试运行 <code>mysh.sh</code>，运行失败 <code>bash: mysh.sh: command not found</code></p>
+<p>这是你有两种选择</p>
+<ol>
+<li>将包含脚本的目录添加到 PATH 中，eg: <code>export PATH=$PATH:path_to_folder</code></li>
+<li>使用相对或绝对路径调用脚本, eg: <code>./mysh.sh</code></li>
+</ol>
+<p>PS: 发现直接用 <code>sh mysh.sh</code> 即可，还省去了赋权的操作</p>
+<p>这里直接使用相对路径调用 <code>./mysh.sh</code>, 运行失败 <code>bash: ./mysh.sh: Permission denied</code>。通过 <code>ls -l mysh.sh</code> 查看权限, 发现并没有权限，然后赋权,再次尝试，运行成功。</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">ls -l mysh.sh </span><br><span class="line"><span class="comment"># -rw-r--r--  1 i306454  staff  70 May 24 12:40 mysh.sh</span></span><br><span class="line"></span><br><span class="line">chmod u+x mysh.sh </span><br><span class="line">./mysh.sh </span><br><span class="line"><span class="comment"># Mon May 24 13:11:37 CST 2021</span></span><br><span class="line"><span class="comment"># i306454  console  May 24 11:18 </span></span><br><span class="line"><span class="comment"># i306454  ttys000  May 24 11:18</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Displaying-Messages"><a href="#Displaying-Messages" class="headerlink" title="Displaying Messages"></a>Displaying Messages</h3><p>使用 <code>echo</code> 打印信息</p>
+<ul>
+<li>当输出内容中没有什么特殊符号时，可以直接在 echo 后面接你要的内容</li>
+<li>当输出内容中包含单/双引号时，需要将 echo 的内容包含在 双/单引号中</li>
+<li>默认 echo 是会换行的，使用 <code>echo -n xxx</code> 取消换行</li>
+</ul>
+<h3 id="Using-Variables"><a href="#Using-Variables" class="headerlink" title="Using Variables"></a>Using Variables</h3><p><code>set</code>: 打印当前环境的所有环境变量, 输出内容包括 PATH，HOME 等</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="built_in">set</span></span><br><span class="line"><span class="comment"># ANT_HOME=/Users/i306454/SAPDevelop/tools/apache-ant-1.8.4</span></span><br><span class="line"><span class="comment"># BASH=/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># BASHOPTS=checkwinsize:cmdhist:complete_fullquote:expand_aliases:extquote:force_fignore:globasciiranges:hostcomplete:interactive_comments:progcomp:promptvars:sourcepath</span></span><br><span class="line"><span class="comment"># BASH_ALIASES=()</span></span><br><span class="line"><span class="comment"># ...</span></span><br></pre></td></tr></table></figure>
+
+<p>在你的 sh 脚本中，可以调用这些变量</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;User info for userid <span class="variable">$USER</span>&quot;</span></span><br><span class="line"><span class="built_in">echo</span> UID: <span class="variable">$UID</span></span><br><span class="line"><span class="built_in">echo</span> HOME: <span class="variable">$HOME</span></span><br><span class="line"></span><br><span class="line">sh test_var.sh </span><br><span class="line"><span class="comment"># User info for userid i306454</span></span><br><span class="line"><span class="comment"># UID: 501</span></span><br><span class="line"><span class="comment"># HOME: /Users/i306454</span></span><br></pre></td></tr></table></figure>
+
+<p>当你在输出语句中想要打印 <code>$</code> 这个特殊字符时，只需要在前面加斜杠</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This book cost <span class="variable">$15</span>&quot;</span></span><br><span class="line"><span class="comment"># This book cost 5</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This book cost \$15&quot;</span></span><br><span class="line"><span class="comment"># This book cost $15</span></span><br></pre></td></tr></table></figure>
+
+<p>PS: <code>$&#123;variable&#125;</code> 也是合法的，这种声明起到强调变量名的作用</p>
+<p>变量名限制：最多 20 个字符，可以是英文，数组或者下划线，区分大小写。使用等号链接，中间<strong>不允许</strong>有空格</p>
+<blockquote>
+<p>Command substitution</p>
+</blockquote>
+<p>你可以通过一下方式将 cmd 输出的值赋给你的变量</p>
+<ol>
+<li>``` 反引号符(backtick character)</li>
+<li><code>$()</code> 表达式</li>
+</ol>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">tdate=`date`</span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$tdate</span></span><br><span class="line"><span class="comment"># Mon May 24 15:46:51 CST 2021</span></span><br><span class="line">tdate2=$(date)</span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$tdate2</span></span><br><span class="line"><span class="comment"># Mon May 24 15:47:39 CST 2021</span></span><br></pre></td></tr></table></figure>
+
+<p>这只是初级用法，更骚的操作是将输出定制之后用作后续命令的输出，比如下面这个例子，将文件夹下的所有目录写进 log 文件，并用时间戳做后缀 <code>today=$(date +%y%m%d); ls -al /usr/bin &gt; log.$today</code></p>
+<p><strong>Caution:</strong> Command substitution creates what’s called a subshell to run the enclosed command. A subshell is a separate child shell generated from the shell that’s running the script. Because of that, any variables you create in the script aren’t available to the subshell command.</p>
+<p>Command substitution 这种使用方法会创建一个子 shell 计算变量值，子 shell 运行的时候是看不到你外面的 shell 中定义的变量的</p>
+<h2 id="Redirecting-Input-and-Output"><a href="#Redirecting-Input-and-Output" class="headerlink" title="Redirecting Input and Output"></a>Redirecting Input and Output</h2><blockquote>
+<p>Output redirection</p>
+</blockquote>
+<p>可以使用大于号(greater-than symbol)将输出导入文件</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">date &gt; test6</span><br><span class="line">ls -l test6</span><br><span class="line"><span class="comment"># -rw-r--r--  1 i306454  staff  29 May 24 18:31 test6</span></span><br><span class="line">cat test6</span><br><span class="line"><span class="comment"># Mon May 24 18:31:40 CST 2021</span></span><br></pre></td></tr></table></figure>
+
+<p>如果文件已经存在，则覆盖原有内容</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">who &gt; test6</span><br><span class="line">cat test6</span><br><span class="line"><span class="comment"># i306454  console  May 24 11:18 </span></span><br><span class="line"><span class="comment"># i306454  ttys000  May 24 11:18 </span></span><br><span class="line"><span class="comment"># i306454  ttys003  May 24 18:00</span></span><br></pre></td></tr></table></figure>
+
+<p>使用两个大于号(double greater-than symbol)来做 append 操作</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">date &gt;&gt; test6</span><br><span class="line">cat test6</span><br><span class="line"><span class="comment"># i306454  console  May 24 11:18 </span></span><br><span class="line"><span class="comment"># i306454  ttys000  May 24 11:18 </span></span><br><span class="line"><span class="comment"># i306454  ttys003  May 24 18:00 </span></span><br><span class="line"><span class="comment"># Mon May 24 18:35:12 CST 2021</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Input redirection</p>
+</blockquote>
+<p>使用小于号(less-htan symbol)将文件中的内容导入输入流 <code>command &lt; inputfile</code></p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">wc &lt; test6</span><br><span class="line"><span class="comment">#    4      21     125</span></span><br><span class="line"><span class="comment"># wc: show lines, words and bytes of input</span></span><br></pre></td></tr></table></figure>
+
+<p>除了从文件导入，从命令行直接导入多行也是可行的，术语叫做 <code>inline input redirection</code>。这个之前在之前阿里云 setup 环境的时候操作过的。使用两个小于号(&lt;&lt;) + 起止描述符实现</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">wc &lt;&lt; EOF</span><br><span class="line">&gt; <span class="built_in">test</span> String 1</span><br><span class="line">&gt; <span class="built_in">test</span> String 2</span><br><span class="line">&gt; <span class="built_in">test</span> String 3</span><br><span class="line">&gt; EOF</span><br><span class="line"><span class="comment"># 3       9      42</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Pipes"><a href="#Pipes" class="headerlink" title="Pipes"></a>Pipes</h3><p>使用方式 <code>command1 | command2</code></p>
+<blockquote>
+<p>Don’t think of piping as running two commands back to back. The Linux system actually runs both commands at the same time, linking them together internally in the system. As the fi rst command produces output, it’s sent immediately to the second command. No inter-mediate fi les or buffer areas are used to transfer the data.<br>pipe 中的命令是同时执行的，变量传递不涉及到中间变量</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">ls </span><br><span class="line"><span class="comment"># input.txt       mysh.sh         output.txt      test_echo.sh</span></span><br><span class="line"><span class="comment"># log.210524      out.txt         test6           test_var.sh</span></span><br><span class="line">ls | sort</span><br><span class="line"><span class="comment"># input.txt</span></span><br><span class="line"><span class="comment"># log.210524</span></span><br><span class="line"><span class="comment"># mysh.sh</span></span><br><span class="line"><span class="comment"># ...</span></span><br></pre></td></tr></table></figure>
+
+<p>pipe 可以无限级联 <code>cmd1 | cmd2 | cmd3 | ...</code></p>
+<h3 id="Performing-Math"><a href="#Performing-Math" class="headerlink" title="Performing Math"></a>Performing Math</h3><p>Bash 中提供了两种方式进行计算</p>
+<blockquote>
+<p>The expr command</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">expr 1 + 5</span><br><span class="line"><span class="comment"># 6</span></span><br></pre></td></tr></table></figure>
+
+<p>expr 支持常规算数运行 + 与或非 + 正则 + 字符串操作等</p>
+<p>这个 expr 表达式有点尴尬，他的一些常规运算是要加反斜杠的，简直无情</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">expr 1 * 6</span><br><span class="line"><span class="comment"># expr: syntax error</span></span><br><span class="line">expr 1 \* 6</span><br><span class="line"><span class="comment"># 6</span></span><br></pre></td></tr></table></figure>
+
+<p>这个还算好的，如果在 sh 文件中调用，表达式就更操蛋了</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line">var1=10</span><br><span class="line">var2=20</span><br><span class="line">var3=$(expr <span class="variable">$var2</span> / <span class="variable">$var1</span>)</span><br><span class="line"><span class="built_in">echo</span> The result is <span class="variable">$var3</span></span><br><span class="line"></span><br><span class="line">sh test_expr.sh </span><br><span class="line"><span class="comment"># The result is 2</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Using brackets</p>
+</blockquote>
+<p>Bash 中保留 <code>expr</code> 是为了兼容 Bourne shell,同时它提供了一种更简便的计算方式，<code>$[ operation ]</code></p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">var1=$[1 + 5]</span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$var1</span></span><br><span class="line"><span class="comment"># 6</span></span><br><span class="line">var2=$[ <span class="variable">$var1</span> * 2 ]</span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$var2</span></span><br><span class="line"><span class="comment"># 12</span></span><br></pre></td></tr></table></figure>
+
+<p>方括号表达式可以自动完成计算符号的识别，不需要用反斜杠做转义符，唯一的缺陷是，他只能做整数运行</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">var1=100</span><br><span class="line">var2=45</span><br><span class="line">var3=$[<span class="variable">$var1</span>/<span class="variable">$var2</span>]</span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$var3</span></span><br><span class="line"><span class="comment"># 2</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>A floating-point solution</p>
+</blockquote>
+<p>bc: bash calculation, 他可以识别一下内容</p>
+<ul>
+<li>Number(integer + floating point)</li>
+<li>Variables(simple variables + arrays)</li>
+<li>Comments(# or /* … */)</li>
+<li>Expressions</li>
+<li>Programming statements(such as if-then statements)</li>
+<li>Functions</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">bc</span><br><span class="line">bc 1.06</span><br><span class="line">Copyright 1991-1994, 1997, 1998, 2000 Free Software Foundation, Inc.</span><br><span class="line">This is free software with ABSOLUTELY NO WARRANTY.</span><br><span class="line">For details <span class="built_in">type</span> `warranty<span class="string">&#x27;.</span></span><br><span class="line"><span class="string">12 * 5.4</span></span><br><span class="line"><span class="string">64.8</span></span><br><span class="line"><span class="string">3.156 * (3 + 5)</span></span><br><span class="line"><span class="string">25.248</span></span><br><span class="line"><span class="string">quit</span></span><br></pre></td></tr></table></figure>
+
+<p>可以通过 scale 关键字指定精确位, 默认 scale 为 0, <code>-q</code> 用于跳过命令文字说明</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">bc -q </span><br><span class="line">3.44 / 5</span><br><span class="line">0</span><br><span class="line">scale=4</span><br><span class="line">3.44 / 5</span><br><span class="line">.6880</span><br><span class="line">quit</span><br></pre></td></tr></table></figure>
+
+<p>如前述，bc 可以识别变量</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">bc -q</span><br><span class="line">var1=10</span><br><span class="line">var1 * 4</span><br><span class="line">40</span><br><span class="line">var2 = var1 / 5</span><br><span class="line"><span class="built_in">print</span> var2</span><br><span class="line">2</span><br><span class="line">quit</span><br></pre></td></tr></table></figure>
+
+<p>你可以通过 Command substitution，在 sh 脚本中调用 bc, 形式为 <code>variable=$(echo &quot;options; expression&quot; | bc)</code></p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">cat test9</span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># var1=$(echo &quot;scale=4; 3.44/5&quot; | bc)</span></span><br><span class="line"><span class="comment"># echo This answer is $var1</span></span><br><span class="line"></span><br><span class="line">sh test9</span><br><span class="line"><span class="comment"># This answer is .6880</span></span><br></pre></td></tr></table></figure>
+
+<p>脚本中定义的变量也可以使用</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">cat test10</span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># var1=100</span></span><br><span class="line"><span class="comment"># var2=45</span></span><br><span class="line"><span class="comment"># var3=$(echo &quot;scale=4; $var1 / $var2&quot; | bc)</span></span><br><span class="line"><span class="comment"># echo The answer for this is $var3bash-5.1$ </span></span><br><span class="line">sh test10</span><br><span class="line"><span class="comment"># The answer for this is 2.2222</span></span><br></pre></td></tr></table></figure>
+
+<p>当遇到很长的计算表达式时，可以用 &lt;&lt; 将他们串起来</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">cat test12</span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># var1=10.46</span></span><br><span class="line"><span class="comment"># var2=43.67</span></span><br><span class="line"><span class="comment"># var3=33.2</span></span><br><span class="line"><span class="comment"># var4=71</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># var5=$(bc &lt;&lt; EOF</span></span><br><span class="line"><span class="comment"># scale = 4</span></span><br><span class="line"><span class="comment"># a1 = ($var1 * $var2)</span></span><br><span class="line"><span class="comment"># b1 = ($var3 * $var4)</span></span><br><span class="line"><span class="comment"># a1 + b1</span></span><br><span class="line"><span class="comment"># EOF</span></span><br><span class="line"><span class="comment"># )</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># echo The final answer for this mess is $var5</span></span><br><span class="line">sh test12</span><br><span class="line"><span class="comment"># The final answer for this mess is 2813.9882</span></span><br></pre></td></tr></table></figure>
+
+<p>PS: 在上面的脚本中我们用了 Command substitution 所以中间的变量前面都是要加 <code>$</code> 的，当终端调用 <code>bc</code> 时就不需要了</p>
+<h3 id="Exiting-the-Script"><a href="#Exiting-the-Script" class="headerlink" title="Exiting the Script"></a>Exiting the Script</h3><p>There’s a more elegant way of completing things available to us. 每个命令结束时，系统都会分配一个 0-255 之间的整数给他</p>
+<blockquote>
+<p>Checking the exit status</p>
+</blockquote>
+<p>Linux 使用 <code>$?</code> 表示上一条命令的执行状态</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">date</span><br><span class="line"><span class="comment"># Mon May 24 19:47:29 CST 2021</span></span><br><span class="line"><span class="built_in">echo</span> $?</span><br><span class="line"><span class="comment"># 0</span></span><br></pre></td></tr></table></figure>
+
+<p>运行正常，返回 0。如果有问题，则返回一个非零</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">asd</span><br><span class="line"><span class="comment"># bash: asd: command not found</span></span><br><span class="line"><span class="built_in">echo</span> $?</span><br><span class="line"><span class="comment"># 127</span></span><br></pre></td></tr></table></figure>
+
+<p>常见错误码表</p>
+<table>
+<thead>
+<tr>
+<th align="left">Code</th>
+<th align="left">Desc</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">0</td>
+<td align="left">Success</td>
+</tr>
+<tr>
+<td align="left">1</td>
+<td align="left">General unknown error</td>
+</tr>
+<tr>
+<td align="left">2</td>
+<td align="left">Misuse of shell command</td>
+</tr>
+<tr>
+<td align="left">126</td>
+<td align="left">The cmd can’t execute</td>
+</tr>
+<tr>
+<td align="left">127</td>
+<td align="left">Cmd not found</td>
+</tr>
+<tr>
+<td align="left">128</td>
+<td align="left">Invalid exit argument</td>
+</tr>
+<tr>
+<td align="left">128+x</td>
+<td align="left">Fatal err with Linux singal x</td>
+</tr>
+<tr>
+<td align="left">130</td>
+<td align="left">Cmd terminated with Ctrl+C</td>
+</tr>
+<tr>
+<td align="left">255</td>
+<td align="left">Exit status out of range</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>The exit command</p>
+</blockquote>
+<p>exit 关键字让你可以定制脚本的返回值</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">cat test13</span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # testing the exit status</span></span><br><span class="line"><span class="comment"># var1=10</span></span><br><span class="line"><span class="comment"># var2=20</span></span><br><span class="line"><span class="comment"># var3=$[$var1 + $var2]</span></span><br><span class="line"><span class="comment"># echo The answer is $var3</span></span><br><span class="line"><span class="comment"># exit 5</span></span><br><span class="line"></span><br><span class="line">chmod u+x test13</span><br><span class="line">./test13</span><br><span class="line"><span class="comment"># The answer is 30</span></span><br><span class="line"><span class="built_in">echo</span> $?</span><br><span class="line"><span class="comment"># 5</span></span><br></pre></td></tr></table></figure>
+
+<p>PS: 这里看出来差别了，如果我直接用 sh test13 执行的话，结果是 0</p>
+<p>这里需要指出的是，exit code 最大为 255 如果超出了，系统会自己做修正</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">cat test14</span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # exit code more than 255</span></span><br><span class="line"><span class="comment"># var=300</span></span><br><span class="line"><span class="comment"># exit $var</span></span><br><span class="line"></span><br><span class="line">chmod u+x test14</span><br><span class="line">./test14</span><br><span class="line"><span class="built_in">echo</span> $?</span><br><span class="line"><span class="comment"># 44</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="Chapter-12-Using-Structured-Commands"><a href="#Chapter-12-Using-Structured-Commands" class="headerlink" title="Chapter 12: Using Structured Commands"></a>Chapter 12: Using Structured Commands</h2>]]></content>
+      <categories>
+        <category>Shell</category>
+      </categories>
+      <tags>
+        <tag>Linux命令行与shell脚本编程大全 3rd</tag>
+        <tag>TODO</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>lang 包类简介</title>
     <url>/hexo/2020/01/08/Lang%20%E5%8C%85%E7%B1%BB%E7%AE%80%E4%BB%8B/</url>
     <content><![CDATA[<p>用人话解释我用过的 Class 类中的方法</p>
@@ -4355,7 +4567,8 @@
   <entry>
     <title>定制 Shell 脚本</title>
     <url>/hexo/2021/05/17/Shell-customized-command/</url>
-    <content><![CDATA[<h2 id="定制-git-pull"><a href="#定制-git-pull" class="headerlink" title="定制 git pull"></a>定制 git pull</h2><p>git pull 算是开发时经常用到的一个命令了，但是更新代码之后，时常会遇到最新版本的代码不 work 的情况。由此，打算对 pull 命令做一个优化，每次 pull 的时候，将当前 repo 的信息写到历史记录中，类似 <code>.zsh_history</code> 的功能。</p>
+    <content><![CDATA[<h2 id="定制-git-pull"><a href="#定制-git-pull" class="headerlink" title="定制 git pull"></a>定制 git pull</h2><p>PS: 写完之后顺便看看 .zsh_history 是怎么实现的</p>
+<p>git pull 算是开发时经常用到的一个命令了，但是更新代码之后，时常会遇到最新版本的代码不 work 的情况。由此，打算对 pull 命令做一个优化，每次 pull 的时候，将当前 repo 的信息写到历史记录中，类似 <code>.zsh_history</code> 的功能。</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 等看过 Shell 的 condition 篇再完善</span></span><br><span class="line"><span class="keyword">function</span> git &#123;</span><br><span class="line">  <span class="keyword">if</span> [[ <span class="string">&quot;<span class="variable">$1</span>&quot;</span> == <span class="string">&quot;pull&quot;</span> &amp;&amp; <span class="string">&quot;<span class="variable">$@</span>&quot;</span> != *<span class="string">&quot;--help&quot;</span>* ]]; <span class="keyword">then</span></span><br><span class="line">    version_before=$(git rev-parse --short HEAD)</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;bef: %s&quot;</span> <span class="variable">$version_before</span></span><br><span class="line">    <span class="built_in">command</span> git pull</span><br><span class="line">    version_after=$(git rev-parse --short HEAD)</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;aft: %s&quot;</span> <span class="variable">$version_after</span></span><br><span class="line">    <span class="keyword">if</span> [ <span class="string">&quot;<span class="variable">$v1</span>&quot;</span> == <span class="string">&quot;<span class="variable">$v2</span>&quot;</span> ]; <span class="keyword">then</span></span><br><span class="line">      <span class="built_in">echo</span> <span class="string">&quot;No history recorded...&quot;</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">      <span class="built_in">echo</span> <span class="string">&quot;Record history...&quot;</span></span><br><span class="line">      <span class="comment"># write process date time</span></span><br><span class="line">      <span class="built_in">printf</span> <span class="string">&quot;%s  &quot;</span> <span class="string">&quot;<span class="subst">$(date &#x27;+%Y-%m-%d %H:%M:%S&#x27;)</span>&quot;</span> &gt;&gt; ~/.git_pull.history</span><br><span class="line">      <span class="comment"># write current version for recover</span></span><br><span class="line">      <span class="built_in">printf</span> <span class="string">&quot;%s  &quot;</span> <span class="string">&quot;<span class="variable">$version_before</span>&quot;</span>  &gt;&gt; ~/.git_pull.history</span><br><span class="line">      <span class="comment"># write repo name</span></span><br><span class="line">      <span class="built_in">printf</span> <span class="string">&quot;%s\n&quot;</span> <span class="string">&quot;<span class="subst">$(git config --get remote.origin.url | cut -d &#x27;/&#x27; -f 2)</span>&quot;</span>  &gt;&gt; ~/.git_pull.history</span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line">    <span class="built_in">echo</span> end loop1</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    <span class="built_in">echo</span> loop2</span><br><span class="line">    <span class="built_in">command</span> git <span class="string">&quot;<span class="variable">$@</span>&quot;</span>    <span class="comment"># command 用于调用外部命令</span></span><br><span class="line">  <span class="keyword">fi</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <ul>
@@ -6866,9 +7079,9 @@
         <category>Linux Shell Script Cookbook</category>
       </categories>
       <tags>
+        <tag>TODO</tag>
         <tag>shell</tag>
         <tag>bash</tag>
-        <tag>TODO</tag>
       </tags>
   </entry>
   <entry>
