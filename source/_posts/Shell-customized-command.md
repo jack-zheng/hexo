@@ -9,6 +9,8 @@ tags:
 
 ## 定制 git pull
 
+PS: 写完之后顺便看看 .zsh_history 是怎么实现的
+
 git pull 算是开发时经常用到的一个命令了，但是更新代码之后，时常会遇到最新版本的代码不 work 的情况。由此，打算对 pull 命令做一个优化，每次 pull 的时候，将当前 repo 的信息写到历史记录中，类似 `.zsh_history` 的功能。
 
 ```bash
