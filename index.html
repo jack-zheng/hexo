@@ -229,10 +229,16 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2021-05-24 11:04:47 / 修改时间：20:09:24" itemprop="dateCreated datePublished" datetime="2021-05-24T11:04:47+08:00">2021-05-24</time>
+              <time title="创建时间：2021-05-24 11:04:47" itemprop="dateCreated datePublished" datetime="2021-05-24T11:04:47+08:00">2021-05-24</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-25 20:10:03" itemprop="dateModified" datetime="2021-05-25T20:10:03+08:00">2021-05-25</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
@@ -251,14 +257,14 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>6.2k</span>
+              <span>20k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>6 分钟</span>
+              <span>18 分钟</span>
             </span>
 
         </div>
@@ -470,7 +476,376 @@
 <p>这里需要指出的是，exit code 最大为 255 如果超出了，系统会自己做修正</p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">cat test14</span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # exit code more than 255</span></span><br><span class="line"><span class="comment"># var=300</span></span><br><span class="line"><span class="comment"># exit $var</span></span><br><span class="line"></span><br><span class="line">chmod u+x test14</span><br><span class="line">./test14</span><br><span class="line"><span class="built_in">echo</span> $?</span><br><span class="line"><span class="comment"># 44</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="Chapter-12-Using-Structured-Commands"><a href="#Chapter-12-Using-Structured-Commands" class="headerlink" title="Chapter 12: Using Structured Commands"></a>Chapter 12: Using Structured Commands</h2>
+<h2 id="Chapter-12-Using-Structured-Commands"><a href="#Chapter-12-Using-Structured-Commands" class="headerlink" title="Chapter 12: Using Structured Commands"></a>Chapter 12: Using Structured Commands</h2><p>本章内容主要包括 loigc flow control 部分</p>
+<blockquote>
+<p>Working with the if-then Statement</p>
+</blockquote>
+<p>if-then 是最基本的控制方式，format 如下, 判断依据是 command 的 exit code, 如果是 0 则表示 success，其他的则为 fail.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> <span class="built_in">command</span></span><br><span class="line"><span class="keyword">then</span> </span><br><span class="line">    <span class="built_in">command</span></span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+
+<p>positive sample 如下</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">cat test1.sh </span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # testing the if statement</span></span><br><span class="line"><span class="comment"># if pwd</span></span><br><span class="line"><span class="comment"># then</span></span><br><span class="line"><span class="comment">#     echo &quot;It worked&quot;</span></span><br><span class="line"><span class="comment"># fi</span></span><br><span class="line">chmod u+x test1.sh </span><br><span class="line">./test1.sh</span><br><span class="line"><span class="comment"># /Users/i306454/gitStore/hexo</span></span><br><span class="line"><span class="comment"># It worked</span></span><br></pre></td></tr></table></figure>
+
+<p>negative sample 如下</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">cat test2.sh </span><br><span class="line"><span class="comment"># # #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # # testing a bad command</span></span><br><span class="line"><span class="comment"># if IamNotACommand</span></span><br><span class="line"><span class="comment"># then</span></span><br><span class="line"><span class="comment">#     echo &quot;It worked&quot;</span></span><br><span class="line"><span class="comment"># fi</span></span><br><span class="line"><span class="comment"># echo &quot;We are outside the if statement&quot;</span></span><br><span class="line">chmod u+x test2.sh</span><br><span class="line">./test2.sh </span><br><span class="line"><span class="comment"># ./test2.sh: line 3: IamNotACommand: command not found</span></span><br><span class="line"><span class="comment"># We are outside the if statement</span></span><br></pre></td></tr></table></figure>
+
+<p>PS: <code>if-then</code> 可以改一下 format，将 if-then 写在一行，看上去更贴近其他语言的表现形式</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> <span class="built_in">command</span>; <span class="keyword">then</span></span><br><span class="line">    commands</span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+
+<p>then 中可以写代码段，如下</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">cat test3.sh</span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # testing multiple commands in the then section</span></span><br><span class="line"><span class="comment"># #</span></span><br><span class="line"><span class="comment"># testuser=MySQL</span></span><br><span class="line"><span class="comment"># #</span></span><br><span class="line"><span class="comment"># if grep $testuser /etc/passwd</span></span><br><span class="line"><span class="comment"># then</span></span><br><span class="line"><span class="comment">#     echo &quot;This is my first command&quot;</span></span><br><span class="line"><span class="comment">#     echo &quot;This is my second command&quot;</span></span><br><span class="line"><span class="comment">#     echo &quot;I can even put in other commands beside echo:&quot;</span></span><br><span class="line"><span class="comment">#     ls -a /home/$testuser/.b*</span></span><br><span class="line"><span class="comment"># fi</span></span><br><span class="line">./test3.sh </span><br><span class="line"><span class="comment"># _mysql:*:74:74:MySQL Server:/var/empty:/usr/bin/false</span></span><br><span class="line"><span class="comment"># This is my first command</span></span><br><span class="line"><span class="comment"># This is my second command</span></span><br><span class="line"><span class="comment"># I can even put in other commands beside echo:</span></span><br><span class="line"><span class="comment"># ls: /home/MySQL/.b*: No such file or directory</span></span><br></pre></td></tr></table></figure>
+
+<p>PS：由于是 mac 系统，有点出入，但是目的还是达到了。顺便测了一下缩进，将 echo 的缩进去了一样 work</p>
+<blockquote>
+<p>Exploring the if-then-else Statement</p>
+</blockquote>
+<p>格式如下, </p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> <span class="built_in">command</span></span><br><span class="line"><span class="keyword">then</span></span><br><span class="line">    commands</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    commands</span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+
+<p>改进 test3.sh 如下</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # testing multiple commands in the then section</span></span><br><span class="line"><span class="comment"># #</span></span><br><span class="line"><span class="comment"># testuser=NoSuchUser</span></span><br><span class="line"><span class="comment"># #</span></span><br><span class="line"><span class="comment"># if grep $testuser /etc/passwd</span></span><br><span class="line"><span class="comment"># then</span></span><br><span class="line"><span class="comment">#     echo &quot;This is my first command&quot;</span></span><br><span class="line"><span class="comment">#     echo &quot;This is my second command&quot;</span></span><br><span class="line"><span class="comment">#     echo &quot;I can even put in other commands beside echo:&quot;</span></span><br><span class="line"><span class="comment">#     ls -a /home/$testuser/.b*</span></span><br><span class="line"><span class="comment"># else</span></span><br><span class="line"><span class="comment">#     echo &quot;The user $testuser does not exist on this system.&quot;</span></span><br><span class="line"><span class="comment">#     echo</span></span><br><span class="line"><span class="comment"># fi</span></span><br><span class="line">./test4.sh </span><br><span class="line"><span class="comment"># The user NoSuchUser does not exist on this system.</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Nesting ifs</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> command1</span><br><span class="line"><span class="keyword">then</span></span><br><span class="line">    commands</span><br><span class="line"><span class="keyword">elif</span> command2</span><br><span class="line"><span class="keyword">then</span></span><br><span class="line">    more commands</span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+
+<p>写脚本检测帐户是否存在，然后检测用户文件夹是否存在</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">cat test5.sh</span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # testing nested ifs - use elif</span></span><br><span class="line"><span class="comment"># #</span></span><br><span class="line"><span class="comment"># testuser=NoSuchUser</span></span><br><span class="line"><span class="comment"># #</span></span><br><span class="line"><span class="comment"># if grep $testuser /etc/passwd</span></span><br><span class="line"><span class="comment"># then</span></span><br><span class="line"><span class="comment">#     echo &quot;The user $testuser exists on this system&quot;</span></span><br><span class="line"><span class="comment"># elif ls -d /home/$testuser</span></span><br><span class="line"><span class="comment"># then</span></span><br><span class="line"><span class="comment">#     echo &quot;The user $testuser does not exist on this system&quot;</span></span><br><span class="line"><span class="comment">#     echo &quot;However, $testuset has directory.&quot;</span></span><br><span class="line"><span class="comment"># fi</span></span><br><span class="line">chmod u+x test5.sh </span><br><span class="line">./test5.sh </span><br><span class="line"><span class="comment"># ls: /home/NoSuchUser: No such file or directory</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Tips</strong>: Keep in mind that, with an elif statement, any else statements immediately following it are for that elif code block. They are not part of a preceding if-then statement code block.(elif 之后紧跟的 else 是一对的，它不属于前面的 if-then)</p>
+<p>多个 elif 串连的形式</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> command1</span><br><span class="line"><span class="keyword">then</span></span><br><span class="line">    <span class="built_in">command</span> <span class="built_in">set</span> 1</span><br><span class="line"><span class="keyword">elif</span> command2</span><br><span class="line"><span class="keyword">then</span></span><br><span class="line">    <span class="built_in">command</span> <span class="built_in">set</span> 2</span><br><span class="line"><span class="keyword">elif</span> command3</span><br><span class="line"><span class="keyword">then</span>    </span><br><span class="line">    <span class="built_in">command</span> <span class="built_in">set</span> 3</span><br><span class="line"><span class="keyword">elif</span> command4</span><br><span class="line"><span class="keyword">then</span></span><br><span class="line">    <span class="built_in">command</span> <span class="built_in">set</span> 4</span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Trying the test Command</p>
+</blockquote>
+<p>if-then 条件判断只支持 exit code，为了使它更通用，Linux 提供了 test 工具集，如果 test 判定结果为 TRUE 则返回 0 否则非 0，格式为 <code>test condition</code>, 将它和 if-then 结合，格式如下</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> <span class="built_in">test</span> condition</span><br><span class="line"><span class="keyword">then</span></span><br><span class="line">    commands</span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+
+<p>如果没有写 condition，则默认为非 0 返回值</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">cat test6.sh </span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # Testing the test command</span></span><br><span class="line"><span class="comment"># #</span></span><br><span class="line"><span class="comment"># if test</span></span><br><span class="line"><span class="comment"># then</span></span><br><span class="line"><span class="comment">#     echo &quot;No expression return a True&quot;</span></span><br><span class="line"><span class="comment"># else</span></span><br><span class="line"><span class="comment">#     echo &quot;No expression return a False&quot;</span></span><br><span class="line"><span class="comment"># fi</span></span><br><span class="line">./test6.sh </span><br><span class="line"><span class="comment"># No expression return a False</span></span><br></pre></td></tr></table></figure>
+
+<p>将测试条件替换为变量，输出 True 的语句</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">cat test6.sh </span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # Testing the test command</span></span><br><span class="line"><span class="comment"># my_variable=&quot;Full&quot;</span></span><br><span class="line"><span class="comment"># #</span></span><br><span class="line"><span class="comment"># if test</span></span><br><span class="line"><span class="comment"># then</span></span><br><span class="line"><span class="comment">#     echo &quot;The $my_variable expression return a True&quot;</span></span><br><span class="line"><span class="comment"># else</span></span><br><span class="line"><span class="comment">#     echo &quot;The $my_variable expression return a False&quot;</span></span><br><span class="line"><span class="comment"># fi</span></span><br><span class="line">./test6.sh </span><br><span class="line"><span class="comment"># The Full expression return a False</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># replace my_variable=&quot;&quot;</span></span><br><span class="line">./test6.sh </span><br><span class="line"><span class="comment"># The  expression return a False</span></span><br></pre></td></tr></table></figure>
+
+<p>测试条件还可以简写成如下形式</p>
+<p>Be careful; you <strong>must have a space</strong> after the first bracket and a space before the last bracket, or you’ll get an error message.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> [ condition ]</span><br><span class="line"><span class="keyword">then</span></span><br><span class="line">    commands</span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+
+<p>test condition 可以测试如下三种情景</p>
+<ul>
+<li>Numeric comparisons</li>
+<li>String comparisons</li>
+<li>File comparisions</li>
+</ul>
+<blockquote>
+<p>Using numeric comparisons</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th align="left">Comparison</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">n1 -eq n2</td>
+<td align="left">Check if n1 is equal to n2</td>
+</tr>
+<tr>
+<td align="left">n1 -ge n2</td>
+<td align="left">Check if n1 greater than or equal to n2</td>
+</tr>
+<tr>
+<td align="left">n1 -gt n2</td>
+<td align="left">Check if n1 is greater than n2</td>
+</tr>
+<tr>
+<td align="left">n1 -le n2</td>
+<td align="left">Check if n1 is less than or equal to n2</td>
+</tr>
+<tr>
+<td align="left">n1 -lt n2</td>
+<td align="left">Check if n1 less than n2</td>
+</tr>
+<tr>
+<td align="left">n1 -ne n2</td>
+<td align="left">Check if n1 is not equal to n2</td>
+</tr>
+</tbody></table>
+<p>test condition 对变量也是有效的，示例如下</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">cat numeric_test.sh </span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # Using numeric test eveluations</span></span><br><span class="line"><span class="comment"># value1=10</span></span><br><span class="line"><span class="comment"># value2=11</span></span><br><span class="line"><span class="comment"># #</span></span><br><span class="line"><span class="comment"># if [ $value1 -gt 5 ]</span></span><br><span class="line"><span class="comment"># then</span></span><br><span class="line"><span class="comment">#     echo &quot;The test value $value1 is greater than 5&quot;</span></span><br><span class="line"><span class="comment"># fi</span></span><br><span class="line"><span class="comment"># #</span></span><br><span class="line"><span class="comment"># if [ $value1 -eq $value2 ]</span></span><br><span class="line"><span class="comment"># then echo &quot;The values are equal&quot;</span></span><br><span class="line"><span class="comment"># else </span></span><br><span class="line"><span class="comment">#     echo &quot;The values are different&quot;</span></span><br><span class="line"><span class="comment"># fi</span></span><br><span class="line">./numeric_test.sh </span><br><span class="line"><span class="comment"># The test value 10 is greater than 5</span></span><br><span class="line"><span class="comment"># The values are different</span></span><br></pre></td></tr></table></figure>
+
+<p>但是 test condition 有个缺陷，它不能测试浮点型数据</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">value1=5.55</span><br><span class="line">[ <span class="variable">$value1</span> -gt 5 ]; <span class="built_in">echo</span> $?</span><br><span class="line"><span class="comment"># bash: [: 5.55: integer expression expected</span></span><br><span class="line"><span class="comment"># 2</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Caution:</strong> Remember that the only numbers the bash shell can handle are integers.</p>
+<blockquote>
+<p>Using string comparisons</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th align="left">Comparison</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">str1 = str2</td>
+<td align="left">Check if str1 is the same as string str2</td>
+</tr>
+<tr>
+<td align="left">str1 != str2</td>
+<td align="left">Check if str1 is not the same as string str2</td>
+</tr>
+<tr>
+<td align="left">str1 &lt; str2</td>
+<td align="left">Check if str1 is less than str2</td>
+</tr>
+<tr>
+<td align="left">str1 &gt; str2</td>
+<td align="left">Check if str1 is greater than string str2</td>
+</tr>
+<tr>
+<td align="left">-n str1</td>
+<td align="left">Check if str1 has a length greater than zero</td>
+</tr>
+<tr>
+<td align="left">-z str1</td>
+<td align="left">Check if str1 has a length of zero</td>
+</tr>
+</tbody></table>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">cat test8.sh </span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # Testing string equality</span></span><br><span class="line"><span class="comment"># testuser=baduser</span></span><br><span class="line"><span class="comment"># #</span></span><br><span class="line"><span class="comment"># if [ $USER != $testuser ]</span></span><br><span class="line"><span class="comment"># then</span></span><br><span class="line"><span class="comment">#     echo &quot;This is $testuser&quot;</span></span><br><span class="line"><span class="comment"># else</span></span><br><span class="line"><span class="comment">#     echo &quot;Welcome $testuser&quot;</span></span><br><span class="line"><span class="comment"># fi</span></span><br><span class="line">./test8.sh </span><br><span class="line"><span class="comment"># This is baduser</span></span><br></pre></td></tr></table></figure>
+
+<p>在处理 <code>&lt;</code> 和 <code>&gt;</code> 时，shell 会有一些很奇怪的注意点</p>
+<ul>
+<li><code>&lt;</code> 和 <code>&gt;</code> 必须使用转义符号，不然系统会把他们当作流操作</li>
+<li><code>&lt;</code> 和 <code>&gt;</code> 的用法和 sort 中的用法时不一致的</li>
+</ul>
+<p>针对第一点的测试，测试中，比较符号被当成了流操作符，新生产了一个 hockey 文件。这个操作 exit code 是 0 所以执行了 true 的 loop. 你需要将条件语句改为 <code>if [ $val1 \&gt; $val2 ]</code> 才能生效</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">cat badtest.sh </span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # mis-using string comparisons</span></span><br><span class="line"><span class="comment"># val1=baseball</span></span><br><span class="line"><span class="comment"># val2=hockey</span></span><br><span class="line"><span class="comment"># #</span></span><br><span class="line"><span class="comment"># if [ $val1 &gt; $val2 ]</span></span><br><span class="line"><span class="comment"># then</span></span><br><span class="line"><span class="comment">#     echo &quot;$val1 is greater than $val2&quot;</span></span><br><span class="line"><span class="comment"># else</span></span><br><span class="line"><span class="comment">#     echo &quot;$val1 is less than $val2&quot;</span></span><br><span class="line"><span class="comment"># fi</span></span><br><span class="line">/badtest.sh </span><br><span class="line"><span class="comment"># baseball is greater than hockey</span></span><br><span class="line">ls</span><br><span class="line"><span class="comment"># badtest.sh      hockey</span></span><br></pre></td></tr></table></figure>
+
+<p>针对第二点，sort 和 test 对 string 的比较是相反的</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">cat test9b.sh </span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # testing string sort order</span></span><br><span class="line"><span class="comment"># val1=Testing</span></span><br><span class="line"><span class="comment"># val2=testing</span></span><br><span class="line"><span class="comment"># #</span></span><br><span class="line"><span class="comment"># if [ $val1 \&gt; $val2 ]</span></span><br><span class="line"><span class="comment"># then</span></span><br><span class="line"><span class="comment">#     echo &quot;$val1 is greater than $val2&quot;</span></span><br><span class="line"><span class="comment"># else</span></span><br><span class="line"><span class="comment">#     echo &quot;$val1 is less than $val2&quot;</span></span><br><span class="line"><span class="comment"># fi</span></span><br><span class="line">./test9b.sh </span><br><span class="line">Testing is less than testing</span><br><span class="line"></span><br><span class="line">sort &lt;&lt; EOF</span><br><span class="line">&gt; Testing</span><br><span class="line">&gt; testing</span><br><span class="line">&gt; EOF</span><br><span class="line">Testing</span><br><span class="line">testing</span><br></pre></td></tr></table></figure>
+
+<p>PS: 这里和书本上有出入，我在 MacOS 里测试两者是一致的，大写要小于小些，可能 Ubantu 上不一样把，有机会可以测一测</p>
+<p><strong>Note:</strong> The test command and test expressions use the standard mathematical comparison symbols for string compari-sons and text codes for numerical comparisons. This is a subtle feature that many programmers manage to get reversed. If you use the mathematical comparison symbols for numeric values, the shell interprets them as string values and may not produce the correct results.</p>
+<p>test condition 的处理模式是 数字 + test codes(-eq); string + 运算符(&lt;/&gt;/=)，刚好是交叉的，便于记忆</p>
+<p>对 <code>-n</code> 和 <code>-z</code> 进行测试，undefined 的变量默认长度为 0</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">cat test10.sh </span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # testing string length</span></span><br><span class="line"><span class="comment"># val1=testing</span></span><br><span class="line"><span class="comment"># val2=&#x27;&#x27;</span></span><br><span class="line"><span class="comment"># #</span></span><br><span class="line"><span class="comment"># if [ -n $val1 ]</span></span><br><span class="line"><span class="comment"># then</span></span><br><span class="line"><span class="comment">#     echo &quot;The string &#x27;$val1&#x27; is not empty&quot;</span></span><br><span class="line"><span class="comment"># else</span></span><br><span class="line"><span class="comment">#     echo &quot;The string &#x27;$val1&#x27; is empty&quot;</span></span><br><span class="line"><span class="comment"># fi</span></span><br><span class="line"><span class="comment"># #</span></span><br><span class="line"><span class="comment"># if [ -z $val2 ]</span></span><br><span class="line"><span class="comment"># then</span></span><br><span class="line"><span class="comment">#     echo &quot;The string &#x27;$val2&#x27; is empty&quot;</span></span><br><span class="line"><span class="comment"># else</span></span><br><span class="line"><span class="comment">#     echo &quot;The string &#x27;$val2&#x27; is not empty&quot;</span></span><br><span class="line"><span class="comment"># fi</span></span><br><span class="line"><span class="comment"># #</span></span><br><span class="line"><span class="comment"># if [ -z $val3 ]</span></span><br><span class="line"><span class="comment"># then</span></span><br><span class="line"><span class="comment">#     echo &quot;The string &#x27;$val3&#x27; is empty&quot;</span></span><br><span class="line"><span class="comment"># else</span></span><br><span class="line"><span class="comment">#     echo &quot;The string &#x27;$val3&#x27; is not empty&quot;</span></span><br><span class="line"><span class="comment"># fi</span></span><br><span class="line">./test10.sh </span><br><span class="line"><span class="comment"># The string &#x27;testing&#x27; is not empty</span></span><br><span class="line"><span class="comment"># The string &#x27;&#x27; is empty</span></span><br><span class="line"><span class="comment"># The string &#x27;&#x27; is empty</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Using file comparisons</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th align="left">Comparison</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">-d file</td>
+<td align="left">Check if file exists and is a directory</td>
+</tr>
+<tr>
+<td align="left">-e file</td>
+<td align="left">Check if file or directory exists</td>
+</tr>
+<tr>
+<td align="left">-f file</td>
+<td align="left">Check if file exists and is a file</td>
+</tr>
+<tr>
+<td align="left">-r file</td>
+<td align="left">Check if file exists and is readable</td>
+</tr>
+<tr>
+<td align="left">-s file</td>
+<td align="left">Check if file exists and is not empty</td>
+</tr>
+<tr>
+<td align="left">-w file</td>
+<td align="left">Check if file exists and is writable</td>
+</tr>
+<tr>
+<td align="left">-x file</td>
+<td align="left">Check if file exists and is executable</td>
+</tr>
+<tr>
+<td align="left">-O file</td>
+<td align="left">Check if file exists and is owned by the current user</td>
+</tr>
+<tr>
+<td align="left">-G file</td>
+<td align="left">Check if file exists and the default group is the same as the current user</td>
+</tr>
+<tr>
+<td align="left">file1 -nt file2</td>
+<td align="left">Check if file1 is newer than file2</td>
+</tr>
+<tr>
+<td align="left">file1 -ot file2</td>
+<td align="left">Check if file1 is older than file2</td>
+</tr>
+</tbody></table>
+<p>测试范例如下</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">mkdir test_folder</span><br><span class="line">[ -d test_folder ] &amp;&amp; <span class="built_in">echo</span> <span class="literal">true</span> || <span class="built_in">echo</span> <span class="literal">false</span></span><br><span class="line"><span class="comment"># true</span></span><br><span class="line">[ -e test_folder ] &amp;&amp; <span class="built_in">echo</span> <span class="literal">true</span> || <span class="built_in">echo</span> <span class="literal">false</span></span><br><span class="line"><span class="comment"># true</span></span><br><span class="line">[ -e xxx ] &amp;&amp; <span class="built_in">echo</span> <span class="literal">true</span> || <span class="built_in">echo</span> <span class="literal">false</span></span><br><span class="line"><span class="comment"># false</span></span><br><span class="line"></span><br><span class="line">chmod u+xrw test_file.sh </span><br><span class="line">ls -l test_file.sh </span><br><span class="line"><span class="comment"># -rwxr--r--  1 i306454  staff  190 May 25 17:51 test_file.sh</span></span><br><span class="line">[ -r test_file.sh ] &amp;&amp; <span class="built_in">echo</span> <span class="literal">true</span> || <span class="built_in">echo</span> <span class="literal">false</span></span><br><span class="line"><span class="comment"># true</span></span><br><span class="line">[ -w test_file.sh ] &amp;&amp; <span class="built_in">echo</span> <span class="literal">true</span> || <span class="built_in">echo</span> <span class="literal">false</span></span><br><span class="line"><span class="comment"># true</span></span><br><span class="line">[ -x test_file.sh ] &amp;&amp; <span class="built_in">echo</span> <span class="literal">true</span> || <span class="built_in">echo</span> <span class="literal">false</span></span><br><span class="line"><span class="comment"># true</span></span><br><span class="line"></span><br><span class="line">chmod u-rxw test_file.sh </span><br><span class="line">ls -l test_file.sh </span><br><span class="line"><span class="comment"># ----r--r--  1 i306454  staff  190 May 25 17:51 test_file.sh</span></span><br><span class="line">[ -r test_file.sh ] &amp;&amp; <span class="built_in">echo</span> <span class="literal">true</span> || <span class="built_in">echo</span> <span class="literal">false</span></span><br><span class="line"><span class="comment"># false</span></span><br><span class="line">[ -w test_file.sh ] &amp;&amp; <span class="built_in">echo</span> <span class="literal">true</span> || <span class="built_in">echo</span> <span class="literal">false</span></span><br><span class="line"><span class="comment"># false</span></span><br><span class="line">[ -x test_file.sh ] &amp;&amp; <span class="built_in">echo</span> <span class="literal">true</span> || <span class="built_in">echo</span> <span class="literal">false</span></span><br><span class="line"><span class="comment"># false</span></span><br><span class="line"></span><br><span class="line">touch tmp_file</span><br><span class="line">[ -s tmp_file ] &amp;&amp; <span class="built_in">echo</span> <span class="literal">true</span> || <span class="built_in">echo</span> <span class="literal">false</span></span><br><span class="line"><span class="comment"># false</span></span><br><span class="line"><span class="built_in">echo</span> new line &gt;&gt; tmp_file </span><br><span class="line">[ -s tmp_file ] &amp;&amp; <span class="built_in">echo</span> <span class="literal">true</span> || <span class="built_in">echo</span> <span class="literal">false</span></span><br><span class="line"><span class="comment"># true</span></span><br><span class="line"></span><br><span class="line">ls -l</span><br><span class="line"><span class="comment"># total 8</span></span><br><span class="line"><span class="comment"># -rw-r--r--  1 i306454  staff  9 May 25 17:59 tmp_file</span></span><br><span class="line"><span class="comment"># -rw-r--r--  1 i306454  staff  0 May 25 18:01 tmp_file2</span></span><br><span class="line">[ tmp_file2 -nt tmp_file ] &amp;&amp; <span class="built_in">echo</span> <span class="literal">true</span> || <span class="built_in">echo</span> <span class="literal">false</span></span><br><span class="line"><span class="comment"># true</span></span><br><span class="line">[ tmp_file -nt tmp_file2 ] &amp;&amp; <span class="built_in">echo</span> <span class="literal">true</span> || <span class="built_in">echo</span> <span class="literal">false</span></span><br><span class="line"><span class="comment"># false</span></span><br><span class="line">[ tmp_file -ot tmp_file2 ] &amp;&amp; <span class="built_in">echo</span> <span class="literal">true</span> || <span class="built_in">echo</span> <span class="literal">false</span></span><br><span class="line"><span class="comment"># true</span></span><br><span class="line">[ tmp_file2 -ot tmp_file ] &amp;&amp; <span class="built_in">echo</span> <span class="literal">true</span> || <span class="built_in">echo</span> <span class="literal">false</span></span><br><span class="line"><span class="comment"># false</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Considering-Compound-Testing"><a href="#Considering-Compound-Testing" class="headerlink" title="Considering Compound Testing"></a>Considering Compound Testing</h3><p>组合条件</p>
+<ul>
+<li>[ condition1 ] &amp;&amp; [  condition2 ]</li>
+<li>[ condition1 ] || [  condition2 ]</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ -f tmp_file ] &amp;&amp; [ -d <span class="variable">$HOME</span> ] &amp;&amp; <span class="built_in">echo</span> <span class="literal">true</span> || <span class="built_in">echo</span> <span class="literal">false</span></span><br><span class="line"><span class="comment"># true</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Working-with-Advanced-if-then-Features"><a href="#Working-with-Advanced-if-then-Features" class="headerlink" title="Working with Advanced if-then Features"></a>Working with Advanced if-then Features</h3><p>if-then 的增强模式</p>
+<ul>
+<li>Double parentheses for mathematical expressions(双括号)</li>
+<li>Double square brackets for advanced string handling functions(双方括号)</li>
+</ul>
+<blockquote>
+<p>Using double parentheses</p>
+</blockquote>
+<p>创括号是正对算数运算的</p>
+<p>test command 只提供了简单的算术运算，双括号提供的算力更强，效果和其他语言类似，格式 <code>(( expression ))</code>. 除了 test 支持的运算，它还支持如下运算</p>
+<table>
+<thead>
+<tr>
+<th align="left">Comparison</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">val++</td>
+<td align="left">Post-incremnet</td>
+</tr>
+<tr>
+<td align="left">val–</td>
+<td align="left">Post-decrement</td>
+</tr>
+<tr>
+<td align="left">++val</td>
+<td align="left">Pre-increment</td>
+</tr>
+<tr>
+<td align="left">–val</td>
+<td align="left">Pre-decrement</td>
+</tr>
+<tr>
+<td align="left">!</td>
+<td align="left">Logical negation</td>
+</tr>
+<tr>
+<td align="left">~</td>
+<td align="left">Bitwise negation</td>
+</tr>
+<tr>
+<td align="left">**</td>
+<td align="left">Exponentiation</td>
+</tr>
+<tr>
+<td align="left">&lt;&lt;</td>
+<td align="left">Left bitwise shift</td>
+</tr>
+<tr>
+<td align="left">&gt;&gt;</td>
+<td align="left">Right bitwise shift</td>
+</tr>
+<tr>
+<td align="left">&amp;</td>
+<td align="left">Bitwise Boolean AND</td>
+</tr>
+<tr>
+<td align="left">|</td>
+<td align="left">Bitwise Boolean OR</td>
+</tr>
+<tr>
+<td align="left">&amp;&amp;</td>
+<td align="left">Logical AND</td>
+</tr>
+<tr>
+<td align="left">||</td>
+<td align="left">Logical OR</td>
+</tr>
+</tbody></table>
+<p>测试范例如下</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ** 次方操作</span></span><br><span class="line">(( <span class="variable">$val1</span>**2 &gt; 90 )) &amp;&amp; <span class="built_in">echo</span> <span class="literal">true</span> || <span class="built_in">echo</span> <span class="literal">false</span></span><br><span class="line"><span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Using double bracket</p>
+</blockquote>
+<p>双方括号是针对字符运算的，格式为 <code>[[ expression ]]</code>. 糊了 test 相同的计算外，他还额外提供了<strong>正则</strong>的支持</p>
+<p><strong>Note:</strong> bash 是支持双方括号的，但是其他 shell 就不一定了</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[[ <span class="variable">$USER</span> == i* ]] &amp;&amp; <span class="built_in">echo</span> <span class="literal">true</span> || <span class="built_in">echo</span> <span class="literal">false</span></span><br><span class="line"><span class="comment"># true</span></span><br></pre></td></tr></table></figure>
+
+<p>PS: 双等(==)表示 string 符合 pattern，直接用等号也是可以的</p>
+<h3 id="Considering-the-case-Command"><a href="#Considering-the-case-Command" class="headerlink" title="Considering the case Command"></a>Considering the case Command</h3><p>对应 Java 中的 switch-case 语法, 格式如下. 当内容和 pattern 匹配时，就会执行对应的语句</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> variable <span class="keyword">in</span></span><br><span class="line">pattern1 | pattern2) command1;;</span><br><span class="line">pattern3) command2;;</span><br><span class="line">*) default commands;;</span><br><span class="line"><span class="keyword">esac</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">cat test26.sh </span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # using the case command</span></span><br><span class="line"><span class="comment"># case $USER in </span></span><br><span class="line"><span class="comment"># rich | barbara)</span></span><br><span class="line"><span class="comment">#     echo &quot;Welcome $USER&quot;</span></span><br><span class="line"><span class="comment">#     echo &quot;Please enjoy your visit&quot;;;</span></span><br><span class="line"><span class="comment"># i306454)</span></span><br><span class="line"><span class="comment">#     echo &quot;Special testing account&quot;;;</span></span><br><span class="line"><span class="comment"># jessica)</span></span><br><span class="line"><span class="comment">#     echo &quot;Do not forget to log off when you&#x27;re done&quot;;;</span></span><br><span class="line"><span class="comment"># *)</span></span><br><span class="line"><span class="comment">#     echo &quot;Sorry, you are not allowed here&quot;;;</span></span><br><span class="line"><span class="comment"># esac</span></span><br><span class="line">./test26.sh </span><br><span class="line"><span class="comment"># Special testing account</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="More-Structured-Commands"><a href="#More-Structured-Commands" class="headerlink" title="More Structured Commands"></a>More Structured Commands</h2><p>这章介绍了其他一些流程控制的关键词</p>
+<h3 id="The-for-Command"><a href="#The-for-Command" class="headerlink" title="The for Command"></a>The for Command</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> var <span class="keyword">in</span> list</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    commands</span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+<p>PS: for 和 do 也可以写一起(for var in list; do)，和 if-then 那样</p>
+<blockquote>
+<p>Reading values in a list</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">cat test1.sh </span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # basic for command</span></span><br><span class="line"><span class="comment"># for test in a b c d e</span></span><br><span class="line"><span class="comment"># do</span></span><br><span class="line"><span class="comment">#     echo The character is $test</span></span><br><span class="line"><span class="comment"># done</span></span><br><span class="line">./test1.sh </span><br><span class="line"><span class="comment"># The character is a</span></span><br><span class="line"><span class="comment"># The character is b</span></span><br><span class="line"><span class="comment"># The character is c</span></span><br><span class="line"><span class="comment"># The character is d</span></span><br><span class="line"><span class="comment"># The character is e</span></span><br></pre></td></tr></table></figure>
+
+<p>当 for 结束后变量还会存在</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">cat test1b.sh </span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # Testing the for variable after the looping</span></span><br><span class="line"><span class="comment"># for test in a b c d e</span></span><br><span class="line"><span class="comment"># do</span></span><br><span class="line"><span class="comment">#     echo The character is $test</span></span><br><span class="line"><span class="comment"># done</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># echo The last character is $test</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># test=Connecticut</span></span><br><span class="line"><span class="comment"># echo &quot;Wait, now we&#x27;re visiting $test&quot;</span></span><br><span class="line">./test1b.sh </span><br><span class="line"><span class="comment"># The character is a</span></span><br><span class="line"><span class="comment"># The character is b</span></span><br><span class="line"><span class="comment"># The character is c</span></span><br><span class="line"><span class="comment"># The character is d</span></span><br><span class="line"><span class="comment"># The character is e</span></span><br><span class="line"><span class="comment"># The last character is e</span></span><br><span class="line"><span class="comment"># Wait, now we&#x27;re visiting Connecticut</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Reading complex values in a list</p>
+</blockquote>
+<p>当 list 中包含一些标点时，结果可能就不是预期的那样了</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">cat badtest1.sh </span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # another example of how not to use the for command</span></span><br><span class="line"><span class="comment"># for test in I don&#x27;t know if this&#x27;ll work, append some thing more?</span></span><br><span class="line"><span class="comment"># do</span></span><br><span class="line"><span class="comment">#     echo The character is $test</span></span><br><span class="line"><span class="comment"># done</span></span><br><span class="line">./badtest1.sh </span><br><span class="line"><span class="comment"># The character is I</span></span><br><span class="line"><span class="comment"># The character is dont know if thisll</span></span><br><span class="line"><span class="comment"># The character is work,</span></span><br><span class="line"><span class="comment"># The character is append</span></span><br><span class="line"><span class="comment"># The character is some</span></span><br><span class="line"><span class="comment"># The character is thing</span></span><br><span class="line"><span class="comment"># The character is more?</span></span><br></pre></td></tr></table></figure>
+
+<p>解决方案：</p>
+<ol>
+<li>给引号加转义符(for test in I don&#39;t know if this&#39;ll work, append some thing more?)</li>
+<li>将 string 用双引号包裹(for test in I don”‘“t know if this”‘“ll work, append some thing more?)</li>
+</ol>
+<p><code>for</code> 默认使用空格做分割，如果想要连词，你需要将对一个的词用双引号包裹起来</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">cat badtest2.sh</span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # another example of how not to use the for command</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># for test in Nevada New Hampshire New Mexico New York North Carolina</span></span><br><span class="line"><span class="comment"># do</span></span><br><span class="line"><span class="comment">#     echo &quot;Now going to $test&quot;</span></span><br><span class="line"><span class="comment"># done</span></span><br><span class="line">./badtest2.sh </span><br><span class="line"><span class="comment"># Now going to Nevada</span></span><br><span class="line"><span class="comment"># Now going to New</span></span><br><span class="line"><span class="comment"># Now going to Hampshire</span></span><br><span class="line"><span class="comment"># Now going to New</span></span><br><span class="line"><span class="comment"># Now going to Mexico</span></span><br><span class="line"><span class="comment"># Now going to New</span></span><br><span class="line"><span class="comment"># Now going to York</span></span><br><span class="line"><span class="comment"># Now going to North</span></span><br><span class="line"><span class="comment"># Now going to Carolina</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># update to: for test in Nevada &quot;New Hampshire&quot; &quot;New Mexico&quot; &quot;New York&quot;</span></span><br><span class="line">./badtest2.sh </span><br><span class="line"><span class="comment"># Now going to Nevada</span></span><br><span class="line"><span class="comment"># Now going to New Hampshire</span></span><br><span class="line"><span class="comment"># Now going to New Mexico</span></span><br><span class="line"><span class="comment"># Now going to New York</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Reading a list from a variable</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">cat test4.sh</span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # using a variable to hold the list</span></span><br><span class="line"><span class="comment"># list=&quot;Alabama Alaska Arizona Arkansas Colorado&quot;</span></span><br><span class="line"><span class="comment"># list=$list&quot; Connecticut&quot;</span></span><br><span class="line"><span class="comment"># for state in $list</span></span><br><span class="line"><span class="comment"># do</span></span><br><span class="line"><span class="comment">#     echo &quot;Have you ever visited $state?&quot;</span></span><br><span class="line"><span class="comment"># done</span></span><br><span class="line">./test4.sh </span><br><span class="line"><span class="comment"># Have you ever visited Alabama?</span></span><br><span class="line"><span class="comment"># Have you ever visited Alaska?</span></span><br><span class="line"><span class="comment"># Have you ever visited Arizona?</span></span><br><span class="line"><span class="comment"># Have you ever visited Arkansas?</span></span><br><span class="line"><span class="comment"># Have you ever visited Colorado?</span></span><br><span class="line"><span class="comment"># Have you ever visited Connecticut?</span></span><br></pre></td></tr></table></figure>
+
+<p>PS: <code>list=$list&quot; Connecticut&quot;</code> 是 shell 中 append 字符串的常见操作</p>
+<blockquote>
+<p>Reading values from a command</p>
+</blockquote>
+<p>结合其他命令，计算出 list 的值</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> a b c &gt; states</span><br><span class="line">cat test5.sh </span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # reading values from a file</span></span><br><span class="line"><span class="comment"># file=states</span></span><br><span class="line"><span class="comment"># for state in $(cat $file)</span></span><br><span class="line"><span class="comment"># do</span></span><br><span class="line"><span class="comment">#     echo &quot;Visit beautiful $state&quot;</span></span><br><span class="line"><span class="comment"># done</span></span><br><span class="line">./test5.sh </span><br><span class="line"><span class="comment"># Visit beautiful a</span></span><br><span class="line"><span class="comment"># Visit beautiful b</span></span><br><span class="line"><span class="comment"># Visit beautiful c</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Changing the field separator</p>
+</blockquote>
+<p>有一个特殊的环境变量叫做 IFS(internal field separator). 他可以作为分割 field 的依据。默认的分割符有</p>
+<ul>
+<li>A space</li>
+<li>A tab</li>
+<li>A newline</li>
+</ul>
+<p>如果你想要将换行作为分割符，你可以使用 <code>IFS=$&#39;\n&#39;</code></p>
+<p><strong>Caution:</strong> 定制 IFS 之后一定要还原</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">IFS_OLD=<span class="variable">$IFS</span></span><br><span class="line">IFS=$<span class="string">&#x27;\n&#x27;</span></span><br><span class="line">&lt;use the new IFS value <span class="keyword">in</span> code&gt;</span><br><span class="line">IFS=<span class="variable">$IFS_OLD</span></span><br></pre></td></tr></table></figure>
+
+<p>其他定制分割符 <code>IFS=:</code>, 或者多分割符 <code>IFS=$&#39;\n&#39;:;&quot;</code></p>
+<blockquote>
+<p>Reading a directory using wildcards</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">cat test6.sh</span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # iterate through all the files in a directory</span></span><br><span class="line"><span class="comment"># for file in /Users/i306454/tmp/*</span></span><br><span class="line"><span class="comment"># do</span></span><br><span class="line"><span class="comment">#     if [ -d &quot;$file&quot; ]</span></span><br><span class="line"><span class="comment">#     then </span></span><br><span class="line"><span class="comment">#         echo &quot;$file is a directory&quot;</span></span><br><span class="line"><span class="comment">#     elif [ -f &quot;$file&quot; ]</span></span><br><span class="line"><span class="comment">#     then</span></span><br><span class="line"><span class="comment">#         echo &quot;$file is a file&quot;</span></span><br><span class="line"><span class="comment">#     fi</span></span><br><span class="line"><span class="comment"># done</span></span><br><span class="line">./test6.sh </span><br><span class="line"><span class="comment"># /Users/i306454/tmp/backup is a directory</span></span><br><span class="line"><span class="comment"># /Users/i306454/tmp/bash_test is a directory</span></span><br><span class="line"><span class="comment"># /Users/i306454/tmp/csv is a directory</span></span><br><span class="line"><span class="comment"># /Users/i306454/tmp/dfile is a directory</span></span><br><span class="line"><span class="comment"># /Users/i306454/tmp/ifenduser.sh is a file</span></span><br><span class="line"><span class="comment"># /Users/i306454/tmp/plantuml is a directory</span></span><br><span class="line"><span class="comment"># /Users/i306454/tmp/sh is a directory</span></span><br></pre></td></tr></table></figure>
+
+<p>PS: 在这个例子中有一个很有意思的点，在 test 中，将变量 file 使用双引号包裹起来了。这是因为 Linux 中带空格的文件或文件夹是合法的，如果没有引号，解析就会出错</p>
+<p><strong>Caution:</strong> It’s always a good idea to test each file or directory before trying to process it.</p>
+
       
     </div>
 
@@ -520,7 +895,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-24 20:09:24" itemprop="dateModified" datetime="2021-05-24T20:09:24+08:00">2021-05-24</time>
+                <time title="修改时间：2021-05-25 20:10:03" itemprop="dateModified" datetime="2021-05-25T20:10:03+08:00">2021-05-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -613,7 +988,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-24 20:09:24" itemprop="dateModified" datetime="2021-05-24T20:09:24+08:00">2021-05-24</time>
+                <time title="修改时间：2021-05-25 20:10:03" itemprop="dateModified" datetime="2021-05-25T20:10:03+08:00">2021-05-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -709,7 +1084,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-24 20:09:24" itemprop="dateModified" datetime="2021-05-24T20:09:24+08:00">2021-05-24</time>
+                <time title="修改时间：2021-05-25 20:10:03" itemprop="dateModified" datetime="2021-05-25T20:10:03+08:00">2021-05-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -912,7 +1287,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-24 20:09:24" itemprop="dateModified" datetime="2021-05-24T20:09:24+08:00">2021-05-24</time>
+                <time title="修改时间：2021-05-25 20:10:03" itemprop="dateModified" datetime="2021-05-25T20:10:03+08:00">2021-05-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1002,7 +1377,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-24 20:09:24" itemprop="dateModified" datetime="2021-05-24T20:09:24+08:00">2021-05-24</time>
+                <time title="修改时间：2021-05-25 20:10:03" itemprop="dateModified" datetime="2021-05-25T20:10:03+08:00">2021-05-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1120,7 +1495,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-24 20:09:24" itemprop="dateModified" datetime="2021-05-24T20:09:24+08:00">2021-05-24</time>
+                <time title="修改时间：2021-05-25 20:10:03" itemprop="dateModified" datetime="2021-05-25T20:10:03+08:00">2021-05-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1222,7 +1597,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-24 20:09:24" itemprop="dateModified" datetime="2021-05-24T20:09:24+08:00">2021-05-24</time>
+                <time title="修改时间：2021-05-25 20:10:03" itemprop="dateModified" datetime="2021-05-25T20:10:03+08:00">2021-05-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1313,7 +1688,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-24 20:09:24" itemprop="dateModified" datetime="2021-05-24T20:09:24+08:00">2021-05-24</time>
+                <time title="修改时间：2021-05-25 20:10:03" itemprop="dateModified" datetime="2021-05-25T20:10:03+08:00">2021-05-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1438,7 +1813,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-24 20:09:24" itemprop="dateModified" datetime="2021-05-24T20:09:24+08:00">2021-05-24</time>
+                <time title="修改时间：2021-05-25 20:10:03" itemprop="dateModified" datetime="2021-05-25T20:10:03+08:00">2021-05-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1603,12 +1978,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">620k</span>
+    <span title="站点总字数">634k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">9:24</span>
+    <span title="站点阅读时长">9:36</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
