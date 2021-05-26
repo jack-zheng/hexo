@@ -3287,7 +3287,7 @@
 
 <h2 id="统计文件"><a href="#统计文件" class="headerlink" title="统计文件"></a>统计文件</h2><ul>
 <li>当前目录下的文件个数，不包含文件夹 <code>ls -l | grep &#39;^-&#39; | wc -l</code></li>
-<li>当前目录下的文件个数，递归 <code>ls -l | grep &#39;^-&#39; | wc -l</code></li>
+<li>当前目录下的文件个数，递归 <code>ls -lR | grep &#39;^-&#39; | wc -l</code></li>
 <li>当前目录下的文件夹个数 <code>ls -l | grep &#39;^d&#39; | wc -l</code></li>
 </ul>
 <p>解释：</p>
@@ -4355,10 +4355,12 @@
   <entry>
     <title>定制 Shell 脚本</title>
     <url>/hexo/2021/05/17/Shell-customized-command/</url>
-    <content><![CDATA[<h2 id="定制-git-pull"><a href="#定制-git-pull" class="headerlink" title="定制 git pull"></a>定制 git pull</h2><p>PS: 写完之后顺便看看 .zsh_history 是怎么实现的</p>
-<p>git pull 算是开发时经常用到的一个命令了，但是更新代码之后，时常会遇到最新版本的代码不 work 的情况。由此，打算对 pull 命令做一个优化，每次 pull 的时候，将当前 repo 的信息写到历史记录中，类似 <code>.zsh_history</code> 的功能。</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 等看过 Shell 的 condition 篇再完善</span></span><br><span class="line"><span class="keyword">function</span> git &#123;</span><br><span class="line">  <span class="keyword">if</span> [[ <span class="string">&quot;<span class="variable">$1</span>&quot;</span> == <span class="string">&quot;pull&quot;</span> &amp;&amp; <span class="string">&quot;<span class="variable">$@</span>&quot;</span> != *<span class="string">&quot;--help&quot;</span>* ]]; <span class="keyword">then</span></span><br><span class="line">    version_before=$(git rev-parse --short HEAD)</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;bef: %s&quot;</span> <span class="variable">$version_before</span></span><br><span class="line">    <span class="built_in">command</span> git pull</span><br><span class="line">    version_after=$(git rev-parse --short HEAD)</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;aft: %s&quot;</span> <span class="variable">$version_after</span></span><br><span class="line">    <span class="keyword">if</span> [ <span class="string">&quot;<span class="variable">$v1</span>&quot;</span> == <span class="string">&quot;<span class="variable">$v2</span>&quot;</span> ]; <span class="keyword">then</span></span><br><span class="line">      <span class="built_in">echo</span> <span class="string">&quot;No history recorded...&quot;</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">      <span class="built_in">echo</span> <span class="string">&quot;Record history...&quot;</span></span><br><span class="line">      <span class="comment"># write process date time</span></span><br><span class="line">      <span class="built_in">printf</span> <span class="string">&quot;%s  &quot;</span> <span class="string">&quot;<span class="subst">$(date &#x27;+%Y-%m-%d %H:%M:%S&#x27;)</span>&quot;</span> &gt;&gt; ~/.git_pull.history</span><br><span class="line">      <span class="comment"># write current version for recover</span></span><br><span class="line">      <span class="built_in">printf</span> <span class="string">&quot;%s  &quot;</span> <span class="string">&quot;<span class="variable">$version_before</span>&quot;</span>  &gt;&gt; ~/.git_pull.history</span><br><span class="line">      <span class="comment"># write repo name</span></span><br><span class="line">      <span class="built_in">printf</span> <span class="string">&quot;%s\n&quot;</span> <span class="string">&quot;<span class="subst">$(git config --get remote.origin.url | cut -d &#x27;/&#x27; -f 2)</span>&quot;</span>  &gt;&gt; ~/.git_pull.history</span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line">    <span class="built_in">echo</span> end loop1</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    <span class="built_in">echo</span> loop2</span><br><span class="line">    <span class="built_in">command</span> git <span class="string">&quot;<span class="variable">$@</span>&quot;</span>    <span class="comment"># command 用于调用外部命令</span></span><br><span class="line">  <span class="keyword">fi</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    <content><![CDATA[<h2 id="定制-git-pull"><a href="#定制-git-pull" class="headerlink" title="定制 git pull"></a>定制 git pull</h2><p>git pull 算是开发时经常用到的一个命令了，但是更新代码之后，时常会遇到最新版本的代码不 work 的情况。由此，打算对 pull 命令做一个优化，每次 pull 的时候，将当前 repo 的信息写到历史记录中，类似 <code>.zsh_history</code> 的功能。</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> git &#123;</span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;\$@: &quot;</span> <span class="variable">$@</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;\$1: &quot;</span> <span class="variable">$1</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;\$2: &quot;</span> <span class="variable">$2</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="built_in">command</span> git <span class="string">&quot;<span class="variable">$@</span>&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> git &#123;</span><br><span class="line">  <span class="comment"># use wild card match, so use </span></span><br><span class="line">  <span class="keyword">if</span> [[ <span class="string">&quot;<span class="variable">$1</span>&quot;</span> == <span class="string">&quot;pull&quot;</span> &amp;&amp; <span class="string">&quot;<span class="variable">$@</span>&quot;</span> != *<span class="string">&quot;--help&quot;</span>* ]]; <span class="keyword">then</span></span><br><span class="line">    updateinfo=$(<span class="built_in">command</span> git pull | grep Updating)</span><br><span class="line">    <span class="keyword">if</span> [[ -z <span class="variable">$updateinfo</span> ]]; <span class="keyword">then</span></span><br><span class="line">      <span class="built_in">echo</span> <span class="string">&quot;Skip recording pull history...&quot;</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">      <span class="built_in">echo</span> <span class="string">&quot;Recording pull history...&quot;</span></span><br><span class="line">      <span class="comment"># write process date time</span></span><br><span class="line">      <span class="built_in">printf</span> <span class="string">&quot;%s  &quot;</span> <span class="string">&quot;<span class="subst">$(date &#x27;+%Y-%m-%d %H:%M:%S&#x27;)</span>&quot;</span> &gt;&gt; ~/.git_pull.history</span><br><span class="line">      <span class="comment"># write current version for recover</span></span><br><span class="line">      <span class="built_in">printf</span> <span class="string">&quot;%s  &quot;</span> <span class="string">&quot;<span class="variable">$updateinfo</span>&quot;</span>  &gt;&gt; ~/.git_pull.history</span><br><span class="line">      <span class="comment"># write repo name</span></span><br><span class="line">      <span class="built_in">printf</span> <span class="string">&quot;%s\n&quot;</span> <span class="string">&quot;<span class="subst">$(command git config --get remote.origin.url | cut -d &#x27;/&#x27; -f 2)</span>&quot;</span>  &gt;&gt; ~/.git_pull.history</span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    <span class="built_in">command</span> git <span class="string">&quot;<span class="variable">$@</span>&quot;</span>    <span class="comment"># command 用于调用外部命令</span></span><br><span class="line">  <span class="keyword">fi</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>PS: 为了重复测试脚本，可以使用 <code>git reset --hard xxx</code> 回退版本，再次测试 pull</p>
 <ul>
 <li><a href="https://stackoverflow.com/questions/3538774/is-it-possible-to-override-git-command-by-git-alias">Stackoverflow</a></li>
 </ul>
@@ -4378,7 +4380,7 @@
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">file=&quot;./bulk2.xml&quot;</span><br><span class="line">while IFS= read line</span><br><span class="line"></span><br><span class="line">do</span><br><span class="line">    echo &quot;------------- start -------------&quot;</span><br><span class="line">    # write file name to file</span><br><span class="line">    find . -iname &quot;$line*.java&quot; -exec basename &#123;&#125; \;</span><br><span class="line">    echo &#x27;------------- match start -------------&#x27;</span><br><span class="line">    # write matched line to file</span><br><span class="line">    find . -iname &quot;$line*.java&quot; -exec grep -i &quot;dbUtil\|db&quot; &#123;&#125; \; | grep -v &quot;DBType&quot;</span><br><span class="line">    echo &#x27;------------- match end -------------&#x27;</span><br><span class="line">done &lt;&quot;$file&quot;</span><br></pre></td></tr></table></figure>
 
 <p>PS: 由于技术手段的缺失，很多函数我都不清楚怎么调用，对 shell 还是很不熟悉，需要更多的实践练习</p>
-<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><ul>
+<h2 id="ZSH-history-实现机制"><a href="#ZSH-history-实现机制" class="headerlink" title="ZSH history 实现机制"></a>ZSH history 实现机制</h2><h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><ul>
 <li>shell 文件里面写 <code>echo -n &#39;,&#39;</code> 会把 <code>-n</code> 也写进去？</li>
 <li>因为每次执行都会扫一遍 repo，所以想能不能建立一个 name-context map 到内存然后扫描</li>
 <li>以上面的 idea 为基础，能不能实时监测 shell 运行时的内存消耗</li>
@@ -5452,6 +5454,7 @@
     <title>工作中的那些琐碎小事</title>
     <url>/hexo/2019/12/19/Tips-from-work/</url>
     <content><![CDATA[<p>该页面用于记录实际工作中遇到的 bug，以示警戒</p>
+<h2 id="2021-05-26-Cache-Issue"><a href="#2021-05-26-Cache-Issue" class="headerlink" title="2021-05-26 Cache Issue"></a>2021-05-26 Cache Issue</h2><p>几年前经手的一个功能 Manage IP Restrictions, 当时还是 QA，考虑功能时还不够完善。Dev 在修改某个值时没有将对应的 cache 清掉，导致测试经常遇到不一致的情况。产品情况下修改不是很频繁，但是没这种情况，在测试的时候可把我愁坏了，干。。。</p>
 <h2 id="Exception-Handle-遗漏"><a href="#Exception-Handle-遗漏" class="headerlink" title="Exception Handle 遗漏"></a>Exception Handle 遗漏</h2><p>有同事打补丁时对 checked exception 和 RunTimeException 处理有遗漏导致客户使用出问题，反馈后 debug 发现，简化后场景如下</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* 场景描述：</span></span><br><span class="line"><span class="comment">*</span></span><br><span class="line"><span class="comment">* 在处理 filterData() 时，作者只考虑到 checked exception, 没有考虑 runtime exception.</span></span><br><span class="line"><span class="comment">* 实际使用时，客户在某些情况下会抛出 NPE 这种 runtime exception, 导致返回 null, 显示出现错误</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> List&lt;Integer&gt; <span class="title">populateDatas</span><span class="params">(datas)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">for</span> (data : datas) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                filterData(data);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (FilterException fe) &#123;</span><br><span class="line">                System.out.println(<span class="string">&quot;Err when filter &quot;</span> + data);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Populate data failed.&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -6746,7 +6749,7 @@
       </tags>
   </entry>
   <entry>
-    <title>LSCASSB partii shell scripting basics</title>
+    <title>Linux命令行与shell脚本编程大全 第二章 Shell 脚本基础知识</title>
     <url>/hexo/2021/05/24/LSCASSB-partii-shell-scripting-basics/</url>
     <content><![CDATA[<p>Linux命令行与shell脚本编程大全 3rd 第二部分命令实验记录</p>
 <h2 id="Chapter-11-Basic-Script-building"><a href="#Chapter-11-Basic-Script-building" class="headerlink" title="Chapter 11: Basic Script building"></a>Chapter 11: Basic Script building</h2><h3 id="Using-Multiple-Commands"><a href="#Using-Multiple-Commands" class="headerlink" title="Using Multiple Commands"></a>Using Multiple Commands</h3><p>使用分号分隔命令</p>
@@ -6795,7 +6798,7 @@
 </blockquote>
 <p>你可以通过一下方式将 cmd 输出的值赋给你的变量</p>
 <ol>
-<li>``` 反引号符(backtick character)</li>
+<li><code>`</code> 反引号符(backtick character)</li>
 <li><code>$()</code> 表达式</li>
 </ol>
 <figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">tdate=`date`</span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$tdate</span></span><br><span class="line"><span class="comment"># Mon May 24 15:46:51 CST 2021</span></span><br><span class="line">tdate2=$(date)</span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$tdate2</span></span><br><span class="line"><span class="comment"># Mon May 24 15:47:39 CST 2021</span></span><br></pre></td></tr></table></figure>
@@ -6803,7 +6806,7 @@
 <p>这只是初级用法，更骚的操作是将输出定制之后用作后续命令的输出，比如下面这个例子，将文件夹下的所有目录写进 log 文件，并用时间戳做后缀 <code>today=$(date +%y%m%d); ls -al /usr/bin &gt; log.$today</code></p>
 <p><strong>Caution:</strong> Command substitution creates what’s called a subshell to run the enclosed command. A subshell is a separate child shell generated from the shell that’s running the script. Because of that, any variables you create in the script aren’t available to the subshell command.</p>
 <p>Command substitution 这种使用方法会创建一个子 shell 计算变量值，子 shell 运行的时候是看不到你外面的 shell 中定义的变量的</p>
-<h2 id="Redirecting-Input-and-Output"><a href="#Redirecting-Input-and-Output" class="headerlink" title="Redirecting Input and Output"></a>Redirecting Input and Output</h2><blockquote>
+<h3 id="Redirecting-Input-and-Output"><a href="#Redirecting-Input-and-Output" class="headerlink" title="Redirecting Input and Output"></a>Redirecting Input and Output</h3><blockquote>
 <p>Output redirection</p>
 </blockquote>
 <p>可以使用大于号(greater-than symbol)将输出导入文件</p>
@@ -6999,7 +7002,7 @@
 <figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">cat test6.sh </span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # Testing the test command</span></span><br><span class="line"><span class="comment"># #</span></span><br><span class="line"><span class="comment"># if test</span></span><br><span class="line"><span class="comment"># then</span></span><br><span class="line"><span class="comment">#     echo &quot;No expression return a True&quot;</span></span><br><span class="line"><span class="comment"># else</span></span><br><span class="line"><span class="comment">#     echo &quot;No expression return a False&quot;</span></span><br><span class="line"><span class="comment"># fi</span></span><br><span class="line">./test6.sh </span><br><span class="line"><span class="comment"># No expression return a False</span></span><br></pre></td></tr></table></figure>
 
 <p>将测试条件替换为变量，输出 True 的语句</p>
-<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">cat test6.sh </span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # Testing the test command</span></span><br><span class="line"><span class="comment"># my_variable=&quot;Full&quot;</span></span><br><span class="line"><span class="comment"># #</span></span><br><span class="line"><span class="comment"># if test</span></span><br><span class="line"><span class="comment"># then</span></span><br><span class="line"><span class="comment">#     echo &quot;The $my_variable expression return a True&quot;</span></span><br><span class="line"><span class="comment"># else</span></span><br><span class="line"><span class="comment">#     echo &quot;The $my_variable expression return a False&quot;</span></span><br><span class="line"><span class="comment"># fi</span></span><br><span class="line">./test6.sh </span><br><span class="line"><span class="comment"># The Full expression return a False</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># replace my_variable=&quot;&quot;</span></span><br><span class="line">./test6.sh </span><br><span class="line"><span class="comment"># The  expression return a False</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">cat test6.sh </span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # Testing the test command</span></span><br><span class="line"><span class="comment"># my_variable=&quot;Full&quot;</span></span><br><span class="line"><span class="comment"># #</span></span><br><span class="line"><span class="comment"># if my_variable</span></span><br><span class="line"><span class="comment"># then</span></span><br><span class="line"><span class="comment">#     echo &quot;The $my_variable expression return a True&quot;</span></span><br><span class="line"><span class="comment"># else</span></span><br><span class="line"><span class="comment">#     echo &quot;The $my_variable expression return a False&quot;</span></span><br><span class="line"><span class="comment"># fi</span></span><br><span class="line">./test6.sh </span><br><span class="line"><span class="comment"># The Full expression return a False</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># replace my_variable=&quot;&quot;</span></span><br><span class="line">./test6.sh </span><br><span class="line"><span class="comment"># The  expression return a False</span></span><br></pre></td></tr></table></figure>
 
 <p>测试条件还可以简写成如下形式</p>
 <p>Be careful; you <strong>must have a space</strong> after the first bracket and a space before the last bracket, or you’ll get an error message.</p>
@@ -7180,7 +7183,7 @@
 <blockquote>
 <p>Using double parentheses</p>
 </blockquote>
-<p>创括号是正对算数运算的</p>
+<p>创括号是针对算数运算的</p>
 <p>test command 只提供了简单的算术运算，双括号提供的算力更强，效果和其他语言类似，格式 <code>(( expression ))</code>. 除了 test 支持的运算，它还支持如下运算</p>
 <table>
 <thead>
@@ -7248,7 +7251,7 @@
 <blockquote>
 <p>Using double bracket</p>
 </blockquote>
-<p>双方括号是针对字符运算的，格式为 <code>[[ expression ]]</code>. 糊了 test 相同的计算外，他还额外提供了<strong>正则</strong>的支持</p>
+<p>双方括号是针对字符运算的，格式为 <code>[[ expression ]]</code>. 除了 test 相同的计算外，他还额外提供了<strong>正则</strong>的支持</p>
 <p><strong>Note:</strong> bash 是支持双方括号的，但是其他 shell 就不一定了</p>
 <figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">[[ <span class="variable">$USER</span> == i* ]] &amp;&amp; <span class="built_in">echo</span> <span class="literal">true</span> || <span class="built_in">echo</span> <span class="literal">false</span></span><br><span class="line"><span class="comment"># true</span></span><br></pre></td></tr></table></figure>
 
@@ -7258,6 +7261,10 @@
 
 <figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">cat test26.sh </span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # using the case command</span></span><br><span class="line"><span class="comment"># case $USER in </span></span><br><span class="line"><span class="comment"># rich | barbara)</span></span><br><span class="line"><span class="comment">#     echo &quot;Welcome $USER&quot;</span></span><br><span class="line"><span class="comment">#     echo &quot;Please enjoy your visit&quot;;;</span></span><br><span class="line"><span class="comment"># i306454)</span></span><br><span class="line"><span class="comment">#     echo &quot;Special testing account&quot;;;</span></span><br><span class="line"><span class="comment"># jessica)</span></span><br><span class="line"><span class="comment">#     echo &quot;Do not forget to log off when you&#x27;re done&quot;;;</span></span><br><span class="line"><span class="comment"># *)</span></span><br><span class="line"><span class="comment">#     echo &quot;Sorry, you are not allowed here&quot;;;</span></span><br><span class="line"><span class="comment"># esac</span></span><br><span class="line">./test26.sh </span><br><span class="line"><span class="comment"># Special testing account</span></span><br></pre></td></tr></table></figure>
 
+<h3 id="Issues"><a href="#Issues" class="headerlink" title="Issues"></a>Issues</h3><p><strong>Issue1:</strong> 写脚本的时候，发现一个很奇怪的问题</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 未赋值的变脸 -n 会返回 true ?!</span></span><br><span class="line">[ -n <span class="variable">$ret23</span> ] &amp;&amp; <span class="built_in">echo</span> <span class="literal">true</span> || <span class="built_in">echo</span> <span class="literal">false</span></span><br><span class="line"><span class="comment"># true</span></span><br><span class="line"><span class="comment"># 经多方查证，需要加引号</span></span><br><span class="line">[ -n <span class="string">&quot;<span class="variable">$ret23</span>&quot;</span> ] &amp;&amp; <span class="built_in">echo</span> <span class="literal">true</span> || <span class="built_in">echo</span> <span class="literal">false</span></span><br><span class="line"><span class="comment"># false</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 这里就体现出增强型的好处了</span></span><br><span class="line">[[ -n <span class="variable">$ret23</span> ]] &amp;&amp; <span class="built_in">echo</span> <span class="literal">true</span> || <span class="built_in">echo</span> <span class="literal">false</span></span><br><span class="line"><span class="comment"># false</span></span><br></pre></td></tr></table></figure>
+
+<p>以后可以的话都用增强型把，容错率更高</p>
 <h2 id="More-Structured-Commands"><a href="#More-Structured-Commands" class="headerlink" title="More Structured Commands"></a>More Structured Commands</h2><p>这章介绍了其他一些流程控制的关键词</p>
 <h3 id="The-for-Command"><a href="#The-for-Command" class="headerlink" title="The for Command"></a>The for Command</h3><figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> var <span class="keyword">in</span> list</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    commands</span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
 
@@ -7317,7 +7324,44 @@
 
 <p>PS: 在这个例子中有一个很有意思的点，在 test 中，将变量 file 使用双引号包裹起来了。这是因为 Linux 中带空格的文件或文件夹是合法的，如果没有引号，解析就会出错</p>
 <p><strong>Caution:</strong> It’s always a good idea to test each file or directory before trying to process it.</p>
-]]></content>
+<h3 id="The-C-Style-for-command"><a href="#The-C-Style-for-command" class="headerlink" title="The C-Style for command"></a>The C-Style for command</h3><p>C 语言中 for 循环如下</p>
+<blockquote>
+<p>The C language for command</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> (i=<span class="number">0</span>; i&lt;<span class="number">10</span>; i++)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;The next number is %d\n&quot;</span>, i);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>bash 中也提供了类似的功能, 语法为 <code>for (( variable assignment; condition; iteration process ))</code> 例子：<code>for(( a=1; a&lt;10; a++ ))</code></p>
+<p>限制：</p>
+<ul>
+<li>The assignment of the variable value can contain space</li>
+<li>The variable in the condition isn’t preceded with a dollar sign</li>
+<li>The equation for the iteration process doesn’t use the expr command format</li>
+</ul>
+<p>这种用法，对我倒是很亲切，但是和之前用过的那些变量赋值之类的语句确实有一些语法差异的。这个语句中各种缩进，空格都不作限制</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">cat test8.sh </span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # Testing the C-style for loop</span></span><br><span class="line"><span class="comment"># for ((i=1; i&lt;= 3; i++))</span></span><br><span class="line"><span class="comment"># do</span></span><br><span class="line"><span class="comment">#     echo &quot;The next number is $i&quot;</span></span><br><span class="line"><span class="comment"># done</span></span><br><span class="line">./test8.sh </span><br><span class="line"><span class="comment"># The next number is 1</span></span><br><span class="line"><span class="comment"># The next number is 2</span></span><br><span class="line"><span class="comment"># The next number is 3</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Using multiple variables</p>
+</blockquote>
+<p>for 中包含多个参数</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">cat test9.sh </span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # Testing the C-style for loop</span></span><br><span class="line"><span class="comment"># for ((a=1, b=10; a&lt;= 3; a++, b--))</span></span><br><span class="line"><span class="comment"># do</span></span><br><span class="line"><span class="comment">#     echo $a - $b</span></span><br><span class="line"><span class="comment"># done</span></span><br><span class="line">./test9.sh </span><br><span class="line"><span class="comment"># 1 - 10</span></span><br><span class="line"><span class="comment"># 2 - 9</span></span><br><span class="line"><span class="comment"># 3 - 8</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="The-while-Command"><a href="#The-while-Command" class="headerlink" title="The while Command"></a>The while Command</h3><figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="keyword">while</span> <span class="built_in">test</span> <span class="built_in">command</span></span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    other commands</span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+<p>示例</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">cat test10.sh </span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # while command test</span></span><br><span class="line"><span class="comment"># var1=3</span></span><br><span class="line"><span class="comment"># while [ $var1 -gt 0 ]</span></span><br><span class="line"><span class="comment"># do</span></span><br><span class="line"><span class="comment">#     echo $var1</span></span><br><span class="line"><span class="comment">#     var1=$[ $var1 - 1 ]</span></span><br><span class="line"><span class="comment"># done</span></span><br><span class="line">./test10.sh </span><br><span class="line"><span class="comment"># 3</span></span><br><span class="line"><span class="comment"># 2</span></span><br><span class="line"><span class="comment"># 1</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Using multiple test commands</p>
+</blockquote>
+<p>while 判断的时候可以接多个条件，但是只有最后一个条件的 exit code 起决定作用。就算第一个条件我直接改为 <code>cmd</code> 每次都抛错，循环照常进行</p>
+<p>还有，每个条件要新起一行, 当然用分号隔开也是可以的</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">cat test11.sh </span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # Testing a multicommand while loop</span></span><br><span class="line"><span class="comment"># var1=3</span></span><br><span class="line"><span class="comment"># while echo $var1</span></span><br><span class="line"><span class="comment">#     [ $var1 -gt 0 ]</span></span><br><span class="line"><span class="comment"># do</span></span><br><span class="line"><span class="comment">#     echo &quot;This is inside the loop&quot;</span></span><br><span class="line"><span class="comment">#     var1=$[ $var1 - 1 ]</span></span><br><span class="line"><span class="comment"># done</span></span><br><span class="line">./test11.sh </span><br><span class="line"><span class="comment"># 3</span></span><br><span class="line"><span class="comment"># This is inside the loop</span></span><br><span class="line"><span class="comment"># 2</span></span><br><span class="line"><span class="comment"># This is inside the loop</span></span><br><span class="line"><span class="comment"># 1</span></span><br><span class="line"><span class="comment"># This is inside the loop</span></span><br><span class="line"><span class="comment"># 0</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="The-until-Command"><a href="#The-until-Command" class="headerlink" title="The until Command"></a>The until Command</h3><p>语意上和 while 相反，但是用法一致</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">until <span class="built_in">test</span> commands</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    other commands</span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">cat test12 </span><br><span class="line"><span class="comment"># #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># # using the until command</span></span><br><span class="line"><span class="comment"># var1=100</span></span><br><span class="line"><span class="comment"># until [ $var1 -eq 0 ]</span></span><br><span class="line"><span class="comment"># do</span></span><br><span class="line"><span class="comment">#     echo $var1</span></span><br><span class="line"><span class="comment">#     var1=$[ $var1 - 25 ]</span></span><br><span class="line"><span class="comment"># done</span></span><br><span class="line">./test12 </span><br><span class="line"><span class="comment"># 100</span></span><br><span class="line"><span class="comment"># 75</span></span><br><span class="line"><span class="comment"># 50</span></span><br><span class="line"><span class="comment"># 25</span></span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>Shell</category>
       </categories>
@@ -7445,12 +7489,12 @@
 </blockquote>
 ]]></content>
       <categories>
-        <category>Linux Shell Script Cookbook</category>
+        <category>Shell</category>
       </categories>
       <tags>
         <tag>shell</tag>
         <tag>TODO</tag>
-        <tag>bash</tag>
+        <tag>Linux Shell Script Cookbook</tag>
       </tags>
   </entry>
   <entry>

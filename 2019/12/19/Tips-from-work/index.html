@@ -51,16 +51,16 @@
   };
 </script>
 
-  <meta name="description" content="该页面用于记录实际工作中遇到的 bug，以示警戒 Exception Handle 遗漏有同事打补丁时对 checked exception 和 RunTimeException 处理有遗漏导致客户使用出问题，反馈后 debug 发现，简化后场景如下 1234567891011121314151617181920&#x2F;*** 场景描述：** 在处理 filterData() 时，作者只考虑到 chec">
+  <meta name="description" content="该页面用于记录实际工作中遇到的 bug，以示警戒 2021-05-26 Cache Issue几年前经手的一个功能 Manage IP Restrictions, 当时还是 QA，考虑功能时还不够完善。Dev 在修改某个值时没有将对应的 cache 清掉，导致测试经常遇到不一致的情况。产品情况下修改不是很频繁，但是没这种情况，在测试的时候可把我愁坏了，干。。。 Exception Handle 遗">
 <meta property="og:type" content="article">
 <meta property="og:title" content="工作中的那些琐碎小事">
 <meta property="og:url" content="https://jack-zheng.github.io/hexo/2019/12/19/Tips-from-work/index.html">
 <meta property="og:site_name" content="Jackpot">
-<meta property="og:description" content="该页面用于记录实际工作中遇到的 bug，以示警戒 Exception Handle 遗漏有同事打补丁时对 checked exception 和 RunTimeException 处理有遗漏导致客户使用出问题，反馈后 debug 发现，简化后场景如下 1234567891011121314151617181920&#x2F;*** 场景描述：** 在处理 filterData() 时，作者只考虑到 chec">
+<meta property="og:description" content="该页面用于记录实际工作中遇到的 bug，以示警戒 2021-05-26 Cache Issue几年前经手的一个功能 Manage IP Restrictions, 当时还是 QA，考虑功能时还不够完善。Dev 在修改某个值时没有将对应的 cache 清掉，导致测试经常遇到不一致的情况。产品情况下修改不是很频繁，但是没这种情况，在测试的时候可把我愁坏了，干。。。 Exception Handle 遗">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://jack-zheng.github.io/hexo/2019/12/19/Tips-from-work/relation.png">
 <meta property="article:published_time" content="2019-12-19T09:32:33.000Z">
-<meta property="article:modified_time" content="2021-05-25T12:10:03.568Z">
+<meta property="article:modified_time" content="2021-05-26T12:11:31.588Z">
 <meta property="article:author" content="Jack Zheng">
 <meta property="article:tag" content="java">
 <meta property="article:tag" content="exception">
@@ -243,7 +243,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-25 20:10:03" itemprop="dateModified" datetime="2021-05-25T20:10:03+08:00">2021-05-25</time>
+                <time title="修改时间：2021-05-26 20:11:31" itemprop="dateModified" datetime="2021-05-26T20:11:31+08:00">2021-05-26</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -270,7 +270,7 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>2.2k</span>
+              <span>2.3k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -290,6 +290,7 @@
 
       
         <p>该页面用于记录实际工作中遇到的 bug，以示警戒</p>
+<h2 id="2021-05-26-Cache-Issue"><a href="#2021-05-26-Cache-Issue" class="headerlink" title="2021-05-26 Cache Issue"></a>2021-05-26 Cache Issue</h2><p>几年前经手的一个功能 Manage IP Restrictions, 当时还是 QA，考虑功能时还不够完善。Dev 在修改某个值时没有将对应的 cache 清掉，导致测试经常遇到不一致的情况。产品情况下修改不是很频繁，但是没这种情况，在测试的时候可把我愁坏了，干。。。</p>
 <h2 id="Exception-Handle-遗漏"><a href="#Exception-Handle-遗漏" class="headerlink" title="Exception Handle 遗漏"></a>Exception Handle 遗漏</h2><p>有同事打补丁时对 checked exception 和 RunTimeException 处理有遗漏导致客户使用出问题，反馈后 debug 发现，简化后场景如下</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* 场景描述：</span></span><br><span class="line"><span class="comment">*</span></span><br><span class="line"><span class="comment">* 在处理 filterData() 时，作者只考虑到 checked exception, 没有考虑 runtime exception.</span></span><br><span class="line"><span class="comment">* 实际使用时，客户在某些情况下会抛出 NPE 这种 runtime exception, 导致返回 null, 显示出现错误</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> List&lt;Integer&gt; <span class="title">populateDatas</span><span class="params">(datas)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">for</span> (data : datas) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                filterData(data);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (FilterException fe) &#123;</span><br><span class="line">                System.out.println(<span class="string">&quot;Err when filter &quot;</span> + data);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Populate data failed.&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -413,7 +414,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Exception-Handle-%E9%81%97%E6%BC%8F"><span class="nav-number">1.</span> <span class="nav-text">Exception Handle 遗漏</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Java-%E4%B8%AD%E7%9A%84%E5%BC%82%E5%B8%B8%E5%88%86%E7%B1%BB"><span class="nav-number">1.1.</span> <span class="nav-text">Java 中的异常分类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E7%9A%84%E5%BC%82%E5%B8%B8%E7%A7%8D%E7%B1%BB"><span class="nav-number">1.2.</span> <span class="nav-text">常见的异常种类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E7%82%B9%E6%84%9F%E6%82%9F"><span class="nav-number">1.3.</span> <span class="nav-text">一点感悟</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Event-%E6%95%B0%E6%8D%AE%E9%87%8F%E6%92%91%E7%88%86%E4%BA%86%E4%BA%A7%E5%93%81%E7%8E%AF%E5%A2%83"><span class="nav-number">2.</span> <span class="nav-text">Event 数据量撑爆了产品环境</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JDBC-%E7%A9%BA%E5%AD%97%E4%B8%B2%E5%AD%98%E4%B8%BA-NULL"><span class="nav-number">3.</span> <span class="nav-text">JDBC 空字串存为 NULL</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%B0%E5%BD%95%E4%B8%80%E4%B8%AA-jar-%E5%8D%87%E7%BA%A7%E5%AF%BC%E8%87%B4%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">4.</span> <span class="nav-text">记录一个 jar 升级导致的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Cache-%E5%A4%84%E7%90%86%E7%9A%84%E4%B8%80%E4%BA%9B%E5%B0%8F%E6%8A%80%E5%B7%A7"><span class="nav-number">5.</span> <span class="nav-text">Cache 处理的一些小技巧</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NonNull-%E6%A0%87%E7%AD%BE"><span class="nav-number">6.</span> <span class="nav-text">@NonNull 标签</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Bug-track-2021-04-07"><span class="nav-number">7.</span> <span class="nav-text">Bug track 2021-04-07</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E4%B8%AA%E5%88%A4%E6%96%AD%E6%9D%A1%E4%BB%B6%E7%9A%84%E4%BC%98%E5%8C%96"><span class="nav-number">8.</span> <span class="nav-text">一个判断条件的优化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%9F%A5%E6%89%BE%E7%9B%AE%E6%A0%87%E6%96%87%E4%BB%B6%E5%A4%B9-ls"><span class="nav-number">9.</span> <span class="nav-text">命令行查找目标文件夹(ls)</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#2021-05-26-Cache-Issue"><span class="nav-number">1.</span> <span class="nav-text">2021-05-26 Cache Issue</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Exception-Handle-%E9%81%97%E6%BC%8F"><span class="nav-number">2.</span> <span class="nav-text">Exception Handle 遗漏</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Java-%E4%B8%AD%E7%9A%84%E5%BC%82%E5%B8%B8%E5%88%86%E7%B1%BB"><span class="nav-number">2.1.</span> <span class="nav-text">Java 中的异常分类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E7%9A%84%E5%BC%82%E5%B8%B8%E7%A7%8D%E7%B1%BB"><span class="nav-number">2.2.</span> <span class="nav-text">常见的异常种类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E7%82%B9%E6%84%9F%E6%82%9F"><span class="nav-number">2.3.</span> <span class="nav-text">一点感悟</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Event-%E6%95%B0%E6%8D%AE%E9%87%8F%E6%92%91%E7%88%86%E4%BA%86%E4%BA%A7%E5%93%81%E7%8E%AF%E5%A2%83"><span class="nav-number">3.</span> <span class="nav-text">Event 数据量撑爆了产品环境</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JDBC-%E7%A9%BA%E5%AD%97%E4%B8%B2%E5%AD%98%E4%B8%BA-NULL"><span class="nav-number">4.</span> <span class="nav-text">JDBC 空字串存为 NULL</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%B0%E5%BD%95%E4%B8%80%E4%B8%AA-jar-%E5%8D%87%E7%BA%A7%E5%AF%BC%E8%87%B4%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">5.</span> <span class="nav-text">记录一个 jar 升级导致的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Cache-%E5%A4%84%E7%90%86%E7%9A%84%E4%B8%80%E4%BA%9B%E5%B0%8F%E6%8A%80%E5%B7%A7"><span class="nav-number">6.</span> <span class="nav-text">Cache 处理的一些小技巧</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NonNull-%E6%A0%87%E7%AD%BE"><span class="nav-number">7.</span> <span class="nav-text">@NonNull 标签</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Bug-track-2021-04-07"><span class="nav-number">8.</span> <span class="nav-text">Bug track 2021-04-07</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E4%B8%AA%E5%88%A4%E6%96%AD%E6%9D%A1%E4%BB%B6%E7%9A%84%E4%BC%98%E5%8C%96"><span class="nav-number">9.</span> <span class="nav-text">一个判断条件的优化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%9F%A5%E6%89%BE%E7%9B%AE%E6%A0%87%E6%96%87%E4%BB%B6%E5%A4%B9-ls"><span class="nav-number">10.</span> <span class="nav-text">命令行查找目标文件夹(ls)</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -436,7 +437,7 @@
       <div class="site-state-item site-state-categories">
             <a href="/hexo/categories/">
           
-        <span class="site-state-item-count">30</span>
+        <span class="site-state-item-count">29</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
@@ -476,12 +477,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">634k</span>
+    <span title="站点总字数">636k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">9:36</span>
+    <span title="站点阅读时长">9:38</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
