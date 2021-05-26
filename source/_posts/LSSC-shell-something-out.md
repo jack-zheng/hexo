@@ -2,10 +2,10 @@
 title: 牛刀小试
 date: 2021-05-17 19:27:05
 categories:
-- Linux Shell Script Cookbook
+- Shell
 tags:
-- bash
 - shell
+- Linux Shell Script Cookbook
 - TODO
 ---
 

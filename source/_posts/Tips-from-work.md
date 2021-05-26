@@ -10,6 +10,10 @@ tags:
 ---
 该页面用于记录实际工作中遇到的 bug，以示警戒
 
+## 2021-05-26 Cache Issue
+
+几年前经手的一个功能 Manage IP Restrictions, 当时还是 QA，考虑功能时还不够完善。Dev 在修改某个值时没有将对应的 cache 清掉，导致测试经常遇到不一致的情况。产品情况下修改不是很频繁，但是没这种情况，在测试的时候可把我愁坏了，干。。。
+
 ## Exception Handle 遗漏
 
 有同事打补丁时对 checked exception 和 RunTimeException 处理有遗漏导致客户使用出问题，反馈后 debug 发现，简化后场景如下

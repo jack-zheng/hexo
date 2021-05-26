@@ -1,5 +1,5 @@
 ---
-title: LSCASSB partii shell scripting basics
+title: Linux命令行与shell脚本编程大全 第二章 Shell 脚本基础知识
 date: 2021-05-24 11:04:47
 categories:
 - Shell
@@ -115,7 +115,7 @@ PS: `${variable}` 也是合法的，这种声明起到强调变量名的作用
 
 你可以通过一下方式将 cmd 输出的值赋给你的变量
 
-1. `\`` 反引号符(backtick character)
+1. `` ` `` 反引号符(backtick character)
 2. `$()` 表达式
 
 ```sh
@@ -133,7 +133,7 @@ echo $tdate2
 
 Command substitution 这种使用方法会创建一个子 shell 计算变量值，子 shell 运行的时候是看不到你外面的 shell 中定义的变量的
 
-## Redirecting Input and Output
+### Redirecting Input and Output
 
 > Output redirection
 
@@ -649,7 +649,7 @@ cat test6.sh
 # # Testing the test command
 # my_variable="Full"
 # #
-# if test
+# if my_variable
 # then
 #     echo "The $my_variable expression return a True"
 # else
@@ -935,7 +935,7 @@ if-then 的增强模式
 
 > Using double parentheses
 
-创括号是正对算数运算的
+创括号是针对算数运算的
 
 test command 只提供了简单的算术运算，双括号提供的算力更强，效果和其他语言类似，格式 `(( expression ))`. 除了 test 支持的运算，它还支持如下运算
 
@@ -965,7 +965,7 @@ true
 
 > Using double bracket
 
-双方括号是针对字符运算的，格式为 `[[ expression ]]`. 糊了 test 相同的计算外，他还额外提供了**正则**的支持
+双方括号是针对字符运算的，格式为 `[[ expression ]]`. 除了 test 相同的计算外，他还额外提供了**正则**的支持
 
 **Note:** bash 是支持双方括号的，但是其他 shell 就不一定了
 
@@ -1006,6 +1006,26 @@ cat test26.sh
 ./test26.sh 
 # Special testing account
 ```
+
+### Issues
+
+**Issue1:** 写脚本的时候，发现一个很奇怪的问题
+
+```sh
+# 未赋值的变脸 -n 会返回 true ?!
+[ -n $ret23 ] && echo true || echo false
+# true
+# 经多方查证，需要加引号
+[ -n "$ret23" ] && echo true || echo false
+# false
+
+# 这里就体现出增强型的好处了
+[[ -n $ret23 ]] && echo true || echo false
+# false
+```
+
+以后可以的话都用增强型把，容错率更高
+
 
 ## More Structured Commands
 
@@ -1215,3 +1235,140 @@ cat test6.sh
 PS: 在这个例子中有一个很有意思的点，在 test 中，将变量 file 使用双引号包裹起来了。这是因为 Linux 中带空格的文件或文件夹是合法的，如果没有引号，解析就会出错
 
 **Caution:** It's always a good idea to test each file or directory before trying to process it.
+
+### The C-Style for command
+
+C 语言中 for 循环如下
+
+> The C language for command
+
+```c
+for (i=0; i<10; i++)
+{
+    printf("The next number is %d\n", i);
+}
+```
+
+bash 中也提供了类似的功能, 语法为 `for (( variable assignment; condition; iteration process ))` 例子：`for(( a=1; a<10; a++ ))`
+
+限制：
+
+* The assignment of the variable value can contain space
+* The variable in the condition isn't preceded with a dollar sign
+* The equation for the iteration process doesn't use the expr command format
+
+这种用法，对我倒是很亲切，但是和之前用过的那些变量赋值之类的语句确实有一些语法差异的。这个语句中各种缩进，空格都不作限制
+
+```sh
+cat test8.sh 
+# #!/usr/local/bin/bash
+# # Testing the C-style for loop
+# for ((i=1; i<= 3; i++))
+# do
+#     echo "The next number is $i"
+# done
+./test8.sh 
+# The next number is 1
+# The next number is 2
+# The next number is 3
+```
+
+> Using multiple variables
+
+for 中包含多个参数
+
+```sh
+cat test9.sh 
+# #!/usr/local/bin/bash
+# # Testing the C-style for loop
+# for ((a=1, b=10; a<= 3; a++, b--))
+# do
+#     echo $a - $b
+# done
+./test9.sh 
+# 1 - 10
+# 2 - 9
+# 3 - 8
+```
+
+### The while Command
+
+```sh
+while test command
+do
+    other commands
+done
+```
+
+示例
+
+```sh
+cat test10.sh 
+# #!/usr/local/bin/bash
+# # while command test
+# var1=3
+# while [ $var1 -gt 0 ]
+# do
+#     echo $var1
+#     var1=$[ $var1 - 1 ]
+# done
+./test10.sh 
+# 3
+# 2
+# 1
+```
+
+> Using multiple test commands
+
+while 判断的时候可以接多个条件，但是只有最后一个条件的 exit code 起决定作用。就算第一个条件我直接改为 `cmd` 每次都抛错，循环照常进行
+
+还有，每个条件要新起一行, 当然用分号隔开也是可以的
+
+```sh
+cat test11.sh 
+# #!/usr/local/bin/bash
+# # Testing a multicommand while loop
+# var1=3
+# while echo $var1
+#     [ $var1 -gt 0 ]
+# do
+#     echo "This is inside the loop"
+#     var1=$[ $var1 - 1 ]
+# done
+./test11.sh 
+# 3
+# This is inside the loop
+# 2
+# This is inside the loop
+# 1
+# This is inside the loop
+# 0
+```
+
+### The until Command
+
+语意上和 while 相反，但是用法一致
+
+```sh
+until test commands
+do
+    other commands
+done
+```
+
+```sh
+cat test12 
+# #!/usr/local/bin/bash
+# # using the until command
+# var1=100
+# until [ $var1 -eq 0 ]
+# do
+#     echo $var1
+#     var1=$[ $var1 - 25 ]
+# done
+./test12 
+# 100
+# 75
+# 50
+# 25
+```

@@ -144,7 +144,7 @@ Uploading /Users/my/Downloads/re-produce.gif to /export/sftp/re-produce.gif
 ## 统计文件
 
 * 当前目录下的文件个数，不包含文件夹 `ls -l | grep '^-' | wc -l`
-* 当前目录下的文件个数，递归 `ls -l | grep '^-' | wc -l`
+* 当前目录下的文件个数，递归 `ls -lR | grep '^-' | wc -l`
 * 当前目录下的文件夹个数 `ls -l | grep '^d' | wc -l`
 
 解释：

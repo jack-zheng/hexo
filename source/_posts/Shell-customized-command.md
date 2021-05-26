@@ -9,37 +9,40 @@ tags:
 
 ## 定制 git pull
 
-PS: 写完之后顺便看看 .zsh_history 是怎么实现的
-
 git pull 算是开发时经常用到的一个命令了，但是更新代码之后，时常会遇到最新版本的代码不 work 的情况。由此，打算对 pull 命令做一个优化，每次 pull 的时候，将当前 repo 的信息写到历史记录中，类似 `.zsh_history` 的功能。
 
-```bash
-# 等看过 Shell 的 condition 篇再完善
+```sh
 function git {
+  echo "\$@: " $@
+  echo "\$1: " $1
+  echo "\$2: " $2
+  echo command git "$@"
+}
+```
+
+```bash
+function git {
+  # use wild card match, so use 
   if [[ "$1" == "pull" && "$@" != *"--help"* ]]; then
-    version_before=$(git rev-parse --short HEAD)
-    echo "bef: %s" $version_before
-    command git pull
-    version_after=$(git rev-parse --short HEAD)
-    echo "aft: %s" $version_after
-    if [ "$v1" == "$v2" ]; then
-      echo "No history recorded..."
+    updateinfo=$(command git pull | grep Updating)
+    if [[ -z $updateinfo ]]; then
+      echo "Skip recording pull history..."
     else
-      echo "Record history..."
+      echo "Recording pull history..."
       # write process date time
       printf "%s  " "$(date '+%Y-%m-%d %H:%M:%S')" >> ~/.git_pull.history
       # write current version for recover
-      printf "%s  " "$version_before"  >> ~/.git_pull.history
+      printf "%s  " "$updateinfo"  >> ~/.git_pull.history
       # write repo name
-      printf "%s\n" "$(git config --get remote.origin.url | cut -d '/' -f 2)"  >> ~/.git_pull.history
+      printf "%s\n" "$(command git config --get remote.origin.url | cut -d '/' -f 2)"  >> ~/.git_pull.history
     fi
-    echo end loop1
   else
-    echo loop2
     command git "$@"    # command 用于调用外部命令
   fi
 }
 ```
+
+PS: 为了重复测试脚本，可以使用 `git reset --hard xxx` 回退版本，再次测试 pull
 
 * [Stackoverflow](https://stackoverflow.com/questions/3538774/is-it-possible-to-override-git-command-by-git-alias)
 
@@ -99,6 +102,8 @@ done <"$file"
 ```
 
 PS: 由于技术手段的缺失，很多函数我都不清楚怎么调用，对 shell 还是很不熟悉，需要更多的实践练习
+
+## ZSH history 实现机制
 
 ## 问题
 
