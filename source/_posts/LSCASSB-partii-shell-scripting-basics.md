@@ -559,7 +559,7 @@ fi
 # The user NoSuchUser does not exist on this system.
 ```
 
-> Nesting ifs
+> Nesting if
 
 ```sh
 if command1
@@ -1197,6 +1197,25 @@ cat test5.sh
 
 **Caution:** 定制 IFS 之后一定要还原
 
+测试环节：如何打印当前 IFS 的值？
+
+```sh
+echo -n "$IFS" | hexdump
+# 0000000 20 09 0a
+# 0000003
+printf %q "$IFS"
+# ' \t\n'
+```
+
+**Caution:** 变量和引号之间的关系：
+
+* 单引号，所见即所得。写什么即是什么
+* 双引号，中间的变量会做计算
+* 没符号，用于连续的内容，如果内容中带空格，需要加双引号
+
+脚本中 `IFS.OLD=$IFS` 的赋值语句经常会抛异常 `./test_csv.sh: line 3: IFS.OLD=: command not found` 但是写成 `IFS_OLD` 的话就可以运行，可能是点号的形式会变成其他一些什么调用也说不定。以后为了稳定，还是用下划线的形式把 
+
+
 ```sh
 IFS_OLD=$IFS
 IFS=$'\n'
@@ -1371,4 +1390,568 @@ cat test12
 # 75
 # 50
 # 25
+```
+
+### Nesting Loops
+
+循环嵌套，很常见
+
+```sh
+cat test14             
+# #!/usr/local/bin/bash
+# # nesting for loops
+# for (( a=1; a<=3; a++))
+# do
+#     echo "Starting loop $a:"
+#     for (( b=1; b<=3; b++ ))
+#     do
+#         echo "    Inside loop: $b"
+#     done
+# done
+./test14
+# Starting loop 1:
+#     Inside loop: 1
+#     Inside loop: 2
+#     Inside loop: 3
+# Starting loop 2:
+#     Inside loop: 1
+#     Inside loop: 2
+#     Inside loop: 3
+# Starting loop 3:
+#     Inside loop: 1
+#     Inside loop: 2
+#     Inside loop: 3
+```
+
+while + for 的例子。树上的例子 for 中 边界条件是 `$var2<3;` 和之前表现的语法不一样，试了一下，有无 `$` 都是可以的
+
+```sh
+cat test14
+# #!/usr/local/bin/bash
+# # nesting for loops
+# var1=3
+# while [ $var1 -ge 0 ]
+# do
+#     echo "Outer loop: $var1"
+#     for (( var2=1; var2<3; var2++))
+#     do
+#         var3=$[ $var1*$var2 ]
+#         echo "    Inner loop: $var1 * $var2 = $var3"
+#     done
+#     var1=$[ $var1 - 1 ]
+# done
+./test14
+# Outer loop: 3
+#     Inner loop: 3 * 1 = 3
+#     Inner loop: 3 * 2 = 6
+# Outer loop: 2
+#     Inner loop: 2 * 1 = 2
+#     Inner loop: 2 * 2 = 4
+# Outer loop: 1
+#     Inner loop: 1 * 1 = 1
+#     Inner loop: 1 * 2 = 2
+# Outer loop: 0
+#     Inner loop: 0 * 1 = 0
+#     Inner loop: 0 * 2 = 0
+```
+
+### Looping on File Data
+
+[Stackoverflow](https://stackoverflow.com/questions/4128235/what-is-the-exact-meaning-of-ifs-n) 上看到一篇解释 IFS=$'\n' 的帖子，挺好。一句话就是 `$'...'` 的语法可以表示转义符
+
+通常来说，你会需要遍历文件中的内容，这需要两个知识点
+
+1. Using nested loops
+2. Changing the IFS environment variable
+
+通过设置 IFS 你可以在包含空格的情况下处理一行内容. 下面是处理 `/etc/passwd` 文件是案例
+
+```sh
+cat test1
+# #!/usr/local/bin/bash
+# # changing the IFS value
+# IFS.OLD=$IFS
+# IFS=$'\n'
+# for entry in $(cat /etc/passwd)
+# do 
+#     echo "Values in $entry -"
+#     IFS=:
+#     for value in $entry
+#     do
+#         echo "    $value"
+#     done
+# done
+./test1
+# Values in _oahd:*:441:441:OAH Daemon:/var/empty:/usr/bin/false
+#     _oahd
+#     badtest1.sh
+#     badtest2.sh
+#     test1
+#     test12
+#     test14
+#     test15
+#     441
+#     441
+#     OAH Daemon
+#     /var/empty
+#     /usr/bin/false
+# ...
+```
+
+### Controlling the loop
+
+通过 break, continue 控制流程
+
+> The break command
+
+打断单层循环, 这个语法适用于任何循环语句，比如 for, while, until 等
+
+```sh
+cat test17
+# #!/usr/local/bin/bash
+# # Breaking out of a for loop
+# for var1 in 1 2 3 4 5
+# do
+#     if [ $var1 -eq 3 ]
+#     then
+#         break
+#     fi
+#     echo "Iteration number: $var1"
+# done
+# echo "The for loop is completed"
+./test17
+# Iteration number: 1
+# Iteration number: 2
+# The for loop is completed
+```
+
+打断内层循环
+
+```sh
+cat test19
+# #!/usr/local/bin/bash
+# # Breaking out of an inner loop
+# for (( a=1; a<4; a++ ))
+# do
+#     echo "Outer loop: $a"
+#     for (( b=1; b<4; b++ ))
+#     do
+#         if [ $b -eq 2 ]
+#         then
+#             break
+#         fi
+#         echo "    Inner loop: $b"
+#     done
+# done
+./test19
+# Outer loop: 1
+#     Inner loop: 1
+# Outer loop: 2
+#     Inner loop: 1
+# Outer loop: 3
+#     Inner loop: 1
+```
+
+在内部循环执行过程中，打断外层循环，这个特性倒是很新颖，Java 中没见过 Haha
+
+`break n` 默认是 1，打断当前的循环，设置成 2 就是打断外面一层直接退出。下面例子中，我们通过在 inner for 中 break 2 直接退出了外层 for 循环
+
+```sh
+cat test20 
+# #!/usr/local/bin/bash
+# # Breaking out of an outer loop
+# for (( a=1; a<4; a++ ))
+# do
+#     echo "Outer loop: $a"
+#     for (( b=1; b<4; b++ ))
+#     do
+#         if [ $b -gt 2 ]
+#         then
+#             break 2
+#         fi
+#         echo "    Inner loop: $b"
+#     done
+# done
+./test20
+# Outer loop: 1
+#     Inner loop: 1
+#     Inner loop: 2
+```
+
+> The continue command
+
+提前结束循环，继续下一次循环. 下面例子中，当当前变量 3 < x < 8 时跳过打印. 前面介绍的循环体都适用，如 for, while 和 until
+
+```sh
+cat test21 
+# #!/usr/local/bin/bash
+# # Using the continue command
+# for (( var1=1; var1<10; var1++ ))
+# do 
+#     if [ $var1 -gt 3 ] && [ $var1 -lt 8 ]
+#     then
+#         continue
+#     fi
+#     echo "Iteration number: $var1"
+# done
+./test21 
+# Iteration number: 1
+# Iteration number: 2
+# Iteration number: 3
+# Iteration number: 8
+# Iteration number: 9
+```
+
+和 break 一样，continue 也支持 `continue n` 来跳过循环。测试用例中，当外层变量值 2 < x < 4 时，跳过打印
+
+```sh
+cat test22
+# #!/usr/local/bin/bash
+# # Continuing an outer loop
+# for (( a=1; a<=5; a++ ))
+# do 
+#     echo "Iteration $a:"
+#     for (( b=1; b<3; b++))
+#     do
+#         if [ $a -gt 2 ] && [ $a -lt 4 ]
+#         then
+#             continue 2
+#         fi
+#         var3=$[ $a * $b ]
+#         echo "    The result of $a * $b is $var3"
+#     done
+# done
+./test22
+# Iteration 1:
+#     The result of 1 * 1 is 1
+#     The result of 1 * 2 is 2
+# Iteration 2:
+#     The result of 2 * 1 is 2
+#     The result of 2 * 2 is 4
+# Iteration 3:
+# Iteration 4:
+#     The result of 4 * 1 is 4
+#     The result of 4 * 2 is 8
+# Iteration 5:
+#     The result of 5 * 1 is 5
+#     The result of 5 * 2 is 10
+```
+
+### Processing the Output of a Loop
+
+`for` 中打印的语句可以在 `done` 后面接文件操作符一起导入，还有这种功能。。。那我之前写脚本用的 printf 不是显得有点呆
+
+```sh
+cat test23
+# #!/usr/local/bin/bash
+# # redirecting the for output to a file
+# for (( a=1; a<=5; a++ ))
+# do 
+#     echo "The number is $a"
+# done > test23.txt
+cat test23.txt 
+# The number is 1
+# The number is 2
+# The number is 3
+# The number is 4
+# The number is 5
+```
+
+PS: 试了一下，`echo -n` 也是 OK 的
+
+同理，`done` 后面还可以接其他的命令, 这个扩展很赞
+
+```sh
+cat test24
+# #!/usr/local/bin/bash
+# # piping a loop to another command
+# for state in "North Dakota" Connecticut Illinois Alabama Tennessee
+# do
+#     echo "$state is the next place to go"
+# done | sort
+# echo "This completes our travels"
+./test24
+# Alabama is the next place to go
+# Connecticut is the next place to go
+# Illinois is the next place to go
+# North Dakota is the next place to go
+# Tennessee is the next place to go
+# This completes our travels
+```
+
+### Practical Examples
+
+一些实用的脚本范例
+
+> Finding executable files
+
+通过遍历 PATH 中的路径，统计处你可以运行的 commands 列表
+
+```sh
+cat test25
+# #!/usr/local/bin/bash
+# # Finding file in the PATH
+# IFS.OLD=$IFS
+
+# IFS=:
+# for folder in $PATH
+# do
+#     echo "$folder:"
+#     for file in $folder/*
+#     do
+#         if [ -x $file ]
+#         then
+#             echo "    $file"
+#         fi
+#     done
+# done
+
+# IFS=$IFS.OLD
+./test25 | more
+# /Users/i306454/.jenv/bin:
+# /usr/local/sbin:
+#     /usr/local/sbin/unbound
+#     ....
+```
+
+PS: 这个 `more` 就用的很灵性！！
+
+> Creating multiple user accounts
+
+将需要创建的新用户写到文件中，并通过脚本解析文件，批量创建
+
+```sh
+#!/bin/bash
+# Process new user accounts
+
+input="users.csv"
+while IFS=',' read -r userid name
+do
+    echo "adding $userid"
+    useradd -c "$name" -m $userid
+done < "$input"
+```
+
+## Chapter 14: Handling User Input
+
+这章主要讲如何在脚本中做交互
+
+### Passing Parameters
+
+> Reading parameters
+
+bash 会将传入的所有变量都赋给 positional parameters. 这些位置变量以 `$` 开头，`$0` 为脚本名称，`$1` 为第一个参数，以此类推
+
+根据传入参数计算斐波那契额终值
+
+```sh
+cat test1
+# #!/usr/local/bin/bash
+# # Using one command line parameter
+# factorial=1
+# for (( number=1; number<=$1; number++ ))
+# do
+#     factorial=$[ $factorial * $number ]
+# done
+# echo The factorial of $1 is $factorial
+./test1 5
+# The factorial of 5 is 120
+```
+
+多参数调用案例
+
+```sh
+cat test2
+# #!/usr/local/bin/bash
+# # Testing two command line parameters
+# total=$[ $1 * $2 ]
+# echo The first parameter is $1
+# echo The first parameter is $2
+# echo The total value is $total
+
+./test2 2 5
+# The first parameter is 2
+# The first parameter is 5
+# The total value is 10
+```
+
+字符串作为参数
+
+```sh
+cat test3
+# #!/usr/local/bin/bash
+# # Testing string parameters
+# echo Hello $1, glad to meet you
+
+bash-5.1$ ./test3 jack
+# Hello jack, glad to meet you
+```
+
+如果字符串之间有空格，需要用引号包裹起来
+
+当参数数量超过 **9** 个的时候，你需要用花括号来调用
+
+```sh
+at ./test4
+# #!/usr/local/bin/bash
+# # handling lots of parameters
+# total=$[ ${10} * ${11} ]
+# echo The tenth parameter is ${10}
+# echo The eleventh parameter is ${11}
+# echo The total is $total
+./test4 1 2 3 4 5 6 7 8 9 10 11 12
+# The tenth parameter is 10
+# The eleventh parameter is 11
+# The total is 110
+```
+
+> Reading the script name
+
+`$0 代表了脚本文件的名字
+
+```sh
+cat test5
+# #!/usr/local/bin/bash
+# # Testing the $0 parameter
+# echo the zero parameter is set to: $0
+
+bash test5
+# the zero parameter is set to: test5
+./test5
+# the zero parameter is set to: ./test5
+bash /Users/i306454/tmp/bash_test/test5
+# the zero parameter is set to: /Users/i306454/tmp/bash_test/test5
+```
+
+不一样的调用方式，得到的第 0 参数值会不一样，如果像统一得到文件名，可以使用 basename 命令
+
+```sh
+cat test5b
+# #!/usr/local/bin/bash
+# # Using basename with the $0 parameter
+# name=$(basename $0)
+# echo the zero parameter is set to: $name
+
+bash-5.1$ ./test5b
+# the zero parameter is set to: test5b
+sh test5b
+# the zero parameter is set to: test5b
+```
+
+> Testing parameters
+
+当脚本中需要用到参数，但是参数没有给，则脚本会抛异常，但是我们可以更优雅的处理这种情况
+
+```sh
+cat test7 
+# #!/usr/local/bin/bash
+# # Testing parameters before use
+# if [ -n "$1" ]
+# then
+#     echo Hello $1, glad to meet you.
+# else
+#     echo "Sorry, you did not identity yourself."
+# fi
+
+./test7 jack
+# Hello jack, glad to meet you.
+./test7
+# Sorry, you did not identity yourself.
+```
+
+### Using Special Parameter Variables
+
+> Counting parameters
+
+`$#` 用于统计参数数量
+
+```sh
+cat test8
+# #!/usr/local/bin/bash
+# # Getting the number of parameters
+# echo There were $# parameters supplied.
+./test8
+# There were 0 parameters supplied.
+./test8 123
+# There were 1 parameters supplied.
+./test8 1 2 3
+# There were 3 parameters supplied.
+./test8 "jack zheng"
+# There were 1 parameters supplied.
+```
+
+根据上面的特性我们可以试着发散一下思路，尝试拿到最后一个参数
+
+```sh
+cat badtest1
+# #!/usr/local/bin/bash
+# # Testing grabbing last parameter
+# echo The last parameter was ${$#}
+./badtest1 1 2 3
+# The last parameter was 13965
+```
+
+尝试失败，语法上来说，花括号中间是不允许有 `$` 符号的，你可以用叹号表达上面的意思
+
+```sh
+# #!/usr/local/bin/bash
+# # Testing grabbing last parameter
+# echo The last parameter was ${!#}
+
+./badtest1 1 2 3
+# The last parameter was 3
+```
+
+> Grabbing all the data
+
+你可以使用 `$*` 或者 `$@` 拿到所有的参数，区别如下
+
+* `$*` 会将所有的参数当作一个变量对待
+* `$@` 会将所有的参数当作类似数组那种概念，分开对待。也就是说，你可以在 for 中循环处理
+
+```sh
+cat test11
+# #!/usr/local/bin/bash
+# # Testing $* and $@
+# echo
+# echo "Using the \$* method: $*"
+# echo "Using the \$@ method: $@"
+
+./test11 a b c d
+
+# Using the $* method: a b c d
+# Using the $@ method: a b c d
+```
+
+看上去没区别。。。这里需要结合 for 来观察
+
+```sh
+cat test12
+# #!/usr/local/bin/bash
+# # Testing $* and $@
+# echo
+# count=1
+# #
+# for param in "$*"
+# do
+#     echo "\$* Parameter #$count = $param"
+#     count=$[ $count + 1 ]
+# done
+# #
+# echo
+# count=1
+# #
+# for param in "$@"
+# do
+#     echo "\$@ Parameter #$count = $param"
+#     count=$[ $count + 1 ]
+# done
+./test12 a b c d
+
+# $* Parameter #1 = a b c d
+
+# $@ Parameter #1 = a
+# $@ Parameter #2 = b
+# $@ Parameter #3 = c
+# $@ Parameter #4 = d
 ```
