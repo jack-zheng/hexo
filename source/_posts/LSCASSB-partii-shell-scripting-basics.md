@@ -1955,3 +1955,549 @@ cat test12
 # $@ Parameter #3 = c
 # $@ Parameter #4 = d
 ```
+
+### Being Shify
+
+我们可以通过 `shift` 关键字将参数左移，默认左移一位.
+
+PS: note that the value for variable `$0`, the program name, remains unchanged
+
+PPS: Be careful when working with the shift command. When a parameter is shifted out, its value is lost and can’t be recovered.
+
+```sh
+cat test13
+#!/usr/local/bin/bash
+# Demostrating the shift command
+echo
+count=1
+while [ -n "$1" ]
+do
+    echo "Parameter #$count = $1"
+    count=$[ $count + 1 ]
+    shift
+done
+
+./test13 a b c d
+
+# Parameter #1 = a
+# Parameter #2 = b
+# Parameter #3 = c
+# Parameter #4 = d
+```
+
+移动多个位置测试
+
+```sh
+cat test14
+#!/usr/local/bin/bash
+# Demostrating a multi-position shift
+echo
+echo "The original parameters: $*"
+shift 2
+echo "The changed parameters: $*"
+echo "Here is the new first parameter: $1"
+
+./test14 1 2 3 4
+
+# The original parameters: 1 2 3 4
+# The changed parameters: 3 4
+# Here is the new first parameter: 3
+```
+
+### Working with Options
+
+介绍三种添加 Options 的方法，Options 顾名思义，就是命令中的可选参数。
+
+> Finding your options
+
+**单个依次处理法：** 可以使用 case + shift 的语法识别 options。将预先设置的 Options 添加在 case 的过滤列表中，然后遍历 `$1` 识别它
+
+```sh
+cat test15
+#!/usr/local/bin/bash
+# Extracting command line options as parameters
+#
+echo 
+while [ -n "$1" ]
+do
+    case "$1" in
+        -a) echo "Found the -a option";;
+        -b) echo "Found the -b option";;
+        -c) echo "Found the -c option";;
+         *) echo "$1 is not an option";;
+    esac
+    shift
+done
+
+./test15 -a -b -c -d asd
+
+# Found the -a option
+# Found the -b option
+# Found the -c option
+# -d is not an option
+# asd is not an option
+```
+
+**Options parameters 分开处理法：** 我们可以认为的在两种参数中间添加一个分割符，比如 `--` 作为 options 的结束和 parameter 的开始. 在脚本中现实的识别并处理它。
+
+PS: 突然意识到 `$0` 是不算在 `$*` 和 `$@` 中的
+
+下面的例子中，如果没有 `--`，则所有参数都在第一个 do-while 中处理了。加了之后会在两个 loop 中处理
+
+```sh
+cat test16
+#!/usr/local/bin/bash
+# Extracting options and parameters
+#
+echo
+while [ -n "$1" ]
+do
+    case "$1" in
+        -a) echo "Found the -a option";;
+        -b) echo "Found the -b option";;
+        -c) echo "Found the -c option";;
+        --) shift
+            break;;
+         *) echo "$1 is not an option";;
+    esac
+    shift
+done
+#
+count=1
+for param in $@
+do
+    echo "Parameter #$count: $param"
+    count=$[ $count + 1 ]
+done
+
+./test16 -c -a -b test1 test2 test3
+
+# Found the -c option
+# Found the -a option
+# Found the -b option
+# test1 is not an option
+# test2 is not an option
+# test3 is not an option
+
+./test16 -c -a -b -- test1 test2 test3
+# Found the -c option
+# Found the -a option
+# Found the -b option
+# Parameter #1: test1
+# Parameter #2: test2
+# Parameter #3: test3
+```
+
+**带值的 options 处理：** 有些命令中 options 是带值的，比如 `./testing.sh -a test1 -b -c -d test2`。这是我们就需要在脚本中识别可选参对应的值
+
+下面的例子中 `-b test1` 是一个带值的可选参数，我们在 识别到 `-b` 后立即拿到 `$2` 即为对应的值
+
+PS: 但是怎么看，bash 中添加可选参数都很麻烦啊，如果是可选参数带多个值呢，那不是还得加逻辑。。。
+
+```sh
+cat test17
+#!/usr/local/bin/bash
+# Extracting command line options and values
+#
+echo
+while [ -n "$1" ]
+do
+    case "$1" in
+        -a) echo "Found the -a option";;
+        -b) param="$2"
+            echo "Found the -b option, with parameter value $param"
+            shift ;;
+        -c) echo "Found the -c option";;
+        --) shift
+            break;;
+         *) echo "$1 is not an option";;
+    esac
+    shift
+done
+#
+count=1
+for param in $@
+do
+    echo "Parameter #$count: $param"
+    count=$[ $count + 1 ]
+done
+
+./test17 -a -b test1 -d 
+
+# Found the -a option
+# Found the -b option, with parameter value test1
+# -d is not an option
+```
+
+> Using the getopt command
+
+介绍 `getopt` 工具函数，方便处理传入的参数
+
+**Looking at the command format** `getopt` 可以接受一系列的 options 和 parameters 并以正确的格式返回, 语法如下 `getopt optstring parameters`
+
+**Tips** getopt 还有一个增强版 getopts, 后面章节会介绍
+
+测试 getopt, b 后面添加了冒号表示它是带值的可选参数. 如果输入的命令带有未定义的参数，则会给出错误信息。如果想要忽略错误信息，则需要 getopt 带 -q 参数
+
+```sh
+getopt ab:cd -a -b test1 -cd test2 test3
+#  -a -b test1 -c -d -- test2 test3
+
+getopt ab:cd -a -b test1 -cde test2 test3
+# getopt: illegal option -- e
+#  -a -b test1 -c -d -- test2 test3
+
+getopt -q  ab:cd -a -b test1 -cde test2 test3
+#  -a -b 'test1' -c -d -- 'test2' 'test3'
+```
+
+PS: MacOS 的 bash 是不支持 -q 参数的！使用 docker 绕过了这个限制 诶嘿 ╮(￣▽￣"")╭
+
+**Using getopt in your scripts** 这里有一个小技巧，我们需要将 getopt 和 set 配和使用 `set -- $(getopt -q ab:cd "$@")`
+
+```sh
+#!/usr/local/bin/bash
+# Extracting command line options and values with getopt
+#
+set -- $(getopt ab:cd "$@")
+# 为了兼容 Mac version bash, 将参数去掉了
+# set -- $(getopt -q ab:cd "$@")
+#
+echo
+while [ -n "$1" ]
+do
+    case "$1" in
+        -a) echo "Found the -a option";;
+        -b) param="$2"
+            echo "Found the -b option, with parameter value $param"
+            shift ;;
+        -c) echo "Found the -c option";;
+        --) shift
+            break;;
+         *) echo "$1 is not an option";;
+    esac
+    shift
+done
+#
+count=1
+for param in $@
+do
+    echo "Parameter #$count: $param"
+    count=$[ $count + 1 ]
+done
+
+./test18 -ac
+
+# Found the -a option
+# Found the -c option
+
+./test18 -a -b test1 -cd test2 test3 test4
+
+# Found the -a option
+# Found the -b option, with parameter value test1
+# Found the -c option
+# -d is not an option
+# Parameter #1: test2
+# Parameter #2: test3
+# Parameter #3: test4
+
+./test18 -a -b test1 -cd "test2 test3" test4
+
+# Found the -a option
+# Found the -b option, with parameter value test1
+# Found the -c option
+# -d is not an option
+# Parameter #1: test2
+# Parameter #2: test3
+# Parameter #3: test4
+```
+
+PS: 最后一个例子中可以看到 getopt 并不能很好的处理字符串， "test2 test3" 被分开解析了。幸运的是，我们有办法解决这个问题
+
+> Advancing to getopts
+
+`getopts` 是 `getopt` 的增强版本，格式如下 `getopts optstring variable`, optstring 以冒号开始
+
+如下所示，`getopts` 
+
+* 自动为我们将每个参数封装到 opt 变量中
+* 删选的时候省区了 `-`
+* 提供了内置的 `$OPTARG` 代表可选参数的值
+* 将为定义的参数类型用问好替换
+
+```sh
+cat test19
+#!/usr/local/bin/bash
+# Simple demostration of the getopts command
+#
+echo
+while getopts :ab:c opt
+do
+    case "$opt" in
+        a) echo "Found the -a option" ;;
+        b) echo "Found the -b option, with value $OPTARG" ;;
+        c) echo "Found the -c option" ;;
+        *) echo "Unknown option: $opt" ;;
+    esac
+done
+
+./test19 -ab test1 -c 
+
+# Found the -a option
+# Found the -b option, with value test1
+# Found the -c option
+
+./test19 -b "test1 test2" -a
+
+# Found the -b option, with value test1 test2
+# Found the -a option
+
+./test19 -d
+
+# Unknown option: ?
+```
+
+`getopts` 还内置了一个 OPTIND 变量，可以在处理每个参数的时候自动 +1. OPTIND 变量初始值为 1，如果要取 params 部分，则 shift $[ $OPTIND - 1 ]
+
+下面例子中, 
+
+```sh
+cat test20
+#!/usr/local/bin/bash
+# Processing options $ paramters with getopts
+#
+echo
+echo start index: "$OPTIND"
+while getopts :ab:cd opt
+do
+    case "$opt" in
+        a) echo "Found the -a option" ;;
+        b) echo "Found the -b option, with value $OPTARG" ;;
+        c) echo "Found the -c option" ;;
+        d) echo "Found the -d option" ;;
+        *) echo "Unknown option: $opt" ;;
+    esac
+    echo changing index: "$OPTIND"
+done
+#
+echo
+echo opt index: "$OPTIND"
+shift $[ $OPTIND -1 ]
+#
+echo
+count=1
+for param in "$@"
+do
+    echo "Parameter $count: $param"
+    count=$[ $count + 1 ]
+done
+
+./test20 -a -b test1 -d test2 test3 test4
+
+# Found the -a option
+# Found the -b option, with value test1
+# Found the -d option
+
+# opt index: 5
+
+# Parameter 1: test2
+# Parameter 2: test3
+# Parameter 3: test4
+```
+
+### Standardizing Options
+
+介绍 shell 中参数表示的 comman sense
+
+| Option | Description                                     |
+| :----: | :---------------------------------------------- |
+|   -a   | Shows all objects                               |
+|   -c   | Produces a count                                |
+|   -d   | Specifies a directory                           |
+|   -e   | Expands an object                               |
+|   -f   | Specifies a file to read data from              |
+|   -h   | Displays a help message for the command         |
+|   -i   | Ignores text case                               |
+|   -l   | Produces a long format version of the output    |
+|   -n   | Uses a non-interactive(batch) mode              |
+|   -o   | Specifies an output file to redirect all output |
+|   -q   | Run in quiet mode                               |
+|   -r   | Processes directories and files recursively     |
+|   -s   | Runs in silent mode                             |
+|   -v   | Produces verbose output                         |
+|   -x   | Excludes an object                              |
+|   -y   | Answers yes to all questions                    |
+
+### Getting User Input
+
+bash 提供了 read 方法来作为用户输入
+
+> Reading basics
+
+`read` 可以从键盘或文件中获取输入
+
+```sh
+cat test21
+#!/usr/local/bin/bash
+# Testing the read command
+#
+echo -n "Enter your name: "
+read name
+echo "Hello $name, welcome to my program."
+
+./test21 
+# Enter your name: jack
+# Hello jack, welcome to my program.
+
+./test21
+# Enter your name: jack zheng
+# Hello jack zheng, welcome to my program.
+```
+
+上面的例子中，cmd 会将所有的输入看作一个变量处理
+
+带用户提示的输入
+
+```sh
+cat test22
+#!/usr/local/bin/bash
+# Testing the read -p option
+#
+read -p "Please enter your age: " age
+days=$[ $age * 365 ]
+echo "That makes you over $days days old! "
+
+./test22
+# Please enter your age: 5
+# That makes you over 1825 days old!
+```
+
+和第一个实验对照，cmd 也可以将所有输入当作 list 处理
+
+```sh
+cat test23
+#!/usr/local/bin/bash
+# Testing the read command
+#
+read -p "Enter your name: " first last
+echo "Checking data for $last, $first"
+
+./test23
+# Enter your name: jack zheng
+# Checking data for zheng, jack
+```
+
+如果你没有为 read 指定变量，bash 会自动将这个值赋给环境变量 $REPLY
+
+```sh
+cat test24
+#!/usr/local/bin/bash
+# Testing the REPLY Environment variable
+#
+read -p "Enter your name: "
+echo
+echo "Hello $REPLY, welcome to my program."
+
+./test24 
+# Enter your name: jack zheng
+
+# Hello jack zheng, welcome to my program.
+```
+
+> Timing out
+
+默认情况下 read 会一直阻塞在那里，等待用户输入，但是我们也可以设置一个等待时间
+
+```sh
+cat test25
+#!/usr/local/bin/bash
+# Timing the data entry
+#
+if read -t 5 -p "Please enter your name: " name
+then
+    echo "Hello $name, welcome to my script"
+else
+    echo
+    echo "Sorry, too slow! "
+fi
+
+./test25
+# Please enter your name: 
+# Sorry, too slow! 
+./test25
+# Please enter your name: jack
+# Hello jack, welcome to my script
+```
+
+read 还可以指定输入的长度, 设定好长度后，你输入对应长度的内容，他立马就执行下去了
+
+```sh
+cat test26
+#!/usr/local/bin/bash
+# Getting just one character of input
+#
+read -n1 -p "Do you want to continue [Y/N]? " answer
+case $answer in
+Y | y)  echo
+        echo "fine, continue on..." ;;
+N | n) echo
+        echo OK, goodbye
+        exit ;;
+esac
+echo "This is the end of the script"
+
+./test26
+# Do you want to continue [Y/N]? y
+# fine, continue on...
+# This is the end of the script
+
+./test26
+# Do you want to continue [Y/N]? n
+# OK, goodbye
+```
+
+> Reading with no display
+
+在输入一些敏感信息时，你不希望他显示在屏幕上，可以用 -s 参数
+
+```sh
+cat test27
+#!/usr/local/bin/bash
+# hiding input data from the monitor
+#
+read -s -p "Enter your password: " pass
+echo
+echo "Is you password really $pass? "
+
+./test27
+# Enter your password: 
+# Is you password really jack?
+```
+
+> Reading from a file
+
+Linux 系统中，可以通过 read 命令从文件中按行读取。当读完后，返回非 0
+
+```sh
+cat test28
+#!/usr/local/bin/bash
+# Reading data from a file
+#
+count=1
+cat test | while read line
+do
+    echo "Line $count: $line"
+    count=$[ $count + 1 ]
+done
+echo "Finished process the file"
+
+cat test
+# line 1
+# line 2
+./test28
+Line 1: line 1
+Line 2: line 2
+Finished process the file
+```
+
+PS: 如果文件的末行没有换行，则最后一行并不会被处理
