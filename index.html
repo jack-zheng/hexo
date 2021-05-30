@@ -237,7 +237,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-28 20:27:48" itemprop="dateModified" datetime="2021-05-28T20:27:48+08:00">2021-05-28</time>
+                <time title="修改时间：2021-05-30 17:23:35" itemprop="dateModified" datetime="2021-05-30T17:23:35+08:00">2021-05-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -257,14 +257,14 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>40k</span>
+              <span>52k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>36 分钟</span>
+              <span>48 分钟</span>
             </span>
 
         </div>
@@ -1183,7 +1183,234 @@
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">cat test28</span><br><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Reading data from a file</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line">count=1</span><br><span class="line">cat <span class="built_in">test</span> | <span class="keyword">while</span> <span class="built_in">read</span> line</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Line <span class="variable">$count</span>: <span class="variable">$line</span>&quot;</span></span><br><span class="line">    count=$[ <span class="variable">$count</span> + 1 ]</span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Finished process the file&quot;</span></span><br><span class="line"></span><br><span class="line">cat <span class="built_in">test</span></span><br><span class="line"><span class="comment"># line 1</span></span><br><span class="line"><span class="comment"># line 2</span></span><br><span class="line">./test28</span><br><span class="line">Line 1: line 1</span><br><span class="line">Line 2: line 2</span><br><span class="line">Finished process the file</span><br></pre></td></tr></table></figure>
 
 <p>PS: 如果文件的末行没有换行，则最后一行并不会被处理</p>
+<h2 id="Presenting-Data"><a href="#Presenting-Data" class="headerlink" title="Presenting Data"></a>Presenting Data</h2><p>这章主要向你展示更多的输出流处理技巧</p>
+<h3 id="Understanding-Input-and-Output"><a href="#Understanding-Input-and-Output" class="headerlink" title="Understanding Input and Output"></a>Understanding Input and Output</h3><p>现在为止，我们主要采取两种输出流展示方式</p>
+<ul>
+<li>终端屏显</li>
+<li>重定向到文件</li>
+</ul>
+<p>目前为止我们只能将全部内容一起输出到文件或屏幕，在下面的小节中，我们将尝试将内容分开处理</p>
+<blockquote>
+<p>Standard file descriptors</p>
+</blockquote>
+<p>Linux 系统通过 file descriptor 来指代每一个文件对象，这个 decriptor 是一个唯一的非负的整数。每个进程同一时间允许至多 9 个打开的文件。bash 中将 0，1 和 2 用于特定的用途</p>
+<table>
+<thead>
+<tr>
+<th align="center">File descriptor</th>
+<th align="center">Abbreviation</th>
+<th align="center">Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">0</td>
+<td align="center">STDIN</td>
+<td align="center">Standard input</td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">STDOUT</td>
+<td align="center">Standard output</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td align="center">STDERR</td>
+<td align="center">Standard error</td>
+</tr>
+</tbody></table>
+<p><strong>STDIN</strong> 标准输入，比如终端的键盘输入和 <code>&lt;</code> 的文件输入. 很多 bash 命令接收 STDIN 的输入，比如 cat， 如果你没有指定文件，他就会接收键盘输入</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ cat </span><br><span class="line">thi</span><br><span class="line">thi</span><br><span class="line">this</span><br><span class="line">this</span><br></pre></td></tr></table></figure>
 
+<p><strong>STDOUT</strong> shell 的标准输出就是 terminal monitor.</p>
+<p><strong>STDERR</strong> 当运行命令出异常了，可以使用这个 descriptor 导流</p>
+<h3 id="Redirecting-errors"><a href="#Redirecting-errors" class="headerlink" title="Redirecting errors"></a>Redirecting errors</h3><blockquote>
+<p>Redirecting error only</p>
+</blockquote>
+<p>像前面表哥所示，STDERR 的文件描述符是 2，你可以在 redirection symbol 前加上这个标识符来指定导向</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ls -al badfile 2&gt; test4</span><br><span class="line">cat test4</span><br><span class="line"><span class="comment"># ls: badfile: No such file or directory</span></span><br></pre></td></tr></table></figure>
+
+<p>下面的例子中，badfile 不存在，所以错误信息写入 test5 中，test4 存在，所以在屏幕上显示</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ls -al test4 badfile 2&gt; test5</span><br><span class="line"><span class="comment"># -rw-r--r--  1 i306454  staff  0 May 29 14:07 test4</span></span><br><span class="line">cat test5</span><br><span class="line"><span class="comment"># ls: badfile: No such file or directory</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Redirecting errors and data</p>
+</blockquote>
+<p>如果你想将正常和异常的信息都输出到文件，你需要指定两个输出</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">ls </span><br><span class="line"><span class="comment"># test5</span></span><br><span class="line">ls -al test5 badfile 2&gt; test6 1&gt; test7</span><br><span class="line">ls</span><br><span class="line"><span class="comment"># test5   test6   test7</span></span><br><span class="line">cat test6</span><br><span class="line"><span class="comment"># ls: badfile: No such file or directory</span></span><br><span class="line">cat test7</span><br><span class="line"><span class="comment"># -rw-r--r--  1 i306454  staff  39 May 29 14:08 test5</span></span><br></pre></td></tr></table></figure>
+
+<p>如果你想将这两种信息都导入一个文件，bash 提供了一个特殊的 redirection symbol 来做这个事情 <code>&amp;&gt;</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ls -al test5 badfile &amp;&gt; test8</span><br><span class="line">cat test8</span><br><span class="line"><span class="comment"># ls: badfile: No such file or directory</span></span><br><span class="line"><span class="comment"># -rw-r--r--  1 i306454  staff  39 May 29 14:08 test5</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Redirecting-Output-in-Scripts"><a href="#Redirecting-Output-in-Scripts" class="headerlink" title="Redirecting Output in Scripts"></a>Redirecting Output in Scripts</h3><p>通过 STDOUT 和 STDERR 你可以将输出导入任何 file discriptors. 有两种方式可以重定向输出</p>
+<ul>
+<li>Temporarily redirecting each line</li>
+<li>Permanently redirecting all comands in the script</li>
+</ul>
+<blockquote>
+<p>Temorary redirections</p>
+</blockquote>
+<p>这段文字的描述有点蹩脚，还是直接用案例说明把。假如你想将你的 echo 内容输出到 STDERR 指定的流中，需要怎么做？这种用法就是打印自己的 err log 啊, 可以使用 <code>&gt;&amp;2</code> 的格式</p>
+<p>下面的例子中，test8 中指定第一个 echo 通过 STDERR 输出，第二个 STDOUT 输出。当直接调用时，由于两个输出默认都是打在公屏上的，所以没什么区别，但是当我指定 err 输出到 test9 时，区别就出现了。只有错误信息导到 test9 了</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">cat test8</span><br><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Testing STDERR messages</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This is an error&quot;</span> &gt;&amp;2</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This is normal output&quot;</span></span><br><span class="line"></span><br><span class="line">./test8</span><br><span class="line">This is an error</span><br><span class="line">This is normal output</span><br><span class="line"></span><br><span class="line">./test8 2&gt; test9</span><br><span class="line"><span class="comment"># This is normal output</span></span><br><span class="line">cat test9</span><br><span class="line"><span class="comment"># This is an error</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Permanent redirections</p>
+</blockquote>
+<p>上面的情况适合少量打 log 的情况。如果你有好多 err 需要重新导向，你可以这么做</p>
+<p>exec 会启动一个新的 shell，下例中新启动的 shell 会将 STDOUT 的内容都发送的 testout 文件中去</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">cat test10</span><br><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Redirecting all output to a file</span></span><br><span class="line"><span class="built_in">exec</span> 1&gt;testout</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This is a test of redirecting all output&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;from a script to another file.&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Without having to redirect every individual line&quot;</span></span><br><span class="line"></span><br><span class="line">./test10</span><br><span class="line">cat testout</span><br><span class="line"><span class="comment"># This is a test of redirecting all output</span></span><br><span class="line"><span class="comment"># from a script to another file.</span></span><br><span class="line"><span class="comment"># Without having to redirect every individual line</span></span><br></pre></td></tr></table></figure>
+
+<p>你可以在程序中间做这样的操作. 下面的例子中，我们在开头部分指定 err 输出到 testerror 文件，接着打印两个普通输出。再指定普通输出，输出到文件，最后指定 err 输出到 err 文件</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">cat test11</span><br><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Redirecting output to different locations</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">exec</span> 2&gt; testerror</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This is the start of the script&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;now redirecting all output to another location&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">exec</span> 1&gt;testout</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This output should go to the testout file&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;but this should go to the testerror file&quot;</span> &gt;&amp;2</span><br><span class="line"></span><br><span class="line">./test11</span><br><span class="line"><span class="comment"># This is the start of the script</span></span><br><span class="line"><span class="comment"># now redirecting all output to another location</span></span><br><span class="line">cat testout</span><br><span class="line"><span class="comment"># This output should go to the testout file</span></span><br><span class="line">cat testerror</span><br><span class="line"><span class="comment"># but this should go to the testerror file</span></span><br></pre></td></tr></table></figure>
+
+<p>当你改变了 STDOUT 或者 STDERR 后，要再改回来就不是那么容易了，如果你需要切换这些流，需要用到一些技巧，这些将在后面的 Creating Your Own Redirection 章节讲到</p>
+<h3 id="Redirecting-Input-in-Scripts"><a href="#Redirecting-Input-in-Scripts" class="headerlink" title="Redirecting Input in Scripts"></a>Redirecting Input in Scripts</h3><p>和输出流一样，我们可以通过定向符号操纵输入流 <code>exec 0&lt; testfile</code></p>
+<p>下面的例子中，我们以文件中的命令代替键盘输入</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">cat test12</span><br><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Redirecting file input</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">exec</span> 0&lt; test12</span><br><span class="line">count=1</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> <span class="built_in">read</span> line </span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Line #<span class="variable">$count</span>: <span class="variable">$line</span>&quot;</span></span><br><span class="line">    count=$[ <span class="variable">$count</span> + 1 ]</span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line">./test12</span><br><span class="line"><span class="comment"># Line #1: #!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Line #2: # Redirecting file input</span></span><br><span class="line"><span class="comment"># Line #3: </span></span><br><span class="line"><span class="comment"># Line #4: exec 0&lt; test12</span></span><br><span class="line"><span class="comment"># Line #5: count=1</span></span><br><span class="line"><span class="comment"># Line #6: </span></span><br><span class="line"><span class="comment"># Line #7: while read line</span></span><br><span class="line"><span class="comment"># Line #8: do</span></span><br><span class="line"><span class="comment"># Line #9: echo &quot;Line #$count: $line&quot;</span></span><br><span class="line"><span class="comment"># Line #10: count=$[ $count + 1 ]</span></span><br><span class="line"><span class="comment"># Line #11: done</span></span><br><span class="line"><span class="comment"># Line #12:</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Creating-Your-Own-Redirection"><a href="#Creating-Your-Own-Redirection" class="headerlink" title="Creating Your Own Redirection"></a>Creating Your Own Redirection</h3><p>shell 中最多只能有 9 个 file descriptor， 我们已经用了 0，1，2.下面我们将使用 3-8 自定义我们自己的 file descriptor.</p>
+<blockquote>
+<p>Creating output file descriptors</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">cat test13</span><br><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Using an alternative file descriptor</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">exec</span> 3&gt; test13out</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This should display on the monitor&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;and this should stored in the file&quot;</span> &gt;&amp;3</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Then this should be back on the monitor&quot;</span></span><br><span class="line"></span><br><span class="line">./test13</span><br><span class="line"><span class="comment"># This should display on the monitor</span></span><br><span class="line"><span class="comment"># Then this should be back on the monitor</span></span><br><span class="line">cat test13out </span><br><span class="line"><span class="comment"># and this should stored in the file</span></span><br></pre></td></tr></table></figure>
+
+<p>这个概念听起来有点复杂，但是其实很直接了当的，用法也和前面的默认文件描述符是一致的。</p>
+<blockquote>
+<p>Redirecting file descriptors</p>
+</blockquote>
+<p>下面的例子中我们会做重定向的切换。开始时，我们用 3 号 descriptor 代替 1 的位置。就是所有的 echo 都会输入到 3 号中，之后，我们还原，echo 就又输出到屏幕了。这个其实只用到了一个语法 <code>3&gt;&amp;1</code>，这个语句就是用 3 代替 1， 还原的时候顺序翻一下即可</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">cat test14</span><br><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Using STDOUT, then coming back to it</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">exec</span> 3&gt;&amp;1</span><br><span class="line"><span class="built_in">exec</span> 1&gt;test14out</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This should store in the output file&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;along with this lien&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">exec</span> 1&gt;&amp;3</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Now things should be back to normal&quot;</span></span><br><span class="line"></span><br><span class="line">./test14</span><br><span class="line"><span class="comment"># Now things should be back to normal</span></span><br><span class="line">cat test14out</span><br><span class="line"><span class="comment"># This should store in the output file</span></span><br><span class="line"><span class="comment"># along with this lien</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Creating input file descriptors</p>
+</blockquote>
+<p>和输出流一样，输入流也可以用上面的这个技巧。下面的例子中，我们先用 6 号代替原始的 0 号键盘输入，做完操作后将它还原</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">cat test15</span><br><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Redirecting input file descriptors</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">exec</span> 6&lt;&amp;0</span><br><span class="line"><span class="built_in">exec</span> 0&lt; testfile</span><br><span class="line"></span><br><span class="line">count=1</span><br><span class="line"><span class="keyword">while</span> <span class="built_in">read</span> line</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Line #<span class="variable">$count</span>: <span class="variable">$line</span>&quot;</span></span><br><span class="line">    count=$[ <span class="variable">$ount</span> + 1 ]</span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">exec</span> 0&lt;&amp;6</span><br><span class="line"><span class="built_in">read</span> -p <span class="string">&quot;Are you done now? &quot;</span> answer</span><br><span class="line"><span class="keyword">case</span> <span class="variable">$answer</span> <span class="keyword">in</span></span><br><span class="line">Y | y) <span class="built_in">echo</span> <span class="string">&quot;Goodbye&quot;</span> ;;</span><br><span class="line">N | n) <span class="built_in">echo</span> <span class="string">&quot;Sorry, this is the end.&quot;</span> ;;</span><br><span class="line"><span class="keyword">esac</span></span><br><span class="line"></span><br><span class="line">./test15</span><br><span class="line"><span class="comment"># Line #1: line 1</span></span><br><span class="line"><span class="comment"># Line #1: line 2</span></span><br><span class="line"><span class="comment"># Line #1: line 3</span></span><br><span class="line"><span class="comment"># Are you done now? y</span></span><br><span class="line"><span class="comment"># Goodbye</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Creating a read/write file descriptor</p>
+</blockquote>
+<p>感觉这个例子有点。。。鸡肋。虽然实用性不高，但是挺有趣</p>
+<p>下面的例子中，我们会将 3 同时设置为输入输出描述符。先读取一行，再输入一行。读取一行后，位置定位到第二行开头，这个时候写我们自己的内容，他会覆盖之前的内容。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">cat test16</span><br><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Redirecting input/output file descriptor</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">exec</span> 3&lt;&gt; testfile</span><br><span class="line"><span class="built_in">read</span> line &lt;&amp;3</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Read: <span class="variable">$line</span>&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This is a test line&quot;</span> &gt;&amp;3</span><br><span class="line"></span><br><span class="line">cat testfile </span><br><span class="line"><span class="comment"># This is the first line.</span></span><br><span class="line"><span class="comment"># This is the second line.</span></span><br><span class="line"><span class="comment"># This is the third line.</span></span><br><span class="line"></span><br><span class="line">./test16</span><br><span class="line"><span class="comment"># Read: This is the first line.</span></span><br><span class="line"></span><br><span class="line">cat testfile</span><br><span class="line"><span class="comment"># This is the first line.</span></span><br><span class="line"><span class="comment"># This is a test line</span></span><br><span class="line"><span class="comment"># ine.</span></span><br><span class="line"><span class="comment"># This is the third line.</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Closing file descriptors</p>
+</blockquote>
+<p>新创建的 file descriptors 都会在脚本结束时自动关闭。但是如果你想在接本结束前手动关闭，需要做什么？</p>
+<p>关闭的格式如下 <code>exec 3&gt;&amp;-</code>, 下面的实验中我们将 3 号指向文件，输出内容，再关闭它，再试着输出内容。可以看到，关闭后再输出会抛异常</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">cat badtest</span><br><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Testing closing file descriptors</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">exec</span> 3&gt; test17file</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This is a test line of data&quot;</span> &gt;&amp;3</span><br><span class="line"></span><br><span class="line"><span class="built_in">exec</span> 3&gt;&amp;-</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This won&#x27;t work&quot;</span> &gt;&amp;3</span><br><span class="line"></span><br><span class="line">./badtest</span><br><span class="line"><span class="comment"># ./badtest: line 10: 3: Bad file descriptor</span></span><br><span class="line">cat test17file</span><br><span class="line"><span class="comment"># This is a test line of data</span></span><br></pre></td></tr></table></figure>
+
+<p>除此之外还有一个更重要的细节需要注意，如果你在一个脚本中，关闭后再使用同一个 file descriptor 的话。它会将之前写的内容覆盖掉</p>
+<p>下面实验中，我们先用 3 号描述符将信息写入文件，关闭后 cat 输出，再打开它写东西。最后发现之前写的被覆盖了</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">cat test17</span><br><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Testing closing file descriptors</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">exec</span> 3&gt; test17file</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This is a test line of data&quot;</span> &gt;&amp;3</span><br><span class="line"><span class="built_in">exec</span> 3&gt;&amp;-</span><br><span class="line"></span><br><span class="line">cat test17file</span><br><span class="line"></span><br><span class="line"><span class="built_in">exec</span> 3&gt; test17file</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This&#x27;ll be bad&quot;</span> &gt;&amp;3</span><br><span class="line"></span><br><span class="line">./test17</span><br><span class="line"><span class="comment"># This is a test line of data</span></span><br><span class="line">cat test17file </span><br><span class="line"><span class="comment"># This&#x27;ll be bad</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Listing-Open-File-Descriptors"><a href="#Listing-Open-File-Descriptors" class="headerlink" title="Listing Open File Descriptors"></a>Listing Open File Descriptors</h3><p><code>lsof</code> 可以列出整个系统所有发开的 file descriptor, 这个在权限方面有些争议。MacOS 也有这个命令</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">which</span> lsof</span><br><span class="line"><span class="comment"># /usr/sbin/lsof</span></span><br></pre></td></tr></table></figure>
+
+<p>显示当前进程的文件描述符使用情况</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">lsof -a -p $$ -d 0,1,2</span><br><span class="line"><span class="comment"># COMMAND   PID    USER   FD   TYPE DEVICE SIZE/OFF NODE NAME</span></span><br><span class="line"><span class="comment"># bash    35349 i306454    0u   CHR   16,1 0t937569  667 /dev/ttys001</span></span><br><span class="line"><span class="comment"># bash    35349 i306454    1u   CHR   16,1 0t937569  667 /dev/ttys001</span></span><br><span class="line"><span class="comment"># bash    35349 i306454    2u   CHR   16,1 0t937569  667 /dev/ttys001</span></span><br></pre></td></tr></table></figure>
+
+<p>lsof 输出说明</p>
+<table>
+<thead>
+<tr>
+<th align="left">Column</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">COMMAND</td>
+<td align="left">The first nine characters of the name of the command in the process</td>
+</tr>
+<tr>
+<td align="left">PID</td>
+<td align="left">The process ID of the process</td>
+</tr>
+<tr>
+<td align="left">USER</td>
+<td align="left">The login name of the user who owns the process</td>
+</tr>
+<tr>
+<td align="left">FD</td>
+<td align="left">The file descriptor number and access type. r-read, w-write, u-read/write</td>
+</tr>
+<tr>
+<td align="left">TYPE</td>
+<td align="left">The type of file. CHR-character, BLK-block, DIR-directory, REG-regular file</td>
+</tr>
+<tr>
+<td align="left">DEVICE</td>
+<td align="left">The device numbers(major and minor) of the device</td>
+</tr>
+<tr>
+<td align="left">SIZE</td>
+<td align="left">If available, the size of the file</td>
+</tr>
+<tr>
+<td align="left">NODE</td>
+<td align="left">The node number of the local file</td>
+</tr>
+<tr>
+<td align="left">NAME</td>
+<td align="left">The name of the file</td>
+</tr>
+</tbody></table>
+<p>作为对比，下面是一个文件中的 file descriptor 的信息</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">cat test18</span><br><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Testing lsof with file descriptors</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">exec</span> 3&gt; test18file1</span><br><span class="line"><span class="built_in">exec</span> 6&gt; test18file2</span><br><span class="line"><span class="built_in">exec</span> 7&lt; testfile</span><br><span class="line"></span><br><span class="line">lsof -a -p $$ -d 0,1,2,3,6,7</span><br><span class="line"></span><br><span class="line">./test18</span><br><span class="line"><span class="comment"># COMMAND   PID    USER   FD   TYPE DEVICE SIZE/OFF     NODE NAME</span></span><br><span class="line"><span class="comment"># bash    39156 i306454    0u   CHR   16,1 0t937995      667 /dev/ttys001</span></span><br><span class="line"><span class="comment"># bash    39156 i306454    1u   CHR   16,1 0t937995      667 /dev/ttys001</span></span><br><span class="line"><span class="comment"># bash    39156 i306454    2u   CHR   16,1 0t937995      667 /dev/ttys001</span></span><br><span class="line"><span class="comment"># bash    39156 i306454    3w   REG    1,5        0 51179042 /Users/i306454/tmp/bash_test/test18file1</span></span><br><span class="line"><span class="comment"># bash    39156 i306454    6w   REG    1,5        0 51179043 /Users/i306454/tmp/bash_test/test18file2</span></span><br><span class="line"><span class="comment"># bash    39156 i306454    7r   REG    1,5       73 51174255 /Users/i306454/tmp/bash_test/testfile</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Suppressing-Command-Output"><a href="#Suppressing-Command-Output" class="headerlink" title="Suppressing Command Output"></a>Suppressing Command Output</h3><p>有些时候，你并不想看到任何异常输出，比如后台运行的时候。这时你可以将 STDERR 的内容输出到 null file 中去，位置是 /dev/null</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ls -al &gt; /dev/null</span><br><span class="line"><span class="comment"># cat /dev/null</span></span><br><span class="line"></span><br><span class="line">ls -al badfile test16 2&gt; /dev/null</span><br><span class="line"><span class="comment"># -rwxr--r--  1 i306454  staff  151 May 30 15:12 test16</span></span><br></pre></td></tr></table></figure>
+
+<p>你也可以将输入指定到 null file. 这样做可以快速清空一个文件，算是 rm + touch 的简化版</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">cat testfile</span><br><span class="line"><span class="comment"># This is the first line.</span></span><br><span class="line"><span class="comment"># This is a test line</span></span><br><span class="line"><span class="comment"># ine.</span></span><br><span class="line"><span class="comment"># This is the third line.</span></span><br><span class="line"></span><br><span class="line">cat /dev/null &gt; testfile</span><br><span class="line">cat testfile</span><br></pre></td></tr></table></figure>
+
+<h3 id="Using-Temporary-Files"><a href="#Using-Temporary-Files" class="headerlink" title="Using Temporary Files"></a>Using Temporary Files</h3><p>Linux 系统预留了 <code>/tmp</code> 文件夹放置临时文件, 设置提供了专用命令 <code>mktemp</code> 来创建临时文件，这个命令创建的文件在 umask 上给创建者所有权限，其他人则没有权限</p>
+<blockquote>
+<p>Creating a local temporary file</p>
+</blockquote>
+<p>零时文件名字中的末尾的大写 X 会被替换成随机数</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mktemp testing.XXXXXX</span><br><span class="line">ls testing*</span><br><span class="line"><span class="comment"># testing.I3p5pe</span></span><br></pre></td></tr></table></figure>
+
+<p>实验脚本中，我们创建一个临时文件并写入内容，然后关闭流，并 cat 一下。最后移除文件。把异常信息丢掉不显示</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">cat test19</span><br><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Creating and using a temp file</span></span><br><span class="line"></span><br><span class="line">tempfile=$(mktemp test19.XXXXXX)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="built_in">exec</span> 3&gt;<span class="variable">$tempfile</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This script writes to temp file <span class="variable">$tempfile</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This is the first line&quot;</span> &gt;&amp;3</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This is the second line&quot;</span> &gt;&amp;3</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This is the third line&quot;</span> &gt;&amp;3</span><br><span class="line"></span><br><span class="line"><span class="built_in">exec</span> 3&gt;&amp;-</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Done creating temp file. the contents are:&quot;</span></span><br><span class="line">cat <span class="variable">$tempfile</span></span><br><span class="line"></span><br><span class="line">rm -f <span class="variable">$tempfile</span> 2&gt; /dev/null</span><br><span class="line"></span><br><span class="line">./test19</span><br><span class="line"><span class="comment"># This script writes to temp file test19.ksgCft</span></span><br><span class="line"><span class="comment"># Done creating temp file. the contents are:</span></span><br><span class="line"><span class="comment"># This is the first line</span></span><br><span class="line"><span class="comment"># This is the second line</span></span><br><span class="line"><span class="comment"># This is the third line</span></span><br><span class="line">ls test19*</span><br><span class="line"><span class="comment"># test19</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Creating a temporary file in /tmp</p>
+</blockquote>
+<p>前面的临时文件都是创建在当前文件夹下的，下面介绍在 tmp 文件夹下的创建办法，其实就是加一个 -t 的参数。。。结果和书上有区别，并该是 MacOS 定制过</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">mktemp -t test.XXXXXX</span><br><span class="line"><span class="comment"># /var/folders/yr/8yr4mzlj1x34tf4m9c_wh2_h0000gn/T/test.XXXXXX.enBtwKYB</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">cat test20</span><br><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Creating a temp file in /tmp</span></span><br><span class="line"></span><br><span class="line">tempfile=$(mktemp tmp.XXXXXX)</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This is a test file.&quot;</span> &gt; <span class="variable">$tempfile</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This is the second line of the test.&quot;</span> &gt;&gt; <span class="variable">$tempfile</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;The temp file is located at: <span class="variable">$tempfile</span>&quot;</span></span><br><span class="line">cat <span class="variable">$tempfile</span></span><br><span class="line">rm -f <span class="variable">$tempfile</span></span><br><span class="line"></span><br><span class="line">./test20</span><br><span class="line"><span class="comment"># The temp file is located at: tmp.OldzdO</span></span><br><span class="line"><span class="comment"># This is a test file.</span></span><br><span class="line"><span class="comment"># This is the second line of the test.</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Creating a temporary directory</p>
+</blockquote>
+<p>-d 创建临时文件夹</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">cat test21</span><br><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Using a temporary directory</span></span><br><span class="line"></span><br><span class="line">tempdir=$(mktemp -d dir.XXXXXX)</span><br><span class="line"><span class="built_in">cd</span> <span class="variable">$tempdir</span></span><br><span class="line">tempfile1=$(mktemp temp.XXXXXX)</span><br><span class="line">tempfile2=$(mktemp temp.XXXXXX)</span><br><span class="line"></span><br><span class="line"><span class="built_in">exec</span> 7&gt; <span class="variable">$tempfile1</span></span><br><span class="line"><span class="built_in">exec</span> 8&gt; <span class="variable">$tempfile2</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Sending data to directory <span class="variable">$tempdir</span>&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This is a test line of data for <span class="variable">$tempfile1</span>&quot;</span> &gt;&amp;7</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This is a test line of data for <span class="variable">$tempfile2</span>&quot;</span> &gt;&amp;8</span><br><span class="line"></span><br><span class="line">./test21</span><br><span class="line"><span class="comment"># Sending data to directory dir.hE8Hbr</span></span><br><span class="line"></span><br><span class="line">ls -l dir*</span><br><span class="line"><span class="comment"># total 16</span></span><br><span class="line"><span class="comment"># -rw-------  1 i306454  staff  44 May 30 16:53 temp.2V4FAk</span></span><br><span class="line"><span class="comment"># -rw-------  1 i306454  staff  44 May 30 16:53 temp.59JjLm</span></span><br><span class="line"></span><br><span class="line">cat dir.hE8Hbr/temp.2V4FAk </span><br><span class="line"><span class="comment"># This is a test line of data for temp.2V4FAk</span></span><br><span class="line">cat dir.hE8Hbr/temp.59JjLm </span><br><span class="line"><span class="comment"># This is a test line of data for temp.59JjLm</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Logging-Messages"><a href="#Logging-Messages" class="headerlink" title="Logging Messages"></a>Logging Messages</h3><p>有时你可能想一个流即打印到屏幕上，也输出到文件中，这个时候，你可以使用 tee</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">date | tee testfile </span><br><span class="line"><span class="comment"># Sun May 30 16:58:30 CST 2021</span></span><br><span class="line">cat testfile </span><br><span class="line"><span class="comment"># Sun May 30 16:58:30 CST 2021</span></span><br></pre></td></tr></table></figure>
+
+<p>注意，tee 默认会覆盖原有内容</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">who | tee testfile</span><br><span class="line"><span class="comment"># i306454  console  May 27 15:12 </span></span><br><span class="line"><span class="comment"># i306454  ttys000  May 27 16:21 </span></span><br><span class="line">cat testfile </span><br><span class="line"><span class="comment"># i306454  console  May 27 15:12 </span></span><br><span class="line"><span class="comment"># i306454  ttys000  May 27 16:21</span></span><br></pre></td></tr></table></figure>
+
+<p>之前 date 的内容被覆盖了，你可以用 -a 做 append 操作</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">date | tee -a testfile</span><br><span class="line"><span class="comment"># Sun May 30 17:00:41 CST 2021</span></span><br><span class="line">cat testfile </span><br><span class="line"><span class="comment"># i306454  console  May 27 15:12 </span></span><br><span class="line"><span class="comment"># i306454  ttys000  May 27 16:21 </span></span><br><span class="line"><span class="comment"># Sun May 30 17:00:41 CST 2021</span></span><br></pre></td></tr></table></figure>
+
+<p>实操</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">cat test22</span><br><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Using the tee command for logging</span></span><br><span class="line"></span><br><span class="line">tempfile=test22file</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This is the start of the test&quot;</span> | tee <span class="variable">$tempfile</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This is the second of the test&quot;</span> | tee -a <span class="variable">$tempfile</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This is the end of the test&quot;</span> | tee -a <span class="variable">$tempfile</span></span><br><span class="line"></span><br><span class="line">./test22</span><br><span class="line"><span class="comment"># This is the start of the test</span></span><br><span class="line"><span class="comment"># This is the second of the test</span></span><br><span class="line"><span class="comment"># This is the end of the test</span></span><br><span class="line">cat test22file </span><br><span class="line"><span class="comment"># This is the start of the test</span></span><br><span class="line"><span class="comment"># This is the second of the test</span></span><br><span class="line"><span class="comment"># This is the end of the test</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Practical-Example"><a href="#Practical-Example" class="headerlink" title="Practical Example"></a>Practical Example</h3><p>解析一个 csv 文件，将其中的内容重组成一个 SQL 文件用作 import</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- cat members.csv  --&gt;</span><br><span class="line">Blum,Richard,123 Main St.,Chicago,IL,60601</span><br><span class="line">Blum,Barbara,123 Main St.,Chicago,IL,60601</span><br><span class="line">Bresnahan,Christine,456 Oak Ave.,Columbus,OH,43201</span><br><span class="line">Bresnahan,Timothy,456 Oak Ave.,Columbus,OH,43201bash-5.1$ .&#x2F;test23</span><br></pre></td></tr></table></figure>
+
+<p>主要语法说明</p>
+<ul>
+<li>done &lt; ${1}: 将命令行中给的文件做输入</li>
+<li>read lname…: 以逗号为分割，每个字段给个名字，方便后面调用</li>
+<li>cat &gt;&gt; $outfile &lt;&lt; EOF: cat 会拿到一行的内容，并对这些内容做替换放到 outfile 中去. 这个用法和 tee myfile &lt;&lt; EOF.. 有异曲同工之妙</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">cat test23</span><br><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Read file and create INSERT statements for MySQL</span></span><br><span class="line"></span><br><span class="line">outfile=<span class="string">&#x27;members.sql&#x27;</span></span><br><span class="line">IFS=<span class="string">&#x27;,&#x27;</span></span><br><span class="line"><span class="keyword">while</span> <span class="built_in">read</span> lname fname address city state zip</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    cat &gt;&gt; <span class="variable">$outfile</span> &lt;&lt; EOF</span><br><span class="line">    INSERT INTO members (lname, fname, address, city, state, zip) VALUES (<span class="string">&#x27;$lanme&#x27;</span>, <span class="string">&#x27;$fname&#x27;</span>, <span class="string">&#x27;$address&#x27;</span>, <span class="string">&#x27;$city&#x27;</span>, <span class="string">&#x27;$state&#x27;</span>, <span class="string">&#x27;$zip&#x27;</span>);</span><br><span class="line">EOF</span><br><span class="line"><span class="keyword">done</span> &lt; <span class="variable">$&#123;1&#125;</span></span><br><span class="line"></span><br><span class="line">./test23 members.csv </span><br><span class="line">cat members.sql </span><br><span class="line">    INSERT INTO members (lname, fname, address, city, state, zip) VALUES (<span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;Richard&#x27;</span>, <span class="string">&#x27;123 Main St.&#x27;</span>, <span class="string">&#x27;Chicago&#x27;</span>, <span class="string">&#x27;IL&#x27;</span>, <span class="string">&#x27;60601&#x27;</span>);</span><br><span class="line">    INSERT INTO members (lname, fname, address, city, state, zip) VALUES (<span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;Barbara&#x27;</span>, <span class="string">&#x27;123 Main St.&#x27;</span>, <span class="string">&#x27;Chicago&#x27;</span>, <span class="string">&#x27;IL&#x27;</span>, <span class="string">&#x27;60601&#x27;</span>);</span><br><span class="line">    INSERT INTO members (lname, fname, address, city, state, zip) VALUES (<span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;Christine&#x27;</span>, <span class="string">&#x27;456 Oak Ave.&#x27;</span>, <span class="string">&#x27;Columbus&#x27;</span>, <span class="string">&#x27;OH&#x27;</span>, <span class="string">&#x27;43201&#x27;</span>);</span><br></pre></td></tr></table></figure>
       
     </div>
 
@@ -1233,7 +1460,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-28 20:27:48" itemprop="dateModified" datetime="2021-05-28T20:27:48+08:00">2021-05-28</time>
+                <time title="修改时间：2021-05-30 17:23:35" itemprop="dateModified" datetime="2021-05-30T17:23:35+08:00">2021-05-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1326,7 +1553,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-28 20:27:48" itemprop="dateModified" datetime="2021-05-28T20:27:48+08:00">2021-05-28</time>
+                <time title="修改时间：2021-05-30 17:23:35" itemprop="dateModified" datetime="2021-05-30T17:23:35+08:00">2021-05-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1422,7 +1649,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-28 20:27:48" itemprop="dateModified" datetime="2021-05-28T20:27:48+08:00">2021-05-28</time>
+                <time title="修改时间：2021-05-30 17:23:35" itemprop="dateModified" datetime="2021-05-30T17:23:35+08:00">2021-05-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1625,7 +1852,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-28 20:27:48" itemprop="dateModified" datetime="2021-05-28T20:27:48+08:00">2021-05-28</time>
+                <time title="修改时间：2021-05-30 17:23:35" itemprop="dateModified" datetime="2021-05-30T17:23:35+08:00">2021-05-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1715,7 +1942,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-28 20:27:48" itemprop="dateModified" datetime="2021-05-28T20:27:48+08:00">2021-05-28</time>
+                <time title="修改时间：2021-05-30 17:23:35" itemprop="dateModified" datetime="2021-05-30T17:23:35+08:00">2021-05-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1835,7 +2062,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-28 20:27:48" itemprop="dateModified" datetime="2021-05-28T20:27:48+08:00">2021-05-28</time>
+                <time title="修改时间：2021-05-30 17:23:35" itemprop="dateModified" datetime="2021-05-30T17:23:35+08:00">2021-05-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1937,7 +2164,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-28 20:27:48" itemprop="dateModified" datetime="2021-05-28T20:27:48+08:00">2021-05-28</time>
+                <time title="修改时间：2021-05-30 17:23:35" itemprop="dateModified" datetime="2021-05-30T17:23:35+08:00">2021-05-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -2028,7 +2255,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-28 20:27:48" itemprop="dateModified" datetime="2021-05-28T20:27:48+08:00">2021-05-28</time>
+                <time title="修改时间：2021-05-30 17:23:35" itemprop="dateModified" datetime="2021-05-30T17:23:35+08:00">2021-05-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -2153,7 +2380,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-28 20:27:48" itemprop="dateModified" datetime="2021-05-28T20:27:48+08:00">2021-05-28</time>
+                <time title="修改时间：2021-05-30 17:23:35" itemprop="dateModified" datetime="2021-05-30T17:23:35+08:00">2021-05-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -2318,12 +2545,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">654k</span>
+    <span title="站点总字数">666k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">9:54</span>
+    <span title="站点阅读时长">10:06</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
