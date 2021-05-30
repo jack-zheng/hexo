@@ -2501,3 +2501,660 @@ Finished process the file
 ```
 
 PS: 如果文件的末行没有换行，则最后一行并不会被处理
+
+## Presenting Data
+
+这章主要向你展示更多的输出流处理技巧
+
+### Understanding Input and Output
+
+现在为止，我们主要采取两种输出流展示方式
+
+* 终端屏显
+* 重定向到文件
+
+目前为止我们只能将全部内容一起输出到文件或屏幕，在下面的小节中，我们将尝试将内容分开处理
+
+> Standard file descriptors
+
+Linux 系统通过 file descriptor 来指代每一个文件对象，这个 decriptor 是一个唯一的非负的整数。每个进程同一时间允许至多 9 个打开的文件。bash 中将 0，1 和 2 用于特定的用途
+
+| File descriptor | Abbreviation |   Description   |
+| :-------------: | :----------: | :-------------: |
+|        0        |    STDIN     | Standard input  |
+|        1        |    STDOUT    | Standard output |
+|        2        |    STDERR    | Standard error  |
+
+**STDIN** 标准输入，比如终端的键盘输入和 `<` 的文件输入. 很多 bash 命令接收 STDIN 的输入，比如 cat， 如果你没有指定文件，他就会接收键盘输入
+
+```sh
+$ cat 
+thi
+thi
+this
+this
+```
+
+**STDOUT** shell 的标准输出就是 terminal monitor.
+
+**STDERR** 当运行命令出异常了，可以使用这个 descriptor 导流
+
+### Redirecting errors
+
+> Redirecting error only
+
+像前面表哥所示，STDERR 的文件描述符是 2，你可以在 redirection symbol 前加上这个标识符来指定导向
+
+```sh
+ls -al badfile 2> test4
+cat test4
+# ls: badfile: No such file or directory
+```
+
+下面的例子中，badfile 不存在，所以错误信息写入 test5 中，test4 存在，所以在屏幕上显示
+
+```sh
+ls -al test4 badfile 2> test5
+# -rw-r--r--  1 i306454  staff  0 May 29 14:07 test4
+cat test5
+# ls: badfile: No such file or directory
+```
+
+> Redirecting errors and data
+
+如果你想将正常和异常的信息都输出到文件，你需要指定两个输出
+
+```sh
+ls 
+# test5
+ls -al test5 badfile 2> test6 1> test7
+ls
+# test5   test6   test7
+cat test6
+# ls: badfile: No such file or directory
+cat test7
+# -rw-r--r--  1 i306454  staff  39 May 29 14:08 test5
+```
+
+如果你想将这两种信息都导入一个文件，bash 提供了一个特殊的 redirection symbol 来做这个事情 `&>`
+
+```sh
+ls -al test5 badfile &> test8
+cat test8
+# ls: badfile: No such file or directory
+# -rw-r--r--  1 i306454  staff  39 May 29 14:08 test5
+```
+
+### Redirecting Output in Scripts
+
+通过 STDOUT 和 STDERR 你可以将输出导入任何 file discriptors. 有两种方式可以重定向输出
+
+* Temporarily redirecting each line
+* Permanently redirecting all comands in the script
+
+> Temorary redirections
+
+这段文字的描述有点蹩脚，还是直接用案例说明把。假如你想将你的 echo 内容输出到 STDERR 指定的流中，需要怎么做？这种用法就是打印自己的 err log 啊, 可以使用 `>&2` 的格式
+
+下面的例子中，test8 中指定第一个 echo 通过 STDERR 输出，第二个 STDOUT 输出。当直接调用时，由于两个输出默认都是打在公屏上的，所以没什么区别，但是当我指定 err 输出到 test9 时，区别就出现了。只有错误信息导到 test9 了
+
+```sh
+cat test8
+#!/usr/local/bin/bash
+# Testing STDERR messages
+
+echo "This is an error" >&2
+echo "This is normal output"
+
+./test8
+This is an error
+This is normal output
+
+./test8 2> test9
+# This is normal output
+cat test9
+# This is an error
+```
+
+> Permanent redirections
+
+上面的情况适合少量打 log 的情况。如果你有好多 err 需要重新导向，你可以这么做
+
+exec 会启动一个新的 shell，下例中新启动的 shell 会将 STDOUT 的内容都发送的 testout 文件中去
+
+```sh
+cat test10
+#!/usr/local/bin/bash
+# Redirecting all output to a file
+exec 1>testout
+
+echo "This is a test of redirecting all output"
+echo "from a script to another file."
+echo "Without having to redirect every individual line"
+
+./test10
+cat testout
+# This is a test of redirecting all output
+# from a script to another file.
+# Without having to redirect every individual line
+```
+
+你可以在程序中间做这样的操作. 下面的例子中，我们在开头部分指定 err 输出到 testerror 文件，接着打印两个普通输出。再指定普通输出，输出到文件，最后指定 err 输出到 err 文件
+
+```sh
+cat test11
+#!/usr/local/bin/bash
+# Redirecting output to different locations
+
+exec 2> testerror
+
+echo "This is the start of the script"
+echo "now redirecting all output to another location"
+
+exec 1>testout
+
+echo "This output should go to the testout file"
+echo "but this should go to the testerror file" >&2
+
+./test11
+# This is the start of the script
+# now redirecting all output to another location
+cat testout
+# This output should go to the testout file
+cat testerror
+# but this should go to the testerror file
+```
+
+当你改变了 STDOUT 或者 STDERR 后，要再改回来就不是那么容易了，如果你需要切换这些流，需要用到一些技巧，这些将在后面的 Creating Your Own Redirection 章节讲到
+
+### Redirecting Input in Scripts
+
+和输出流一样，我们可以通过定向符号操纵输入流 `exec 0< testfile`
+
+下面的例子中，我们以文件中的命令代替键盘输入
+
+```sh
+cat test12
+#!/usr/local/bin/bash
+# Redirecting file input
+
+exec 0< test12
+count=1
+
+while read line 
+do
+    echo "Line #$count: $line"
+    count=$[ $count + 1 ]
+done
+
+./test12
+# Line #1: #!/usr/local/bin/bash
+# Line #2: # Redirecting file input
+# Line #3: 
+# Line #4: exec 0< test12
+# Line #5: count=1
+# Line #6: 
+# Line #7: while read line
+# Line #8: do
+# Line #9: echo "Line #$count: $line"
+# Line #10: count=$[ $count + 1 ]
+# Line #11: done
+# Line #12:
+```
+
+### Creating Your Own Redirection
+
+shell 中最多只能有 9 个 file descriptor， 我们已经用了 0，1，2.下面我们将使用 3-8 自定义我们自己的 file descriptor.
+
+> Creating output file descriptors
+
+```sh
+cat test13
+#!/usr/local/bin/bash
+# Using an alternative file descriptor
+
+exec 3> test13out
+
+echo "This should display on the monitor"
+echo "and this should stored in the file" >&3
+echo "Then this should be back on the monitor"
+
+./test13
+# This should display on the monitor
+# Then this should be back on the monitor
+cat test13out 
+# and this should stored in the file
+```
+
+这个概念听起来有点复杂，但是其实很直接了当的，用法也和前面的默认文件描述符是一致的。
+
+> Redirecting file descriptors
+
+下面的例子中我们会做重定向的切换。开始时，我们用 3 号 descriptor 代替 1 的位置。就是所有的 echo 都会输入到 3 号中，之后，我们还原，echo 就又输出到屏幕了。这个其实只用到了一个语法 `3>&1`，这个语句就是用 3 代替 1， 还原的时候顺序翻一下即可
+
+```sh
+cat test14
+#!/usr/local/bin/bash
+# Using STDOUT, then coming back to it
+
+exec 3>&1
+exec 1>test14out
+
+echo "This should store in the output file"
+echo "along with this lien"
+
+exec 1>&3
+
+echo "Now things should be back to normal"
+
+./test14
+# Now things should be back to normal
+cat test14out
+# This should store in the output file
+# along with this lien
+```
+
+> Creating input file descriptors
+
+和输出流一样，输入流也可以用上面的这个技巧。下面的例子中，我们先用 6 号代替原始的 0 号键盘输入，做完操作后将它还原
+
+```sh
+cat test15
+#!/usr/local/bin/bash
+# Redirecting input file descriptors
+
+exec 6<&0
+exec 0< testfile
+
+count=1
+while read line
+do
+    echo "Line #$count: $line"
+    count=$[ $ount + 1 ]
+done
+
+exec 0<&6
+read -p "Are you done now? " answer
+case $answer in
+Y | y) echo "Goodbye" ;;
+N | n) echo "Sorry, this is the end." ;;
+esac
+
+./test15
+# Line #1: line 1
+# Line #1: line 2
+# Line #1: line 3
+# Are you done now? y
+# Goodbye
+```
+
+> Creating a read/write file descriptor
+
+感觉这个例子有点。。。鸡肋。虽然实用性不高，但是挺有趣
+
+下面的例子中，我们会将 3 同时设置为输入输出描述符。先读取一行，再输入一行。读取一行后，位置定位到第二行开头，这个时候写我们自己的内容，他会覆盖之前的内容。
+
+```sh
+cat test16
+#!/usr/local/bin/bash
+# Redirecting input/output file descriptor
+
+exec 3<> testfile
+read line <&3
+
+echo "Read: $line"
+echo "This is a test line" >&3
+
+cat testfile 
+# This is the first line.
+# This is the second line.
+# This is the third line.
+
+./test16
+# Read: This is the first line.
+
+cat testfile
+# This is the first line.
+# This is a test line
+# ine.
+# This is the third line.
+```
+
+> Closing file descriptors
+
+新创建的 file descriptors 都会在脚本结束时自动关闭。但是如果你想在接本结束前手动关闭，需要做什么？
+
+关闭的格式如下 `exec 3>&-`, 下面的实验中我们将 3 号指向文件，输出内容，再关闭它，再试着输出内容。可以看到，关闭后再输出会抛异常
+
+```sh
+cat badtest
+#!/usr/local/bin/bash
+# Testing closing file descriptors
+
+exec 3> test17file
+
+echo "This is a test line of data" >&3
+
+exec 3>&-
+
+echo "This won't work" >&3
+
+./badtest
+# ./badtest: line 10: 3: Bad file descriptor
+cat test17file
+# This is a test line of data
+```
+
+除此之外还有一个更重要的细节需要注意，如果你在一个脚本中，关闭后再使用同一个 file descriptor 的话。它会将之前写的内容覆盖掉
+
+下面实验中，我们先用 3 号描述符将信息写入文件，关闭后 cat 输出，再打开它写东西。最后发现之前写的被覆盖了
+
+```sh
+cat test17
+#!/usr/local/bin/bash
+# Testing closing file descriptors
+
+exec 3> test17file
+echo "This is a test line of data" >&3
+exec 3>&-
+
+cat test17file
+
+exec 3> test17file
+echo "This'll be bad" >&3
+
+./test17
+# This is a test line of data
+cat test17file 
+# This'll be bad
+```
+
+### Listing Open File Descriptors
+
+`lsof` 可以列出整个系统所有发开的 file descriptor, 这个在权限方面有些争议。MacOS 也有这个命令
+
+```sh
+which lsof
+# /usr/sbin/lsof
+```
+
+显示当前进程的文件描述符使用情况
+
+```sh
+lsof -a -p $$ -d 0,1,2
+# COMMAND   PID    USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+# bash    35349 i306454    0u   CHR   16,1 0t937569  667 /dev/ttys001
+# bash    35349 i306454    1u   CHR   16,1 0t937569  667 /dev/ttys001
+# bash    35349 i306454    2u   CHR   16,1 0t937569  667 /dev/ttys001
+```
+
+lsof 输出说明
+
+| Column  | Description                                                                 |
+| :------ | :-------------------------------------------------------------------------- |
+| COMMAND | The first nine characters of the name of the command in the process         |
+| PID     | The process ID of the process                                               |
+| USER    | The login name of the user who owns the process                             |
+| FD      | The file descriptor number and access type. r-read, w-write, u-read/write   |
+| TYPE    | The type of file. CHR-character, BLK-block, DIR-directory, REG-regular file |
+| DEVICE  | The device numbers(major and minor) of the device                           |
+| SIZE    | If available, the size of the file                                          |
+| NODE    | The node number of the local file                                           |
+| NAME    | The name of the file                                                        |
+
+作为对比，下面是一个文件中的 file descriptor 的信息
+
+```sh
+cat test18
+#!/usr/local/bin/bash
+# Testing lsof with file descriptors
+
+exec 3> test18file1
+exec 6> test18file2
+exec 7< testfile
+
+lsof -a -p $$ -d 0,1,2,3,6,7
+
+./test18
+# COMMAND   PID    USER   FD   TYPE DEVICE SIZE/OFF     NODE NAME
+# bash    39156 i306454    0u   CHR   16,1 0t937995      667 /dev/ttys001
+# bash    39156 i306454    1u   CHR   16,1 0t937995      667 /dev/ttys001
+# bash    39156 i306454    2u   CHR   16,1 0t937995      667 /dev/ttys001
+# bash    39156 i306454    3w   REG    1,5        0 51179042 /Users/i306454/tmp/bash_test/test18file1
+# bash    39156 i306454    6w   REG    1,5        0 51179043 /Users/i306454/tmp/bash_test/test18file2
+# bash    39156 i306454    7r   REG    1,5       73 51174255 /Users/i306454/tmp/bash_test/testfile
+```
+
+### Suppressing Command Output
+
+有些时候，你并不想看到任何异常输出，比如后台运行的时候。这时你可以将 STDERR 的内容输出到 null file 中去，位置是 /dev/null
+
+```sh
+ls -al > /dev/null
+# cat /dev/null
+
+ls -al badfile test16 2> /dev/null
+# -rwxr--r--  1 i306454  staff  151 May 30 15:12 test16
+```
+
+你也可以将输入指定到 null file. 这样做可以快速清空一个文件，算是 rm + touch 的简化版
+
+```sh
+cat testfile
+# This is the first line.
+# This is a test line
+# ine.
+# This is the third line.
+
+cat /dev/null > testfile
+cat testfile
+```
+
+### Using Temporary Files
+
+Linux 系统预留了 `/tmp` 文件夹放置临时文件, 设置提供了专用命令 `mktemp` 来创建临时文件，这个命令创建的文件在 umask 上给创建者所有权限，其他人则没有权限
+
+> Creating a local temporary file
+
+零时文件名字中的末尾的大写 X 会被替换成随机数
+
+```sh
+mktemp testing.XXXXXX
+ls testing*
+# testing.I3p5pe
+```
+
+实验脚本中，我们创建一个临时文件并写入内容，然后关闭流，并 cat 一下。最后移除文件。把异常信息丢掉不显示
+
+```sh
+cat test19
+#!/usr/local/bin/bash
+# Creating and using a temp file
+
+tempfile=$(mktemp test19.XXXXXX)
+
+
+exec 3>$tempfile
+
+echo "This script writes to temp file $tempfile"
+
+echo "This is the first line" >&3
+echo "This is the second line" >&3
+echo "This is the third line" >&3
+
+exec 3>&-
+
+echo "Done creating temp file. the contents are:"
+cat $tempfile
+
+rm -f $tempfile 2> /dev/null
+
+./test19
+# This script writes to temp file test19.ksgCft
+# Done creating temp file. the contents are:
+# This is the first line
+# This is the second line
+# This is the third line
+ls test19*
+# test19
+```
+
+> Creating a temporary file in /tmp
+
+前面的临时文件都是创建在当前文件夹下的，下面介绍在 tmp 文件夹下的创建办法，其实就是加一个 -t 的参数。。。结果和书上有区别，并该是 MacOS 定制过
+
+```sh
+
+mktemp -t test.XXXXXX
+# /var/folders/yr/8yr4mzlj1x34tf4m9c_wh2_h0000gn/T/test.XXXXXX.enBtwKYB
+```
+
+```sh
+cat test20
+#!/usr/local/bin/bash
+# Creating a temp file in /tmp
+
+tempfile=$(mktemp tmp.XXXXXX)
+
+echo "This is a test file." > $tempfile
+echo "This is the second line of the test." >> $tempfile
+
+echo "The temp file is located at: $tempfile"
+cat $tempfile
+rm -f $tempfile
+
+./test20
+# The temp file is located at: tmp.OldzdO
+# This is a test file.
+# This is the second line of the test.
+```
+
+> Creating a temporary directory
+
+-d 创建临时文件夹
+
+```sh
+cat test21
+#!/usr/local/bin/bash
+# Using a temporary directory
+
+tempdir=$(mktemp -d dir.XXXXXX)
+cd $tempdir
+tempfile1=$(mktemp temp.XXXXXX)
+tempfile2=$(mktemp temp.XXXXXX)
+
+exec 7> $tempfile1
+exec 8> $tempfile2
+
+echo "Sending data to directory $tempdir"
+echo "This is a test line of data for $tempfile1" >&7
+echo "This is a test line of data for $tempfile2" >&8
+
+./test21
+# Sending data to directory dir.hE8Hbr
+
+ls -l dir*
+# total 16
+# -rw-------  1 i306454  staff  44 May 30 16:53 temp.2V4FAk
+# -rw-------  1 i306454  staff  44 May 30 16:53 temp.59JjLm
+
+cat dir.hE8Hbr/temp.2V4FAk 
+# This is a test line of data for temp.2V4FAk
+cat dir.hE8Hbr/temp.59JjLm 
+# This is a test line of data for temp.59JjLm
+```
+
+### Logging Messages
+
+有时你可能想一个流即打印到屏幕上，也输出到文件中，这个时候，你可以使用 tee
+
+```sh
+date | tee testfile 
+# Sun May 30 16:58:30 CST 2021
+cat testfile 
+# Sun May 30 16:58:30 CST 2021
+```
+
+注意，tee 默认会覆盖原有内容
+
+```sh
+who | tee testfile
+# i306454  console  May 27 15:12 
+# i306454  ttys000  May 27 16:21 
+cat testfile 
+# i306454  console  May 27 15:12 
+# i306454  ttys000  May 27 16:21
+```
+
+之前 date 的内容被覆盖了，你可以用 -a 做 append 操作
+
+```sh
+date | tee -a testfile
+# Sun May 30 17:00:41 CST 2021
+cat testfile 
+# i306454  console  May 27 15:12 
+# i306454  ttys000  May 27 16:21 
+# Sun May 30 17:00:41 CST 2021
+```
+
+实操
+
+```sh
+cat test22
+#!/usr/local/bin/bash
+# Using the tee command for logging
+
+tempfile=test22file
+
+echo "This is the start of the test" | tee $tempfile
+echo "This is the second of the test" | tee -a $tempfile
+echo "This is the end of the test" | tee -a $tempfile
+
+./test22
+# This is the start of the test
+# This is the second of the test
+# This is the end of the test
+cat test22file 
+# This is the start of the test
+# This is the second of the test
+# This is the end of the test
+```
+
+### Practical Example
+
+解析一个 csv 文件，将其中的内容重组成一个 SQL 文件用作 import
+
+```csv
+<!-- cat members.csv  -->
+Blum,Richard,123 Main St.,Chicago,IL,60601
+Blum,Barbara,123 Main St.,Chicago,IL,60601
+Bresnahan,Christine,456 Oak Ave.,Columbus,OH,43201
+Bresnahan,Timothy,456 Oak Ave.,Columbus,OH,43201bash-5.1$ ./test23
+```
+
+主要语法说明
+
+* done < ${1}: 将命令行中给的文件做输入
+* read lname...: 以逗号为分割，每个字段给个名字，方便后面调用
+* cat >> $outfile << EOF: cat 会拿到一行的内容，并对这些内容做替换放到 outfile 中去. 这个用法和 tee myfile << EOF.. 有异曲同工之妙
+  
+```sh
+cat test23
+#!/usr/local/bin/bash
+# Read file and create INSERT statements for MySQL
+
+outfile='members.sql'
+IFS=','
+while read lname fname address city state zip
+do
+    cat >> $outfile << EOF
+    INSERT INTO members (lname, fname, address, city, state, zip) VALUES ('$lanme', '$fname', '$address', '$city', '$state', '$zip');
+EOF
+done < ${1}
+
+./test23 members.csv 
+cat members.sql 
+    INSERT INTO members (lname, fname, address, city, state, zip) VALUES ('', 'Richard', '123 Main St.', 'Chicago', 'IL', '60601');
+    INSERT INTO members (lname, fname, address, city, state, zip) VALUES ('', 'Barbara', '123 Main St.', 'Chicago', 'IL', '60601');
+    INSERT INTO members (lname, fname, address, city, state, zip) VALUES ('', 'Christine', '456 Oak Ave.', 'Columbus', 'OH', '43201');
+```
