@@ -3158,3 +3158,53 @@ cat members.sql
     INSERT INTO members (lname, fname, address, city, state, zip) VALUES ('', 'Barbara', '123 Main St.', 'Chicago', 'IL', '60601');
     INSERT INTO members (lname, fname, address, city, state, zip) VALUES ('', 'Christine', '456 Oak Ave.', 'Columbus', 'OH', '43201');
 ```
+
+## Script Control
+
+### Handling Signals
+
+| Signal | Name    | Description                                         |
+| :----- | :------ | :-------------------------------------------------- |
+| 1      | SIGHUP  | Hangs up                                            |
+| 2      | SIGINT  | Interrupts                                          |
+| 3      | SIGQUIT | Stops running                                       |
+| 9      | SIGKILL | Unconditionally terminates                          |
+| 11     | SIGSEGV | Produces segment violation                          |
+| 15     | SIGTERM | Terminates if possible                              |
+| 17     | SIGSTOP | Stops unconditionally, but doesn't terminate        |
+| 18     | SIGTSTP | Stops or pauses, but continues to run in background |
+| 19     | SIGCONT | Resumes execution after STOP or TSTP                |
+
+默认情况下，bash shell 会忽略 QUIT 和 TERM 这两个信息，但是可以识别 HUP 和 INT。
+
+> Generating signals
+
+通过键盘操作你可以产生两种信号
+
+**Interrupting a process** `Ctrl + C` 可以生成 SIGINT 信号并把它发送到任何终端正在执行的进程中
+
+**Pausing a process** `Ctrl + Z` 停止一个进程
+
+```sh
+sleep 100
+# ^Z
+# [1]+  Stopped                 sleep 100
+exit
+# exit
+# There are stopped jobs.
+```
+
+当有 stop 的进程是，你是不能退出 bash 的可以用 ps 查看. 对应的 job 的 S(status) 为 T。你可以使用 kill 杀死它
+
+```sh
+ps -l 
+#   UID   PID  PPID        F CPU PRI NI       SZ    RSS WCHAN     S             ADDR TTY           TIME CMD
+#   ...
+#   501 17153 12576     4006   0  31  0  4268408    672 -      T                   0 ttys001    0:00.00 sleep 100
+#   ...
+kill -9 17153
+```
+
+> Trapping signals
+
+指定一个脚本可识别的 signal，格式为 `trap command signals`

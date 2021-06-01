@@ -4,7 +4,7 @@ date: 2021-05-06 18:45:35
 categories:
 - java
 tags:
-- bugs
+- bug
 ---
 
 今天在查找某个 bug 的 root cause 的时候，发现一个 Class.getEnclosingClass() 的调用。从来没有用个这玩意儿，做下笔记。

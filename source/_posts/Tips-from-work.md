@@ -4,9 +4,7 @@ date: 2019-12-19 17:32:33
 categories:
 - 杂记
 tags:
-- java
-- exception
-- issues
+- bug
 ---
 该页面用于记录实际工作中遇到的 bug，以示警戒
 
@@ -119,3 +117,9 @@ if (ojb != Boolean.True) {
 通过 `man ls` 可以看到这个 flag 的作用: -d      Directories are listed as plain files (not searched recursively).
 
 SF 上也给出了其他的解，可以用 `echo prefix*` 达到同样的效果
+
+## 2021-05-29
+
+今天遇到一个很 tricky 的 security issue. 客户在用我们的 provisioning 系统登陆的时候，是使用 SSO 的。前面还有一层 SAP 的授权层，叫 IDS 的。具体的 flow 可以表示为 IDS -> IAS -> Bizx. IAS 会用 email 做授权登陆。IDS 则是用 id. 但是 IDS 里面的用户可以随便更改自己的 email 就导致登陆到 Bizx 的用户可能串了。这是一个很严重的 security issue。如果真有心的话，这个 issue 说实话，可以让公司倒闭。
+
+这个 issue 漏出去的原因还是因为这些部分分属于不同的公司维护，彼此之前的既成测试缺失，同时也不好做的缘故。
