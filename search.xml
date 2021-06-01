@@ -2764,7 +2764,7 @@
         <category>java</category>
       </categories>
       <tags>
-        <tag>bugs</tag>
+        <tag>bug</tag>
       </tags>
   </entry>
   <entry>
@@ -3234,6 +3234,157 @@
       </categories>
       <tags>
         <tag>xml</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>LSCASSB parti the linux command line</title>
+    <url>/hexo/2021/05/31/LSCASSB-parti-the-linux-command-line/</url>
+    <content><![CDATA[<h2 id="Chapter-4-More-bash-Shell-Commands"><a href="#Chapter-4-More-bash-Shell-Commands" class="headerlink" title="Chapter 4: More bash Shell Commands"></a>Chapter 4: More bash Shell Commands</h2><h3 id="Monitoring-Programs"><a href="#Monitoring-Programs" class="headerlink" title="Monitoring Programs"></a>Monitoring Programs</h3><blockquote>
+<p>Peeking at the processes</p>
+</blockquote>
+<p>Linux 系统中，用 process 表示运行着的系统。可以用 <code>ps</code>(process status) 命令查看.</p>
+<p>默认情况下，只显示四个内容，process ID，terminal that they are running from, and the CUP time the process has used.</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">ps </span><br><span class="line">  PID TTY           TIME CMD</span><br><span class="line">  647 ttys000    0:02.15 -zsh</span><br><span class="line">12163 ttys000   11:26.77 /Users/i306454/SAPDevelop/tools/sapjvm_8/bin/java -Dlog4j.co</span><br><span class="line">12183 ttys000    0:01.12 tail -f /Users/i306454/SAPDevelop/workspace/trunk/tomcat-sfs</span><br><span class="line"> 1238 ttys001    0:09.65 /bin/zsh -l</span><br><span class="line"> 9378 ttys002    0:03.04 /bin/zsh --login -i</span><br></pre></td></tr></table></figure>
+
+<p><code>ps</code> command 有三种类型的参数</p>
+<ul>
+<li>Unix style parameters</li>
+<li>BSD style parameters</li>
+<li>GNU long parameters</li>
+</ul>
+<blockquote>
+<p>Unix-style parameters</p>
+</blockquote>
+<p>简单摘录几个, 而且书上列的只是一部分，主要记住几个常用的就行了</p>
+<table>
+<thead>
+<tr>
+<th align="left">Parameter</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">-A</td>
+<td align="left">Shows all processes</td>
+</tr>
+<tr>
+<td align="left">-N</td>
+<td align="left">Shows the opposite of the specified parameters</td>
+</tr>
+<tr>
+<td align="left">-a</td>
+<td align="left">Shows all processes except session headers and processes without a terminal</td>
+</tr>
+<tr>
+<td align="left">-d</td>
+<td align="left">Shows all processes except session headers</td>
+</tr>
+<tr>
+<td align="left">-e</td>
+<td align="left">Shows all processes</td>
+</tr>
+<tr>
+<td align="left">-f</td>
+<td align="left">Displays a full format listing</td>
+</tr>
+<tr>
+<td align="left">-l</td>
+<td align="left">Displays a long listing</td>
+</tr>
+</tbody></table>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">ps -ef | head</span><br><span class="line"><span class="comment">#   UID   PID  PPID   C STIME   TTY           TIME CMD</span></span><br><span class="line"><span class="comment">#     0     1     0   0 10:09AM ??         1:23.22 /sbin/launchd</span></span><br><span class="line"><span class="comment">#     0    64     1   0 10:09AM ??         0:03.00 /usr/sbin/syslogd</span></span><br><span class="line"><span class="comment"># ...</span></span><br><span class="line"></span><br><span class="line">ps -l | head</span><br><span class="line"><span class="comment"># UID   PID  PPID        F CPU PRI NI       SZ    RSS WCHAN     S             ADDR TTY           TIME CMD</span></span><br><span class="line"><span class="comment"># 501   647   646     4006   0  31  0  5457412   5200 -      S+                  0 ttys000    0:04.03 -zsh</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>UID: The user responsible for launching the process</li>
+<li>PID: The process ID of the process</li>
+<li>PPID: The PID of the parent process(if a process is start by another process)</li>
+<li>C: Processor utilization over the lifetime of the process</li>
+<li>STIME: The system time when the process started</li>
+<li>TTY: The termnal device from which the porcess was launched</li>
+<li>TIME: The cumulative CUP Time required to run the process</li>
+<li>CMD: The name of the program that wat started</li>
+<li>F: System flags assigned to the process by the kernel</li>
+<li>S: The state of the process. O-running on proecssor; S-sleeping; R-runnable, waiting to run; Z-zombie, process terminated but parent not availale; T-process stopped;</li>
+<li>PRI: The priority of the process(higher numbers mean low priority)</li>
+<li>NI: The nice value, which is used for determining priorites</li>
+<li>ADDR: The memory address of the process</li>
+<li>SZ: Approximate amount of swap space required if the process was swapped out</li>
+<li>WCHAN: Address of the kernel function where the process is sleeping</li>
+</ul>
+<p>其他两种我很少用，先留着把，有机会再补全</p>
+<blockquote>
+<p>Real-time process monitoring</p>
+</blockquote>
+<p><code>ps</code> 只能显示一个时间点的 process 状态，如果要实时显示，需要用到 <code>top</code> 命令</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">top</span><br><span class="line"><span class="comment"># PID    COMMAND      %CPU TIME     #TH    #WQ  #PORT MEM    PURG   CMPRS  PGRP  PPID STATE    BOOSTS          %CPU_ME %CPU_OTHRS UID  FAULTS     COW     MSGSENT    MSGRECV   SYSBSD     SYSMACH    CSW        PAGEIN IDLEW    POWE INSTRS    CYCLES    USER</span></span><br><span class="line"><span class="comment"># 1841   com.docker.h 36.7 68:12.08 13     0    37    19G    0B     629M   1710  1830 sleeping *0[1]           0.00000 0.00000    501  202373842+ 473     569        335       85444924+  920        48973831+  17     3949456+ 59.4 469486491 786452501 i306454</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Stopping processes</p>
+</blockquote>
+<p>Linux 系统中使用 signals 来和其他 process 交互。常用的 signals 列表</p>
+<table>
+<thead>
+<tr>
+<th align="left">Signal</th>
+<th align="left">Name</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">1</td>
+<td align="left">HUP</td>
+<td align="left">Hangs up</td>
+</tr>
+<tr>
+<td align="left">2</td>
+<td align="left">INT</td>
+<td align="left">Interrupts</td>
+</tr>
+<tr>
+<td align="left">3</td>
+<td align="left">QUIT</td>
+<td align="left">Stops running</td>
+</tr>
+<tr>
+<td align="left">9</td>
+<td align="left">KILL</td>
+<td align="left">Unconditionally terminates</td>
+</tr>
+<tr>
+<td align="left">11</td>
+<td align="left">SEGV</td>
+<td align="left">Produces segment violation</td>
+</tr>
+<tr>
+<td align="left">15</td>
+<td align="left">TERM</td>
+<td align="left">Terminates if possible</td>
+</tr>
+<tr>
+<td align="left">17</td>
+<td align="left">STOP</td>
+<td align="left">Stops unconditionally, but doesn’t terminate</td>
+</tr>
+<tr>
+<td align="left">18</td>
+<td align="left">TSTP</td>
+<td align="left">Stops or pauses, but continues to run in background</td>
+</tr>
+<tr>
+<td align="left">19</td>
+<td align="left">CONT</td>
+<td align="left">Resumes execution after STOP or TSTP</td>
+</tr>
+</tbody></table>
+<p><strong>The kill command</strong> 只有 process 的 owner 或者 root user 有权限杀死进程。 格式：<code>kill 3904</code></p>
+<p><strong>The killall command</strong> 可以根据名字关闭多个进程 <code>killall http*</code></p>
+<h3 id="Monitoring-Disk-Space"><a href="#Monitoring-Disk-Space" class="headerlink" title="Monitoring Disk Space"></a>Monitoring Disk Space</h3>]]></content>
+      <categories>
+        <category>Shell</category>
+      </categories>
+      <tags>
+        <tag>Linux命令行与shell脚本编程大全 3rd</tag>
+        <tag>TODO</tag>
       </tags>
   </entry>
   <entry>
@@ -5493,14 +5644,14 @@
 <h2 id="命令行查找目标文件夹-ls"><a href="#命令行查找目标文件夹-ls" class="headerlink" title="命令行查找目标文件夹(ls)"></a>命令行查找目标文件夹(ls)</h2><p>想要使用 ls 查找当前目录下的某个特定前缀的文件夹，但是 <code>ls prefix*</code> 会将对应的文件夹下面的自文件也列出来，不方便查看。可以加 <code>ls -d prefix*</code>。</p>
 <p>通过 <code>man ls</code> 可以看到这个 flag 的作用: -d      Directories are listed as plain files (not searched recursively).</p>
 <p>SF 上也给出了其他的解，可以用 <code>echo prefix*</code> 达到同样的效果</p>
+<h2 id="2021-05-29"><a href="#2021-05-29" class="headerlink" title="2021-05-29"></a>2021-05-29</h2><p>今天遇到一个很 tricky 的 security issue. 客户在用我们的 provisioning 系统登陆的时候，是使用 SSO 的。前面还有一层 SAP 的授权层，叫 IDS 的。具体的 flow 可以表示为 IDS -&gt; IAS -&gt; Bizx. IAS 会用 email 做授权登陆。IDS 则是用 id. 但是 IDS 里面的用户可以随便更改自己的 email 就导致登陆到 Bizx 的用户可能串了。这是一个很严重的 security issue。如果真有心的话，这个 issue 说实话，可以让公司倒闭。</p>
+<p>这个 issue 漏出去的原因还是因为这些部分分属于不同的公司维护，彼此之前的既成测试缺失，同时也不好做的缘故。</p>
 ]]></content>
       <categories>
         <category>杂记</category>
       </categories>
       <tags>
-        <tag>java</tag>
-        <tag>exception</tag>
-        <tag>issues</tag>
+        <tag>bug</tag>
       </tags>
   </entry>
   <entry>
@@ -6870,9 +7021,9 @@
         <category>Shell</category>
       </categories>
       <tags>
+        <tag>TODO</tag>
         <tag>shell</tag>
         <tag>Linux Shell Script Cookbook</tag>
-        <tag>TODO</tag>
       </tags>
   </entry>
   <entry>
@@ -11040,13 +11191,85 @@
 <li>read lname…: 以逗号为分割，每个字段给个名字，方便后面调用</li>
 <li>cat &gt;&gt; $outfile &lt;&lt; EOF: cat 会拿到一行的内容，并对这些内容做替换放到 outfile 中去. 这个用法和 tee myfile &lt;&lt; EOF.. 有异曲同工之妙</li>
 </ul>
-<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">cat test23</span><br><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Read file and create INSERT statements for MySQL</span></span><br><span class="line"></span><br><span class="line">outfile=<span class="string">&#x27;members.sql&#x27;</span></span><br><span class="line">IFS=<span class="string">&#x27;,&#x27;</span></span><br><span class="line"><span class="keyword">while</span> <span class="built_in">read</span> lname fname address city state zip</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    cat &gt;&gt; <span class="variable">$outfile</span> &lt;&lt; EOF</span><br><span class="line">    INSERT INTO members (lname, fname, address, city, state, zip) VALUES (<span class="string">&#x27;$lanme&#x27;</span>, <span class="string">&#x27;$fname&#x27;</span>, <span class="string">&#x27;$address&#x27;</span>, <span class="string">&#x27;$city&#x27;</span>, <span class="string">&#x27;$state&#x27;</span>, <span class="string">&#x27;$zip&#x27;</span>);</span><br><span class="line">EOF</span><br><span class="line"><span class="keyword">done</span> &lt; <span class="variable">$&#123;1&#125;</span></span><br><span class="line"></span><br><span class="line">./test23 members.csv </span><br><span class="line">cat members.sql </span><br><span class="line">    INSERT INTO members (lname, fname, address, city, state, zip) VALUES (<span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;Richard&#x27;</span>, <span class="string">&#x27;123 Main St.&#x27;</span>, <span class="string">&#x27;Chicago&#x27;</span>, <span class="string">&#x27;IL&#x27;</span>, <span class="string">&#x27;60601&#x27;</span>);</span><br><span class="line">    INSERT INTO members (lname, fname, address, city, state, zip) VALUES (<span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;Barbara&#x27;</span>, <span class="string">&#x27;123 Main St.&#x27;</span>, <span class="string">&#x27;Chicago&#x27;</span>, <span class="string">&#x27;IL&#x27;</span>, <span class="string">&#x27;60601&#x27;</span>);</span><br><span class="line">    INSERT INTO members (lname, fname, address, city, state, zip) VALUES (<span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;Christine&#x27;</span>, <span class="string">&#x27;456 Oak Ave.&#x27;</span>, <span class="string">&#x27;Columbus&#x27;</span>, <span class="string">&#x27;OH&#x27;</span>, <span class="string">&#x27;43201&#x27;</span>);</span><br></pre></td></tr></table></figure>]]></content>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">cat test23</span><br><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Read file and create INSERT statements for MySQL</span></span><br><span class="line"></span><br><span class="line">outfile=<span class="string">&#x27;members.sql&#x27;</span></span><br><span class="line">IFS=<span class="string">&#x27;,&#x27;</span></span><br><span class="line"><span class="keyword">while</span> <span class="built_in">read</span> lname fname address city state zip</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    cat &gt;&gt; <span class="variable">$outfile</span> &lt;&lt; EOF</span><br><span class="line">    INSERT INTO members (lname, fname, address, city, state, zip) VALUES (<span class="string">&#x27;$lanme&#x27;</span>, <span class="string">&#x27;$fname&#x27;</span>, <span class="string">&#x27;$address&#x27;</span>, <span class="string">&#x27;$city&#x27;</span>, <span class="string">&#x27;$state&#x27;</span>, <span class="string">&#x27;$zip&#x27;</span>);</span><br><span class="line">EOF</span><br><span class="line"><span class="keyword">done</span> &lt; <span class="variable">$&#123;1&#125;</span></span><br><span class="line"></span><br><span class="line">./test23 members.csv </span><br><span class="line">cat members.sql </span><br><span class="line">    INSERT INTO members (lname, fname, address, city, state, zip) VALUES (<span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;Richard&#x27;</span>, <span class="string">&#x27;123 Main St.&#x27;</span>, <span class="string">&#x27;Chicago&#x27;</span>, <span class="string">&#x27;IL&#x27;</span>, <span class="string">&#x27;60601&#x27;</span>);</span><br><span class="line">    INSERT INTO members (lname, fname, address, city, state, zip) VALUES (<span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;Barbara&#x27;</span>, <span class="string">&#x27;123 Main St.&#x27;</span>, <span class="string">&#x27;Chicago&#x27;</span>, <span class="string">&#x27;IL&#x27;</span>, <span class="string">&#x27;60601&#x27;</span>);</span><br><span class="line">    INSERT INTO members (lname, fname, address, city, state, zip) VALUES (<span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;Christine&#x27;</span>, <span class="string">&#x27;456 Oak Ave.&#x27;</span>, <span class="string">&#x27;Columbus&#x27;</span>, <span class="string">&#x27;OH&#x27;</span>, <span class="string">&#x27;43201&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<h2 id="Script-Control"><a href="#Script-Control" class="headerlink" title="Script Control"></a>Script Control</h2><h3 id="Handling-Signals"><a href="#Handling-Signals" class="headerlink" title="Handling Signals"></a>Handling Signals</h3><table>
+<thead>
+<tr>
+<th align="left">Signal</th>
+<th align="left">Name</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">1</td>
+<td align="left">SIGHUP</td>
+<td align="left">Hangs up</td>
+</tr>
+<tr>
+<td align="left">2</td>
+<td align="left">SIGINT</td>
+<td align="left">Interrupts</td>
+</tr>
+<tr>
+<td align="left">3</td>
+<td align="left">SIGQUIT</td>
+<td align="left">Stops running</td>
+</tr>
+<tr>
+<td align="left">9</td>
+<td align="left">SIGKILL</td>
+<td align="left">Unconditionally terminates</td>
+</tr>
+<tr>
+<td align="left">11</td>
+<td align="left">SIGSEGV</td>
+<td align="left">Produces segment violation</td>
+</tr>
+<tr>
+<td align="left">15</td>
+<td align="left">SIGTERM</td>
+<td align="left">Terminates if possible</td>
+</tr>
+<tr>
+<td align="left">17</td>
+<td align="left">SIGSTOP</td>
+<td align="left">Stops unconditionally, but doesn’t terminate</td>
+</tr>
+<tr>
+<td align="left">18</td>
+<td align="left">SIGTSTP</td>
+<td align="left">Stops or pauses, but continues to run in background</td>
+</tr>
+<tr>
+<td align="left">19</td>
+<td align="left">SIGCONT</td>
+<td align="left">Resumes execution after STOP or TSTP</td>
+</tr>
+</tbody></table>
+<p>默认情况下，bash shell 会忽略 QUIT 和 TERM 这两个信息，但是可以识别 HUP 和 INT。</p>
+<blockquote>
+<p>Generating signals</p>
+</blockquote>
+<p>通过键盘操作你可以产生两种信号</p>
+<p><strong>Interrupting a process</strong> <code>Ctrl + C</code> 可以生成 SIGINT 信号并把它发送到任何终端正在执行的进程中</p>
+<p><strong>Pausing a process</strong> <code>Ctrl + Z</code> 停止一个进程</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">sleep 100</span><br><span class="line"><span class="comment"># ^Z</span></span><br><span class="line"><span class="comment"># [1]+  Stopped                 sleep 100</span></span><br><span class="line"><span class="built_in">exit</span></span><br><span class="line"><span class="comment"># exit</span></span><br><span class="line"><span class="comment"># There are stopped jobs.</span></span><br></pre></td></tr></table></figure>
+
+<p>当有 stop 的进程是，你是不能退出 bash 的可以用 ps 查看. 对应的 job 的 S(status) 为 T。你可以使用 kill 杀死它</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">ps -l </span><br><span class="line"><span class="comment">#   UID   PID  PPID        F CPU PRI NI       SZ    RSS WCHAN     S             ADDR TTY           TIME CMD</span></span><br><span class="line"><span class="comment">#   ...</span></span><br><span class="line"><span class="comment">#   501 17153 12576     4006   0  31  0  4268408    672 -      T                   0 ttys001    0:00.00 sleep 100</span></span><br><span class="line"><span class="comment">#   ...</span></span><br><span class="line"><span class="built_in">kill</span> -9 17153</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Trapping signals</p>
+</blockquote>
+<p>指定一个脚本可识别的 signal，格式为 <code>trap command signals</code></p>
+]]></content>
       <categories>
         <category>Shell</category>
       </categories>
       <tags>
-        <tag>TODO</tag>
         <tag>Linux命令行与shell脚本编程大全 3rd</tag>
+        <tag>TODO</tag>
       </tags>
   </entry>
   <entry>
