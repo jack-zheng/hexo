@@ -237,7 +237,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-01 19:59:14" itemprop="dateModified" datetime="2021-06-01T19:59:14+08:00">2021-06-01</time>
+                <time title="修改时间：2021-06-02 20:20:38" itemprop="dateModified" datetime="2021-06-02T20:20:38+08:00">2021-06-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -465,7 +465,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-01 19:59:14" itemprop="dateModified" datetime="2021-06-01T19:59:14+08:00">2021-06-01</time>
+                <time title="修改时间：2021-06-02 20:20:38" itemprop="dateModified" datetime="2021-06-02T20:20:38+08:00">2021-06-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -485,14 +485,14 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>53k</span>
+              <span>60k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>48 分钟</span>
+              <span>55 分钟</span>
             </span>
 
         </div>
@@ -1709,7 +1709,143 @@
 <blockquote>
 <p>Trapping signals</p>
 </blockquote>
-<p>指定一个脚本可识别的 signal，格式为 <code>trap command signals</code></p>
+<p>脚本中我们可以指定需要忽略的 signal, 格式为 <code>trap command signals</code>。</p>
+<p>下面的示例中，我们在脚本中指定忽略 <code>Ctrl + C</code> 发出的 SIGINT 信号，运行过程中即使按下组合键脚本继续运行</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">cat test1.sh </span><br><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Testing signal trapping</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="built_in">trap</span> <span class="string">&quot;echo &#x27; Sorry! I have trapped Ctrl-C&#x27;&quot;</span> SIGINT</span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="built_in">echo</span> This is a <span class="built_in">test</span> script</span><br><span class="line"><span class="comment">#</span></span><br><span class="line">count=1</span><br><span class="line"><span class="keyword">while</span> [ <span class="variable">$count</span> -le 10 ]</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Loop #<span class="variable">$count</span>&quot;</span></span><br><span class="line">    sleep 1</span><br><span class="line">    count=$[ <span class="variable">$count</span> + 1 ] </span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This is the end of the test script&quot;</span></span><br><span class="line"></span><br><span class="line">./test1.sh </span><br><span class="line"><span class="comment"># This is a test script</span></span><br><span class="line"><span class="comment"># Loop #1</span></span><br><span class="line"><span class="comment"># Loop #2</span></span><br><span class="line"><span class="comment"># Loop #3</span></span><br><span class="line"><span class="comment"># Loop #4</span></span><br><span class="line"><span class="comment"># ^C Sorry! I have trapped Ctrl-C</span></span><br><span class="line"><span class="comment"># Loop #5</span></span><br><span class="line"><span class="comment"># Loop #6</span></span><br><span class="line"><span class="comment"># Loop #7</span></span><br><span class="line"><span class="comment"># Loop #8</span></span><br><span class="line"><span class="comment"># Loop #9</span></span><br><span class="line"><span class="comment"># Loop #10</span></span><br><span class="line"><span class="comment"># ^C Sorry! I have trapped Ctrl-C</span></span><br><span class="line"><span class="comment"># This is the end of the test script</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Trapping a script exit</p>
+</blockquote>
+<p>trap 命令还可以做到，当脚本结束时执行命令的效果，即使是通过 Ctrl + C 结束也会被出发。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">cat test2.sh </span><br><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Trapping the script exit</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="built_in">trap</span> <span class="string">&quot;echo Goodbye...&quot;</span> EXIT</span><br><span class="line"><span class="comment">#</span></span><br><span class="line">count=1</span><br><span class="line"><span class="keyword">while</span> [ <span class="variable">$count</span> -le 5 ]</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Loop #<span class="variable">$count</span>&quot;</span></span><br><span class="line">    sleep 1</span><br><span class="line">    count=$[ <span class="variable">$count</span> + 1 ] </span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This is the end of the test script&quot;</span></span><br><span class="line"></span><br><span class="line">./test2.sh </span><br><span class="line"><span class="comment"># Loop #1</span></span><br><span class="line"><span class="comment"># Loop #2</span></span><br><span class="line"><span class="comment"># ^CGoodbye...</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Modifying or removing a trap</p>
+</blockquote>
+<p>下面示例中展示了如何修改 trap 的动作。我们先定义当遇到 SIGINT 时 echo 的内容。当 5 秒循环后修改 echo 的内容。通过触发 SIGINT 查看改动是否生效</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">cat test3.sh </span><br><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Modifying a set trap</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="built_in">trap</span> <span class="string">&quot;echo &#x27;Sorry... Ctrl-C is trapped.&#x27;&quot;</span> SIGINT</span><br><span class="line"><span class="comment">#</span></span><br><span class="line">count=1</span><br><span class="line"><span class="keyword">while</span> [ <span class="variable">$count</span> -le 5 ]</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Loop #<span class="variable">$count</span>&quot;</span></span><br><span class="line">    sleep 1</span><br><span class="line">    count=$[ <span class="variable">$count</span> + 1 ] </span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="built_in">trap</span> <span class="string">&quot;echo &#x27; I modified the trap!&#x27;&quot;</span> SIGINT</span><br><span class="line"><span class="comment">#</span></span><br><span class="line">count=1</span><br><span class="line"><span class="keyword">while</span> [ <span class="variable">$count</span> -le 5 ]</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Loop #<span class="variable">$count</span>&quot;</span></span><br><span class="line">    sleep 1</span><br><span class="line">    count=$[ <span class="variable">$count</span> + 1 ] </span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line">./test3.sh </span><br><span class="line"><span class="comment"># Loop #1</span></span><br><span class="line"><span class="comment"># Loop #2</span></span><br><span class="line"><span class="comment"># ^CSorry... Ctrl-C is trapped.</span></span><br><span class="line"><span class="comment"># Loop #3</span></span><br><span class="line"><span class="comment"># Loop #4</span></span><br><span class="line"><span class="comment"># ^CSorry... Ctrl-C is trapped.</span></span><br><span class="line"><span class="comment"># Loop #5</span></span><br><span class="line"><span class="comment"># Loop #1</span></span><br><span class="line"><span class="comment"># Loop #2</span></span><br><span class="line"><span class="comment"># ^C I modified the trap!</span></span><br><span class="line"><span class="comment"># Loop #3</span></span><br><span class="line"><span class="comment"># Loop #4</span></span><br><span class="line"><span class="comment"># ^C I modified the trap!</span></span><br><span class="line"><span class="comment"># Loop #5</span></span><br></pre></td></tr></table></figure>
+
+<p>你也可以通过 <code>trap -- SIGINT</code> 移除定义的 trap</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">cat test3b.sh </span><br><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Modifying a set trap</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="built_in">trap</span> <span class="string">&quot;echo &#x27;Sorry... Ctrl-C is trapped.&#x27;&quot;</span> SIGINT</span><br><span class="line"><span class="comment">#</span></span><br><span class="line">count=1</span><br><span class="line"><span class="keyword">while</span> [ <span class="variable">$count</span> -le 5 ]</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Loop #<span class="variable">$count</span>&quot;</span></span><br><span class="line">    sleep 1</span><br><span class="line">    count=$[ <span class="variable">$count</span> + 1 ] </span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="built_in">trap</span> -- SIGINT</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;I just removed the trap&quot;</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line">count=1</span><br><span class="line"><span class="keyword">while</span> [ <span class="variable">$count</span> -le 5 ]</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Loop #<span class="variable">$count</span>&quot;</span></span><br><span class="line">    sleep 1</span><br><span class="line">    count=$[ <span class="variable">$count</span> + 1 ] </span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line">./test3b.sh </span><br><span class="line"><span class="comment"># Loop #1</span></span><br><span class="line"><span class="comment"># Loop #2</span></span><br><span class="line"><span class="comment"># ^CSorry... Ctrl-C is trapped.</span></span><br><span class="line"><span class="comment"># Loop #3</span></span><br><span class="line"><span class="comment"># Loop #4</span></span><br><span class="line"><span class="comment"># Loop #5</span></span><br><span class="line"><span class="comment"># I just removed the trap</span></span><br><span class="line"><span class="comment"># Loop #1</span></span><br><span class="line"><span class="comment"># Loop #2</span></span><br><span class="line"><span class="comment"># ^C</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Tip</strong> 上面的去除也可以用单横线 <code>trap - SIGINT</code></p>
+<h3 id="Running-scripts-in-Background-Mode"><a href="#Running-scripts-in-Background-Mode" class="headerlink" title="Running scripts in Background Mode"></a>Running scripts in Background Mode</h3><p>试想一下下面的情形，如果你的脚本需要执行比较长的时间，如果你在终端运行了它，那么你就没有终端可用了。你可以使用 background 的模式跑类似的脚本，<code>ps</code> 显示那些 process 很多都是后台运行的</p>
+<blockquote>
+<p>Running in the background</p>
+</blockquote>
+<p>想要后台运行脚本是很简单的，只需要在调用脚本时后面接一个 ampersand symbol <code>&amp;</code> 即可</p>
+<p>下面程序中，我们声明了一个计时器，并在后台运行。运行时他会给出 PID 信息。当脚本执行结束时会打印 done 的信息</p>
+<p>PS: bash 测试的时候要我会车才会打印，zsh 自动打印</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">cat test4.sh </span><br><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Test running in the background</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line">count=1</span><br><span class="line"><span class="keyword">while</span> [ <span class="variable">$count</span> -le 10 ]</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    sleep 1</span><br><span class="line">    count=$[ <span class="variable">$count</span> + 1 ]</span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"></span><br><span class="line">./test4.sh &amp;</span><br><span class="line"><span class="comment"># [1] 16253</span></span><br><span class="line"><span class="comment"># [1]  + 16360 done       ./test4.sh</span></span><br></pre></td></tr></table></figure>
+
+<p>当使用 background mode 的时候，他还是用的 STDOUT 和 STDERR</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">cat test5.sh                                 </span><br><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Test running in the background with output</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Start the test script&quot;</span></span><br><span class="line">count=1</span><br><span class="line"><span class="keyword">while</span> [ <span class="variable">$count</span> -le 5 ]</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Loop #<span class="variable">$count</span>&quot;</span></span><br><span class="line">    sleep 1</span><br><span class="line">    count=$[ <span class="variable">$count</span> + 1 ]</span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Test script is complete&quot;</span></span><br><span class="line"></span><br><span class="line">./test5.sh &amp;</span><br><span class="line"><span class="comment"># [1] 16474</span></span><br><span class="line"><span class="comment"># bash-5.1$ Start the test script</span></span><br><span class="line"><span class="comment"># Loop #1</span></span><br><span class="line"><span class="comment"># Loop #2</span></span><br><span class="line"><span class="comment"># Loop #3</span></span><br><span class="line"><span class="comment"># Loop #4</span></span><br><span class="line"><span class="comment"># Loop #5</span></span><br><span class="line"><span class="comment"># Test script is complete</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># [1]+  Done                    ./test5.sh</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Running multiple background jobs</p>
+</blockquote>
+<p>如果你想启动多个 background job 只需要终端运行多个 <code>xx.sh &amp;</code> 即可。每次系统多会分配一个 job id 和 process id 给后台进程，可以通过 ps 查看</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">./test5.sh &amp;</span><br><span class="line">./test5.sh &amp;</span><br><span class="line">ps                  </span><br><span class="line"><span class="comment">#   PID TTY           TIME CMD</span></span><br><span class="line"><span class="comment">#  8019 ttys000    0:04.39 /bin/zsh --login -i</span></span><br><span class="line"><span class="comment">#  1479 ttys001    0:01.61 /bin/zsh -l</span></span><br><span class="line"><span class="comment"># 16661 ttys001    0:00.01 /usr/local/bin/bash ./test5.sh</span></span><br><span class="line"><span class="comment"># 16681 ttys001    0:00.01 /usr/local/bin/bash ./test5.sh</span></span><br><span class="line"><span class="comment"># 16700 ttys001    0:00.00 sleep 1</span></span><br><span class="line"><span class="comment"># 16702 ttys001    0:00.00 sleep 1</span></span><br><span class="line"><span class="comment">#  3202 ttys002    0:04.87 -zsh</span></span><br><span class="line"><span class="comment">#  9415 ttys003    0:01.10 -zsh</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Running-Scripts-without-a-Hang-Up"><a href="#Running-Scripts-without-a-Hang-Up" class="headerlink" title="Running Scripts without a Hang-Up"></a>Running Scripts without a Hang-Up</h3><p>通过 <code>nohup</code> 命令，你可以让脚本始终在后台运行，即使关闭终端也行</p>
+<p><code>nohup</code> 会将 script 和 STDOUT， STDERR 解绑。自动将输出绑定到 nohup.out 文件。如果你在一个文件夹下启动多个 nohup process, 他们的输出会混在一起</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">nohup ./test1.sh &amp;</span><br><span class="line">cat nohup.out </span><br><span class="line"><span class="comment"># This is a test script</span></span><br><span class="line"><span class="comment"># Loop #1</span></span><br><span class="line"><span class="comment"># Loop #2</span></span><br><span class="line"><span class="comment"># Loop #3</span></span><br><span class="line"><span class="comment"># Loop #4</span></span><br><span class="line"><span class="comment"># Loop #5</span></span><br><span class="line"><span class="comment"># Loop #6</span></span><br><span class="line"><span class="comment"># Loop #7</span></span><br><span class="line"><span class="comment"># Loop #8</span></span><br><span class="line"><span class="comment"># Loop #9</span></span><br><span class="line"><span class="comment"># Loop #10</span></span><br><span class="line"><span class="comment"># This is the end of the test script</span></span><br><span class="line"><span class="comment"># [1]+  Done                    nohup ./test1.sh</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Controlling-the-Job"><a href="#Controlling-the-Job" class="headerlink" title="Controlling the Job"></a>Controlling the Job</h3><p>job control 即 开始/通知/kill/重启 jobs 的动作</p>
+<blockquote>
+<p>Viewing jobs</p>
+</blockquote>
+<p><code>jobs</code> cmd 让你可以查看 shell 正在运行的 jobs</p>
+<p>下面的例子中，我们启动一个计时器脚本。第一次运行，中间通过 Ctrl + Z stop 它。第二次采用后台运行。然后通过 jobs 命令观察这两个 job 的状态。jobs -l 可以显示 PID</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">cat test10.sh </span><br><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Test job control</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># $$ to display the PID of process running this script</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Script Process ID: $$&quot;</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line">count=1</span><br><span class="line"><span class="keyword">while</span> [ <span class="variable">$count</span> -le 10 ]</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Loop #<span class="variable">$count</span>&quot;</span></span><br><span class="line">    sleep 1</span><br><span class="line">    count=$[ <span class="variable">$count</span> + 1 ] </span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;End of script...&quot;</span></span><br><span class="line"></span><br><span class="line">./test10.sh </span><br><span class="line"><span class="comment"># Script Process ID: 17179</span></span><br><span class="line"><span class="comment"># Loop #1</span></span><br><span class="line"><span class="comment"># Loop #2</span></span><br><span class="line"><span class="comment"># ^Z</span></span><br><span class="line"><span class="comment"># [1]+  Stopped                 ./test10.sh</span></span><br><span class="line">./test10.sh &gt; test10.out &amp;</span><br><span class="line"><span class="comment"># [2] 17192</span></span><br><span class="line"><span class="built_in">jobs</span> </span><br><span class="line"><span class="comment"># [1]+  Stopped                 ./test10.sh</span></span><br><span class="line"><span class="comment"># [2]-  Running                 ./test10.sh &gt; test10.out &amp;</span></span><br><span class="line"><span class="built_in">jobs</span> -l </span><br><span class="line"><span class="comment"># [1]+ 17179 Suspended: 18           ./test10.sh</span></span><br><span class="line"><span class="comment"># [2]- 17192 Done                    ./test10.sh &gt; test10.out</span></span><br></pre></td></tr></table></figure>
+
+<p>jobs 命令的可选参数</p>
+<table>
+<thead>
+<tr>
+<th align="left">Parameter</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">-l</td>
+<td align="left">List the PID of the process along with the job number</td>
+</tr>
+<tr>
+<td align="left">-n</td>
+<td align="left">Lists only jobs that have changed their status since the last notification from the shell</td>
+</tr>
+<tr>
+<td align="left">-p</td>
+<td align="left">Lists only the PIDs of the jobs</td>
+</tr>
+<tr>
+<td align="left">-r</td>
+<td align="left">Lists only the running jobs</td>
+</tr>
+<tr>
+<td align="left">-s</td>
+<td align="left">Lists only stopped jobs</td>
+</tr>
+</tbody></table>
+<p>jobs 列出的信息可以看到加号和减号。<code>+</code> 表示 default job. <code>-</code> 表示即将变成 default job 的 job。同一时间，只有一个带 加号 的 job 和一个带 减号 的 job。</p>
+<p>下面实验中，我们启动三个后台脚本并观察 jobs 状态</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">./test10.sh &gt; test10a.out &amp;</span><br><span class="line"><span class="comment"># [1] 17444</span></span><br><span class="line">./test10.sh &gt; test10b.out &amp;</span><br><span class="line"><span class="comment"># [2] 17448</span></span><br><span class="line">./test10.sh &gt; test10c.out &amp;</span><br><span class="line"><span class="comment"># [3] 17456</span></span><br><span class="line"><span class="built_in">jobs</span> -l </span><br><span class="line"><span class="comment"># [1]  17444 Running                 ./test10.sh &gt; test10a.out &amp;</span></span><br><span class="line"><span class="comment"># [2]- 17448 Running                 ./test10.sh &gt; test10b.out &amp;</span></span><br><span class="line"><span class="comment"># [3]+ 17456 Running                 ./test10.sh &gt; test10c.out &amp;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 杀死进程</span></span><br><span class="line"><span class="built_in">kill</span> 17444</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Restarting stopped jobs</p>
+</blockquote>
+<p>通过 bash 的 job control 你可以重新启动停止的脚本，启动方式有 background 和 foreground 两种，后者会接管终端</p>
+<p>当有多个 script 停止时，可以使用 bg + num 的方式启动对应的脚本</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">cat test11.sh </span><br><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Test job control</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line">count=1</span><br><span class="line"><span class="keyword">while</span> [ <span class="variable">$count</span> -le 10 ]</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    sleep 1</span><br><span class="line">    count=$[ <span class="variable">$count</span> + 1 ] </span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;End of script...&quot;</span></span><br><span class="line"></span><br><span class="line">./test11.sh </span><br><span class="line"><span class="comment"># ^Z</span></span><br><span class="line"><span class="comment"># [1]+  Stopped                 ./test11.sh</span></span><br><span class="line">./test11.sh </span><br><span class="line"><span class="comment"># ^Z</span></span><br><span class="line"><span class="comment"># [2]+  Stopped                 ./test11.sh</span></span><br><span class="line"><span class="built_in">jobs</span> -l</span><br><span class="line"><span class="comment"># [1]- 17657 Suspended: 18           ./test11.sh</span></span><br><span class="line"><span class="comment"># [2]+ 17659 Suspended: 18           ./test11.sh</span></span><br><span class="line"><span class="built_in">bg</span> 2</span><br><span class="line"><span class="comment"># [2]+ ./test11.sh &amp;</span></span><br><span class="line"><span class="comment"># End of script...</span></span><br></pre></td></tr></table></figure>
+
+<p><code>bg</code> 和 <code>fg</code> 的最主要的区别。如果用 bg, 你还可以在当前终端运行命令，如果是 fg 你需要等命令全部执行完了才能继续运行</p>
+<h3 id="Being-Nice"><a href="#Being-Nice" class="headerlink" title="Being Nice"></a>Being Nice</h3><p>Linux 系统中各 process 都有优先级，从 -20 到 19 不等。 shell 启动的 process 默认都是 0。19 是最低优先级的。可以通过 Nice guys finish last 方便记忆</p>
+<blockquote>
+<p>Using the nice command</p>
+</blockquote>
+<p>当需要指定优先级时，可以通过使用 <code>nice</code> 命令指定优先级等级</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># MacOS 不支持 cmd column</span></span><br><span class="line">nice -n 10 ./test4.sh &gt; test4.out &amp;</span><br><span class="line"><span class="comment"># [2] 18051</span></span><br><span class="line"><span class="comment"># [1]   Done                    nice -n 10 ./test4.sh &gt; test4.out</span></span><br><span class="line">ps -p 18051 -o pid,ppid,ni</span><br><span class="line"><span class="comment">#   PID  PPID NI</span></span><br><span class="line"><span class="comment"># 18051 16881 10</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Using the renice command</p>
+</blockquote>
+<p>当 process 运行是，可以通过 <code>renice</code> 调整优先级</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">./test11.sh &amp;</span><br><span class="line"><span class="comment"># [1] 18154</span></span><br><span class="line">ps -p 18154 -o pid,ni</span><br><span class="line"><span class="comment">#   PID NI</span></span><br><span class="line"><span class="comment"># 18154  0</span></span><br><span class="line">renice -n 10 -p 18154</span><br><span class="line">ps -p 18154 -o pid,ni</span><br><span class="line"><span class="comment">#   PID NI</span></span><br><span class="line"><span class="comment"># 18154 10</span></span><br></pre></td></tr></table></figure>
+
+<p>和 nice 一样，renice 也有以下限制</p>
+<ul>
+<li>只能 renice 你自己 own 的 processes</li>
+<li>renice 只能将优先级调低</li>
+<li>root 用户可以用 renice 调整到任何等级</li>
+</ul>
+<h3 id="Running-Like-Clockwork"><a href="#Running-Like-Clockwork" class="headerlink" title="Running Like Clockwork"></a>Running Like Clockwork</h3><p>这章我们将会使用 <code>at</code> 和 <code>corn</code> 命令让我们的脚本定时运行</p>
+<blockquote>
+<p>Scheduling a job using the at command</p>
+</blockquote>
+<p><code>at</code> 让你可以定时的在系统中运行脚本，大多数 Linux 系统会在启动时开启一个 atd 的守进程，定时 check 并运行目标路径(/var/spool/at) 下的脚本</p>
+<blockquote>
+<p>Understanding the at command format</p>
+</blockquote>
+<p><code>at</code> 的基本格式很简单 <code>at [-f filename] time</code>. at 可以识别多种时间格式</p>
+<ul>
+<li>A standard hour and minute, such as 10:15</li>
+<li>An AM/PM indicator, such as 10:15PM</li>
+<li>A specific named time, such as now, noon, midnight or teatime(4PM)</li>
+</ul>
+<p>同时你可以指定特定格式的日期</p>
+<ul>
+<li>A standard date format, such as MMDDYY, MM/DD/YY, or DD.MM.YY</li>
+<li>A text date, such as Jul 4 or Dec 25, with or withour the year</li>
+<li>A time increment:<ul>
+<li>Now + 25 minutes</li>
+<li>10:15PM tomorrow</li>
+<li>10:15 + 7 days</li>
+</ul>
+</li>
+</ul>
+<p>当使用 at 命令的时候，对应的 job 提交到 job queue 中。系统中有 26 种 job 可选，队列名字为字母大小写的 a-z</p>
+<p><strong>Note</strong> 以前还有一个 batch 命令可以让你在 low useage 状态下运行 script，现在它只是通过调用 at + b queue 完成的定时脚本。队列的字母顺序越靠后，优先级越低。默认 job 优先级为 a</p>
 
       
     </div>
@@ -1760,7 +1896,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-01 19:59:14" itemprop="dateModified" datetime="2021-06-01T19:59:14+08:00">2021-06-01</time>
+                <time title="修改时间：2021-06-02 20:20:38" itemprop="dateModified" datetime="2021-06-02T20:20:38+08:00">2021-06-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1853,7 +1989,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-01 19:59:14" itemprop="dateModified" datetime="2021-06-01T19:59:14+08:00">2021-06-01</time>
+                <time title="修改时间：2021-06-02 20:20:38" itemprop="dateModified" datetime="2021-06-02T20:20:38+08:00">2021-06-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1949,7 +2085,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-01 19:59:14" itemprop="dateModified" datetime="2021-06-01T19:59:14+08:00">2021-06-01</time>
+                <time title="修改时间：2021-06-02 20:20:38" itemprop="dateModified" datetime="2021-06-02T20:20:38+08:00">2021-06-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -2152,7 +2288,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-01 19:59:14" itemprop="dateModified" datetime="2021-06-01T19:59:14+08:00">2021-06-01</time>
+                <time title="修改时间：2021-06-02 20:20:38" itemprop="dateModified" datetime="2021-06-02T20:20:38+08:00">2021-06-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -2242,7 +2378,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-01 19:59:14" itemprop="dateModified" datetime="2021-06-01T19:59:14+08:00">2021-06-01</time>
+                <time title="修改时间：2021-06-02 20:20:38" itemprop="dateModified" datetime="2021-06-02T20:20:38+08:00">2021-06-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -2362,7 +2498,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-01 19:59:14" itemprop="dateModified" datetime="2021-06-01T19:59:14+08:00">2021-06-01</time>
+                <time title="修改时间：2021-06-02 20:20:38" itemprop="dateModified" datetime="2021-06-02T20:20:38+08:00">2021-06-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -2464,7 +2600,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-01 19:59:14" itemprop="dateModified" datetime="2021-06-01T19:59:14+08:00">2021-06-01</time>
+                <time title="修改时间：2021-06-02 20:20:38" itemprop="dateModified" datetime="2021-06-02T20:20:38+08:00">2021-06-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -2555,7 +2691,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-01 19:59:14" itemprop="dateModified" datetime="2021-06-01T19:59:14+08:00">2021-06-01</time>
+                <time title="修改时间：2021-06-02 20:20:38" itemprop="dateModified" datetime="2021-06-02T20:20:38+08:00">2021-06-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -2742,12 +2878,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">670k</span>
+    <span title="站点总字数">677k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">10:09</span>
+    <span title="站点阅读时长">10:16</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
