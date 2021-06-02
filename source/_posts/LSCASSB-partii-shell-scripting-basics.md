@@ -3207,4 +3207,441 @@ kill -9 17153
 
 > Trapping signals
 
-指定一个脚本可识别的 signal，格式为 `trap command signals`
+脚本中我们可以指定需要忽略的 signal, 格式为 `trap command signals`。
+
+下面的示例中，我们在脚本中指定忽略 `Ctrl + C` 发出的 SIGINT 信号，运行过程中即使按下组合键脚本继续运行
+
+```sh
+cat test1.sh 
+#!/usr/local/bin/bash
+# Testing signal trapping
+#
+trap "echo ' Sorry! I have trapped Ctrl-C'" SIGINT
+#
+echo This is a test script
+#
+count=1
+while [ $count -le 10 ]
+do
+    echo "Loop #$count"
+    sleep 1
+    count=$[ $count + 1 ] 
+done
+#
+echo "This is the end of the test script"
+
+./test1.sh 
+# This is a test script
+# Loop #1
+# Loop #2
+# Loop #3
+# Loop #4
+# ^C Sorry! I have trapped Ctrl-C
+# Loop #5
+# Loop #6
+# Loop #7
+# Loop #8
+# Loop #9
+# Loop #10
+# ^C Sorry! I have trapped Ctrl-C
+# This is the end of the test script
+```
+
+> Trapping a script exit
+
+trap 命令还可以做到，当脚本结束时执行命令的效果，即使是通过 Ctrl + C 结束也会被出发。
+
+```sh
+cat test2.sh 
+#!/usr/local/bin/bash
+# Trapping the script exit
+#
+trap "echo Goodbye..." EXIT
+#
+count=1
+while [ $count -le 5 ]
+do
+    echo "Loop #$count"
+    sleep 1
+    count=$[ $count + 1 ] 
+done
+#
+echo "This is the end of the test script"
+
+./test2.sh 
+# Loop #1
+# Loop #2
+# ^CGoodbye...
+```
+
+> Modifying or removing a trap
+
+下面示例中展示了如何修改 trap 的动作。我们先定义当遇到 SIGINT 时 echo 的内容。当 5 秒循环后修改 echo 的内容。通过触发 SIGINT 查看改动是否生效
+
+```sh
+cat test3.sh 
+#!/usr/local/bin/bash
+# Modifying a set trap
+#
+trap "echo 'Sorry... Ctrl-C is trapped.'" SIGINT
+#
+count=1
+while [ $count -le 5 ]
+do
+    echo "Loop #$count"
+    sleep 1
+    count=$[ $count + 1 ] 
+done
+#
+trap "echo ' I modified the trap!'" SIGINT
+#
+count=1
+while [ $count -le 5 ]
+do
+    echo "Loop #$count"
+    sleep 1
+    count=$[ $count + 1 ] 
+done
+
+./test3.sh 
+# Loop #1
+# Loop #2
+# ^CSorry... Ctrl-C is trapped.
+# Loop #3
+# Loop #4
+# ^CSorry... Ctrl-C is trapped.
+# Loop #5
+# Loop #1
+# Loop #2
+# ^C I modified the trap!
+# Loop #3
+# Loop #4
+# ^C I modified the trap!
+# Loop #5
+```
+
+你也可以通过 `trap -- SIGINT` 移除定义的 trap
+
+```sh
+cat test3b.sh 
+#!/usr/local/bin/bash
+# Modifying a set trap
+#
+trap "echo 'Sorry... Ctrl-C is trapped.'" SIGINT
+#
+count=1
+while [ $count -le 5 ]
+do
+    echo "Loop #$count"
+    sleep 1
+    count=$[ $count + 1 ] 
+done
+#
+trap -- SIGINT
+echo "I just removed the trap"
+#
+count=1
+while [ $count -le 5 ]
+do
+    echo "Loop #$count"
+    sleep 1
+    count=$[ $count + 1 ] 
+done
+
+./test3b.sh 
+# Loop #1
+# Loop #2
+# ^CSorry... Ctrl-C is trapped.
+# Loop #3
+# Loop #4
+# Loop #5
+# I just removed the trap
+# Loop #1
+# Loop #2
+# ^C
+```
+
+**Tip** 上面的去除也可以用单横线 `trap - SIGINT`
+
+### Running scripts in Background Mode
+
+试想一下下面的情形，如果你的脚本需要执行比较长的时间，如果你在终端运行了它，那么你就没有终端可用了。你可以使用 background 的模式跑类似的脚本，`ps` 显示那些 process 很多都是后台运行的
+
+> Running in the background
+
+想要后台运行脚本是很简单的，只需要在调用脚本时后面接一个 ampersand symbol `&` 即可
+
+下面程序中，我们声明了一个计时器，并在后台运行。运行时他会给出 PID 信息。当脚本执行结束时会打印 done 的信息
+
+PS: bash 测试的时候要我会车才会打印，zsh 自动打印
+
+```sh
+cat test4.sh 
+#!/usr/local/bin/bash
+# Test running in the background
+#
+count=1
+while [ $count -le 10 ]
+do
+    sleep 1
+    count=$[ $count + 1 ]
+done
+#
+
+./test4.sh &
+# [1] 16253
+# [1]  + 16360 done       ./test4.sh
+```
+
+当使用 background mode 的时候，他还是用的 STDOUT 和 STDERR
+
+```sh
+cat test5.sh                                 
+#!/usr/local/bin/bash
+# Test running in the background with output
+#
+echo "Start the test script"
+count=1
+while [ $count -le 5 ]
+do
+    echo "Loop #$count"
+    sleep 1
+    count=$[ $count + 1 ]
+done
+#
+echo "Test script is complete"
+
+./test5.sh &
+# [1] 16474
+# bash-5.1$ Start the test script
+# Loop #1
+# Loop #2
+# Loop #3
+# Loop #4
+# Loop #5
+# Test script is complete
+
+# [1]+  Done                    ./test5.sh
+```
+
+> Running multiple background jobs
+
+如果你想启动多个 background job 只需要终端运行多个 `xx.sh &` 即可。每次系统多会分配一个 job id 和 process id 给后台进程，可以通过 ps 查看
+
+```sh
+./test5.sh &
+./test5.sh &
+ps                  
+#   PID TTY           TIME CMD
+#  8019 ttys000    0:04.39 /bin/zsh --login -i
+#  1479 ttys001    0:01.61 /bin/zsh -l
+# 16661 ttys001    0:00.01 /usr/local/bin/bash ./test5.sh
+# 16681 ttys001    0:00.01 /usr/local/bin/bash ./test5.sh
+# 16700 ttys001    0:00.00 sleep 1
+# 16702 ttys001    0:00.00 sleep 1
+#  3202 ttys002    0:04.87 -zsh
+#  9415 ttys003    0:01.10 -zsh
+```
+
+### Running Scripts without a Hang-Up
+
+通过 `nohup` 命令，你可以让脚本始终在后台运行，即使关闭终端也行
+
+`nohup` 会将 script 和 STDOUT， STDERR 解绑。自动将输出绑定到 nohup.out 文件。如果你在一个文件夹下启动多个 nohup process, 他们的输出会混在一起
+
+```sh
+nohup ./test1.sh &
+cat nohup.out 
+# This is a test script
+# Loop #1
+# Loop #2
+# Loop #3
+# Loop #4
+# Loop #5
+# Loop #6
+# Loop #7
+# Loop #8
+# Loop #9
+# Loop #10
+# This is the end of the test script
+# [1]+  Done                    nohup ./test1.sh
+```
+
+### Controlling the Job
+
+job control 即 开始/通知/kill/重启 jobs 的动作
+
+> Viewing jobs
+
+`jobs` cmd 让你可以查看 shell 正在运行的 jobs
+
+下面的例子中，我们启动一个计时器脚本。第一次运行，中间通过 Ctrl + Z stop 它。第二次采用后台运行。然后通过 jobs 命令观察这两个 job 的状态。jobs -l 可以显示 PID
+
+```sh
+cat test10.sh 
+#!/usr/local/bin/bash
+# Test job control
+#
+# $$ to display the PID of process running this script
+echo "Script Process ID: $$"
+#
+count=1
+while [ $count -le 10 ]
+do
+    echo "Loop #$count"
+    sleep 1
+    count=$[ $count + 1 ] 
+done
+#
+echo "End of script..."
+
+./test10.sh 
+# Script Process ID: 17179
+# Loop #1
+# Loop #2
+# ^Z
+# [1]+  Stopped                 ./test10.sh
+./test10.sh > test10.out &
+# [2] 17192
+jobs 
+# [1]+  Stopped                 ./test10.sh
+# [2]-  Running                 ./test10.sh > test10.out &
+jobs -l 
+# [1]+ 17179 Suspended: 18           ./test10.sh
+# [2]- 17192 Done                    ./test10.sh > test10.out
+```
+
+jobs 命令的可选参数
+
+| Parameter | Description                                                                               |
+| :-------- | :---------------------------------------------------------------------------------------- |
+| -l        | List the PID of the process along with the job number                                     |
+| -n        | Lists only jobs that have changed their status since the last notification from the shell |
+| -p        | Lists only the PIDs of the jobs                                                           |
+| -r        | Lists only the running jobs                                                               |
+| -s        | Lists only stopped jobs                                                                   |
+
+jobs 列出的信息可以看到加号和减号。`+` 表示 default job. `-` 表示即将变成 default job 的 job。同一时间，只有一个带 加号 的 job 和一个带 减号 的 job。
+
+下面实验中，我们启动三个后台脚本并观察 jobs 状态
+
+```sh
+./test10.sh > test10a.out &
+# [1] 17444
+./test10.sh > test10b.out &
+# [2] 17448
+./test10.sh > test10c.out &
+# [3] 17456
+jobs -l 
+# [1]  17444 Running                 ./test10.sh > test10a.out &
+# [2]- 17448 Running                 ./test10.sh > test10b.out &
+# [3]+ 17456 Running                 ./test10.sh > test10c.out &
+
+# 杀死进程
+kill 17444
+```
+
+> Restarting stopped jobs
+
+通过 bash 的 job control 你可以重新启动停止的脚本，启动方式有 background 和 foreground 两种，后者会接管终端
+
+当有多个 script 停止时，可以使用 bg + num 的方式启动对应的脚本
+
+```sh
+cat test11.sh 
+#!/usr/local/bin/bash
+# Test job control
+#
+count=1
+while [ $count -le 10 ]
+do
+    sleep 1
+    count=$[ $count + 1 ] 
+done
+#
+echo "End of script..."
+
+./test11.sh 
+# ^Z
+# [1]+  Stopped                 ./test11.sh
+./test11.sh 
+# ^Z
+# [2]+  Stopped                 ./test11.sh
+jobs -l
+# [1]- 17657 Suspended: 18           ./test11.sh
+# [2]+ 17659 Suspended: 18           ./test11.sh
+bg 2
+# [2]+ ./test11.sh &
+# End of script...
+```
+
+`bg` 和 `fg` 的最主要的区别。如果用 bg, 你还可以在当前终端运行命令，如果是 fg 你需要等命令全部执行完了才能继续运行
+
+### Being Nice
+
+Linux 系统中各 process 都有优先级，从 -20 到 19 不等。 shell 启动的 process 默认都是 0。19 是最低优先级的。可以通过 Nice guys finish last 方便记忆
+
+> Using the nice command
+
+当需要指定优先级时，可以通过使用 `nice` 命令指定优先级等级
+
+```sh
+# MacOS 不支持 cmd column
+nice -n 10 ./test4.sh > test4.out &
+# [2] 18051
+# [1]   Done                    nice -n 10 ./test4.sh > test4.out
+ps -p 18051 -o pid,ppid,ni
+#   PID  PPID NI
+# 18051 16881 10
+```
+
+> Using the renice command
+
+当 process 运行是，可以通过 `renice` 调整优先级
+
+```sh
+./test11.sh &
+# [1] 18154
+ps -p 18154 -o pid,ni
+#   PID NI
+# 18154  0
+renice -n 10 -p 18154
+ps -p 18154 -o pid,ni
+#   PID NI
+# 18154 10
+```
+
+和 nice 一样，renice 也有以下限制
+
+* 只能 renice 你自己 own 的 processes
+* renice 只能将优先级调低
+* root 用户可以用 renice 调整到任何等级
+
+### Running Like Clockwork
+
+这章我们将会使用 `at` 和 `corn` 命令让我们的脚本定时运行
+
+> Scheduling a job using the at command
+
+`at` 让你可以定时的在系统中运行脚本，大多数 Linux 系统会在启动时开启一个 atd 的守进程，定时 check 并运行目标路径(/var/spool/at) 下的脚本
+
+> Understanding the at command format
+
+`at` 的基本格式很简单 `at [-f filename] time`. at 可以识别多种时间格式
+
+* A standard hour and minute, such as 10:15
+* An AM/PM indicator, such as 10:15PM
+* A specific named time, such as now, noon, midnight or teatime(4PM)
+
+同时你可以指定特定格式的日期
+
+* A standard date format, such as MMDDYY, MM/DD/YY, or DD.MM.YY
+* A text date, such as Jul 4 or Dec 25, with or withour the year
+* A time increment:
+  * Now + 25 minutes
+  * 10:15PM tomorrow
+  * 10:15 + 7 days
+
+当使用 at 命令的时候，对应的 job 提交到 job queue 中。系统中有 26 种 job 可选，队列名字为字母大小写的 a-z
+
+**Note** 以前还有一个 batch 命令可以让你在 low useage 状态下运行 script，现在它只是通过调用 at + b queue 完成的定时脚本。队列的字母顺序越靠后，优先级越低。默认 job 优先级为 a
