@@ -1933,7 +1933,15 @@
 <p><strong>2021-06-03</strong></p>
 <p>本地启动 server，search 了一下，很多关键字都是可以找出来的。。。难道是远端的部署有问题？！</p>
 <p>通过 F12 + network 的 tab, 点击 search 看网络加载。remote 的 search.xml 位于 <code>https://jack-zheng.github.io/hexo/search.xml</code> 这路径下。加载的时候 terminal 会报错，难道我找到了华点？！！</p>
-<figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">This page contains the following errors:</span><br><span class="line">error on line 3463 at column 23: Input is not proper UTF-8, indicate encoding !</span><br><span class="line">Bytes: 0x08 0x20 0xE5 0x88</span><br><span class="line">Below is a rendering of the page up to the first error.</span><br></pre></td></tr></table></figure>]]></content>
+<figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">This page contains the following errors:</span><br><span class="line">error on line 3463 at column 23: Input is not proper UTF-8, indicate encoding !</span><br><span class="line">Bytes: 0x08 0x20 0xE5 0x88</span><br><span class="line">Below is a rendering of the page up to the first error.</span><br></pre></td></tr></table></figure>
+
+<p>灯噔, 密码正确，删掉了对应的文件，search 正常了，但是我反复看了下那个文件，没看出什么问题啊。。。</p>
+<p>终于找到问题所在了！！！关键字没有设置对，害我绕了老大一圈才找到答案。如果早点用关键字 <code>Hexo search.xml Input is not proper UTF-8</code> 的话，早就出结果了。之前一直纠结在 Chrome 等主题那边</p>
+<p>用 hexo 插件等关键字发现几个和我一样的案例，很快的解决了问题。。。</p>
+<p>解决步骤：在 vscode 中打开你的项目，点搜索，点正则匹配，根据你的世纪情况搜索你要的关键字。比如我报错是 <code>0x08 0x20 0xE5 0x88</code> 就直接搜索 <code>\x08</code>, 把搜索出来的地方都改了就行。</p>
+<p>选中出问题的字段直接把它复制黏贴到终端，可以看到 <code>code, ^H如果是</code> 的显示，好神奇</p>
+<p><img src="search_issue.png" alt="Search issue"></p>
+]]></content>
       <categories>
         <category>Hexo</category>
       </categories>
@@ -3458,6 +3466,51 @@
       </categories>
       <tags>
         <tag>cmd</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Linux 弹射起步</title>
+    <url>/hexo/2021/04/28/Linux-quick-start/</url>
+    <content><![CDATA[<h2 id="走进-Linux-系统"><a href="#走进-Linux-系统" class="headerlink" title="走进 Linux 系统"></a>走进 Linux 系统</h2><p>开机会启动很多程序，Windows 叫服务(service)，Linux 叫守护进程(daemon)</p>
+<h2 id="关机"><a href="#关机" class="headerlink" title="关机"></a>关机</h2><p>linux 中没有报错，即成功</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">sync            <span class="comment"># 同步数据</span></span><br><span class="line"></span><br><span class="line">shutdown -h now <span class="comment"># 马上关机</span></span><br><span class="line"></span><br><span class="line">reboot          <span class="comment"># 重启</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="目录结构"><a href="#目录结构" class="headerlink" title="目录结构"></a>目录结构</h2><ol>
+<li>一切皆文件</li>
+<li>根目录 <code>/</code>，所有文件都挂载在这个节点下</li>
+</ol>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">ls</span><br><span class="line"><span class="comment"># bin  boot  dev  etc  home  lib  lib64  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var</span></span><br><span class="line"><span class="comment"># bin: binary, 存放经常使用的命令</span></span><br><span class="line"><span class="comment"># boot: 启动 Linux 时使用的一些核心文件，包括连接文件和镜像文件</span></span><br><span class="line"><span class="comment"># dev: device, 存放外部设备，Linux 中访问设备和访问文件是一样的</span></span><br><span class="line"><span class="comment"># *etc: 存放所有系统管理所需的配置文件和子目录</span></span><br><span class="line"><span class="comment"># home: 用户主目录，每个用户有一个自己的目录，以自己命名</span></span><br><span class="line"><span class="comment"># lib: 系统最基本的动态连接共享库，类似于 Windows 的 dll 文件</span></span><br><span class="line"><span class="comment"># mnt: 系统提供目录为用户临时挂载文件系统，如光驱等</span></span><br><span class="line"><span class="comment"># lost+found: 一般为空，当系统非正常关机时，这里就会存放一些文件</span></span><br><span class="line"><span class="comment"># media: 媒体设备，U盘，光驱等</span></span><br><span class="line"><span class="comment"># *opt: 额外安装的软件所摆放的位置，比如安装一个数据库什么的，默认为空</span></span><br><span class="line"><span class="comment"># proc: 虚拟目录，系统映射，不管</span></span><br><span class="line"><span class="comment"># *root: 管理员目录</span></span><br><span class="line"><span class="comment"># sbin: s for super user, 村系统管理员使用的管理程序</span></span><br><span class="line"><span class="comment"># srv: 存放一些服务启动后需要提取的数据</span></span><br><span class="line"><span class="comment"># sys: linux2.6之后一个很大的变化，2.6后该目录下新出现一个文件系统 sysfs</span></span><br><span class="line"><span class="comment"># tmp: 临时文件，用完就丢</span></span><br><span class="line"><span class="comment"># *usr: 非常重要的目录，用户很多应用程序和文件都放在这个目录下，类似 Windows 的 program files 目录</span></span><br><span class="line"><span class="comment"># usr/bin: 系统用户使用的应用程序</span></span><br><span class="line"><span class="comment"># usr/sbin: 超级用户使用的应用程序</span></span><br><span class="line"><span class="comment"># usr/src: 内核源代码默认放置位置</span></span><br><span class="line"><span class="comment"># var: 放不断扩充的东西，比如日志</span></span><br><span class="line"><span class="comment"># run: 临时文件系统，存储系统启动以来的信息。重启时，这个目录下的文件应该被删除或清空</span></span><br><span class="line"><span class="comment"># www: 存放服务器网站相关资源，环境，网站目录</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="常用基本命令"><a href="#常用基本命令" class="headerlink" title="常用基本命令"></a>常用基本命令</h2><figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">mkdir -p f1/f2/f3   <span class="comment"># 递归创建文件夹</span></span><br><span class="line">rmdir -p f1         <span class="comment"># 递归删除</span></span><br><span class="line">rmdir f1            <span class="comment"># 如果有子文件，删除会失败</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="内容查看"><a href="#内容查看" class="headerlink" title="内容查看"></a>内容查看</h2><figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">cat <span class="comment"># 顺序</span></span><br><span class="line">tac <span class="comment"># 倒叙</span></span><br><span class="line">nl  <span class="comment"># 带行号</span></span><br><span class="line"></span><br><span class="line">less 比 more 好，功能多，向下查询 /，向上查询 ？</span><br><span class="line">tail -n 20 <span class="comment"># 最后20行</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="链接"><a href="#链接" class="headerlink" title="链接"></a>链接</h2><p>硬链接：A…B, 假设 B 是 A 的硬连接，那么他们指向同一个文件，允许一个文件多个路径，用这种机制可以放置误删<br>软连接：类似 Windows 下的快捷方式</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">touch f1</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;hello&quot;</span> &gt; f1</span><br><span class="line"></span><br><span class="line">ln f1 f2 <span class="comment"># 创建硬链接</span></span><br><span class="line"></span><br><span class="line">ln -s f1 f3 <span class="comment"># 创建软链接</span></span><br><span class="line"></span><br><span class="line">rm f1</span><br><span class="line"></span><br><span class="line">cat f2      <span class="comment"># f1, f2 硬连接，删除还存在</span></span><br><span class="line"><span class="comment"># hello</span></span><br><span class="line"></span><br><span class="line">cat f3      <span class="comment"># f1, f3 软链接，删除即不见</span></span><br><span class="line"><span class="comment"># cat: f3: No such file or directory</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="账户管理"><a href="#账户管理" class="headerlink" title="账户管理"></a>账户管理</h2><figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">useradd -m jack002 <span class="comment"># 创建 user 并在 home 下创建对应的文件夹</span></span><br><span class="line"><span class="comment"># root@945e2e63f891:/home# ls</span></span><br><span class="line"><span class="comment"># f2  f3  jack  jack002</span></span><br><span class="line"><span class="comment"># Linux 一切皆文件，添加用户其实就是往某一个文件中写入用户信息 /etc/passwd</span></span><br><span class="line"></span><br><span class="line">userdel -r jack002 <span class="comment"># 删除 user 并清空文件夹</span></span><br><span class="line"></span><br><span class="line">usermod -d /home/233 jack002 <span class="comment"># 修改用户目录, 233 并不存在，但是对应的信息还是设置到 passwd 中去了，所以修改前必须先手动创建文件夹</span></span><br><span class="line"><span class="comment"># root@945e2e63f891:/home# cat /etc/passwd</span></span><br><span class="line"><span class="comment"># jack002:x:1001:1001::/home/233:/bin/sh</span></span><br><span class="line"><span class="comment"># root@945e2e63f891:/home# ls</span></span><br><span class="line"><span class="comment"># f2  f3  jack  jack002</span></span><br><span class="line"></span><br><span class="line">root@945e2e63f891:/home<span class="comment">#</span></span><br><span class="line"><span class="comment"># root: 当前用户</span></span><br><span class="line"><span class="comment"># 945e2e63f891: 主机名</span></span><br><span class="line"><span class="comment"># /home: 当前路径</span></span><br><span class="line"><span class="comment"># &#x27;#&#x27; 超级用户</span></span><br><span class="line"></span><br><span class="line">su username <span class="comment"># 切换用户</span></span><br><span class="line"><span class="comment"># $: 提示符也会跟着改</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">exit</span> <span class="comment"># 退出用户切换</span></span><br><span class="line"></span><br><span class="line">hostname <span class="comment"># 查看主机名</span></span><br><span class="line">hostname xxx <span class="comment"># 修改主机名，需要重联生效</span></span><br><span class="line"></span><br><span class="line">passwd username <span class="comment"># 修改密码</span></span><br><span class="line"></span><br><span class="line">passwd -l username <span class="comment"># 锁用户</span></span><br><span class="line">passwd -d username <span class="comment"># 用户密码清空，也不能登陆</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="用户组管理"><a href="#用户组管理" class="headerlink" title="用户组管理"></a>用户组管理</h2><p>本质是对 /etc/group 进行修改</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># -g        # 指定 gid, 不指定就自增</span></span><br><span class="line">groupadd jackgroup</span><br><span class="line"><span class="comment"># root@945e2e63f891:/# cat /etc/group</span></span><br><span class="line"><span class="comment"># jackgroup:x:1002:</span></span><br><span class="line"><span class="comment"># jack520:x:520:</span></span><br><span class="line"></span><br><span class="line">groupdel jackgroup <span class="comment"># 删除 group</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># -n    # 修改 id</span></span><br><span class="line"><span class="comment"># -G    # 设置用户组</span></span><br><span class="line">groupmod -g 555 -n jack555 jack520</span><br><span class="line"></span><br><span class="line">newgroup root <span class="comment"># 切换组</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="拓展"><a href="#拓展" class="headerlink" title="拓展"></a>拓展</h2><p>/etc/passwd</p>
+<figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">jack002:x:1001:1001::/home/jack002:/bin/sh</span><br><span class="line">用户名：密码（不可见，所以是x）：用户标识号（自增）：组标识号：注释性描述：主目录：登陆 shell</span><br></pre></td></tr></table></figure>
+
+<p>密码放在 /etc/shadow 加密过的 jack002:$6$/me.SpanXkOPad04$XO/jFHniPIenQQXFZhSOfwL7eQ0hQ..X5EWNigGrfh8sqZ6KA8wAFQtzCPpwgf.Ov9RIVp8hr9GcXB3un4Oax1:18746:0:99999:7:::</p>
+<h2 id="磁盘管理"><a href="#磁盘管理" class="headerlink" title="磁盘管理"></a>磁盘管理</h2><figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">df <span class="comment"># 列出整体磁盘使用量</span></span><br><span class="line"><span class="comment"># root@945e2e63f891:/# df -h</span></span><br><span class="line"><span class="comment"># Filesystem      Size  Used Avail Use% Mounted on</span></span><br><span class="line"><span class="comment"># overlay          59G   21G   35G  38% /</span></span><br><span class="line"><span class="comment"># tmpfs            64M     0   64M   0% /dev</span></span><br><span class="line"><span class="comment"># tmpfs           7.9G     0  7.9G   0% /sys/fs/cgroup</span></span><br><span class="line"><span class="comment"># shm              64M     0   64M   0% /dev/shm</span></span><br><span class="line"><span class="comment"># /dev/vda1        59G   21G   35G  38% /etc/hosts</span></span><br><span class="line"><span class="comment"># tmpfs           7.9G     0  7.9G   0% /proc/acpi</span></span><br><span class="line"><span class="comment"># tmpfs           7.9G     0  7.9G   0% /sys/firmware</span></span><br><span class="line">du <span class="comment"># 当前磁盘使用量</span></span><br><span class="line"><span class="comment"># root@945e2e63f891:/home# du -a</span></span><br><span class="line"><span class="comment"># 4       ./jack002/.bashrc</span></span><br><span class="line"><span class="comment"># 4       ./jack002/.profile</span></span><br><span class="line"><span class="comment"># 4       ./jack002/.bash_logout</span></span><br><span class="line"><span class="comment"># 16      ./jack002</span></span><br><span class="line"><span class="comment"># 4       ./f2</span></span><br><span class="line"><span class="comment"># 4       ./jack/f1/f2/f3</span></span><br><span class="line"><span class="comment"># 8       ./jack/f1/f2</span></span><br><span class="line"><span class="comment"># 12      ./jack/f1</span></span><br><span class="line"><span class="comment"># 16      ./jack</span></span><br><span class="line"><span class="comment"># 0       ./f3</span></span><br><span class="line"><span class="comment"># 40      .</span></span><br><span class="line"></span><br><span class="line">du -sm /*       <span class="comment"># 系统根目录下每个文件夹占用空间</span></span><br><span class="line"><span class="comment"># 5       /bin</span></span><br><span class="line"><span class="comment"># 1       /boot</span></span><br><span class="line"><span class="comment"># 0       /dev</span></span><br><span class="line"></span><br><span class="line">mount /dev/jack /mnt/jack <span class="comment"># 将外部设备 jack 挂载到 mnt 下，实现访问</span></span><br><span class="line"></span><br><span class="line">umount -f /mnt/jakc <span class="comment"># 强制卸载</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="进程管理"><a href="#进程管理" class="headerlink" title="进程管理"></a>进程管理</h2><ol>
+<li>每个进程都有父进程</li>
+<li>两种运行方式：前台，后台</li>
+<li>服务基本都是后台运行，程序都是前台运行</li>
+<li>每个进程都有一个 id 号</li>
+</ol>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># -a 当前终端运行的所有进程信息</span></span><br><span class="line"><span class="comment"># -u 一用户的信息显示进程</span></span><br><span class="line"><span class="comment"># -x 显示后台运行进程的参数</span></span><br><span class="line">ps <span class="comment"># 查看当前正在运行的进程信息</span></span><br><span class="line"><span class="comment"># ps -aux       </span></span><br><span class="line"><span class="comment"># ps -ef 可以查看父进程</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># -p 显示父 id</span></span><br><span class="line"><span class="comment"># -u 显示组信息</span></span><br><span class="line">pstree -pu <span class="comment"># 进程树</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">kill</span> -9 pid <span class="comment"># 结束进程</span></span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>linux</category>
+      </categories>
+      <tags>
+        <tag>弹射起步</tag>
       </tags>
   </entry>
   <entry>
@@ -5678,6 +5731,7 @@
 <li>跳转到定义：CMD + 键盘单击</li>
 <li>从定义返回：Ctr + _ 或者  Option + CMD + 方向键</li>
 <li>快速到顶部/底部：CMD + 上方向/下方向</li>
+<li>Ctrl + g: 快速跳到 x 行</li>
 </ul>
 <h2 id="很酷的操作"><a href="#很酷的操作" class="headerlink" title="很酷的操作"></a>很酷的操作</h2><blockquote>
 <p>批量修改字符串，比如第 1，3，5 行 ‘est’ 关键字前添加 ‘T’, 即多光标操作</p>
@@ -10548,7 +10602,7 @@
 <blockquote>
 <p>Working with the if-then Statement</p>
 </blockquote>
-<p>if-then 是最基本的控制方式，format 如下, 判断依据是 command 的 exit code, 如果是 0 则表示 success，其他的则为 fail.</p>
+<p>if-then 是最基本的控制方式，format 如下, 判断依据是 command 的 exit code, 如果是 0 则表示 success，其他的则为 fail.</p>
 <figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> <span class="built_in">command</span></span><br><span class="line"><span class="keyword">then</span> </span><br><span class="line">    <span class="built_in">command</span></span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
 
 <p>positive sample 如下</p>

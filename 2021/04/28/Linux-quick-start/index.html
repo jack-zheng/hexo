@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/hexo/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/hexo/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/hexo/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/hexo/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="UgODgWVmvTsdD--vjodDR3tPUZRWM3i7JpHzbYejxUM">
+
+<link rel="stylesheet" href="/hexo/css/main.css">
+
+
+<link rel="stylesheet" href="/hexo/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/hexo/',
+    scheme: 'Muse',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="走进 Linux 系统开机会启动很多程序，Windows 叫服务(service)，Linux 叫守护进程(daemon) 关机linux 中没有报错，即成功 12345sync            # 同步数据shutdown -h now # 马上关机reboot          # 重启  目录结构 一切皆文件 根目录 &#x2F;，所有文件都挂载在这个节点下  12345678910111213">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux 弹射起步">
+<meta property="og:url" content="https://jack-zheng.github.io/hexo/2021/04/28/Linux-quick-start/index.html">
+<meta property="og:site_name" content="Jackpot">
+<meta property="og:description" content="走进 Linux 系统开机会启动很多程序，Windows 叫服务(service)，Linux 叫守护进程(daemon) 关机linux 中没有报错，即成功 12345sync            # 同步数据shutdown -h now # 马上关机reboot          # 重启  目录结构 一切皆文件 根目录 &#x2F;，所有文件都挂载在这个节点下  12345678910111213">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-04-28T10:32:23.000Z">
+<meta property="article:modified_time" content="2021-06-03T09:52:01.653Z">
+<meta property="article:author" content="Jack Zheng">
+<meta property="article:tag" content="弹射起步">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://jack-zheng.github.io/hexo/2021/04/28/Linux-quick-start/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>Linux 弹射起步 | Jackpot</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/hexo/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jackpot</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-tags">
+
+    <a href="/hexo/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/hexo/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/hexo/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/jack-zheng" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/04/28/Linux-quick-start/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Linux 弹射起步
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-04-28 18:32:23" itemprop="dateCreated datePublished" datetime="2021-04-28T18:32:23+08:00">2021-04-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-03 17:52:01" itemprop="dateModified" datetime="2021-06-03T17:52:01+08:00">2021-06-03</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/linux/" itemprop="url" rel="index">
+                    <span itemprop="name">linux</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="走进-Linux-系统"><a href="#走进-Linux-系统" class="headerlink" title="走进 Linux 系统"></a>走进 Linux 系统</h2><p>开机会启动很多程序，Windows 叫服务(service)，Linux 叫守护进程(daemon)</p>
+<h2 id="关机"><a href="#关机" class="headerlink" title="关机"></a>关机</h2><p>linux 中没有报错，即成功</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">sync            <span class="comment"># 同步数据</span></span><br><span class="line"></span><br><span class="line">shutdown -h now <span class="comment"># 马上关机</span></span><br><span class="line"></span><br><span class="line">reboot          <span class="comment"># 重启</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="目录结构"><a href="#目录结构" class="headerlink" title="目录结构"></a>目录结构</h2><ol>
+<li>一切皆文件</li>
+<li>根目录 <code>/</code>，所有文件都挂载在这个节点下</li>
+</ol>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">ls</span><br><span class="line"><span class="comment"># bin  boot  dev  etc  home  lib  lib64  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var</span></span><br><span class="line"><span class="comment"># bin: binary, 存放经常使用的命令</span></span><br><span class="line"><span class="comment"># boot: 启动 Linux 时使用的一些核心文件，包括连接文件和镜像文件</span></span><br><span class="line"><span class="comment"># dev: device, 存放外部设备，Linux 中访问设备和访问文件是一样的</span></span><br><span class="line"><span class="comment"># *etc: 存放所有系统管理所需的配置文件和子目录</span></span><br><span class="line"><span class="comment"># home: 用户主目录，每个用户有一个自己的目录，以自己命名</span></span><br><span class="line"><span class="comment"># lib: 系统最基本的动态连接共享库，类似于 Windows 的 dll 文件</span></span><br><span class="line"><span class="comment"># mnt: 系统提供目录为用户临时挂载文件系统，如光驱等</span></span><br><span class="line"><span class="comment"># lost+found: 一般为空，当系统非正常关机时，这里就会存放一些文件</span></span><br><span class="line"><span class="comment"># media: 媒体设备，U盘，光驱等</span></span><br><span class="line"><span class="comment"># *opt: 额外安装的软件所摆放的位置，比如安装一个数据库什么的，默认为空</span></span><br><span class="line"><span class="comment"># proc: 虚拟目录，系统映射，不管</span></span><br><span class="line"><span class="comment"># *root: 管理员目录</span></span><br><span class="line"><span class="comment"># sbin: s for super user, 村系统管理员使用的管理程序</span></span><br><span class="line"><span class="comment"># srv: 存放一些服务启动后需要提取的数据</span></span><br><span class="line"><span class="comment"># sys: linux2.6之后一个很大的变化，2.6后该目录下新出现一个文件系统 sysfs</span></span><br><span class="line"><span class="comment"># tmp: 临时文件，用完就丢</span></span><br><span class="line"><span class="comment"># *usr: 非常重要的目录，用户很多应用程序和文件都放在这个目录下，类似 Windows 的 program files 目录</span></span><br><span class="line"><span class="comment"># usr/bin: 系统用户使用的应用程序</span></span><br><span class="line"><span class="comment"># usr/sbin: 超级用户使用的应用程序</span></span><br><span class="line"><span class="comment"># usr/src: 内核源代码默认放置位置</span></span><br><span class="line"><span class="comment"># var: 放不断扩充的东西，比如日志</span></span><br><span class="line"><span class="comment"># run: 临时文件系统，存储系统启动以来的信息。重启时，这个目录下的文件应该被删除或清空</span></span><br><span class="line"><span class="comment"># www: 存放服务器网站相关资源，环境，网站目录</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="常用基本命令"><a href="#常用基本命令" class="headerlink" title="常用基本命令"></a>常用基本命令</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mkdir -p f1/f2/f3   <span class="comment"># 递归创建文件夹</span></span><br><span class="line">rmdir -p f1         <span class="comment"># 递归删除</span></span><br><span class="line">rmdir f1            <span class="comment"># 如果有子文件，删除会失败</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="内容查看"><a href="#内容查看" class="headerlink" title="内容查看"></a>内容查看</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">cat <span class="comment"># 顺序</span></span><br><span class="line">tac <span class="comment"># 倒叙</span></span><br><span class="line">nl  <span class="comment"># 带行号</span></span><br><span class="line"></span><br><span class="line">less 比 more 好，功能多，向下查询 /，向上查询 ？</span><br><span class="line">tail -n 20 <span class="comment"># 最后20行</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="链接"><a href="#链接" class="headerlink" title="链接"></a>链接</h2><p>硬链接：A…B, 假设 B 是 A 的硬连接，那么他们指向同一个文件，允许一个文件多个路径，用这种机制可以放置误删<br>软连接：类似 Windows 下的快捷方式</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">touch f1</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;hello&quot;</span> &gt; f1</span><br><span class="line"></span><br><span class="line">ln f1 f2 <span class="comment"># 创建硬链接</span></span><br><span class="line"></span><br><span class="line">ln -s f1 f3 <span class="comment"># 创建软链接</span></span><br><span class="line"></span><br><span class="line">rm f1</span><br><span class="line"></span><br><span class="line">cat f2      <span class="comment"># f1, f2 硬连接，删除还存在</span></span><br><span class="line"><span class="comment"># hello</span></span><br><span class="line"></span><br><span class="line">cat f3      <span class="comment"># f1, f3 软链接，删除即不见</span></span><br><span class="line"><span class="comment"># cat: f3: No such file or directory</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="账户管理"><a href="#账户管理" class="headerlink" title="账户管理"></a>账户管理</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">useradd -m jack002 <span class="comment"># 创建 user 并在 home 下创建对应的文件夹</span></span><br><span class="line"><span class="comment"># root@945e2e63f891:/home# ls</span></span><br><span class="line"><span class="comment"># f2  f3  jack  jack002</span></span><br><span class="line"><span class="comment"># Linux 一切皆文件，添加用户其实就是往某一个文件中写入用户信息 /etc/passwd</span></span><br><span class="line"></span><br><span class="line">userdel -r jack002 <span class="comment"># 删除 user 并清空文件夹</span></span><br><span class="line"></span><br><span class="line">usermod -d /home/233 jack002 <span class="comment"># 修改用户目录, 233 并不存在，但是对应的信息还是设置到 passwd 中去了，所以修改前必须先手动创建文件夹</span></span><br><span class="line"><span class="comment"># root@945e2e63f891:/home# cat /etc/passwd</span></span><br><span class="line"><span class="comment"># jack002:x:1001:1001::/home/233:/bin/sh</span></span><br><span class="line"><span class="comment"># root@945e2e63f891:/home# ls</span></span><br><span class="line"><span class="comment"># f2  f3  jack  jack002</span></span><br><span class="line"></span><br><span class="line">root@945e2e63f891:/home<span class="comment">#</span></span><br><span class="line"><span class="comment"># root: 当前用户</span></span><br><span class="line"><span class="comment"># 945e2e63f891: 主机名</span></span><br><span class="line"><span class="comment"># /home: 当前路径</span></span><br><span class="line"><span class="comment"># &#x27;#&#x27; 超级用户</span></span><br><span class="line"></span><br><span class="line">su username <span class="comment"># 切换用户</span></span><br><span class="line"><span class="comment"># $: 提示符也会跟着改</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">exit</span> <span class="comment"># 退出用户切换</span></span><br><span class="line"></span><br><span class="line">hostname <span class="comment"># 查看主机名</span></span><br><span class="line">hostname xxx <span class="comment"># 修改主机名，需要重联生效</span></span><br><span class="line"></span><br><span class="line">passwd username <span class="comment"># 修改密码</span></span><br><span class="line"></span><br><span class="line">passwd -l username <span class="comment"># 锁用户</span></span><br><span class="line">passwd -d username <span class="comment"># 用户密码清空，也不能登陆</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="用户组管理"><a href="#用户组管理" class="headerlink" title="用户组管理"></a>用户组管理</h2><p>本质是对 /etc/group 进行修改</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -g        # 指定 gid, 不指定就自增</span></span><br><span class="line">groupadd jackgroup</span><br><span class="line"><span class="comment"># root@945e2e63f891:/# cat /etc/group</span></span><br><span class="line"><span class="comment"># jackgroup:x:1002:</span></span><br><span class="line"><span class="comment"># jack520:x:520:</span></span><br><span class="line"></span><br><span class="line">groupdel jackgroup <span class="comment"># 删除 group</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># -n    # 修改 id</span></span><br><span class="line"><span class="comment"># -G    # 设置用户组</span></span><br><span class="line">groupmod -g 555 -n jack555 jack520</span><br><span class="line"></span><br><span class="line">newgroup root <span class="comment"># 切换组</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="拓展"><a href="#拓展" class="headerlink" title="拓展"></a>拓展</h2><p>/etc/passwd</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">jack002:x:1001:1001::/home/jack002:/bin/sh</span><br><span class="line">用户名：密码（不可见，所以是x）：用户标识号（自增）：组标识号：注释性描述：主目录：登陆 shell</span><br></pre></td></tr></table></figure>
+
+<p>密码放在 /etc/shadow 加密过的 jack002:$6$/me.SpanXkOPad04$XO/jFHniPIenQQXFZhSOfwL7eQ0hQ..X5EWNigGrfh8sqZ6KA8wAFQtzCPpwgf.Ov9RIVp8hr9GcXB3un4Oax1:18746:0:99999:7:::</p>
+<h2 id="磁盘管理"><a href="#磁盘管理" class="headerlink" title="磁盘管理"></a>磁盘管理</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">df <span class="comment"># 列出整体磁盘使用量</span></span><br><span class="line"><span class="comment"># root@945e2e63f891:/# df -h</span></span><br><span class="line"><span class="comment"># Filesystem      Size  Used Avail Use% Mounted on</span></span><br><span class="line"><span class="comment"># overlay          59G   21G   35G  38% /</span></span><br><span class="line"><span class="comment"># tmpfs            64M     0   64M   0% /dev</span></span><br><span class="line"><span class="comment"># tmpfs           7.9G     0  7.9G   0% /sys/fs/cgroup</span></span><br><span class="line"><span class="comment"># shm              64M     0   64M   0% /dev/shm</span></span><br><span class="line"><span class="comment"># /dev/vda1        59G   21G   35G  38% /etc/hosts</span></span><br><span class="line"><span class="comment"># tmpfs           7.9G     0  7.9G   0% /proc/acpi</span></span><br><span class="line"><span class="comment"># tmpfs           7.9G     0  7.9G   0% /sys/firmware</span></span><br><span class="line">du <span class="comment"># 当前磁盘使用量</span></span><br><span class="line"><span class="comment"># root@945e2e63f891:/home# du -a</span></span><br><span class="line"><span class="comment"># 4       ./jack002/.bashrc</span></span><br><span class="line"><span class="comment"># 4       ./jack002/.profile</span></span><br><span class="line"><span class="comment"># 4       ./jack002/.bash_logout</span></span><br><span class="line"><span class="comment"># 16      ./jack002</span></span><br><span class="line"><span class="comment"># 4       ./f2</span></span><br><span class="line"><span class="comment"># 4       ./jack/f1/f2/f3</span></span><br><span class="line"><span class="comment"># 8       ./jack/f1/f2</span></span><br><span class="line"><span class="comment"># 12      ./jack/f1</span></span><br><span class="line"><span class="comment"># 16      ./jack</span></span><br><span class="line"><span class="comment"># 0       ./f3</span></span><br><span class="line"><span class="comment"># 40      .</span></span><br><span class="line"></span><br><span class="line">du -sm /*       <span class="comment"># 系统根目录下每个文件夹占用空间</span></span><br><span class="line"><span class="comment"># 5       /bin</span></span><br><span class="line"><span class="comment"># 1       /boot</span></span><br><span class="line"><span class="comment"># 0       /dev</span></span><br><span class="line"></span><br><span class="line">mount /dev/jack /mnt/jack <span class="comment"># 将外部设备 jack 挂载到 mnt 下，实现访问</span></span><br><span class="line"></span><br><span class="line">umount -f /mnt/jakc <span class="comment"># 强制卸载</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="进程管理"><a href="#进程管理" class="headerlink" title="进程管理"></a>进程管理</h2><ol>
+<li>每个进程都有父进程</li>
+<li>两种运行方式：前台，后台</li>
+<li>服务基本都是后台运行，程序都是前台运行</li>
+<li>每个进程都有一个 id 号</li>
+</ol>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -a 当前终端运行的所有进程信息</span></span><br><span class="line"><span class="comment"># -u 一用户的信息显示进程</span></span><br><span class="line"><span class="comment"># -x 显示后台运行进程的参数</span></span><br><span class="line">ps <span class="comment"># 查看当前正在运行的进程信息</span></span><br><span class="line"><span class="comment"># ps -aux       </span></span><br><span class="line"><span class="comment"># ps -ef 可以查看父进程</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># -p 显示父 id</span></span><br><span class="line"><span class="comment"># -u 显示组信息</span></span><br><span class="line">pstree -pu <span class="comment"># 进程树</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">kill</span> -9 pid <span class="comment"># 结束进程</span></span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Jack Zheng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://jack-zheng.github.io/hexo/2021/04/28/Linux-quick-start/" title="Linux 弹射起步">https://jack-zheng.github.io/hexo/2021/04/28/Linux-quick-start/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/null" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/hexo/tags/%E5%BC%B9%E5%B0%84%E8%B5%B7%E6%AD%A5/" rel="tag"># 弹射起步</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+                <a href="/hexo/2021/04/28/Python-with-json/" rel="next" title="Python with json">
+                  <i class="fa fa-chevron-left"></i> Python with json
+                </a>
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+                <a href="/hexo/2021/04/29/Hexo-embed-plantuml/" rel="prev" title="Hexo 中插入 UML">
+                  Hexo 中插入 UML <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B5%B0%E8%BF%9B-Linux-%E7%B3%BB%E7%BB%9F"><span class="nav-number">1.</span> <span class="nav-text">走进 Linux 系统</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E6%9C%BA"><span class="nav-number">2.</span> <span class="nav-text">关机</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84"><span class="nav-number">3.</span> <span class="nav-text">目录结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E5%9F%BA%E6%9C%AC%E5%91%BD%E4%BB%A4"><span class="nav-number">4.</span> <span class="nav-text">常用基本命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E5%AE%B9%E6%9F%A5%E7%9C%8B"><span class="nav-number">5.</span> <span class="nav-text">内容查看</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%93%BE%E6%8E%A5"><span class="nav-number">6.</span> <span class="nav-text">链接</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B4%A6%E6%88%B7%E7%AE%A1%E7%90%86"><span class="nav-number">7.</span> <span class="nav-text">账户管理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%94%A8%E6%88%B7%E7%BB%84%E7%AE%A1%E7%90%86"><span class="nav-number">8.</span> <span class="nav-text">用户组管理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8B%93%E5%B1%95"><span class="nav-number">9.</span> <span class="nav-text">拓展</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A3%81%E7%9B%98%E7%AE%A1%E7%90%86"><span class="nav-number">10.</span> <span class="nav-text">磁盘管理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E7%AE%A1%E7%90%86"><span class="nav-number">11.</span> <span class="nav-text">进程管理</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Jack Zheng"
+      src="/hexo/images/jack.jpg">
+  <p class="site-author-name" itemprop="name">Jack Zheng</p>
+  <div class="site-description" itemprop="description">我是张江搬砖小码农, 知识搬运工</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/hexo/archives/">
+        
+          <span class="site-state-item-count">156</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/hexo/categories/">
+          
+        <span class="site-state-item-count">29</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/hexo/tags/">
+          
+        <span class="site-state-item-count">179</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jack Zheng</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">680k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">10:18</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.5.0
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/hexo/lib/anime.min.js"></script>
+  <script src="/hexo/lib/velocity/velocity.min.js"></script>
+  <script src="/hexo/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/hexo/js/utils.js"></script>
+
+<script src="/hexo/js/motion.js"></script>
+
+
+<script src="/hexo/js/schemes/muse.js"></script>
+
+
+<script src="/hexo/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/hexo/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'd444c814810f7e73ee3a',
+      clientSecret: '9b3c417a0c1076887b3cf583c7d7a27456b708ef',
+      repo: 'hexo-comments',
+      owner: 'jack-zheng',
+      admin: ['jack-zheng'],
+      id: '41ba896c836d713d1e99b296971dc7c1',
+        language: '',
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

@@ -206,6 +206,142 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/09/10/Splunk-Quick-Guide/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2020/09/10/Splunk-Quick-Guide/" class="post-title-link" itemprop="url">Splunk 快速入门</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-09-10 15:43:42" itemprop="dateCreated datePublished" datetime="2020-09-10T15:43:42+08:00">2020-09-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-03 17:52:01" itemprop="dateModified" datetime="2021-06-03T17:52:01+08:00">2021-06-03</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E5%B0%8F%E5%B7%A5%E5%85%B7/" itemprop="url" rel="index">
+                    <span itemprop="name">小工具</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="常用-Query"><a href="#常用-Query" class="headerlink" title="常用 Query"></a>常用 Query</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- event 出现的次数</span></span><br><span class="line">search=index | stats sum(linecount) as Total</span><br><span class="line"><span class="comment">-- or</span></span><br><span class="line">search=index | stats count as Total</span><br></pre></td></tr></table></figure>
+
+<h3 id="查询-event-的日均量"><a href="#查询-event-的日均量" class="headerlink" title="查询 event 的日均量"></a>查询 event 的日均量</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">eventtype=<span class="string">&quot;searchAccountLocked&quot;</span> | timechart span=1d count | stats avg(count)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在此基础上，计算 7 天的平均值</span></span><br><span class="line">eventtype=<span class="string">&quot;searchAccountLocked&quot;</span> | timechart span=1d count | stats avg(count) as avgc ｜ <span class="built_in">eval</span> n=exact(1 * avgc)</span><br></pre></td></tr></table></figure>
+
+<h2 id="通过-Regex-匹配得到目标百分比"><a href="#通过-Regex-匹配得到目标百分比" class="headerlink" title="通过 Regex 匹配得到目标百分比"></a>通过 Regex 匹配得到目标百分比</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://community.splunk.com/t5/Splunk-Search/Get-percentage-of-matchin-to-all-events/td-p/39113">社区类似问题</a></li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 搜索全部 event, 通过 regex 匹配到目标，计算百分比</span></span><br><span class="line">UserChangeEvent MessageBox | stats count(<span class="built_in">eval</span>(match(field1, <span class="string">&quot;.*updatedFields\&quot;:\[&#123;\&quot;fieldName\&quot;:\&quot;jobCode\&quot;.*&quot;</span>))) as JCEvent count as total | <span class="built_in">eval</span> JC_pct=JCEvent/total*100</span><br><span class="line"></span><br><span class="line"><span class="comment"># 升级版，计算多个百分比情况</span></span><br><span class="line"><span class="comment"># EMP_PCT 内容是空的 event 在所有 jobcode event 中的占比，和 jobcode 在所有 event 中的占比</span></span><br><span class="line">UserChangeEvent MessageBox | stats count(<span class="built_in">eval</span>(match(field1, <span class="string">&quot;.*updatedFields\&quot;:\[&#123;\&quot;fieldName\&quot;:\&quot;jobCode\&quot;.*&quot;</span>))) as totalJCEvent count(<span class="built_in">eval</span>(match(field1, <span class="string">&quot;.*updatedFields\&quot;:\[&#123;\&quot;fieldName\&quot;:\&quot;jobCode\&quot;,\&quot;fieldType\&quot;:\&quot;java.lang.String\&quot;,\&quot;afterValue\&quot;:\&quot;\&quot;&#125;\].*&quot;</span>))) as emptyEvent count as total | <span class="built_in">eval</span> EMP_PCT=emptyEvent/totalJCEvent*100, JC_PCT=totalJCEvent/total*100</span><br></pre></td></tr></table></figure>
+
+<h2 id="取两位小数"><a href="#取两位小数" class="headerlink" title="取两位小数"></a>取两位小数</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">| 7xAVG=round((7*total/1), 2)</span><br></pre></td></tr></table></figure>
+
+<h2 id="通过正则创建新-field"><a href="#通过正则创建新-field" class="headerlink" title="通过正则创建新 field"></a>通过正则创建新 field</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 选出结果集，从输出信息中匹配 &#x27;Company: &#x27; 开头 &#x27;, total CommonField&#x27; 结尾的部分并命名为 cname 统计出现次数</span></span><br><span class="line"><span class="comment"># _raw 表示 record 内容</span></span><br><span class="line">search condition | rex field=_raw <span class="string">&quot;Company: (?&lt;cname&gt;.*), total CommonField&quot;</span> | stats count by cname</span><br></pre></td></tr></table></figure>
+
+<h2 id="stats-和-eval-的区别"><a href="#stats-和-eval-的区别" class="headerlink" title="stats 和 eval 的区别"></a>stats 和 eval 的区别</h2><p>stats 是对已经有的 field 的删选，而 eval 是通过已有的 field 计算出新的 field 加到结果集中进行删选，等价于新增 field</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 删选 event, 新建一个 field 名叫 is_prod, 当 host 匹配 pattern 时赋值 yes_prod</span></span><br><span class="line">search event | <span class="built_in">eval</span> is_prod=<span class="keyword">if</span>(like(host, <span class="string">&quot;pc%&quot;</span>), <span class="string">&quot;yes_prod&quot;</span>, <span class="string">&quot;not_prod&quot;</span>) | stats count by is_prod</span><br></pre></td></tr></table></figure>
+
+<p>其中 eval 还支持多种删选条件，可塑性好高</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 统计各环境的 event 数量并统计比例</span></span><br><span class="line">search event | <span class="built_in">eval</span> env=<span class="keyword">case</span>(like(host, <span class="string">&quot;pc%&quot;</span>), <span class="string">&quot;prod&quot;</span>, like(host, <span class="string">&quot;sc%&quot;</span>), <span class="string">&quot;prov&quot;</span>, like(host, <span class="string">&quot;*&quot;</span>), <span class="string">&quot;others&quot;</span>) | stats count by env</span><br></pre></td></tr></table></figure>
+
+<h2 id="Splunk-SDK"><a href="#Splunk-SDK" class="headerlink" title="Splunk SDK"></a>Splunk SDK</h2><p>尝试了 python 版本的 SDK，香！</p>
+<p>参考 <a target="_blank" rel="noopener" href="https://dev.splunk.com/enterprise/docs/python/sdk-python/examplespython/commandline">官方文档</a> 下载依赖，在本地配置 <code>.splunkrc</code> 文件写入连接信息方便调用。第一次用的时候密码配错了，还以为内网不可用，需要用 vlab，再测试的时候发现了这个问题。总的来说很可以。</p>
+<p>Steps:</p>
+<ol>
+<li>clone git 开源项目 <a target="_blank" rel="noopener" href="https://github.com/splunk/splunk-sdk-python">Splunk SDK Python</a></li>
+<li>用户目录下创建 <code>.splunkrc</code> 文件</li>
+<li>cd 到 <code>splunk-sdk-python/examples</code> folder 下，运行命令 <code>python search.py &quot;search * | head 10&quot; --earliest_time=&quot;2011-08-10T17:15:00.000-07:00&quot; --rf=&quot;desc&quot; --output_mode=json</code> 可以看到对应时间戳下的前 10 条记录</li>
+</ol>
+<p><code>.splunkrc</code> 文件模板</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># Splunk host (default: localhost)</span><br><span class="line">host&#x3D;xxx.xxx.xxx</span><br><span class="line"># Splunk admin port (default: 8089)</span><br><span class="line">port&#x3D;8089</span><br><span class="line"># Splunk username</span><br><span class="line">username&#x3D;jack</span><br><span class="line"># Splunk password</span><br><span class="line">password&#x3D;mypwd</span><br><span class="line"># Access scheme (default: https)</span><br><span class="line">scheme&#x3D;https</span><br><span class="line"># Your version of Splunk (default: 5.0)</span><br><span class="line">version&#x3D;7.1.2</span><br></pre></td></tr></table></figure>
+
+<h2 id="三个小例子快速入门"><a href="#三个小例子快速入门" class="headerlink" title="三个小例子快速入门"></a>三个小例子快速入门</h2><h3 id="搜索-event-并通过饼图展示"><a href="#搜索-event-并通过饼图展示" class="headerlink" title="搜索 event 并通过饼图展示"></a>搜索 event 并通过饼图展示</h3><ol>
+<li>输入时间节点和关键词：<code>MessageBox topic=com.successfactors.usermanagement.event.UserChangeEvent | stats count by servername</code></li>
+<li>选择可视化 tab</li>
+<li>选择饼图</li>
+</ol>
+<p><img src="pie.png" alt="饼图"></p>
+<h3 id="显示每天的-event-量"><a href="#显示每天的-event-量" class="headerlink" title="显示每天的 event 量"></a>显示每天的 event 量</h3><ol>
+<li>选择时间</li>
+<li>输入搜索条件: <code>MessageBox topic=com.successfactors.usermanagement.event.UserChangeEvent | timechart count span=1d</code></li>
+<li>选择图形</li>
+</ol>
+<p><img src="bar.png" alt="柱状图"></p>
+<h3 id="通过正则删选-event-并计算百分比"><a href="#通过正则删选-event-并计算百分比" class="headerlink" title="通过正则删选 event 并计算百分比"></a>通过正则删选 event 并计算百分比</h3><ol>
+<li>选择时间</li>
+<li>输入删选条件: <code>MessageBox topic=com.successfactors.usermanagement.event.UserChangeEvent | stats count as total count(eval(match(field1, &quot;companyId&quot;))) as containsCID | eval CID_PCT=round(containsCID/total*100, 2)</code></li>
+</ol>
+<p><img src="regex.png" alt="百分比表"></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/09/09/Design-pattern-visitor/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +373,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-03 15:17:28" itemprop="dateModified" datetime="2021-06-03T15:17:28+08:00">2021-06-03</time>
+                <time title="修改时间：2021-06-03 17:52:01" itemprop="dateModified" datetime="2021-06-03T17:52:01+08:00">2021-06-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -346,7 +482,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-03 15:17:28" itemprop="dateModified" datetime="2021-06-03T15:17:28+08:00">2021-06-03</time>
+                <time title="修改时间：2021-06-03 17:52:01" itemprop="dateModified" datetime="2021-06-03T17:52:01+08:00">2021-06-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -638,7 +774,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-03 15:17:28" itemprop="dateModified" datetime="2021-06-03T15:17:28+08:00">2021-06-03</time>
+                <time title="修改时间：2021-06-03 17:52:01" itemprop="dateModified" datetime="2021-06-03T17:52:01+08:00">2021-06-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -785,7 +921,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-03 15:17:28" itemprop="dateModified" datetime="2021-06-03T15:17:28+08:00">2021-06-03</time>
+                <time title="修改时间：2021-06-03 17:52:01" itemprop="dateModified" datetime="2021-06-03T17:52:01+08:00">2021-06-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -876,7 +1012,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-03 15:17:28" itemprop="dateModified" datetime="2021-06-03T15:17:28+08:00">2021-06-03</time>
+                <time title="修改时间：2021-06-03 17:52:01" itemprop="dateModified" datetime="2021-06-03T17:52:01+08:00">2021-06-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -980,7 +1116,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-03 15:17:28" itemprop="dateModified" datetime="2021-06-03T15:17:28+08:00">2021-06-03</time>
+                <time title="修改时间：2021-06-03 17:52:01" itemprop="dateModified" datetime="2021-06-03T17:52:01+08:00">2021-06-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1071,7 +1207,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-03 15:17:28" itemprop="dateModified" datetime="2021-06-03T15:17:28+08:00">2021-06-03</time>
+                <time title="修改时间：2021-06-03 17:52:01" itemprop="dateModified" datetime="2021-06-03T17:52:01+08:00">2021-06-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1165,7 +1301,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-03 15:17:28" itemprop="dateModified" datetime="2021-06-03T15:17:28+08:00">2021-06-03</time>
+                <time title="修改时间：2021-06-03 17:52:01" itemprop="dateModified" datetime="2021-06-03T17:52:01+08:00">2021-06-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1260,7 +1396,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-03 15:17:28" itemprop="dateModified" datetime="2021-06-03T15:17:28+08:00">2021-06-03</time>
+                <time title="修改时间：2021-06-03 17:52:01" itemprop="dateModified" datetime="2021-06-03T17:52:01+08:00">2021-06-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1368,97 +1504,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/08/07/Same-Name-Same-Path-In-Java/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2020/08/07/Same-Name-Same-Path-In-Java/" class="post-title-link" itemprop="url">JVM 会如何处理同名同路径的类</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-08-07 11:36:11" itemprop="dateCreated datePublished" datetime="2020-08-07T11:36:11+08:00">2020-08-07</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-03 15:17:28" itemprop="dateModified" datetime="2021-06-03T15:17:28+08:00">2021-06-03</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
-                    <span itemprop="name">编程</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>49</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>问题记录：</p>
-<p>项目由多个 repo 组成，当这些 repo 中存在相同路径，相同名称的类时，JVM 会怎么处理？</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1509,7 +1554,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">155</span>
+          <span class="site-state-item-count">156</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1522,7 +1567,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">178</span>
+        <span class="site-state-item-count">179</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1556,12 +1601,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">676k</span>
+    <span title="站点总字数">680k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">10:15</span>
+    <span title="站点阅读时长">10:18</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
