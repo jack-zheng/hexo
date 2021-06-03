@@ -447,7 +447,7 @@ echo $?
 
 > Working with the if-then Statement
 
-if-then 是最基本的控制方式，format 如下, 判断依据是 command 的 exit code, 如果是 0 则表示 success，其他的则为 fail.
+if-then 是最基本的控制方式，format 如下, 判断依据是 command 的 exit code, 如果是 0 则表示 success，其他的则为 fail.
 
 ```sh
 if command

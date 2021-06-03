@@ -54,3 +54,16 @@ error on line 3463 at column 23: Input is not proper UTF-8, indicate encoding !
 Bytes: 0x08 0x20 0xE5 0x88
 Below is a rendering of the page up to the first error.
 ```
+
+灯噔, 密码正确，删掉了对应的文件，search 正常了，但是我反复看了下那个文件，没看出什么问题啊。。。
+
+终于找到问题所在了！！！关键字没有设置对，害我绕了老大一圈才找到答案。如果早点用关键字 `Hexo search.xml Input is not proper UTF-8` 的话，早就出结果了。之前一直纠结在 Chrome 等主题那边
+
+用 hexo 插件等关键字发现几个和我一样的案例，很快的解决了问题。。。
+
+解决步骤：在 vscode 中打开你的项目，点搜索，点正则匹配，根据你的世纪情况搜索你要的关键字。比如我报错是 `0x08 0x20 0xE5 0x88` 就直接搜索 `\x08`, 把搜索出来的地方都改了就行。
+
+选中出问题的字段直接把它复制黏贴到终端，可以看到 `code, ^H如果是` 的显示，好神奇
+
+![Search issue](search_issue.png)
+
