@@ -1,5 +1,5 @@
 ---
-title: LSCASSB parti the linux command line
+title: Linux命令行与shell脚本编程大全 第一章 Linux 命令行
 date: 2021-05-31 10:04:57
 categories:
 - Shell

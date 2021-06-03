@@ -5,7 +5,6 @@ categories:
 - Shell
 tags:
 - Linux命令行与shell脚本编程大全 3rd
-- TODO
 ---
 
 Linux命令行与shell脚本编程大全 3rd 第二部分命令实验记录
@@ -3645,3 +3644,124 @@ ps -p 18154 -o pid,ni
 当使用 at 命令的时候，对应的 job 提交到 job queue 中。系统中有 26 种 job 可选，队列名字为字母大小写的 a-z
 
 **Note** 以前还有一个 batch 命令可以让你在 low useage 状态下运行 script，现在它只是通过调用 at + b queue 完成的定时脚本。队列的字母顺序越靠后，优先级越低。默认 job 优先级为 a
+
+> Retrieving job output
+
+Linux 系统中，当 job 运行时是没有监测的地方的。系统会将内容记录到邮件中并发送给联系人
+
+```sh
+cat test13.sh 
+#!/usr/local/bin/bash
+# Test using at command
+#
+echo "This script ran at $(date +%B%d,%T)"
+echo sleep 5
+echo "This is the script's end"
+#
+
+at -f test13.sh now
+# job 1 at Thu Jun  3 12:27:19 2021
+```
+
+如果你系统没有配置邮箱，那就收不到邮件了，你可以直接指定输入到文件
+
+PS: 这个实验失败，运行后我并没有看到 out 文件
+
+```sh
+cat test13b.sh 
+#!/usr/local/bin/bash
+# Test using at command
+#
+echo "This script ran at $(date +%B%d,%T)" > test13b.out
+echo >> test13b.out
+echo sleep 5
+echo "This is the script's end" >> test13b.out
+#
+
+# 查了一下 at 并没有 -M 这个可选参数啊。。
+at -M -f test13b.sh now 
+# job 3 at Thu Jun  3 12:34:11 2021
+```
+
+> Listing pending jobs
+
+显示所有 pendng 的 job, 我还以为也是用 jobs 呢，忙乎了半天
+
+```sh
+atq
+# 1       Thu Jun  3 12:27:00 2021
+# 4       Thu Jun  3 12:35:00 2021
+# 5       Thu Jun  3 12:35:00 2021
+# 2       Thu Jun  3 12:32:00 2021
+# 3       Thu Jun  3 12:34:00 2021
+# 6       Thu Jun  3 16:00:00 2021
+```
+
+> Removing jobs
+
+删除 at queue 中的 job
+
+```sh
+atrm 1
+atq
+# 4       Thu Jun  3 12:35:00 2021
+# 5       Thu Jun  3 12:35:00 2021
+# 2       Thu Jun  3 12:32:00 2021
+# 3       Thu Jun  3 12:34:00 2021
+# 6       Thu Jun  3 16:00:00 2021
+```
+
+Mac 是不是有什么特殊设置啊， 之前启动的 at job 都 block 了
+
+#### Scheduling regular scripts
+
+at 只能配置一次性 job, 如果要配置可重复的 job，可以用 cron. cron 在后台运行，他会检查 cron tables 看哪些 job 需要运行
+
+##### Looking at the cron table
+
+cron job 的语法：`min hour dayofmonth month dayofweek command` 示例如下
+
+```sh
+# * 表示 每 的意思
+# 下面的定时为 每天 10:15 
+15 10 * * * command
+
+# 每个周一的 16:15
+15 16 * * 1 command
+# dayofweek 也可以是三个字母的表示 mon, tue, wed, thu, fri, sat, sun
+
+# 每个月的第一天 12:00
+00 12 1 * * command
+# dayofmonth 为 1-31
+```
+
+**Note** 怎么设置每月最后天 run 的 job? 可以通过检查明天是不是第一天解决这个问题，示例：`00 12 * * * if [`date +%d -d tomorrow` = 01 ] ;  then ; command` 解释：每天中午检查一下明天是不是下个月的第一天，如果是则执行 command
+
+cron job 必须指出脚本的全路径 `15 10 * * * /home/rich/test4.sh > test4out`
+
+##### Building the cron table
+
+显示当前用户的 cron job
+
+```sh
+crontab -l
+# crontab: no crontab for i306454
+```
+
+##### View cron directories
+
+mac 下没有这些配置，先跳过
+
+### Starting scripts with a new shell
+
+书中说的是 set shell features, 所以下面这一段讲的是配置问题
+
+启动 shell 时配置文件加载顺序如下，当前面的被发现时，后面的就会被忽略
+
+* $HOME/.bash_profile
+* $HOME/.bash_login
+* $HOME/.profile
+
+这里用的是 runs the `.bashrc` 所以感觉 rc 文件更像是添加什么新功能的感觉(主管臆测，就我本人，感觉什么东西都塞到 rc 中了，也能 work)
+
+每次 bash shell 启动时都会运行 `.bashrc` 中的内容
