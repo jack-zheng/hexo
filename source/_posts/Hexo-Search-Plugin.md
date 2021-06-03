@@ -45,3 +45,12 @@ jmockit, testng 等关键字也没有建索引，感觉我的忍耐快要到极�
 **2021-06-03**
 
 本地启动 server，search 了一下，很多关键字都是可以找出来的。。。难道是远端的部署有问题？！
+
+通过 F12 + network 的 tab, 点击 search 看网络加载。remote 的 search.xml 位于 `https://jack-zheng.github.io/hexo/search.xml` 这路径下。加载的时候 terminal 会报错，难道我找到了华点？！！
+
+```txt
+This page contains the following errors:
+error on line 3463 at column 23: Input is not proper UTF-8, indicate encoding !
+Bytes: 0x08 0x20 0xE5 0x88
+Below is a rendering of the page up to the first error.
+```
