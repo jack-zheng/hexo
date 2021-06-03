@@ -220,7 +220,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
           
-            <a href="/hexo/2021/05/31/LSCASSB-parti-the-linux-command-line/" class="post-title-link" itemprop="url">LSCASSB parti the linux command line</a>
+            <a href="/hexo/2021/05/31/LSCASSB-parti-the-linux-command-line/" class="post-title-link" itemprop="url">Linux命令行与shell脚本编程大全 第一章 Linux 命令行</a>
         </h1>
 
         <div class="post-meta">
@@ -237,7 +237,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-02 20:20:38" itemprop="dateModified" datetime="2021-06-02T20:20:38+08:00">2021-06-02</time>
+                <time title="修改时间：2021-06-03 15:17:28" itemprop="dateModified" datetime="2021-06-03T15:17:28+08:00">2021-06-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -465,7 +465,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-02 20:20:38" itemprop="dateModified" datetime="2021-06-02T20:20:38+08:00">2021-06-02</time>
+                <time title="修改时间：2021-06-03 15:17:28" itemprop="dateModified" datetime="2021-06-03T15:17:28+08:00">2021-06-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -485,14 +485,14 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>60k</span>
+              <span>62k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>55 分钟</span>
+              <span>56 分钟</span>
             </span>
 
         </div>
@@ -1846,6 +1846,48 @@
 </ul>
 <p>当使用 at 命令的时候，对应的 job 提交到 job queue 中。系统中有 26 种 job 可选，队列名字为字母大小写的 a-z</p>
 <p><strong>Note</strong> 以前还有一个 batch 命令可以让你在 low useage 状态下运行 script，现在它只是通过调用 at + b queue 完成的定时脚本。队列的字母顺序越靠后，优先级越低。默认 job 优先级为 a</p>
+<blockquote>
+<p>Retrieving job output</p>
+</blockquote>
+<p>Linux 系统中，当 job 运行时是没有监测的地方的。系统会将内容记录到邮件中并发送给联系人</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">cat test13.sh </span><br><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Test using at command</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This script ran at <span class="subst">$(date +%B%d,%T)</span>&quot;</span></span><br><span class="line"><span class="built_in">echo</span> sleep 5</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This is the script&#x27;s end&quot;</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"></span><br><span class="line">at -f test13.sh now</span><br><span class="line"><span class="comment"># job 1 at Thu Jun  3 12:27:19 2021</span></span><br></pre></td></tr></table></figure>
+
+<p>如果你系统没有配置邮箱，那就收不到邮件了，你可以直接指定输入到文件</p>
+<p>PS: 这个实验失败，运行后我并没有看到 out 文件</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">cat test13b.sh </span><br><span class="line"><span class="meta">#!/usr/local/bin/bash</span></span><br><span class="line"><span class="comment"># Test using at command</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This script ran at <span class="subst">$(date +%B%d,%T)</span>&quot;</span> &gt; test13b.out</span><br><span class="line"><span class="built_in">echo</span> &gt;&gt; test13b.out</span><br><span class="line"><span class="built_in">echo</span> sleep 5</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This is the script&#x27;s end&quot;</span> &gt;&gt; test13b.out</span><br><span class="line"><span class="comment">#</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查了一下 at 并没有 -M 这个可选参数啊。。</span></span><br><span class="line">at -M -f test13b.sh now </span><br><span class="line"><span class="comment"># job 3 at Thu Jun  3 12:34:11 2021</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Listing pending jobs</p>
+</blockquote>
+<p>显示所有 pendng 的 job, 我还以为也是用 jobs 呢，忙乎了半天</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">atq</span><br><span class="line"><span class="comment"># 1       Thu Jun  3 12:27:00 2021</span></span><br><span class="line"><span class="comment"># 4       Thu Jun  3 12:35:00 2021</span></span><br><span class="line"><span class="comment"># 5       Thu Jun  3 12:35:00 2021</span></span><br><span class="line"><span class="comment"># 2       Thu Jun  3 12:32:00 2021</span></span><br><span class="line"><span class="comment"># 3       Thu Jun  3 12:34:00 2021</span></span><br><span class="line"><span class="comment"># 6       Thu Jun  3 16:00:00 2021</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Removing jobs</p>
+</blockquote>
+<p>删除 at queue 中的 job</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">atrm 1</span><br><span class="line">atq</span><br><span class="line"><span class="comment"># 4       Thu Jun  3 12:35:00 2021</span></span><br><span class="line"><span class="comment"># 5       Thu Jun  3 12:35:00 2021</span></span><br><span class="line"><span class="comment"># 2       Thu Jun  3 12:32:00 2021</span></span><br><span class="line"><span class="comment"># 3       Thu Jun  3 12:34:00 2021</span></span><br><span class="line"><span class="comment"># 6       Thu Jun  3 16:00:00 2021</span></span><br></pre></td></tr></table></figure>
+
+<p>Mac 是不是有什么特殊设置啊， 之前启动的 at job 都 block 了</p>
+<h4 id="Scheduling-regular-scripts"><a href="#Scheduling-regular-scripts" class="headerlink" title="Scheduling regular scripts"></a>Scheduling regular scripts</h4><p>at 只能配置一次性 job, 如果要配置可重复的 job，可以用 cron. cron 在后台运行，他会检查 cron tables 看哪些 job 需要运行</p>
+<h5 id="Looking-at-the-cron-table"><a href="#Looking-at-the-cron-table" class="headerlink" title="Looking at the cron table"></a>Looking at the cron table</h5><p>cron job 的语法：<code>min hour dayofmonth month dayofweek command</code> 示例如下</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># * 表示 每 的意思</span></span><br><span class="line"><span class="comment"># 下面的定时为 每天 10:15 </span></span><br><span class="line">15 10 * * * <span class="built_in">command</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 每个周一的 16:15</span></span><br><span class="line">15 16 * * 1 <span class="built_in">command</span></span><br><span class="line"><span class="comment"># dayofweek 也可以是三个字母的表示 mon, tue, wed, thu, fri, sat, sun</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 每个月的第一天 12:00</span></span><br><span class="line">00 12 1 * * <span class="built_in">command</span></span><br><span class="line"><span class="comment"># dayofmonth 为 1-31</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Note</strong> 怎么设置每月最后天 run 的 job? 可以通过检查明天是不是第一天解决这个问题，示例：<code>00 12 * * * if [</code>date +%d -d tomorrow<code>= 01 ] ;  then ; command</code> 解释：每天中午检查一下明天是不是下个月的第一天，如果是则执行 command</p>
+<p>cron job 必须指出脚本的全路径 <code>15 10 * * * /home/rich/test4.sh &gt; test4out</code></p>
+<h5 id="Building-the-cron-table"><a href="#Building-the-cron-table" class="headerlink" title="Building the cron table"></a>Building the cron table</h5><p>显示当前用户的 cron job</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">crontab -l</span><br><span class="line"><span class="comment"># crontab: no crontab for i306454</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="View-cron-directories"><a href="#View-cron-directories" class="headerlink" title="View cron directories"></a>View cron directories</h5><p>mac 下没有这些配置，先跳过</p>
+<h3 id="Starting-scripts-with-a-new-shell"><a href="#Starting-scripts-with-a-new-shell" class="headerlink" title="Starting scripts with a new shell"></a>Starting scripts with a new shell</h3><p>书中说的是 set shell features, 所以下面这一段讲的是配置问题</p>
+<p>启动 shell 时配置文件加载顺序如下，当前面的被发现时，后面的就会被忽略</p>
+<ul>
+<li>$HOME/.bash_profile</li>
+<li>$HOME/.bash_login</li>
+<li>$HOME/.profile</li>
+</ul>
+<p>这里用的是 runs the <code>.bashrc</code> 所以感觉 rc 文件更像是添加什么新功能的感觉(主管臆测，就我本人，感觉什么东西都塞到 rc 中了，也能 work)</p>
+<p>每次 bash shell 启动时都会运行 <code>.bashrc</code> 中的内容</p>
 
       
     </div>
@@ -1896,7 +1938,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-02 20:20:38" itemprop="dateModified" datetime="2021-06-02T20:20:38+08:00">2021-06-02</time>
+                <time title="修改时间：2021-06-03 15:17:28" itemprop="dateModified" datetime="2021-06-03T15:17:28+08:00">2021-06-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1989,7 +2031,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-02 20:20:38" itemprop="dateModified" datetime="2021-06-02T20:20:38+08:00">2021-06-02</time>
+                <time title="修改时间：2021-06-03 15:17:28" itemprop="dateModified" datetime="2021-06-03T15:17:28+08:00">2021-06-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -2085,7 +2127,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-02 20:20:38" itemprop="dateModified" datetime="2021-06-02T20:20:38+08:00">2021-06-02</time>
+                <time title="修改时间：2021-06-03 15:17:28" itemprop="dateModified" datetime="2021-06-03T15:17:28+08:00">2021-06-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -2288,7 +2330,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-02 20:20:38" itemprop="dateModified" datetime="2021-06-02T20:20:38+08:00">2021-06-02</time>
+                <time title="修改时间：2021-06-03 15:17:28" itemprop="dateModified" datetime="2021-06-03T15:17:28+08:00">2021-06-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -2378,7 +2420,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-02 20:20:38" itemprop="dateModified" datetime="2021-06-02T20:20:38+08:00">2021-06-02</time>
+                <time title="修改时间：2021-06-03 15:17:28" itemprop="dateModified" datetime="2021-06-03T15:17:28+08:00">2021-06-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -2498,7 +2540,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-02 20:20:38" itemprop="dateModified" datetime="2021-06-02T20:20:38+08:00">2021-06-02</time>
+                <time title="修改时间：2021-06-03 15:17:28" itemprop="dateModified" datetime="2021-06-03T15:17:28+08:00">2021-06-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -2600,7 +2642,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-02 20:20:38" itemprop="dateModified" datetime="2021-06-02T20:20:38+08:00">2021-06-02</time>
+                <time title="修改时间：2021-06-03 15:17:28" itemprop="dateModified" datetime="2021-06-03T15:17:28+08:00">2021-06-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -2691,7 +2733,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-02 20:20:38" itemprop="dateModified" datetime="2021-06-02T20:20:38+08:00">2021-06-02</time>
+                <time title="修改时间：2021-06-03 15:17:28" itemprop="dateModified" datetime="2021-06-03T15:17:28+08:00">2021-06-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -2831,7 +2873,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">156</span>
+          <span class="site-state-item-count">155</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -2844,7 +2886,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">179</span>
+        <span class="site-state-item-count">178</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -2878,12 +2920,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">677k</span>
+    <span title="站点总字数">676k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">10:16</span>
+    <span title="站点阅读时长">10:15</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
