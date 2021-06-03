@@ -67,3 +67,6 @@ Below is a rendering of the page up to the first error.
 
 ![Search issue](search_issue.png)
 
+又做了一些深入调查，这种字符好像是控制字符，可能是打字的时候无意间打出来的，你可以通过 vscdoe 里面的设置，将它默认显示出来
+
+Code -> Perferences -> Settings -> 搜索 renderControlCharacters 勾选上即可

@@ -8,6 +8,93 @@ tags:
 - TODO
 ---
 
+## Chapter 1: Starting with Linux Shells
+
+### What Is Linux
+
+Linux 系统主要由一下 4 部分组成
+
+* The Linux kernel
+* The GUN utilities
+* A graphical desktop environment
+* Application software
+
+#### Looking into the Linux Kernel
+
+Linux 系统的核心就是 kernel，它起到调度硬件软件资源的作用。
+
+kernel 有四个主要的功能
+
+* System memory management
+* Software program management
+* Hardware management
+* Filesystem management
+
+##### System Memory management
+
+下面的内容和操作系统相关，很多概念我都不是很感兴趣，可以先跳过
+
+## Chapter 2: Getting to the Shell
+
+终端介绍，跳过
+
+## Chapter 3: Basic bash Shell Commands
+
+### Interacting with the bash Manual
+
+man page 的结构如下
+
+| Section       | Description                                   |
+| :------------ | :-------------------------------------------- |
+| Name          | Displays command name and a short description |
+| Syopsis       | Shows command syntax                          |
+| Configuration | Provides configuration information            |
+| Description   | Describes command generally                   |
+| Options       | Describes command option(s)                   |
+| Exit Status   | Defines command exit status indicator(s)      |
+| Return Value  | describes command return value(s)             |
+| Errors        | Provides command return value(s)              |
+| Environment   | Describes envrionment variable(s) used        |
+| Files         | Defines files used by command                 |
+| Versions      | Describes command version information         |
+| Conforming To | Provides standards followed                   |
+| Notes         | Describes additional helpful command material |
+| Bugs          | Provides the location to report found buds    |
+| Example       | Shows command use examples                    |
+| Authors       | Provides information on command developers    |
+| Copyright     | Defines command code copyright status         |
+| See Also      | Refers similar available commands             |
+
+### Navigating the Filesystem
+
+常见的目录及用途
+
+| Directory | Usage                                                                                       |
+| :-------- | :------------------------------------------------------------------------------------------ |
+| /         | root of the virtual directory, where normally, no files are placed                          |
+| /bin      | binary directory, where GNU user-level utilities are stored                                 |
+| /boot     | boot directory, where boot files are stored                                                 |
+| /dev      | device directory, where Linux creates device nodes                                          |
+| /etc      | system configuration files directory                                                        |
+| /home     | home directory, where Linux creates user directories                                        |
+| /lib      | library directory, where system and application library files are stored                    |
+| /media    | media directory, a common place for mount points used for removable media                   |
+| /mnt      | mount directory, another common place for mount points used for removable media             |
+| /opt      | optional directory, often used to store third-part software packages and data files         |
+| /proc     | process directory, where current hardware and process information is stored                 |
+| /root     | root home directory                                                                         |
+| /sbin     | system binary directory, where many GNU admin-level utilities are stored                    |
+| /run      | run directory, where runtime data is held during system operation                           |
+| /srv      | service directory, where local services stre their files                                    |
+| /sys      | system directory, where system hardware information files are stored                        |
+| /tmp      | temporary directory, where temporary work files can be crated and destroyed                 |
+| /usr      | user binary directory, where the bulk of GUN user-level utilities and data files are stored |
+| /var      | variable directory, for files that change frequently, such as log files                     |
+
+### Listing Files and Directories
+
+
+
 ## Chapter 4: More bash Shell Commands
 
 ### Monitoring Programs
