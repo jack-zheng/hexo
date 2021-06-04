@@ -237,7 +237,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-03 20:08:22" itemprop="dateModified" datetime="2021-06-03T20:08:22+08:00">2021-06-03</time>
+                <time title="修改时间：2021-06-04 20:02:53" itemprop="dateModified" datetime="2021-06-04T20:02:53+08:00">2021-06-04</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -295,7 +295,7 @@
 
 <p>如果我还想保留这种 case level 的使用，需要做点什么？这种 case level 的使用在作用域控制上更好</p>
 <p>TODO</p>
-<h2 id="Mock-不带默认构造函数的对象"><a href="#Mock-不带默认构造函数的对象" class="headerlink" title="Mock 不带默认构造函数的对象"></a>Mock 不带默认构造函数的对象</h2><p>构建一个测试对象时，如果他没有模式构造函数的话需要为参数声明 @Injectable</p>
+<h2 id="Mock-不带默认构造函数的对象"><a href="#Mock-不带默认构造函数的对象" class="headerlink" title="Mock 不带默认构造函数的对象"></a>Mock 不带默认构造函数的对象</h2><p>构建一个测试对象时，如果他没有默认构造函数的话需要为参数声明 @Injectable</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 测试对象</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Dog</span></span>&#123;</span><br><span class="line">  <span class="keyword">private</span> String name;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="title">Dog</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.name = name;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> name;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CompatibleTest</span> </span>&#123;</span><br><span class="line">  <span class="meta">@Tested</span> Dog dog;</span><br><span class="line">  <span class="meta">@Injectable</span> String name;</span><br><span class="line">  </span><br><span class="line">  <span class="meta">@Test</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test</span><span class="params">()</span> </span>&#123; dog.getName(); &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 如果没加的话抛出异常</span></span><br><span class="line"><span class="comment">// java.lang.IllegalArgumentException: No constructor in tested class that can be satisfied by available injectables</span></span><br><span class="line"><span class="comment">//   public com.successfactors.legacy.service.provisioning.impl.Dog(String)</span></span><br><span class="line"><span class="comment">//     disregarded because no injectable was found for parameter &quot;name&quot;</span></span><br></pre></td></tr></table></figure>
 
 <h2 id="Mockup-工厂方法"><a href="#Mockup-工厂方法" class="headerlink" title="Mockup 工厂方法"></a>Mockup 工厂方法</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* new object + mockup, new object 发生在 mock 之后，所以 mock 生效</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">mock_factory_using_mockup</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">new</span> MockUp&lt;NPCFactory&gt;() &#123;</span><br><span class="line">        <span class="meta">@Mock</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> Person <span class="title">getNPC</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> Person(<span class="string">&quot;mock&quot;</span>, <span class="number">1</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    ClassRoom classRoom = <span class="keyword">new</span> ClassRoom();</span><br><span class="line">    assertEquals(<span class="string">&quot;mock&quot;</span>, classRoom.getNPCName());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ClassRoom</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Person npc = NPCFactory.getNPC();</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getNPCName</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> npc.getName(); &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -316,7 +316,7 @@
 
 <h2 id="获取方法参数"><a href="#获取方法参数" class="headerlink" title="获取方法参数"></a>获取方法参数</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 如果是单个参数</span></span><br><span class="line"><span class="keyword">new</span> Verifications() &#123;&#123;</span><br><span class="line">  <span class="keyword">double</span> d;</span><br><span class="line">  String s;</span><br><span class="line">  mock.doSomething(d = withCapture(), <span class="keyword">null</span>, s = withCapture());</span><br><span class="line"></span><br><span class="line">  assertTrue(d &gt; <span class="number">0.0</span>);</span><br><span class="line">  assertTrue(s.length() &gt; <span class="number">1</span>);</span><br><span class="line">&#125;&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 如果是多个参数</span></span><br><span class="line"><span class="keyword">new</span> Verifications() &#123;&#123;</span><br><span class="line">  List&lt;DataObject&gt; dataObjects = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">  mock.doSomething(withCapture(dataObjects));</span><br><span class="line"></span><br><span class="line">  assertEquals(<span class="number">2</span>, dataObjects.size());</span><br><span class="line">  DataObject data1 = dataObjects.get(<span class="number">0</span>);</span><br><span class="line">  DataObject data2 = dataObjects.get(<span class="number">1</span>);</span><br><span class="line">  <span class="comment">// Perform arbitrary assertions on data1 and data2.</span></span><br><span class="line">&#125;&#125;;</span><br></pre></td></tr></table></figure>
 
-<h2 id="Mocked-导致-equals-方法失效"><a href="#Mocked-导致-equals-方法失效" class="headerlink" title="@Mocked 导致 equals 方法失效"></a>@Mocked 导致 equals 方法失效</h2><p>今天写 UT 的时候遇到一个问题，当我使用 @Mocked 修饰一个类时，这个累的所有引用都会被 mock 掉，虽然知道有这种特性，但是以前都没有碰到问题，忽视了，debug 花了好久。</p>
+<h2 id="Mocked-导致-equals-方法失效"><a href="#Mocked-导致-equals-方法失效" class="headerlink" title="@Mocked 导致 equals 方法失效"></a>@Mocked 导致 equals 方法失效</h2><p>今天写 UT 的时候遇到一个问题，当我使用 @Mocked 修饰一个类时，这个类的所有引用都会被 mock 掉，虽然知道有这种特性，但是以前都没有碰到问题，忽视了，debug 花了好久。</p>
 <p>示例如下：</p>
 <p>准别两个简单的 MyBean 和 MyField, MyField 是 MyBean 的一个属性，并在声明时就做了初始化。</p>
 <p>对应的 UT 可以 work，但当我对 MyField 添加 @Mocked 注解时，对应的 equals 方法会被抹去，UT 就挂了。</p>
@@ -372,7 +372,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-03 20:08:22" itemprop="dateModified" datetime="2021-06-03T20:08:22+08:00">2021-06-03</time>
+                <time title="修改时间：2021-06-04 20:02:53" itemprop="dateModified" datetime="2021-06-04T20:02:53+08:00">2021-06-04</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -483,7 +483,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-03 20:08:22" itemprop="dateModified" datetime="2021-06-03T20:08:22+08:00">2021-06-03</time>
+                <time title="修改时间：2021-06-04 20:02:53" itemprop="dateModified" datetime="2021-06-04T20:02:53+08:00">2021-06-04</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -576,7 +576,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-03 20:08:22" itemprop="dateModified" datetime="2021-06-03T20:08:22+08:00">2021-06-03</time>
+                <time title="修改时间：2021-06-04 20:02:53" itemprop="dateModified" datetime="2021-06-04T20:02:53+08:00">2021-06-04</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -675,7 +675,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-03 20:08:22" itemprop="dateModified" datetime="2021-06-03T20:08:22+08:00">2021-06-03</time>
+                <time title="修改时间：2021-06-04 20:02:53" itemprop="dateModified" datetime="2021-06-04T20:02:53+08:00">2021-06-04</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -771,7 +771,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-03 20:08:22" itemprop="dateModified" datetime="2021-06-03T20:08:22+08:00">2021-06-03</time>
+                <time title="修改时间：2021-06-04 20:02:53" itemprop="dateModified" datetime="2021-06-04T20:02:53+08:00">2021-06-04</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -872,7 +872,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-03 20:08:22" itemprop="dateModified" datetime="2021-06-03T20:08:22+08:00">2021-06-03</time>
+                <time title="修改时间：2021-06-04 20:02:53" itemprop="dateModified" datetime="2021-06-04T20:02:53+08:00">2021-06-04</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -971,7 +971,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-03 20:08:22" itemprop="dateModified" datetime="2021-06-03T20:08:22+08:00">2021-06-03</time>
+                <time title="修改时间：2021-06-04 20:02:53" itemprop="dateModified" datetime="2021-06-04T20:02:53+08:00">2021-06-04</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1082,7 +1082,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-03 20:08:22" itemprop="dateModified" datetime="2021-06-03T20:08:22+08:00">2021-06-03</time>
+                <time title="修改时间：2021-06-04 20:02:53" itemprop="dateModified" datetime="2021-06-04T20:02:53+08:00">2021-06-04</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1183,7 +1183,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-03 20:08:22" itemprop="dateModified" datetime="2021-06-03T20:08:22+08:00">2021-06-03</time>
+                <time title="修改时间：2021-06-04 20:02:53" itemprop="dateModified" datetime="2021-06-04T20:02:53+08:00">2021-06-04</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1349,12 +1349,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">682k</span>
+    <span title="站点总字数">700k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">10:20</span>
+    <span title="站点阅读时长">10:36</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
