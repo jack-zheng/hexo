@@ -5,7 +5,6 @@ categories:
 - Shell
 tags:
 - Linux命令行与shell脚本编程大全 3rd
-- TODO
 ---
 
 ## Chapter 1: Starting with Linux Shells
@@ -1234,3 +1233,294 @@ shadow 中的信息包括
 * The number of days after a password expires before the account will be disabled
 * The date(stored as the number of days since January 1, 1970) since the user account was disabled
 * A filed reserved for feature use
+
+#### Adding a new user
+
+```sh
+# 查看 useradd 的默认配置
+useradd -D
+# GROUP=100
+# HOME=/home
+# INACTIVE=-1
+# EXPIRE=
+# SHELL=/bin/sh
+# SKEL=/etc/skel
+# CREATE_MAIL_SPOOL=no
+```
+
+当你在 useradd 的时候没有指定任何参数的时候，就会按照这个 default 的配置添加新用户。default 包含以下信息
+
+* The user is added to a common group with group ID 100
+* The new user has a HOME account created in the directory /home/loginname
+* The account can't be disabled when the password expires
+* The new account can't be set to expire at a set date
+* The new account users the bin sh as the default shell
+* The system copies the contents of the /etc/skl directory to the user's HOME directory
+* The system creates a file in the mail directory for the user account to receive mail
+
+倒数第二个 item 说的是，在创建用户的时候，admin 可以预先设置一个模版
+
+默认情况下，useradd 并不会为用户创建 HOME 目录，需要添加 `-m` 参数
+
+```sh
+ls -l /etc/skel
+# total 16
+# drwxr-xr-x+ 2 root root 4096 Aug 11  2017 Desktop
+# -rw-r--r--  1 root root 8980 Apr 20  2016 examples.desktop
+
+useradd -m I306454
+ls -l /home
+# total 28
+# drwxr-xr-x+  5 fuser    fuser     4096 Aug 11  2017 fuser
+# drwxr-xr-x+  4 I306454  I306454   4096 Jun  5 14:48 I306454
+ls -lF /home/I306454/
+# total 16
+# drwxr-xr-x+ 2 I306454 I306454 4096 Aug 11  2017 Desktop/
+# -rw-r--r--  1 I306454 I306454 8980 Apr 20  2016 examples.desktop
+```
+
+The useradd Command Line Parameters
+
+| Parameter        | Description                                                                                                                                                                                    |
+| :--------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| -c comment       | Adds text to the new user's comment field                                                                                                                                                      |
+| -d home_dir      | Specifies a different name for the HOME directory other than the login name                                                                                                                    |
+| -e expire_date   | Specifies a date, in YYYY-MM-DD format, when the account will expire                                                                                                                           |
+| -f inactive_days | Specifies the number of days after a password expires when the account will be disabled. A value of 0 disables the accunt as soon as the password expires; a value of -1 disables this feature |
+| -g initial_group | Specifies the group name or GID of the user's login group                                                                                                                                      |
+| -G group         | Specifies one or more supplementary groups the user belongs to                                                                                                                                 |
+| -k               | Gopies the /etc/skel directory contents into the user's HOME directory(must use -m as well)                                                                                                    |
+| -m               | Create the user's HOME directory                                                                                                                                                               |
+| -M               | Doesn't create a user's HOME directory(user if the default setting is to create one)                                                                                                           |
+| -n               | Create a new group using the same name as the user's login name                                                                                                                                |
+| -r               | Creates a system account                                                                                                                                                                       |
+| -p passwd        | Specifies a default password for the user account                                                                                                                                              |
+| -s shell         | Specifies the default login shell                                                                                                                                                              |
+| -u               | Specifies a unique UID for the account                                                                                                                                                         |
+
+如果你有很多默认配置需要修改，那么你可以通过 `useradd -D` 修改这些默认配置
+
+#### Removing a user
+
+`userdel I306454` 默认情况下并不会删除对应用户的 HOME 目录。你需要添加 `-r` 参数达到这个效果
+
+#### Modifying a user
+
+Linux 提供了一些不同的工具包来修改用户信息
+
+User account Modification Utilities
+
+| Command  | Description                                                                           |
+| :------- | :------------------------------------------------------------------------------------ |
+| usermod  | Edits user accout fields, as well as specifying primary and seconday group membership |
+| passwd   | Changes the password for an existing user                                             |
+| chpassed | Reads a file of login name and password pairs, and updates the passwords              |
+| chage    | Chagnes the password's expiration date                                                |
+| chfn     | Changes the user account's comment information                                        |
+| chsh     | Changes the user account's default shell                                              |
+
+感觉 `usermod` 已经具备了所有账户相关的基本操作了
+
+后面有这些 cmd 的用法简介，但是我暂时用不到，先不摘录了
+
+### Using Linux Groups
+
+Group 可以以群的单位管理权限，每个 group 都有特定的 GID
+
+#### The /etc/group file
+
+```sh
+cat /etc/group
+# ...
+# jenkins:x:58116:
+# mfe:x:58117:
+# I306454:x:58118:
+```
+
+* The gorup name
+* The group password
+* The GID
+* The list of user accounts that belong to the group
+
+你可以通过 usermod 命令添加用户进组
+
+#### Creating new groups
+
+```sh
+groupadd shared
+tail /etc/group
+# I306454:x:58118:
+# shared:x:58119:
+
+usermod -G shared I306454
+tail /etc/group
+# shared:x:58119:I306454
+```
+
+PS: 如果你改变用户组时，用户已经 login， 该用户需要重新 login 使之生效
+
+PPS: 如果你用 -g 新组会代替旧组，如果 -G 则是多个组并存
+
+#### Modifying groups
+
+```sh
+groupmod -n sharing shared
+tail /etc/group
+# sharing:x:58119:I306454
+```
+
+### Decoding File Permissions
+
+#### Using file permission symbols
+
+```sh
+ls -l 
+# total 10192
+# -rwxr--r--   1 i306454  staff      159 May 30 15:56 badtest
+# -rw-r--r--   1 i306454  staff       24 Jun  4 13:57 file1
+```
+
+`-rwxr--r--` 即为文件的权限信息
+
+第一个字符表示文件类型
+
+* - for files
+* d for directories
+* l for links
+* c for character devices
+* b for block devices
+* n for network devices
+
+后面的字符都是权限
+
+* r for read permission
+* w for write permission
+* x for execute permission
+* - denied
+
+权限三个一组，分别代表 owner/group/everyone, owner 和 group 分别在 ls -l 后面有写出来
+
+#### Default file permissions
+
+umask 设置了所有文件和目录的默认权限
+
+```sh
+touch ttt
+ls -l ttt
+# -rw-r--r--  1 i306454  staff  0 Jun  5 15:43 ttt
+umask 
+# 0022
+```
+
+umask 结果的第一位表示 sticky bit, 后三位是权限的 octal mode 表示
+
+| Permissions | Binary | Octal | Description                         |
+| :---------- | :----- | :---- | :---------------------------------- |
+| ---         | 000    | 0     | No permissions                      |
+| --x         | 001    | 1     | Execute-only permission             |
+| -w-         | 010    | 2     | Write-only permission               |
+| -wx         | 011    | 3     | Write and execute permissions       |
+| r--         | 100    | 4     | Read-only permission                |
+| r-x         | 101    | 5     | Read and execute permissions        |
+| rw-         | 110    | 6     | Read and write permissions          |
+| rwx         | 111    | 7     | Read, write and execute permissions |
+
+文件的 full 权限是 666，文件夹是 777. umask 可以理解为在这个 full 权限的基础上减去一个值。
+
+之前我们 touch 的文件 `rw-r--r--` 是 644 = 666 - 022
+
+```sh
+ls -ld newdir
+# drwxr-xr-x  2 i306454  staff  64 Jun  5 15:56 newdir
+```
+
+`drwxr-xr-x` 755 = 777 - 022
+
+### Changing Security Settings
+
+`chmod options mode file`
+
+```sh
+ls -l ttt
+# -rw-r--r--  1 i306454  staff  0 Jun  5 15:43 ttt
+chmod 760 ttt
+ls -l ttt
+# -rwxrw----  1 i306454  staff  0 Jun  5 15:43 ttt
+```
+
+除了数字表示，你也可以用字母表示
+
+[ugoa...][+-=][rwxXstugo...]
+
+* u for the user
+* g for the group
+* o for others(everyone else)
+* a for all of the above
+
+* + add perm
+* - subtract perm
+* = set perm
+
+* X assigns execute permissions only if the object is a directory or if it already has execute permissions
+* s sets the UID or GID on execution
+* t saves program text
+* u sets the permissions to the owner's permission
+* g sets the permissions to the group's permission
+* o sets the permissions to the other's permission
+
+```sh
+chmod o+r ttt
+ls -l ttt
+# -rwxrw-r--  1 i306454  staff  0 Jun  5 15:43 ttt
+
+chmod u-x ttt
+ls -l ttt
+# -rw-rw-r--  1 i306454  staff  0 Jun  5 15:43 ttt
+```
+
+#### Changing ownership
+
+改变文件 owner，比如离开组织的时候，做交接。使用 `chown options owner[.group] file`
+
+```sh
+# 只改 owner
+chown dan newfile
+# 同时改变 owner 和 group
+chown dan.shared newfile
+# 只改 group
+chown .shared newfile
+```
+
+PS: 只有 root 可以改变文件的 owner, 任何 user 可以将文件组改变，重要这个user 是改变前后组的成员
+
+### Sharing Files
+
+这个场景没用到过，以后再说
+
+## Chapter 8: Managing Filesystems
+
+这章的内容我大致浏览了一下，作为了解即可。他介绍了很多系统类型，ext3 什么的以前见过，但是不明所以，刚好可以学习一下。
+
+### Exploring Linux Filesystems
+
+filesystem: 用于存储文件，管理存储设备
+
+#### Understanding the basic Linux filesystems
+
+最原始的 Linux 文件系统间的的仿造了 Unix 文件系统，下面我们会介绍这个文件系统的发现过程
+
+* ext(extended filesystem) + inode(track info about files in directory) 
+* ext 系统中文件最大只能 2G。 ext2 是 ext 的升级版，最大文件到 32G. 其他的特性就不举例了
+* Journaling filesystems, 貌似叫日志系统，算是文件更新到 inode 前的临时文件
+* ext3, 2001年加入 kernel
+* ext4, 2008年加入 kernel
+* Reiser filesystem, in 2001, Hans Reiser created the first journaling filesystem for Linux, call ReiserFS.
+* Journaled File System(JFS) 可能是最老的 journaling filesystem, IBM 1990 年开发
+
+其他暂时不看了。。。
+
+## Chapter 9: Installing Software
+
+## Chapter 10: Working with Editors
+
+第 9，10 章也没啥好看的，说的是软件安装和编辑器，跳过
