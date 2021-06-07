@@ -347,3 +347,1093 @@ fi
 ```
 
 ### Array Variables and Functions
+
+#### Passing arrays to functions
+
+函数处理数组的方式有点特别，如果你传给函数一个数组，他默认只会取第一个元素作为参数
+
+```sh
+cat badtest3
+#!/usr/local/bin/bash
+# Trying to pass an array variable
+
+function testit {
+    echo "The parameters are: $@"
+    thisarray=$1
+    echo "The received array is ${thisarray[*]}"
+}
+
+myarray=(1 2 3 4 5)
+echo "The original array is: ${myarray[*]}"
+testit  $myarray
+
+./badtest3
+# The original array is: 1 2 3 4 5
+# The parameters are: 1
+# The received array is 1
+```
+
+你可以将数组 disassemble 之后传给函数，在使用时在 reassemble 即可. 书上给的例子不能运行，网上找了一个可用的表达式
+
+```sh
+cat test10
+#!/usr/local/bin/bash
+# array variable to function test
+
+function testit {
+    local newarray
+    # 原始表达式为 newarray=(;'echo "$@"')
+    newarray=($(echo "$@"))
+    echo "The new array value is ${newarray[*]}"
+}
+
+myarray=(1 2 3 4 5)
+echo "The original array is: ${myarray[*]}"
+testit  ${myarray[*]}
+
+./test10
+# The original array is: 1 2 3 4 5
+# The new array value is 1 2 3 4 5
+```
+
+#### Return arrays from functions
+
+函数返回一个数组用了同样的技巧，函数中一个一个的 echo 值，接收方需要 reassemble 它们
+
+```sh
+cat test12
+#!/usr/local/bin/bash
+# returning an array value
+
+function arraydblr {
+    local origarray
+    local newarray
+    local elements
+    local i
+    origarray=($(echo "$@"))
+    newarray=($(echo "$@"))
+    elements=$[ $# - 1 ]
+    for (( i=0; i<= $elements; i++ ))
+    {
+        newarray[$i]=$[ ${origarray[$i]} * 2 ]
+    }
+    echo ${newarray[*]}
+}
+
+myarray=(1 2 3 4 5)
+echo "The original array is: ${myarray[*]}"
+arg1=$(echo ${myarray[*]})
+result=($(arraydblr $arg1))
+echo "The new array is: ${result[*]}"
+
+./test12
+# The original array is: 1 2 3 4 5
+# The new array is: 2 4 6 8 10
+```
+
+### Function Recursion
+
+local function variable 提供 self-containment 功能。他使得函数可以实现 recursively 的效果
+
+实现斐波那契数列
+
+```sh
+cat test13
+#!/usr/local/bin/bash
+# using recursion
+
+function factorial {
+    if [ $1 -eq 1 ]
+    then 
+        echo 1
+    else
+        local temp=$[ $1 - 1 ]
+        local result=$(factorial $temp)
+        echo $[ $result * $1 ]
+    fi
+}
+
+read -p "Enter value: " value
+result=$(factorial $value)
+echo "The factorial of $value is: $result"
+
+./test13
+# Enter value: 5
+# The factorial of 5 is: 120
+```
+
+### Creating a Library
+
+建立自己的函数库，实现脚本文件中的可复用。简单来说，就是将所有的函数都写在文件中。在其他脚本文件中，通过 `. path/to/myfuncs` 的语法引入自己的库文件即可。这个点号是 `source` 的快捷方式叫做 dot operator.
+
+```sh
+cat myfuncs 
+#!/usr/local/bin/bash
+# my script functions
+
+function addem {
+    echo $[ $1 + $2 ]
+}
+
+function multem {
+    echo $[ $1 * $2 ]
+}
+
+function divem {
+    if [ $2 -ne 0 ]
+    then
+        echo $[ $1 / $2 ]
+    else
+        echo -1
+    fi
+}
+
+cat test14
+#!/usr/local/bin/bash
+# using functions defined in a library file
+. ./myfuncs
+
+value1=10
+value2=5
+result1=$(addem $value1 $value2)
+result2=$(multem $value1 $value2)
+result3=$(divem $value1 $value2)
+echo "The result of adding them is: $result1"
+echo "The result of multiplying them is: $result2"
+echo "The result of dividing them is: $result3"
+
+./test14
+# The result of adding them is: 15
+# The result of multiplying them is: 50
+# The result of dividing them is: 2
+```
+
+### Using Functions on the Command Line
+
+#### Creating functions on the command line
+
+方式一：终端一行定义
+
+```sh
+function doubleit { read -p "Enter value:" value; echo $[ $value * 2 ]; }
+doubleit
+# Enter value:3
+6
+```
+
+方式二：多行定义，in this way, no need of semicolon
+
+```sh
+function multem {
+> echo $[ $1 * $2 ]
+> }
+multem 2 5
+# 10
+```
+
+**Caution** 如果你终端定义函数的时候和系统自带的函数重名了，那么这个函数会覆盖系统函数。
+
+#### Defining functions in the .bashrc file
+
+上面的这个方式，当终端退出时，函数就丢失了，你可以将函数写入 .bashrc 文件或使用 source 函数库的方式达到复用的效果。而且最方便的事，如果你将他们通过 bashrc 引入，你在写脚本的时候就不需要 source 了，直接可以调用
+
+### Following a Practical Example
+
+这章展示如何使用开源 shell 工具包
+
+1. `wget ftp://ftp.gnu.org/gnu/shtool/shtool-2.0.8.tar.gz` 下载实验包并 `tar -zxvf shtool-2.0.8.tar.gz` 解压
+2. cd 到解压后的文件夹，`./configure` + `make`, 当然你也可以用 `make test` 测试一下构建
+3. `make install` 安装库文件
+
+shtool 包含了一系列的工具集，可以使用 `shtool [options] [fucntion [options] [args]]` 来查看
+
+The shtool Library Functions
+
+| Function | Description                             |
+| :------- | :-------------------------------------- |
+| platform | Displays the platform identity          |
+| Prop     | Dispalys an animated progress propeller |
+
+只列出用到的几个
+
+```sh
+cat test16
+#!/usr/local/bin/bash
+
+shtool platform
+
+./test16
+# Mac OS X 11.4 (iX86)
+```
+
+带进度条的显示 `ls -al /usr/bin | shtool prop -p "waiting..."` 太快了，看不出效果
+
+## Chapter 18: Writing Scripts for Graphical Desktops
+
+和我这次看书的目标不符，跳过
+
+## Chapter 19: Introducing sed and gawk
+
+实际工作中，很多工作都是文字处理相关的。使用 shell 自带工具处理文字会显得很笨拙。这时候就要用到 sed 和 gawk 了。
+
+### Manipulating Text
+
+#### Getting to know the sed editor
+
+sed 是一个流处理编辑器(stream editor)，你可以设定一系列的规则，然后通过这个流编辑器处理他。
+
+sed 可以做如下事情
+
+1. Reads one data line at a time from the input
+2. Matches that data with the supplied editor commands
+3. Changes data in the stream as specified in the commands
+4. Outputs the new data to STDOUT
+
+按行一次处理文件直到所有内容处理完毕结束，格式 `sed options script file`
+
+The sed Command Options
+
+| Option    | Description                                                                            |
+| :-------- | :------------------------------------------------------------------------------------- |
+| -e script | Adds commands specified in the script to the commands run while processing the input   |
+| -f file   | Adds the commands specified in the file to the commands run while processing the input |
+| -n        | Doesn't produce output for each command, but waits for the print command               |
+
+#### Defining an editor command int the command line
+
+```sh
+echo "This is a test" | sed 's/test/big test/'
+# This is a big test
+```
+
+`s` 表示替换(substitutes), 他会用后一个字符串替换前一个. 下面是替换文件内容的例子. sed 只会在输出内容中做修改，原文件还是保持原样
+
+```sh
+cat data1.txt
+# The quick brown fox jumps over the lazy dog.
+# The quick brown fox jumps over the lazy dog.
+# The quick brown fox jumps over the lazy dog.
+# The quick brown fox jumps over the lazy dog.
+sed 's/dog/cat/' data1.txt 
+# The quick brown fox jumps over the lazy cat.
+# The quick brown fox jumps over the lazy cat.
+# The quick brown fox jumps over the lazy cat.
+# The quick brown fox jumps over the lazy cat.
+```
+
+#### Using mulitple editor commands int the command line
+
+```sh
+sed -e 's/brown/green/; s/dog/cat/' data1.txt 
+# The quick green fox jumps over the lazy cat.
+# The quick green fox jumps over the lazy cat.
+# The quick green fox jumps over the lazy cat.
+# The quick green fox jumps over the lazy cat.
+```
+
+如果不想写在一行，可以写在多行
+
+```sh
+sed -e '
+> s/brown/green/
+> s/fox/elephant/
+> s/dog/cat/' data1.txt
+# The quick green elephant jumps over the lazy cat.
+# The quick green elephant jumps over the lazy cat.
+# The quick green elephant jumps over the lazy cat.
+# The quick green elephant jumps over the lazy cat.
+```
+
+#### Reading editor commands from a file
+
+如果命令太多，也可以将他们放到文件中
+
+```sh
+cat script1.sed 
+# s/brown/green/
+# s/fox/elephant/
+# s/dog/cat/
+sed -f script1.sed data1.txt 
+# The quick green elephant jumps over the lazy cat.
+# The quick green elephant jumps over the lazy cat.
+# The quick green elephant jumps over the lazy cat.
+# The quick green elephant jumps over the lazy cat.
+```
+
+为了便于区分 shell 文件和 sed 条件，我们将 sed 条件文件存储为 `.sed` 结尾
+
+#### Getting to know the gawk program
+
+sed 让你动态改变文件内容，但是还是有局限性。gawk 提供一个更程序化的方式来处理文本信息. 这个工具包默认是没有的一般需要自己手动安装。gawk 是 GNU 版本的 awk, 通过它你可以
+
+* Define variables to store data
+* Use arithmetic and string operatiors to perate on data
+* Use structured programming concepts, such as if-then statements and loops, to add logic to your data processing
+* Generate formatted reports by extracting data elements within the data file and repositioning them in another order or format
+
+第四点经常用来批量处理数据使之更具可读性，典型应用就是处理 log 文件。
+
+#### Visiting the gawk command format
+
+格式 `gawk options program file`
+
+The gawk Options
+
+| Option       | Description                                                        |
+| :----------- | :----------------------------------------------------------------- |
+| -F fs        | Specifies a file separator for delineating data fields in a line   |
+| -f file      | Specifies a file name to read the program from                     |
+| -v var=value | Defines a variable and default value used in the gawk program      |
+| -mf N        | Specifies the maximum number of fields to process in the data file |
+| -mr N        | Specifies the maximum record size in the data file                 |
+| -W keyword   | Specifies the compatibility mode or warning level of gawk          |
+
+gawk 最大的优势是可以用编程的手段，将数据重新格式化输出
+
+#### Reading the program script from the command line
+
+格式 `gawk '{ commands }'` 比如 `gawk '{print "Hello World!"}'` 这个 demo 命令并没有做什么文字处理，只是简单的接收标准输入然后打印 Hello World. 使用 Ctrl + D 结束对话
+
+gawk 最主要的功能是提供操作文本中数据的功能，默认情况下，gawk 会提取如下变量
+
+* $0 represents the entire line of text
+* $1 represents the first data field in the line of text
+* $2 represents the second data field in the line of text
+* $n represents the nth data field in the line of text
+
+gawk 会根据命令中提供的分割符做行的分割，下面是 gawk 读取文件并显示第一行的示例
+
+```sh
+cat data2.txt 
+# One line of test text.
+# Two lines of test text.
+# Three lines of test text.
+
+gawk '{ print $1 }' data2.txt 
+# One
+# Two
+# Three
+```
+
+可以用 `-F` 指定分割符，比如你要处理 /etc/passwd 这个文件
+
+```sh
+cat /etc/passwd | tail -3
+# _coreml:*:280:280:CoreML Services:/var/empty:/usr/bin/false
+# _trustd:*:282:282:trustd:/var/empty:/usr/bin/false
+# _oahd:*:441:441:OAH Daemon:/var/empty:/usr/bin/false
+
+gawk -F: '{print $1}' /etc/passwd | tail -3 
+# _coreml
+# _trustd
+# _oahd
+```
+
+#### Using multiple commands in the program script
+
+使用分号分割 gawk 中想要运行的多个命令, 下面的命令会替换第四个 field 并打印整行
+
+```sh
+echo "My name is Rich" | gawk '{$4="Christine";print $0}'
+# My name is Christine
+```
+
+多行表示也是 OK 的
+
+```sh
+gawk '{
+> $4="Christine"
+> print $0
+> }'
+my name is Rich
+my name is Christine
+```
+
+#### Reading the program from a file
+
+和 sed 一样，gawk 也支持从文件读取命令
+
+```sh
+cat script2.gawk 
+# {print $1 "'s hoe directory is " $6}
+gawk -F: -f script2.gawk /etc/passwd | tail -3
+# _coreml's hoe directory is /var/empty
+# _trustd's hoe directory is /var/empty
+# _oahd's hoe directory is /var/empty
+```
+
+gawk 文件中包含多个命令的示例
+
+```sh
+cat script3.gawk 
+# {
+#     text = "'s home directory is "
+#     print $1 text $6
+# }
+gawk -F: -f script3.gawk /etc/passwd | tail -3
+# _coreml's home directory is /var/empty
+# _trustd's home directory is /var/empty
+# _oahd's home directory is /var/empty
+```
+
+#### Running scripts before processing data
+
+gawk 提供了 BEGIN 关键字在处理文本前做一些操作
+
+```sh
+gawk 'BEGIN {print "Hello World!"}'
+# Hello World!
+```
+
+BEGIN 处理文本的示例
+
+```sh
+cat data3.txt 
+# Line 1
+# Line 2
+# Line 3
+gawk 'BEGIN {print "The data3 File Contents: "}
+> {print $0}' data3.txt
+The data3 File Contents: 
+# Line 1
+# Line 2
+# Line 3
+```
+
+#### Running scripts after processing data
+
+和前面对应的还有一个 after 操作
+
+```sh
+gawk 'BEGIN {print "The data3 File Contents:"}
+{print $0}
+> END {print "End of File"}' data3.txt
+# The data3 File Contents:
+# Line 1
+# Line 2
+# Line 3
+# End of File
+```
+
+如果过程多了，你还可以将这个步骤写到文件中
+
+```sh
+at script4.gawk 
+BEGIN {
+    print "The latest list of users and selles"
+    print " UserID\t Shell"
+    print "-------\t------"
+    FS=":"
+}
+
+{
+    print $1 "    \t " $7
+}
+
+END {
+    print "This concludes the listing"
+}
+
+gawk -f script4.gawk  /etc/passwd
+# The latest list of users and selles
+#  UserID  Shell
+# ------- ------
+# nobody           /usr/bin/false
+# ...
+# _oahd            /usr/bin/false
+# This concludes the listing
+```
+
+### Commanding at the sed Editor Basics
+
+本章简要介绍一下 sed 的常规用法
+
+#### Introducing more substitution options
+
+##### Substituting flags
+
+```sh
+cat data4.txt 
+# This is a test of the test script.
+# This is the second test of the test script.
+sed 's/test/trial/' data4.txt 
+# This is a trial of the test script.
+# This is the second trial of the test script.
+```
+
+默认情况下，sed 只会替换每行中第一个出现的位置，如果想要处理多个位置，需要指定 flags。格式为 `s/pattern/replacemnet/flags`
+
+four types of substitution flags are available:
+
+* A number, indicating the pattern occurrence for which new text should be substituted
+* g, indicating that new text should be substituted for all occrurences of the existing text
+* p, indicating that the contents of the original line should be printed
+* w file, which means to write the results of the substitution to a file
+
+替换指定位置的示例，下面示例中只替换了第二个位置的 test
+
+```sh
+sed 's/test/trial/2' data4.txt 
+# This is a test of the trial script.
+# This is the second test of the trial script.
+```
+
+全部替换示例
+
+```sh
+sed 's/test/trial/g' data4.txt 
+This is a trial of the trial script.
+This is the second trial of the trial script.
+```
+
+打印符合匹配条件的行
+
+```sh
+cat data5.txt 
+# This is a test line.
+# This is a different line.
+
+sed -n 's/test/trial/p' data5.txt
+# This is a trial line.
+```
+
+`-w` 指定 sed 结果输出到文件
+
+```sh
+sed 's/test/trial/w test.txt' data5.txt 
+# This is a trial line.
+# This is a different line.
+cat test.txt 
+# This is a trial line.
+```
+
+##### Replacing characters
+
+Linux 系统中路径符号和 sed 中的符号是重的，也就是说，如果我要用 sed 替换路径的时候就必须用一中很累赘的写法, 比如 `sed 's/\/bin\/bash/\/bin\/csh/' /etc/passwd`
+
+PS: Mac OS 语法和这个不一样
+
+为了避免这么恶心的写法，我们可以用惊叹号(exclamation point) 代替原来的分割符 `sed 's!/bin/bash!/bin/csh!' /etc/passwd`
+
+#### Using addresses
+
+默认情况下 sed 会处理所有的行，如果你只需要处理特殊的几行，你可以使用 line address. line address 有两种模式
+
+* A numberic range of lines
+* A text pattern that filters out a line
+
+两种模式的格式都是一样的 `[address] command` 你可以将多个命令组合到一起
+
+```sh
+address {
+    command1
+    command2
+    command3
+}
+```
+
+##### Addressing the numberic line
+
+sed 会将 s 之前的内容当作行来处理, 下面的例子只替换第二行的内容
+
+```sh
+sed '2s/dog/cat/' data1.txt
+# The quick brown fox jumps over the lazy dog.
+# The quick brown fox jumps over the lazy cat.
+# The quick brown fox jumps over the lazy dog.
+# The quick brown fox jumps over the lazy dog.
+```
+
+替换多行
+
+```sh
+sed '2,3s/dog/cat/' data1.txt
+# The quick brown fox jumps over the lazy dog.
+# The quick brown fox jumps over the lazy cat.
+# The quick brown fox jumps over the lazy cat.
+# The quick brown fox jumps over the lazy dog.
+```
+
+从第 n 行还是到结束
+
+```sh
+sed '2,$s/dog/cat/' data1.txt
+# The quick brown fox jumps over the lazy dog.
+# The quick brown fox jumps over the lazy cat.
+# The quick brown fox jumps over the lazy cat.
+# The quick brown fox jumps over the lazy cat.
+```
+
+##### Using text pattern filters
+
+使用 pattern 处理特定的行，格式 `/pattern/command`, 你需要在 pattern 前面指定一个斜杠作为开始
+
+下面的示例中我们只将 root 的 sh 改为 csh
+
+```sh
+grep root /etc/passwd
+# root:*:0:0:System Administrator:/var/root:/bin/sh
+# daemon:*:1:1:System Services:/var/root:/usr/bin/false
+# _cvmsroot:*:212:212:CVMS Root:/var/empty:/usr/bin/false
+sed '/root/s/sh/csh/' /etc/passwd | grep root
+# root:*:0:0:System Administrator:/var/root:/bin/csh
+# daemon:*:1:1:System Services:/var/root:/usr/bin/false
+# _cvmsroot:*:212:212:CVMS Root:/var/empty:/usr/bin/false
+```
+
+sed 是通过正则表达式来做内容匹配的。
+
+##### Grouping commands
+
+和 gawk 一样，sed 也可以在一个命令中处理做个匹配
+
+```sh
+sed '2{
+s/fox/elephant/
+s/dog/cat/
+}' data1.txt
+# The quick brown fox jumps over the lazy dog.
+# The quick brown elephant jumps over the lazy cat.
+# The quick brown fox jumps over the lazy dog.
+# The quick brown fox jumps over the lazy dog.
+
+sed '3,${
+s/fox/elephant/
+s/dog/cat/
+}' data1.txt
+# The quick brown fox jumps over the lazy dog.
+# The quick brown fox jumps over the lazy dog.
+# The quick brown elephant jumps over the lazy cat.
+# The quick brown elephant jumps over the lazy cat.
+```
+
+##### Deleting lines
+
+`d` 用来在输出内容中删除某一行, 如果没有指定删选内容，所有输出都会被删除
+
+```sh
+cat data6.txt 
+# This is line number 1.
+# This is line number 2.
+# This is line number 3.
+# This is line number 4.
+sed 'd' data6.txt 
+
+```
+
+指定删除的行
+
+```sh
+sed '3d' data6.txt 
+# This is line number 1.
+# This is line number 2.
+# This is line number 4.
+
+sed '2,3d' data6.txt 
+# This is line number 1.
+# This is line number 4.
+
+sed '3,$d' data6.txt 
+# This is line number 1.
+# This is line number 2.
+
+sed '/number 1/d' data6.txt 
+# This is line number 2.
+# This is line number 3.
+# This is line number 4.
+```
+
+PS: 这个删除只作用的输出，原文件保持不变
+
+还有一种比较奇葩的删除方式，给两个匹配，删除会从第一个还是，第二个结束，删除内容包括当前行
+
+```sh
+'/1/,/3/d' data6.txt 
+# This is line number 4.
+```
+
+这里有一个坑，这种方式是匹配删除，当第一匹配时，删除开始，第二个匹配找到时，删除结束。如果文件中有多个地方能匹配到开始，则可能出现意想不到的情况. 比如在 data7 中，第 5 行也能匹配到 1 这个关键字，但是后面就没有 4 了，则会导致后面的内容都删掉. 如果我指定一个不存在的停止符，则所有内容都不显示了
+
+```sh
+cat data7.txt 
+# This is line number 1.
+# This is line number 2.
+# This is line number 3.
+# This is line number 4.
+# This is line number 1 again.
+# This is text you want to keep.
+# This is the last line in the file.
+
+sed '/1/,/3/d' data7.txt 
+# This is line number 4.
+
+sed '/1/,/5/d' data7.txt
+```
+
+##### Inserting and appending text
+
+sed 也允许你插入，续写内容，但是有一些特别的点
+
+* The insert command(i) adds a new line before the specified line
+* The append commadn(a) adds a new line after the specified line
+
+特别的点在于，你需要新启一行写这些新加的行, 格式为
+
+```sh
+sed '[address]command\
+new line'
+```
+
+示例如下, 不过 mac 上貌似有语法错误
+
+```sh
+echo "Test Line 2" | sed 'i\Test line 1'
+# Test line 1
+# Test Line 2
+
+echo "Test Line 2" | sed 'a\Test line 1'
+# Test Line 2
+# Test line 1
+
+echo "Test Line 2" | sed 'i\
+> Test Line 1'
+# Test Line 1
+# Test Line 2
+```
+
+上面演示的是在全部内容之前/后添加新的行，那么怎么在特定行前后做类似的操作呢，你可以用行号指定。但是不能用 range 形式的，因为定义上，i/a 是单行操作
+
+```sh
+sed '3i\
+This is an inserted line.' data6.txt
+# This is line number1.
+# This is line number2.
+# This is an inserted line.
+# This is line number3.
+# This is line number4.
+sed '3a\This is an appended line.' data6.txt
+# This is line number1.
+# This is line number2.
+# This is line number3.
+# This is an appended line.
+# This is line number4.
+```
+
+插入文本末尾
+
+```sh
+sed '$a\
+> This is a new line of text.' data6.txt
+# This is line number1.
+# This is line number2.
+# This is line number3.
+# This is line number4.
+# This is a new line of text.
+```
+
+头部插入多行, 需要使用斜杠分割
+
+```sh
+sed '1i\
+> This is one line of new text.\
+> This is another line of new text.' data6.txt
+# This is one line of new text.
+# This is another line of new text.
+# This is line number1.
+# This is line number2.
+# This is line number3.
+# This is line number4.
+```
+
+如果不指定行号，他会每一行都 insert 啊，和之前的理解不一样. append 也是一样的效果
+
+```sh
+sed 'i\head insert' data6.txt
+# head insert
+# This is line number1.
+# head insert
+# This is line number2.
+# head insert
+# This is line number3.
+# head insert
+# This is line number4
+```
+
+也能指定 range... 前面的理解果断有问题
+
+```sh
+sed '1,2a\end append' data6.txt
+# This is line number1.
+# end append
+# This is line number2.
+# end append
+# This is line number3.
+# This is line number4.
+```
+
+##### Changing lines
+
+改变行内容，用法和前面的 i/a 没什么区别
+
+```sh
+sed '3c\This is a chagned line of text.' data6.txt
+# This is line number1.
+# This is line number2.
+# This is a chagned line of text.
+# This is line number4.
+```
+
+pattern 方式替换
+
+```sh
+sed '/number3/c\
+This is a changed line of text.' data6.txt
+# This is line number1.
+# This is line number2.
+# This is a changed line of text.
+# This is line number4.
+```
+
+pattern 替换多行
+
+```sh
+cat data8.txt
+# This is line number1.
+# This is line number2.
+# This is line number3.
+# This is line number4.
+# This is line number1 again.
+# This is yet another line.
+# This is the last line in the line.
+
+sed '/number1/c\This is a changed line of text.' data8.txt
+# This is a changed line of text.
+# This is line number2.
+# This is line number3.
+# This is line number4.
+# This is a changed line of text.
+# This is yet another line.
+# This is the last line in the line.
+```
+
+指定行号替换的行为方式有点奇怪，他会将你指定的行中内容全部替换掉
+
+```sh
+cat data6.txt
+# This is line number1.
+# This is line number2.
+# This is line number3.
+# This is line number4.
+
+sed '2,3c\This is a new line of text.' data6.txt
+# This is line number1.
+# This is a new line of text.
+# This is line number4.
+```
+
+##### Transforming characters
+
+transform(y) 是唯 sed 支持的唯一一个用于替换单个字符的参数，格式 `[address]y/inchars/outchars/`. inchars 和 outchars 必须是等长的，不然会报错。他是做一对一替换，比如 `y/123/789` 他会用 1 代替 7， 2 代替 8 依次类推
+
+```sh
+sed 'y/123/789/' data8.txt
+# This is line number7.
+# This is line number8.
+# This is line number9.
+# This is line number4.
+# This is line number7 again.
+# This is yet another line.
+# This is the last line in the line.
+```
+
+而且他是全局替换，任何出现的地方都会被换掉
+
+```sh
+echo "This 1 is a test of 1 try." | sed 'y/123/456/'
+# This 4 is a test of 4 try.
+```
+
+##### Printing revisited
+
+和 p flag 类似的还有两个符号，表示如下
+
+* The p command to print a text line
+* The equal sign(=) command to print line numbers
+* The l(lowercase L) command to list a line
+
+p 是用案例, -n 可以强制只打印匹配的内容
+
+```sh
+echo "this is a test" | sed 'p'
+# this is a test
+# this is a test
+
+cat data6.txt
+# This is line number1.
+# This is line number2.
+# This is line number3.
+# This is line number4.
+
+sed -n '/number3/p' data6.txt
+# This is line number3.
+
+sed -n '2,3p' data6.txt
+# This is line number2.
+# This is line number3.
+```
+
+找到匹配的行，先打印原始值，再替换并打印。
+
+```sh
+sed -n '/3/{
+> p
+> s/line/test/p
+> }' data6.txt
+# This is line number3.
+# This is test number3.
+```
+
+equals 相关的案例，输出行号
+
+```sh
+cat data1.txt 
+# The quick brown fox jumps over the lazy dog.
+# The quick brown fox jumps over the lazy dog.
+# The quick brown fox jumps over the lazy dog.
+# The quick brown fox jumps over the lazy dog.
+sed '=' data1.txt 
+# 1
+# The quick brown fox jumps over the lazy dog.
+# 2
+# The quick brown fox jumps over the lazy dog.
+# 3
+# The quick brown fox jumps over the lazy dog.
+# 4
+# The quick brown fox jumps over the lazy dog.
+```
+
+搜索匹配的内容并打印行号
+
+```sh
+sed -n '/number 4/{
+> =
+> p
+> }' data6.txt
+# 4
+# This is line number 4.
+```
+
+l - listing lines, 打印文字和特殊字符(non-printable characters). 下面的实验中，tab 符号答应失败了，可能什么设置问题把，不过结尾符 `$` 倒是么什么问题
+
+```sh
+cat data9.txt 
+# This    line    contains    tabs.
+sed -n 'l' data9.txt 
+# This    line    contains    tabs.$
+```
+
+#### Using files with sed
+
+##### Writing to a file
+
+通过 w 将匹配的内容写到文件 `[address]w filename`, 使用 -n 只在屏幕上显示匹配部分
+
+```sh
+sed '1,2w test.txt' data6.txt 
+# This is line number 1.
+# This is line number 2.
+# This is line number 3.
+# This is line number 4.
+bash-5.1$ cat test.txt 
+# This is line number 1.
+# This is line number 2.
+```
+
+这个技巧在筛选数据的时候格外好用
+
+```sh
+cat data11.txt 
+# Blum, R       Browncoat
+# McGuiness, A  Alliance
+# Bresnahan, C  Browncoat
+# Harken, C     Alliance
+
+sed -n '/Browncoat/w Browncoats.txt' data11.txt 
+cat Browncoats.txt 
+# Blum, R       Browncoat
+# Bresnahan, C  Browncoat
+```
+
+##### Reading data from a file
+
+The read command(r) allows you to insert data contained in a separate file. format at: `[address]r filename`
+
+filename 可以是相对路径，也可以是绝对路径。你不能使用 range of address for the read command. you can only specify a single line number or text pattern address.
+
+读取目标文件中的内容并插入到指定位置**的后面**
+
+```sh
+cat data12.txt 
+# This is an added line.
+# This is the second added line.
+
+cat data6.txt 
+# This is line number 1.
+# This is line number 2.
+# This is line number 3.
+# This is line number 4.
+
+sed '3r data12.txt' data6.txt 
+# This is line number 1.
+# This is line number 2.
+# This is line number 3.
+# This is an added line.
+# This is the second added line.
+# This is line number 4.
+```
+
+pattern 同样支持
+
+```sh
+sed '/number 2/r data12.txt' data6.txt 
+# This is line number 1.
+# This is line number 2.
+# This is an added line.
+# This is the second added line.
+# This is line number 3.
+# This is line number 4.
+```
+
+添加到末尾
+
+```sh
+sed '$r data12.txt' data6.txt 
+# This is line number 1.
+# This is line number 2.
+# This is line number 3.
+# This is line number 4.
+# This is an added line.
+# This is the second added line.
+```
+
+将 read 和 delete 结合使用，我们就可以有类似于替换的效果了
+
+下面例子中我们将名单用 LIST 这个单词做为占位符，将 data11.txt 中的内容替换进去
+
+```sh
+cat notice.std 
+# Would the following people:
+# LIST
+# please report to the ship's captain.
+
+sed '/LIST/{
+> r data11.txt
+> d
+> }' notice.std
+# Would the following people:
+# Blum, R       Browncoat
+# McGuiness, A  Alliance
+# Bresnahan, C  Browncoat
+# Harken, C     Alliance
+# please report to the ship's captain.
+```
