@@ -1,5 +1,5 @@
 ---
-title: LSCASSB partiii advanced shell scripting
+title: Linux命令行与shell脚本编程大全 第三章 Shell 高级用法
 date: 2021-06-05 16:38:52
 categories:
 - Shell
@@ -164,6 +164,43 @@ echo "The new value is $result"
 ./test5b
 # Enter a value: 20
 # The new value is 40
+```
+
+**Caution** 如果函数中有多个 echo 他会将所有的 echo 内容合在一起作为 return 的值
+
+```sh
+cat freturn.sh
+#!/usr/local/bin/bash
+# multiple echo sentence in function
+
+function multiecho {
+  echo "return 1"
+  echo "return 2"
+}
+
+./freturn.sh
+# return 1
+# return 2
+```
+
+**Question** 如果我把 echo 和 return 结合使用，他会拿什么当返回值？？？
+
+结论：return 会被忽略
+
+```sh
+cat ./returnwithecho.sh
+#!/usr/local/bin/bash
+# multiple echo sentence and return in function
+
+function multiecho {
+  echo "return 1"
+  echo "return 2"
+  return 55
+}
+
+./freturn.sh
+# return 1
+# return 2
 ```
 
 ### Using Variables in Functions
@@ -1344,7 +1381,7 @@ sed '1,2w test.txt' data6.txt
 # This is line number 2.
 # This is line number 3.
 # This is line number 4.
-bash-5.1$ cat test.txt 
+cat test.txt 
 # This is line number 1.
 # This is line number 2.
 ```
@@ -1436,4 +1473,530 @@ sed '/LIST/{
 # Bresnahan, C  Browncoat
 # Harken, C     Alliance
 # please report to the ship's captain.
+```
+
+## Chapter 20: Regular Expressions
+
+### What Are Regular Expressions
+
+#### A definition
+
+A regular expression is a pattern template you define that a Linux utility users to filter text.
+
+#### Types of regular expressions
+
+Linux 系统中，一些不同的应用采用不同的正则表达式。正则表达式通过 regular expression engine 实现。Linux 世界中有两个爆款 engines:
+
+* The POSIX Basic Regular Expression(BRE) engine
+* The POSIX Extened Regular Expression(ERE) engine
+
+大多数 Linux 工具都会适配 RRE，sed 除外，它的目标是尽可能快的处理，所以只识别部分 BRE。
+
+### Defining BRE Patterns
+
+#### Plain text
+
+搜索的关键字是目标的一部分即可
+
+#### Special characters
+
+正则可以识别的特殊字符 `.*[]^${}\+?|()`, 如果你想要使用文本版的这些特殊字符，在他们前面加 backslash character(\)
+
+```sh
+echo 'The cost is $4.00' | sed -n '/\$/p'
+# The cost is $4.00
+```
+
+#### Anchor characters
+
+##### Starting at the beginning
+
+caret character(^) 指代文本开头
+
+```sh
+echo "The book store" | sed -n '/^book/p'
+# no matched
+echo "Books are great" | sed -n '/^Book/p'
+# Books are great
+```
+
+当符号出现在非开头位置，则他会被当作普通字符处理
+
+```sh
+echo "This ^ is a test" | sed -n '/s ^/p' 
+# This ^ is a test
+```
+
+##### Looking for the ending
+
+The dollar sign($) 指代了文本的结尾
+
+```sh
+echo "This is a good book" | sed -n '/book$/p'
+# This is a good book
+```
+
+#### The dot character
+
+dot 用于指代除换行外的任何字符, 如果 `.` 代表的位置没有东西，则匹配失败
+
+```sh
+cat data6 
+# This is a test of a line.
+# The cat is sleeping.
+# That is a very nice hat.
+# This test is at line four.
+# at ten o'clock we'll go home.
+sed -n '/.at/p' data6
+# The cat is sleeping.
+# That is a very nice hat.
+# This test is at line four.
+```
+
+#### Character classes
+
+character class 用于限定匹配的内容，使用 square brackets([]) 表示
+
+```sh
+sed -n '/[ch]at/p' data6
+# The cat is sleeping.
+# That is a very nice hat.
+```
+
+#### Negating character classes
+
+和前面的相反，是不包含的意思
+
+```sh
+sed -n '/[^ch]at/p' data6
+# This test is at line four.
+```
+
+#### Using ranges
+
+`sed -n '/^[0-9][0-9][0-9][0-9][0-9]$/p' data8` 这个技巧也使用于字符
+
+```sh
+sed -n '/[c-h]at/p' data6
+# The cat is sleeping.
+# That is a very nice hat.
+```
+
+也可以指定非连续的字符集合
+
+```sh
+sed -n '/[a-ch-m]at/p' data6
+# The cat is sleeping.
+# That is a very nice hat.
+echo "I'm getting too fat" | sed -n '/[a-ch-m]at/p'
+# no matched
+```
+
+#### Special character classes
+
+BRE Special Character classes
+
+|Class|Description|
+|:---|:---|
+|[[:alpha:]]|Matches any alphabetical character, either upper or lower case|
+|[[:alnum:]]|Matches any alphanumberic character 0-9, A-Z or a-z|
+|[[:blank:]]|Matches a space or Tab character|
+|[[:digit:]]|Matches a numberical digit from 0-9|
+|[[:lower:]]|Matches any lowercase alphabetical character a-z|
+|[[:print:]]|Matches any printable character|
+|[[:punct:]]|Matches a punctuation character|
+|[[:space:]]|Matches any whitespace character: space, Table, NL, FF, VT CR|
+|[[:upper:]]|Matches any uppercase alphabetical character A-Z|
+
+```sh
+echo "abc" | sed -n '/[[:digit:]]/p'
+# no matched
+echo "abc" | sed -n '/[[:alpha:]]/p'
+# abc
+echo "abc123" | sed -n '/[[:digit:]]/p'
+# abc123
+echo "This is, a test" | sed -n '/[[:punct:]]/p'
+# This is, a test
+echo "This is a test" | sed -n '/[[:punct:]]/p'
+# no matched
+```
+
+#### The asterisk
+
+星号标识字符出现一次或 n 次
+
+```sh
+echo "ik" | sed -n '/ie*k/p'
+# ik
+echo "iek" | sed -n '/ie*k/p'
+# iek
+echo "ieeeek" | sed -n '/ie*k/p'
+# ieeeek
+```
+
+星号也可以和 character class 结合使用
+
+```sh
+echo "baeeeet" | sed -n '/b[ae]*t/p'
+# baeeeet
+```
+
+### Extended Regular Expressions
+
+gawk 识别 ERE pattern，ERE 新增了一些符号来扩展功能
+
+**Caution** sed 和 gawk 采用了不同的引擎，gawk 可以适配大部分的扩展功能。sed 不能，但是 sed 更快
+
+#### The question mark
+
+问号(?)表示出现 0 次或 1 次。
+
+```sh
+"bt" | gawk '/be?t/{print $0}'
+# bt
+echo "bet" | gawk '/be?t/{print $0}'
+# bet
+echo "beet" | gawk '/be?t/{print $0}'
+# no matched
+```
+
+问号也可以结合 character class 使用
+
+```sh
+echo "bt" | gawk '/b[ae]?t/{print $0}'
+# bt
+echo "bat" | gawk '/b[ae]?t/{print $0}'
+# bat
+echo "bot" | gawk '/b[ae]?t/{print $0}'
+# no matched
+echo "bet" | gawk '/b[ae]?t/{print $0}'
+# bet
+echo "beaet" | gawk '/b[ae]?t/{print $0}'
+# no matched
+echo "baet" | gawk '/b[ae]?t/{print $0}'
+# no matched
+echo "beat" | gawk '/b[ae]?t/{print $0}'
+# no matched
+echo "beet" | gawk '/b[ae]?t/{print $0}'
+# no matched
+```
+
+#### The plus sign
+
+加号(+), 出现一次或多次
+
+```sh
+echo "beet" | gawk '/be+t/{print $0}'
+# beet
+echo "bet" | gawk '/be+t/{print $0}'
+# bet
+echo "bt" | gawk '/be+t/{print $0}'
+# no matched
+```
+
+结合方括号使用
+
+```sh
+echo "bt" | gawk '/b[ae]+t/{print $0}'
+# no matched
+echo "bat" | gawk '/b[ae]+t/{print $0}'
+# bat
+echo "bet" | gawk '/b[ae]+t/{print $0}'
+# bet
+echo "baet" | gawk '/b[ae]+t/{print $0}'
+# baet
+echo "beet" | gawk '/b[ae]+t/{print $0}'
+# beet
+echo "beeet" | gawk '/b[ae]+t/{print $0}'
+# beeet
+```
+
+#### Using braces
+
+花括号表示重复多次
+
+* m: The regular expression appears exactly m times
+* m,n: The regular expression appears at least m times, but no more than n times
+
+**Cautim** gawk 默认不识别这个模式，需要加上 --re-interval 参数增加这个功能
+
+```sh
+echo "bt" | gawk --re-interval '/be{1}t/{print $0}'
+# no matched
+echo "bet" | gawk --re-interval '/be{1}t/{print $0}'
+# bet
+echo "beet" | gawk --re-interval '/be{1}t/{print $0}'
+# no matched
+```
+
+指定出现次数的区间
+
+```sh
+echo "bt" | gawk --re-interval '/be{1,2}t/{print $0}'
+# no matched
+echo "bet" | gawk --re-interval '/be{1,2}t/{print $0}'
+# bet
+echo "beet" | gawk --re-interval '/be{1,2}t/{print $0}'
+# beet
+echo "beeet" | gawk --re-interval '/be{1,2}t/{print $0}'
+# no matched
+```
+
+同样适用于 character class
+
+```sh
+echo "bt" | gawk --re-interval '/b[ae]{1,2}t/{print $0}'
+# no matched
+echo "bat" | gawk --re-interval '/b[ae]{1,2}t/{print $0}'
+# bat
+echo "bet" | gawk --re-interval '/b[ae]{1,2}t/{print $0}'
+# bet
+echo "beat" | gawk --re-interval '/b[ae]{1,2}t/{print $0}'
+# beat
+echo "beet" | gawk --re-interval '/b[ae]{1,2}t/{print $0}'
+# beet
+echo "beeet" | gawk --re-interval '/b[ae]{1,2}t/{print $0}'
+# no matched
+```
+
+#### The pipe symbol
+
+pipe symbol 可以让你实现 OR 的逻辑，只要有一个匹配，就算 match 了 `expr1 | expr2 | ...`
+
+```sh
+echo "The cat is asleep" | gawk '/cat|dog/{print $0}'
+# The cat is asleep
+echo "The dog is asleep" | gawk '/cat|dog/{print $0}'
+# The dog is asleep
+echo "The sheep is asleep" | gawk '/cat|dog/{print $0}'
+# no matched
+```
+
+结合 character class 使用
+
+```sh
+echo "He has a hat" | gawk '/[ch]at|dog/{print $0}'
+# He has a hat
+```
+
+#### Grouping expressions
+
+可以使用括号(parentheses)表示 group. 这个 group 会被当成一个基本字符对待。
+
+```sh
+echo "Sat" | gawk '/Sat(urday)?/{print $0}'
+# Sat
+echo "Saturday" | gawk '/Sat(urday)?/{print $0}'
+# Saturday
+```
+
+group 经常和 pipe 结合使用来表示可能出现的组合
+
+```sh
+echo "cat" | gawk '/(c|b)a(b|t)/{print $0}'
+# cat
+echo "cab" | gawk '/(c|b)a(b|t)/{print $0}'
+# cab
+echo "bat" | gawk '/(c|b)a(b|t)/{print $0}'
+# bat
+```
+
+### Regular Expressions in Action
+
+实操，介绍一些使用案例
+
+#### Counting directory files
+
+统计环境变量中的可执行文件数量
+
+步骤：echo $PATH 拿到路径，通过 `:` 分割，最后通过 `ls` 列出文件
+
+```sh
+cat countfiles.sh                                     
+#!/usr/local/bin/bash
+# Count number of files in you PATH
+
+mypath=$(echo $PATH | sed 's/:/ /g')
+count=0
+for directory in $mypath
+do
+    check=$(ls $direcotry)
+    for item in $check
+    do
+        count=$[ $count + 1 ]
+    done
+    echo "$directory - $count"
+    count=0
+done
+
+./countfiles.sh 
+# /usr/local/opt/mysql@5.7/bin - 4
+# /Users/i306454/SAPDevelop/tools/maven/bin - 4
+# ....
+```
+
+#### Validating a phone number
+
+写一个脚本匹配电话号码，样本
+
+```txt
+000-000-0000
+123-456-7890
+212-555-1234
+(317)555-1234
+(202) 555-9876
+33523
+1234567890
+234.123.4567
+```
+
+规则：如下四种格式是合法的，其他都不合法
+
+```txt
+(123)456-7890
+(123) 456-7890
+123-456-7890
+123.456.7890
+```
+
+找规律:
+
+* 可能以括号开头 `^\(?`
+* 接下来三位数是 area codes, 第一位是非 0，1的数，后两位是 0-9的数 `[2-9][0-9]{2}`
+* 可能存在的结束括号 `\)?`
+* 间隔符，可以没有，可以是空格，点，横线 `(| |-|\.)` 使用 group 把它看作一个集合，使用竖线表示 or
+* 三个 0-9 的整数 `[0-9]{3}`
+* 空格(虽然例子上没显示)，横线或者点号 `( |-|\.)`
+* 最后接四位整数作为结尾 `[0-9]{4}$`
+
+完整表达式 `^\(?[2-9][0-9]{2}\)?(| |-|\.)[0-9]{3}( |-|\.)[0-9]{4}$`
+
+测试:
+
+```sh
+cat isphone              
+#!/usr/local/bin/bash
+# Script to filter out bad phone numbers
+
+gawk --re-interval '/^\(?[2-9][0-9]{2}\)?(| |-|\.)[0-9]{3}( |-|\.)[0-9]{4}$/{print $0}'
+
+cat phonelist | ./isphone       
+# 212-555-1234
+# (317)555-1234
+# (202) 555-9876
+# 234.123.4567
+```
+
+PS: 中间那个过来间隔符的操作我之前是没有意识到的
+
+#### Parsing an e-mail address
+
+验证 email 的正则表达式
+
+* 用户名部分，可以是任何数字，字母，下划线，横杠和加号 `^([a-zA-Z0-9_\-\.\+]+)@`
+* hostname 和名字部分一样的规则 `([a-zA-Z0-9_\-\.\+]+)`
+* 顶级域名值只能是字母，大于2个字符，小于5个字符 `\.([a-zA-Z]{2,5})$`
+
+完整表达式 `^([a-zA-Z0-9_\-\.\+]+)@([a-zA-Z0-9_\-\.\+]+)\.([a-zA-Z]{2,5})$`
+
+测试
+
+```sh
+cat isemail 
+#!/usr/local/bin/bash
+# Script to filter out bad email
+
+gawk --re-interval '/^([a-zA-Z0-9_\-\.\+]+)@([a-zA-Z0-9_\-\.\+]+)\.([a-zA-Z]{2,5})$/{print $0}'
+
+echo "rich@here.now" | ./isemail
+# rich@here.now
+echo "rich@here.now." | ./isemail
+# no match
+echo "rich.blum@here.now" | ./isemail
+# rich.blum@here.now
+```
+
+## Advanced sed
+
+### Looking at Multiline Commands
+
+在前面的 sed 使用过程中，你可能已经察觉到了 sed 的一个限制，他只能按行处理。当 sed 拿到一个字符流时，他会将数据按照 newline characters 做分割，每次处理一行。
+
+但是实际工作你总会遇到需要处理多行的情况，比如你要替换文件中的 `Linux System Administrators Group` 关键字，但是他可能分布在两行中，这时如果你安之前的 sed 做替换就会漏掉一些内容
+
+为了应对这种情况，sed 提供了三个关键字来处理这种情况
+
+* N add the next line in the data stream to create a multiline group for processing
+* D delete a single line in multiline group
+* P prints a single line in a multiline group
+
+#### Navigating the next command
+
+##### Using the single-line next command
+
+下面的示例中，我们有5行文本，1，3，5有值，2，4为空。目标是通过 sed 只移除第二行
+
+```sh
+cat data1.txt
+# This is the header line.
+
+# This is a data line.
+
+# This is the last line.
+```
+
+错误示范，会删掉所有空行
+
+```sh
+sed '/^$/d' data1.txt       
+# This is the header line.
+# This is a data line.
+# This is the last line.
+```
+
+通过使用 `n` 这个关键字，可以将下一行也包括到搜索范围内
+
+```sh
+sed '/header/{n ; d}' data1.txt
+# This is the header line.
+# This is a data line.
+
+# This is the last line
+```
+
+PS: MacOS 不支持，在 Ubantu 上做的实验
+
+简单一句话就是，n 不会和前一句做合并处理. 说实话上面的例子还是不怎么理解，可能得另外找点书补充一下
+
+##### Combining lines of text
+
+The single-line next command moves the next line of text from the data stream into the processing space(called the pattern space) of the sed editor.
+
+The multiline version of the next command(which uses a captial N) adds the next line of text to the text already in the pattern space.
+
+大写的 N 可以将两行拼成一行处理，中间用换行符隔开
+
+```sh
+cat data2.txt
+# This is the header line.
+# This is the first data line.
+# This is the second data line
+# This is the last line
+
+sed '/first/{N; s/\n/ /}' data2.txt
+# This is the header line.
+# This is the first data line. This is the second data line
+# This is the last line
+```
+
+上面的例子中，我们找到包含 first 的行，然后将下一行接上一起处理，处理的时候，将换行替换为空格
+
+再举一个例子
+
+```sh
+cat data3.txt
+# On Tuesday, the Linux System
+# Administrator's group meeting will be held.
+# All System Administrators should attend.
+# Thank you for your attendance.
 ```

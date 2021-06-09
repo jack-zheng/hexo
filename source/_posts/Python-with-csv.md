@@ -136,3 +136,62 @@ def printList(line):
 for sub in sortedList:
     printList(sub)
 ```
+
+## Issues
+
+**2021-06-09** python+csv & shell 出问题了
+
+Scenraio: 自动化脚本实现批量创建 Jira ticket
+
+Issue desc: python + csv lib 组织一个数据源文件，之后使用 shell 读取，但是数据读取后，format 出问题了，会在末尾包含一个换行
+
+Reproduce:
+
+```python
+import csv
+with open('eggs.csv', 'w', newline='') as csvfile:
+    spamwriter = csv.writer(csvfile)
+    spamwriter.writerow(['Spam', 'Baked Beans'])
+```
+
+使用 cat 或者 sed 查看，可以看到末尾包含一个 `\r` 换行符号
+
+```sh
+cat -v eggs.csv 
+# Spam,Baked Beans^M
+sed -n 'l' eggs.csv                                                      
+# Spam,Baked Beans\r$
+```
+
+在 sh 脚本中我会解析这个 csv 文件并使用解析得到的内容作为后续操作的输入.
+
+重现的脚本中，我们拿到解析的 csv 内容并打印出来。打印内容分别加了前后坠便于观察。可以看到第二个 echo 的后缀打印会出问题
+
+```sh
+cat reproduce.sh 
+#!/usr/local/bin/bash
+while IFS=',' read -r col1 col2
+do
+  echo --$col1---
+  echo --$col2---
+done < eggs.csv
+echo "Finish reproduce script..."
+
+./reproduce.sh
+# --Spam---
+# ---aked Beans
+# Finish reproduce script...
+```
+
+将 `echo --$col2---` 换成 `echo "--$col2---" | sed -n 'l'` 之后再次运行 reproduce.sh 输出如下
+
+```sh
+./reproduce.sh
+# --Spam---
+# --Baked Beans\r---$
+# Finish reproduce script...
+```
+
+回头细想了一下 `read -r` 是不会读取结尾没有换行的行的，在这个例子中 `\r---` 已经是下一行了，而且没有换行，自动跳过了（；￣ェ￣）
+
+Solution: 我的解决方案是，不用 python 的 csv write 方法，直接把解析的过程用基础的 `file.write()` 完成，一行写完自己写 `\n` 做换行即可
