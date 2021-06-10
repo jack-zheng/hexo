@@ -626,7 +626,7 @@ sed 可以做如下事情
 3. Changes data in the stream as specified in the commands
 4. Outputs the new data to STDOUT
 
-按行一次处理文件直到所有内容处理完毕结束，格式 `sed options script file`
+按行依次处理文件直到所有内容处理完毕结束，格式 `sed options script file`
 
 The sed Command Options
 
@@ -1022,7 +1022,7 @@ sed 是通过正则表达式来做内容匹配的。
 
 ##### Grouping commands
 
-和 gawk 一样，sed 也可以在一个命令中处理做个匹配
+和 gawk 一样，sed 也可以在一个命令中处理多个匹配
 
 ```sh
 sed '2{
@@ -1114,7 +1114,7 @@ sed 也允许你插入，续写内容，但是有一些特别的点
 * The insert command(i) adds a new line before the specified line
 * The append commadn(a) adds a new line after the specified line
 
-特别的点在于，你需要新启一行写这些新加的行, 格式为
+特别的点在于，你需要新起一行写这些新加的行, 格式为
 
 ```sh
 sed '[address]command\
@@ -1298,7 +1298,7 @@ echo "This 1 is a test of 1 try." | sed 'y/123/456/'
 * The equal sign(=) command to print line numbers
 * The l(lowercase L) command to list a line
 
-p 是用案例, -n 可以强制只打印匹配的内容
+p 使用案例, -n 可以强制只打印匹配的内容
 
 ```sh
 echo "this is a test" | sed 'p'
@@ -1596,17 +1596,17 @@ echo "I'm getting too fat" | sed -n '/[a-ch-m]at/p'
 
 BRE Special Character classes
 
-|Class|Description|
-|:---|:---|
-|[[:alpha:]]|Matches any alphabetical character, either upper or lower case|
-|[[:alnum:]]|Matches any alphanumberic character 0-9, A-Z or a-z|
-|[[:blank:]]|Matches a space or Tab character|
-|[[:digit:]]|Matches a numberical digit from 0-9|
-|[[:lower:]]|Matches any lowercase alphabetical character a-z|
-|[[:print:]]|Matches any printable character|
-|[[:punct:]]|Matches a punctuation character|
-|[[:space:]]|Matches any whitespace character: space, Table, NL, FF, VT CR|
-|[[:upper:]]|Matches any uppercase alphabetical character A-Z|
+| Class       | Description                                                    |
+| :---------- | :------------------------------------------------------------- |
+| [[:alpha:]] | Matches any alphabetical character, either upper or lower case |
+| [[:alnum:]] | Matches any alphanumberic character 0-9, A-Z or a-z            |
+| [[:blank:]] | Matches a space or Tab character                               |
+| [[:digit:]] | Matches a numberical digit from 0-9                            |
+| [[:lower:]] | Matches any lowercase alphabetical character a-z               |
+| [[:print:]] | Matches any printable character                                |
+| [[:punct:]] | Matches a punctuation character                                |
+| [[:space:]] | Matches any whitespace character: space, Table, NL, FF, VT CR  |
+| [[:upper:]] | Matches any uppercase alphabetical character A-Z               |
 
 ```sh
 echo "abc" | sed -n '/[[:digit:]]/p'
@@ -1991,7 +1991,7 @@ sed '/first/{N; s/\n/ /}' data2.txt
 
 上面的例子中，我们找到包含 first 的行，然后将下一行接上一起处理，处理的时候，将换行替换为空格
 
-再举一个例子
+再举一个需要测试的数据落在两个段落中的例子
 
 ```sh
 cat data3.txt
@@ -2000,3 +2000,412 @@ cat data3.txt
 # All System Administrators should attend.
 # Thank you for your attendance.
 ```
+
+第一个关键字替换失败，第二个成功，因为第一个用的换行，匹配用的空格
+
+```sh
+sed 'N;s/System Administrator/Desktop User/' data3.txt
+# On Tuesday, the Linux System
+# Administrator's group meeting will be held.
+# All Desktop Users should attend.
+# Thank you for your attendance
+```
+
+替换成功不过换行消失了
+
+```sh
+sed 'N;s/System.Administrator/Desktop User/' data3.txt
+# On Tuesday, the Linux Desktop User's group meeting will be held.
+# All Desktop Users should attend.
+# Thank you for your attendance.
+```
+
+使用两个替换分别应对换行和空格的情况
+
+```sh
+sed 'N
+> s/System\nAdministrator/Desktop\nUser/
+> s/System Administrator/Desktop User/
+> ' data3.txt
+# On Tuesday, the Linux Desktop
+# User's group meeting will be held.
+# All Desktop Users should attend.
+# Thank you for your attendance.
+```
+
+这里还有一个小问题，由于命令是 N 开头，他会先拿下一行到 pattern space，当处理最后一行时，下一行为空，直接结束了，如果要替换的目标在最后一行就会有遗漏
+
+```sh
+cat data4.txt
+# On Tuesday, the Linux System
+# Administrator's group meeting will be held.
+# All System Administrators should attend.
+
+sed 'N
+s/System\nAdministrator/Desktop\nUser/
+s/System Administrator/Desktop User/
+' data4.txt
+# On Tuesday, the Linux Desktop
+# User's group meeting will be held.
+# All System Administrators should attend.
+```
+
+这时你可以换一下顺序
+
+```sh
+sed '
+> s/System Administrator/Desktop User/
+> N
+> s/System\nAdministrator/Desktop\nUser/
+> ' data4.txt
+# On Tuesday, the Linux Desktop
+# User's group meeting will be held.
+# All Desktop Users should attend.
+```
+
+（；￣ェ￣）简直无情，太繁琐了
+
+#### Navigating the multiline delete command
+
+当使用 N 的方式做 delete 的时候，它会将匹配到的两行内容全部删掉
+
+```sh
+cat data4.txt
+# On Tuesday, the Linux System
+# Administrator's group meeting will be held.
+# All System Administrators should attend.
+
+sed 'N ; /System\nAdministrator/d' data4.txt
+# All System Administrators should attend.
+```
+
+sed 提供了一个只删除第一行内容的 flag - D
+
+```sh
+sed 'N ; /System\nAdministrator/D' data4.txt
+# Administrator's group meeting will be held.
+# All System Administrators should attend.
+```
+
+类似的技巧可以用来删除文章开头的空行
+
+```sh
+cat -n data1.txt
+    #  1
+    #  2	This is the header line.
+    #  3
+    #  4	This is a data line.
+    #  5
+    #  6	This is the last line
+
+sed '/^$/{N;/header/D}' data1.txt | cat -n
+    #  1	This is the header line.
+    #  2
+    #  3	This is a data line.
+    #  4
+    #  5	This is the last line
+```
+
+#### Navigating the multiline print command
+
+和 p 对应的还有一个 P， 用法和上面的 D 一样，如果用 p 会打印两行，而用 P 则只打印第一行
+
+```sh
+sed -n 'N ; /System\nAdministrator/P' data3.txt
+# On Tuesday, the Linux System
+sed -n 'N ; /System\nAdministrator/p' data3.txt
+# On Tuesday, the Linux System
+# Administrator's group meeting will be held.
+```
+
+### Holding Space
+
+pattern space 是 sed 用于存放正在的处理文本的空间。但是这并不是存放文本的唯一的地方，还有一个叫做 hold space. 下列是五个可以操作 hold space 的命令
+
+The sed Editor Hold Space Commands
+
+| Command | Description                                   |
+| :------ | :-------------------------------------------- |
+| h       | Copies pattern space to hold space            |
+| H       | Appends pattern space to hold space           |
+| g       | Copies hold space to pattern sapce            |
+| G       | Appends hold space to pattern space           |
+| x       | Exchanges contents of pattern and hold spaces |
+
+这些命令可以让 pattern space 空出来处理其他文本。一般来说，你在通过 h/H 将 pattern space 的内容移动到 hold space 之后，都会再通过 g/G/x 将内容在放回到 pattern space 中。
+
+```sh
+cat data2.txt
+# This is the header line.
+# This is the first data line.
+# This is the second data line
+# This is the last line
+
+sed -n '/first/ {h ; p ; n ; p ; g ; p }' data2.txt
+# This is the first data line.
+# This is the second data line
+# This is the first data line.
+```
+
+解析上面的命令
+
+1. sed 通过 RE 过滤包含 first 的语句
+2. 匹配到目标语句后，开始执行 {} 中的内容，h 会将语句 copy 到 hold space 中
+3. 第一个 p 打印当前 pattern space 中内容
+4. n 提取下一行内容并放到 pattern space
+5. 第二个 p 打印当前 pattern space 中内容, 即包含 second 的语句
+6. g 将 hold space 中的内容再 copy 回去
+7. 第三个 p 打印当前 pattern space 中内容, 即包含 first 的语句
+
+### Negating a Command
+
+使用叹号(!)对操作取反
+
+```sh
+cat data2.txt
+# This is the header line.
+# This is the first data line.
+# This is the second data line
+# This is the last line
+sed -n '/header/p' data2.txt
+# This is the header line.
+sed -n '/header/!p' data2.txt
+# This is the first data line.
+# This is the second data line
+# This is the last line
+```
+
+N 也有取反操作, 之前的例子
+
+```sh
+sed 'N
+s/System\nAdministrator/Desktop\nUser/
+s/System Administrator/Desktop User/
+' data4.txt
+# On Tuesday, the Linux Desktop
+# User's group meeting will be held.
+# All System Administrators should attend.
+
+sed '$!N
+> s/System\nAdministrator/Desktop\nUser/
+> s/System Administrator/Desktop User/
+> ' data4.txt
+# On Tuesday, the Linux Desktop
+# User's group meeting will be held.
+# All Desktop Users should attend.
+```
+
+`$!N` 消失 最后一行不执行 N 的操作。。。
+
+通过上面介绍的这些技巧，你可以利用 hold space 做文本倒序的功能
+
+1. Place a line in the pattern space
+2. Place the line from the pattern space to the hold space
+3. Put the next line of text in the pattern space
+4. Append the hold space to the pattern space
+5. Place everything in the pttern space into the hold space
+6. Repeat step 3-5 until you've put all the lines in reverse oder in the hold space
+7. Retrieve the lines, and print them
+
+```sh
+cat -n data2.txt
+    #  1	This is the header line.
+    #  2	This is the first data line.
+    #  3	This is the second data line
+    #  4	This is the last line
+
+sed -n '{1!G; h; $p}' data2.txt | cat -n
+    #  1	This is the last line
+    #  2	This is the second data line
+    #  3	This is the first data line.
+    #  4	This is the header line.
+```
+
+* `1!G` 第一行时不用将 hold space 的内容 append 过来, 不加的话会多一个空行
+*  `h` copy to hold space
+*  `$p` 最后一行的话 打印
+
+这尼玛也太精巧了把，我感觉我想不出来 （；￣ェ￣）
+
+PS: 如果真要倒序，直接用 tac 即可， cat 的倒写
+
+### Changing the Flow
+
+默认情况下 sed 是从头到尾的处理的，但是他也提供了方法改变处理顺序，感觉像有点像结构化语言
+
+#### Branching
+
+效果和叹号一样，只不过他是会根据 address 的标识批量操作而已
+
+branch command: [address]b [label]
+
+下面的例子中， sed 在做替换是根据 `2,3b` 跳过了第 2-3 行
+
+```sh
+cat data2.txt
+# This is the header line.
+# This is the first data line.
+# This is the second data line.
+# This is the last line.
+
+sed '{2,3b; s/This is/Is this/; s/line./test?/}' data2.txt
+# Is this the header test?
+# This is the first data line.
+# This is the second data line.
+# Is this the last test?
+```
+
+label 的作用是设置一个跳点，本来看了第一个例子我还想说它很像 if condition 但是感觉上说他是 goto 还更恰当一点。 label 最长为 7 个字符
+
+下面的例子，jump1 更像是 if, 如果 match 则跳过条件直接执行 :jump1 之后的命令
+
+```sh
+cat data2.txt
+# This is the header line.
+# This is the first data line.
+# This is the second data line.
+# This is the last line.
+
+sed '{/first/b jump1; s/This is the/No jump on/
+> :jump1
+> s/This is the/Jump here on/}' data2.txt
+# No jump on header line.
+# Jump here on first data line.
+# No jump on second data line.
+# No jump on last line.
+```
+
+当 b 匹配的内容出现，则跳过第一个替换，直接执行后一个。更骚的操作是下面的这个循环替换逗号的操作
+
+```sh
+echo "This, is, a, test, to, remove, commas." | sed -n '{
+> :start
+> s/,//1p
+> b start
+> }'
+# This is, a, test, to, remove, commas.
+# This is a, test, to, remove, commas.
+# This is a test, to, remove, commas.
+# This is a test to, remove, commas.
+# This is a test to remove, commas.
+# This is a test to remove commas.
+# ^C
+```
+
+这个例子大致意思我是懂得，但是不清楚为什么执行操作的时候文本一直有效，不会被冲掉吗？可能要深入了解一下 pattern space 才能直到原因。这个cmd 需要 Ctrl + C 才能强制结束, 下面是改进版本
+
+```sh
+echo "This, is, a, test, to, remove, commas." | sed -n '{
+:start
+s/,//1p
+/,/b start
+}'
+# This is, a, test, to, remove, commas.
+# This is a, test, to, remove, commas.
+# This is a test, to, remove, commas.
+# This is a test to, remove, commas.
+# This is a test to remove, commas.
+# This is a test to remove commas.
+```
+
+#### Testing
+
+语法和 branch 很像 `[address]t [label]`
+
+test command provide a cheap way to perform a basic if-then statement on the text in the data stream
+
+```sh
+cat data2.txt
+# This is the header line.
+# This is the first data line.
+# This is the second data line.
+# This is the last line.
+sed '{
+> s/first/matched/
+> t
+> s/This is the/No match on/
+> }' data2.txt
+# No match on header line.
+# This is the matched data line.
+# No match on second data line.
+# No match on last line.
+```
+
+如果 t 前面的 cmd 匹配则执行，不然直接执行后一个命令。之前循环替换逗号的例子用 t 的形式
+
+```sh
+echo "This, is, a, test, to, remove, commas." | sed -n '{
+:start
+s/,//1p
+t start
+}'
+# This is, a, test, to, remove, commas.
+# This is a, test, to, remove, commas.
+# This is a test, to, remove, commas.
+# This is a test to, remove, commas.
+# This is a test to remove, commas.
+# This is a test to remove commas.
+```
+
+### Replacing via a Pattern
+
+通过 sed 做精确替换还是简单的, 比如下面的例子要在 cat 外面添加双引号
+
+```sh
+echo "The cat sleeps in his hat." | sed 's/cat/"cat"/'
+# The "cat" sleeps in his hat.
+```
+
+但是如果你想要在所有 .at 外面加双引号可能有会遇到问题了
+
+```sh
+echo "The cat sleeps in his hat." | sed 's/.at/".at"/g'
+# The ".at" sleeps in his ".at".
+```
+
+#### Using the ampersand
+
+为了解决上面的问题，sed 提供了 `&` 符号指代匹配的字符
+
+```sh
+echo "The cat sleeps in his hat." | sed 's/.at/"&"/g'
+# The "cat" sleeps in his "hat".
+```
+
+#### Replacing individual words
+
+如果你只想替换一部分内容，说人话就是支持 group 的模式减少 typing
+
+```sh
+echo "This System Administractor manual" | sed '
+s/\(System\) Administractor/\1 User/'
+# This System User manual
+```
+
+* group 需要用反斜线
+* 指代 group 用反斜线加数子
+
+下面的例子中我们用原句中的一部分代替原有部分
+
+```sh
+echo "That furry cat is pretty" | sed 's/furry \(.at\)/\1/'
+# That cat is pretty
+```
+
+这个技巧在插入值的时候很好用
+
+```sh
+echo "1234567" | sed '{                                    
+:start
+s/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/
+t start
+}'
+# 1,234,567
+```
+
+有两个分组
+
+* .*[0-9]
+* [0-9]{3}
+
+第一次替换结果为 1234,567，第二次 1,234,567
