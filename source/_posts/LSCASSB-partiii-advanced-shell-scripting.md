@@ -615,6 +615,20 @@ shtool platform
 
 ### Manipulating Text
 
+Mac 自带的 sed 工具和书上的是不一样的，好像做了很多裁剪，很多 flag 是不支持的，可以通过 brew 重新装一个
+
+```sh
+brew install gnu-sed
+# 会给出添加 PATH 的提示，按照提示添加到配置文件中(.zshrc)
+brew info gnu-sed
+# ==> Caveats
+# GNU "sed" has been installed as "gsed".
+# If you need to use it as "sed", you can add a "gnubin" directory
+# to your PATH from your bashrc like:
+
+#     PATH="/usr/local/opt/gnu-sed/libexec/gnubin:$PATH"
+```
+
 #### Getting to know the sed editor
 
 sed 是一个流处理编辑器(stream editor)，你可以设定一系列的规则，然后通过这个流编辑器处理他。
@@ -2409,3 +2423,998 @@ t start
 * [0-9]{3}
 
 第一次替换结果为 1234,567，第二次 1,234,567
+
+### Placing sed Commands in Script
+
+展示一些脚本中使用 sed 的技巧
+
+#### Using wrappers
+
+每次使用 sed 的时候现打会很累赘，你可以将他们写到脚本中并调用
+
+下面的例子中，我们将之前实现的 reverse 功能通过脚本调用
+
+```sh
+cat reverse.sh
+#!/bin/bash
+# Shell wrapper for sed editor script.
+#           to reverse text file lines
+sed -n '{1!G; h; $p}' $1
+
+cat data2.txt
+# This is the header line.
+# This is the first data line.
+# This is the second data line.
+# This is the last line.
+
+./reverse.sh data2.txt
+# This is the last line.
+# This is the second data line.
+# This is the first data line.
+# This is the header line.
+```
+
+#### Redirecting sed output
+
+sed 操作后的输出可以用 $() 包裹起来作为结果引用
+
+下面的例子中我们计算斐波那契额数列并用之前写的 sed 表达式为它加上逗号分割
+
+```sh
+cat fact.sh                        
+#!/usr/local/bin/bash
+# Add commas to number in factorial answer
+
+factorial=1
+counter=1
+number=$1
+#
+while [ $counter -le $number ]
+do 
+    factorial=$[ $factorial * $counter ]
+    counter=$[ $counter + 1 ]
+done
+#
+result=$(echo $factorial | sed '{
+:start
+s/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/
+t start
+}')
+#
+echo "The result is $result"
+#
+
+./fact.sh 20      
+# The result is 2,432,902,008,176,640,000
+```
+
+### Creating sed Utilities 
+
+分享一些数据处理函数
+
+#### Spacing with double lines
+
+为文本中的每一行后面新家一个空行, 如果最后一行不想加空格，可以用叹号取反
+
+```sh
+sed 'G' data2.txt  | cat -n
+    #  1	This is the header line.
+    #  2
+    #  3	This is the first data line.
+    #  4
+    #  5	This is the second data line.
+    #  6
+    #  7	This is the last line.
+    #  8
+ sed '$!G' data2.txt  | cat -n
+    #  1	This is the header line.
+    #  2
+    #  3	This is the first data line.
+    #  4
+    #  5	This is the second data line.
+    #  6
+    #  7	This is the last line.
+```
+
+#### Spacing files that may have blanks
+
+如果你的文件中已经存在空行了，那么用上面的技巧，你的文件中可能出现多个空行，怎么保证空行数只有一个呢
+
+```sh
+sed '$!G' data6.txt | cat -n
+    #  1	This is line number1.
+    #  2
+    #  3	This is line number2.
+    #  4
+    #  5
+    #  6
+    #  7	This is line number3.
+    #  8
+    #  9	This is line number4.
+```
+
+解决方案，现将所有空格去了，再做加空行的操作
+
+```sh
+sed '/^$/d; $!G;' data6.txt  | cat  -A
+# This is line number 1.$
+# $
+# This is line number 2.$
+# $
+# This is line number 3.$
+# $
+# This is line number 4.$
+```
+
+PS: 使用 `i\` 的语法添加空行会带有一个空格，推荐使用 `1G` 的方式
+
+#### Numbering lines in a file
+
+
+19 章时我们介绍过用 `=` 显示行号的操作
+
+```sh
+sed '=' data2.txt 
+1
+This is the header line.
+2
+This is the first data line.
+3
+This is the second data line.
+4
+This is the last line.
+```
+
+这种格式有点奇怪，更友好的方式应该时行号和字串在一行中，这里可以用 N
+
+```sh
+sed '=' data2.txt | sed 'N; s/\n/ /'
+# 1 This is the header line.
+# 2 This is the first data line.
+# 3 This is the second data line.
+# 4 This is the last line.
+```
+
+这中方式最大的好处是，没有加行额外的空格，一些其他的工具，比如 nl, cat -n 会在结果前面添加一些空格
+
+
+```sh
+nl data2.txt
+    #  1	This is the header line.
+    #  2	This is the first data line.
+    #  3	This is the second data line.
+    #  4	This is the last line.
+
+cat -n data2.txt
+    #  1	This is the header line.
+    #  2	This is the first data line.
+    #  3	This is the second data line.
+    #  4	This is the last line.
+```
+
+#### Printing last lines
+
+只打印最后一行
+
+```sh
+sed -n '$p' data2.txt
+# This is the last line.
+```
+
+使用类似的技巧，你可以显示末尾几行数据，这种做法叫做 rolling window
+
+rolling window 中我们结合使用 N，将整块的文本存储到 pattern space 中
+
+下面的例子中我们将用 sed 显示文本最后10行的内容
+
+```sh
+cat data7.txt
+# This is line 1.
+# This is line 2.
+# This is line 3.
+# This is line 4.
+# This is line 5.
+# This is line 6.
+# This is line 7.
+# This is line 8.
+# This is line 9.
+# This is line 10.
+# This is line 11.
+# This is line 12.
+# This is line 13.
+# This is line 14.
+# This is line 15.
+
+sed '{
+:start
+$q; N; 11,$D
+b start
+}' data7.txt
+# This is line 6.
+# This is line 7.
+# This is line 8.
+# This is line 9.
+# This is line 10.
+# This is line 11.
+# This is line 12.
+# This is line 13.
+# This is line 14.
+# This is line 15.
+```
+
+* `$q` 退出
+* `N` 将下一行 append 到 pattern space
+*  `11,$D` 如果当前为 10 行以后，删除第一行
+
+#### Deleting lines
+
+这节将介绍一些快速移除空白行的操作
+
+##### Deleting consecutive blank lines
+
+删除多余空行，这里用了另外一种解决方案。这里的规则是，起始于任何非空行，终止于空行的内容都不会被删除
+
+```sh
+cat -n data8.txt   
+    #  1  This is the header line.
+    #  2
+    #  3
+    #  4  This is the first data line.
+    #  5
+    #  6  This is the second data line.
+    #  7
+    #  8
+    #  9  This is the last line.
+    # 10
+
+sed '/./,/^$/!d' data8.txt | cat -n
+    #  1  This is the header line.
+    #  2
+    #  3  This is the first data line.
+    #  4
+    #  5  This is the second data line.
+    #  6
+    #  7  This is the last line.
+    #  8
+```
+
+##### Deleting leading blank lines
+
+删除开头部分的空行
+
+```sh
+cat -n data9.txt 
+    #  1
+    #  2
+    #  3  This is line one.
+    #  4
+    #  5  This is line two.
+
+sed '/./,$!d' data9.txt | cat -n
+    #  1  This is line one.
+    #  2
+    #  3  This is line two.
+```
+
+任何有内容的行开始，到结束不删除
+
+##### Deleting trailing blank lines
+
+删除结尾部分的空行要比删除开头部分的空行麻烦一点，需要一些技巧和循环
+
+```sh
+cat -n data10.txt
+    #  1	This is the first line.
+    #  2	This is the second line.
+    #  3
+    #  4
+    #  5
+
+sed '{
+:start
+/^\n*$/{$d; N; b start}
+}' data10.txt | cat -n
+    #  1	This is the first line.
+    #  2	This is the second line.
+```
+
+匹配任何只包含换行的 line, 如果是最后一行，则删除，如果不是就再次执行
+
+#### Removing HTML tags
+
+```sh
+cat data11.txt
+# <html>
+# <head>
+# <title>This is the page title</title>
+# </head>
+# <body>
+# <p>
+# This is the <b>first</b> line in the Web page.
+# This should provide some <i>useful</i>
+# information to use in our sed script.
+# </p>
+# </body>
+# </html>
+```
+
+如果直接使用 `s/<.*>//g` 会出问题，一些文本类似 `<b>abc</b>` 也会被删除
+
+```sh
+sed 's/<.*>//g' data11.txt | cat -n 
+    #  1
+    #  2   
+    #  3    
+    #  4   
+    #  5   
+    #  6    
+    #  7     This is the  line in the Web page.
+    #  8     This should provide some 
+    #  9     information to use in our sed script.
+    # 10    
+    # 11   
+    # 12
+```
+
+这个是由于 sed 将内嵌的 `>` 识别为 `.*` 的一部分了，可以使用 `s/<[^>]*>//g` 修复, 再结合删除空格的语法
+
+```sh
+sed 's/<[^>]*>//g; /^$/d' data11.txt             
+# This is the page title
+# This is the first line in the Web page.
+# This should provide some useful
+# information to use in our sed script.
+```
+
+## Chapter 22: Advanced gawk
+
+### Using Variables
+
+gawk 支持两种不同类型的变量
+
+* Built-in variables
+* User-defined variables
+
+#### Built-in variables
+
+这一节将展示 gawk 自带变量的使用办法
+
+##### The field and record separator variables
+
+The gawk Data Field and REcord Variables
+
+| Variable    | Description                                                                              |
+| :---------- | :--------------------------------------------------------------------------------------- |
+| FIELDWIDTHS | A space-separated list of numbers defining the exact width(in spaces) of each data field |
+| FS          | Input field separator character                                                          |
+| RS          | Input record separator character                                                         |
+| OFS         | Output field separator character                                                         |
+| ORS         | Output record separator character                                                        |
+
+下面的例子展示了 FS 的使用方法, 通过 FS 指定分割符，只输出每行前三组数据
+
+```sh
+cat data1
+# data11,data12,data13,data14,data15
+# data21,data22,data23,data24,data25
+# data31,data32,data33,data34,data35
+
+gawk 'BEGIN{FS=","} {print $1, $2, $3}' data1
+# data11 data12 data13
+# data21 data22 data23
+# data31 data32 data33
+```
+
+OFS 指定输出时候的分割符
+
+```sh
+gawk 'BEGIN{FS=","; OFS="--"} {print $1, $2, $3}' data1
+# data11--data12--data13
+# data21--data22--data23
+# data31--data32--data33
+```
+
+有些数据并不是用固定的分割符做刷剧划分的，而是用的位置，这个时候你就要用到 FIELDWIDTHS 了
+
+```sh
+cat data1b                                                               
+# 1005.3247596.37
+# 115-2.349194.00
+# 05810.1298100.1
+
+gawk 'BEGIN{FIELDWIDTHS="3 5 2 5"} {print $1, $2, $3 $4}' data1b
+# 100 5.324 7596.37
+# 115 -2.34 9194.00
+# 058 10.12 98100.1
+```
+
+PS: FIEDLWIDTHS 必须是常数，变量是不支持的
+
+RS/ORS 用于行数据，默认的 RS 即为换行符
+
+下面是一个解析电话号码的例子，我们想要解析出用户和对应的电话号码
+
+```sh
+cat data2    
+# Riley Mullen
+# 123 Main Street
+# Chicago, IL  60601
+# (312)555-1234
+
+# Frank Williams
+# 456 Oak Street
+# Indianapolis, IN  46201
+# (317)555-9876
+
+# Haley Snell
+# 4231 Elm Street
+# Detroit, MI 48201
+# (313)555-4938
+```
+
+如果我们还是用默认的换行符，则不能解析。我们可以将 `\n` 设置为字段分割符，将空行作为行分割符
+
+```sh
+gawk 'BEGIN{FS="\n"; RS=""} {print $1, $4}' data2 
+# Riley Mullen (312)555-1234
+# Frank Williams (317)555-9876
+# Haley Snell (313)555-4938
+```
+
+##### Data variables
+
+More gawk Built-In Variables
+
+| Variable | Description                                                                                |
+| :------- | :----------------------------------------------------------------------------------------- |
+| ARGC     | The number of command line parameters present                                              |
+| ARGIND   | The index in ARGV of the current file being proecssed                                      |
+| ARGV     | An array of command line parameters                                                        |
+| CONVFMT  | The conversion format for numbers(see the printf statement), with a default value of %.6 g |
+| ENVIRON  | An associative array of the current shell environment variables and their values           |
+| FNR      | The current record number in the data file                                                 |
+| NF       | The total number of data fields in the data file                                           |
+| NR       | The number of input records processed                                                      |
+
+其他懒得打了
+
+ARGC, ARGV 和之前 shell 变量概念很想，不过 ARGV 是不会将 script 统计在内的，这个有点不一样
+
+```sh
+gawk 'BEGIN{print ARGC, ARGV[0], ARGV[1]}' data1
+# 2 gawk data1
+```
+
+PS: 表达式也有点不一样，变量前不需要加 $
+
+获取环境变量
+
+```sh
+gawk '                                          
+quote> BEGIN{
+quote> print ENVIRON["HOME"]                    
+quote> print ENVIRON["PATH"]                    
+quote> }'
+# /Users/i306454
+# ...
+```
+
+FNR, NF, NR 可以标记 field 的位置。 NF 可以让你在不清楚 field 数量的情况下处理最后一个 field
+
+```sh
+gawk 'BEGIN{FS=":"; OFS="--"} {print $1,$NF}' /etc/passwd
+# _nearbyd--/usr/bin/false
+# ...
+cat /etc/passwd | tail -3                                
+# _coreml:*:280:280:CoreML Services:/var/empty:/usr/bin/false
+# _trustd:*:282:282:trustd:/var/empty:/usr/bin/false
+# _oahd:*:441:441:OAH Daemon:/var/empty:/usr/bin/false
+```
+
+FNR 表示当前 field 的序号. 下面的例子中，我们传入两个 data file, 每个文件处理完后 FNR 会重制
+
+```sh
+gawk 'BEGIN{FS=","}{print $1, "FNR="FNR}' data1 data1    
+# data11 FNR=1
+# data21 FNR=2
+# data31 FNR=3
+# data11 FNR=1
+# data21 FNR=2
+# data31 FNR=3
+```
+
+NR 则是将所有的传入数据一起统计的
+
+```sh
+gawk 'BEGIN{FS=","}                            
+quote> {print $1, "FNR="FNR, "NR="NR}
+quote> END{print "There were", NR, "records processed"}' data1 data1
+# data11 FNR=1 NR=1
+# data21 FNR=2 NR=2
+# data31 FNR=3 NR=3
+# data11 FNR=1 NR=4
+# data21 FNR=2 NR=5
+# data31 FNR=3 NR=6
+# There were 6 records processed
+```
+
+单个文件处理时 FNR 和 NR 是一致的，多个文件处理时不一样
+
+#### User-defined variables
+
+gawk 自第一变量不能以数字开头，大小写敏感
+
+##### Assigning variables in scripts
+
+使用方式了 shell 中一致, 下面例子中我们将数字，字符赋值给变量，而且支持计算
+
+```sh
+gawk '             
+quote> BEGIN{
+quote> testing="This is a test"
+quote> print testing                            
+quote> testing=45        
+quote> print testing                            
+quote> }'
+# This is a test
+# 45
+gawk 'BEGIN{x=4; x=x*2+3; print x}'
+# 11
+```
+
+##### Assigning variables on the command line
+
+支持从终端接受参数的形式
+
+```sh
+cat script1               
+# BEGIN{FS=","}
+# {print $n}
+
+gawk -f script1 n=2 data1                                      
+# data12
+# data22
+# data32
+gawk -f script1 n=3 data1
+# data13
+# data23
+# data33
+```
+
+开起来挺好的，但是这里有一个问题，终端传入的参数，BEGIN 里面是访问不到的
+
+```sh
+cat script2                    
+# BEGIN{print "The starting value is", n; FS=","}
+# {print $n}
+
+gawk -f script2 n=3 data1
+# The starting value is 
+# data13
+# data23
+# data33
+```
+
+你可以用 -v 参数解决这个问题
+
+```sh
+gawk -v n=3 -f script2 data1
+# The starting value is 3
+# data13
+# data23
+# data33
+```
+
+### Working with Arrays
+
+和很多其他语言一样，gawk 提供了 array 相关的功能，叫做 associative arrays. 个人感觉可以叫做 map, 行为方式是根据键拿值
+
+#### Defining array variables
+
+格式 `var[index] = element`
+
+```sh
+gawk 'BEGIN{
+captial["Illinois"] = "Springfield"
+print captial["Illinois"]
+}'
+# Springfield
+```
+
+对数字也有效
+
+```sh
+gawk 'BEGIN{
+quote> var[1] = 34                         
+quote> var[2] = 3                          
+quote> total = var[1] + var[2]
+quote> print total                              
+quote> }'
+# 37
+```
+
+#### Iterating through array variables
+
+gawk 中遍历 map 的语法
+
+```sh
+for (var in arry)
+{
+    statements
+}
+```
+
+遍历 map 的示例
+
+```sh
+gawk 'BEGIN{
+quote> var["a"] = 1                        
+quote> var["g"] = 2
+quote> var["m"] = 3
+quote> var["u"] = 4
+quote> for (test in var)            
+quote> {
+quote> print "index:", test, " - value:", var[test]
+quote> }
+quote> }'
+# index: u  - value: 4
+# index: m  - value: 3
+# index: a  - value: 1
+# index: g  - value: 2
+```
+
+背后的实现和 hash 一样，不保证顺序
+
+#### Deleting array variables
+
+语法：delete array[index]
+
+```sh
+gawk 'BEGIN{
+var["a"] = 1
+var["g"] = 2
+for (test in var)
+{
+    print "Index:", test, " - Value:", var[test]
+}
+delete var["g"]             
+print "---"                              
+for (test in var)   
+    print "Index:", test, " - Value:", var[test]
+}'
+# Index: a  - Value: 1
+# Index: g  - Value: 2
+# ---
+# Index: a  - Value: 1
+```
+
+PS: 原来他也支持单行 for 循环吗。。。
+
+### Using Patterns
+
+本章介绍如何定义 pattern
+
+#### Regular expressions
+
+gawk 同时支持 BRE 和 ERE，正则要保证出现在 program script 之前
+
+```sh
+gawk 'BEGIN{FS=","} /11/{print $1}' data1    
+# data11
+
+gawk 'BEGIN{FS=","} /,d/{print $1}' data1
+# data11
+# data21
+# data31
+```
+
+#### The matching operator
+
+gawk 使用波浪线(~)表示匹配的动作，格式 `$1 ~ /^data/`. 下面的例子中，我们适配所有出现在 $2 这个位置上的 field， 以 data2 开头的即使我们寻在的目标
+
+```sh
+gawk 'BEGIN{FS=","} $2 ~ /^data2/{print $0}' data1
+# data21,data22,data23,data24,data25
+```
+
+这个技巧在 gawk 中经常被用到, 下面是在 passwd 文件中寻找包含 root 关键字的行
+
+```sh
+gawk -F: '$1 ~/root/{print $1, $NF}' /etc/passwd               
+# root /bin/sh
+# _cvmsroot /usr/bin/false
+```
+
+这个操作还支持取反 `$1 !~ /expression/`
+
+```sh
+gawk 'BEGIN{FS=","} $2 !~ /^data2/{print $0}' data1
+# data11,data12,data13,data14,data15
+# data31,data32,data33,data34,data35
+```
+
+#### Mathematical expressions
+
+gawk 还支持直接在表达式中做计算的, 下面的例子中我们统计 group 等于 0 的用户
+
+```sh
+gawk -F: '$4 == 0{print $1}' /etc/passwd           
+# root
+```
+
+支持的算数表达式
+
+* x == y: Value x is equal to y
+* x <= y
+* x < y
+* x >=y
+* x > y
+
+`==` 也可以用于文字表示式，但是表示的是精确匹配
+
+```sh
+gawk -F, '$1 == "data"{print $1}' data1  
+# no match
+gawk -F, '$1 == "data11"{print $1}' data1
+# data11
+```
+
+### Structured Commands
+
+结构化脚本
+
+#### The if statement
+
+支持 if-then-else 语法
+
+```sh
+if (condition)
+    statement1
+
+# 一行的格式也 OK
+if (condition) statement1
+```
+
+```sh
+cat data4 
+# 10
+# 5
+# 13
+# 50
+# 34
+gawk '{if ($1 > 20) print $1}' data4               
+# 50
+# 34
+```
+
+如果 if 有多个条件，需要用花括号包裹
+
+```sh
+gawk '{                             
+quote> if ($1 > 20)             
+quote> { 
+quote> x = $1 * 2                              
+quote> print x                                  
+quote> }
+quote> }' data4
+# 100
+# 68
+```
+
+带 else 的例子
+
+```sh
+gawk '{
+quote> if ($1 > 20)             
+quote> {
+quote> x = $1 * 2                              
+quote> print x                                  
+quote> } else 
+quote> {
+quote> x = $1 / 2                              
+quote> print x                                  
+quote> }}' data4
+# 5
+# 2.5
+# 6.5
+# 100
+# 68
+```
+
+也可以写在一行, 格式 `if (condition) statement1; else statement2`
+
+```sh
+gawk '{if ($1 > 20) print $1 * 2; else print $1 /2}' data4
+# 5
+# 2.5
+# 6.5
+# 100
+# 68
+```
+
+#### The while statement
+
+格式：
+
+```sh
+while (condition)
+{
+    statements
+}
+```
+
+```sh
+cat data5 
+# 130 120 135
+# 160 113 140
+# 145 170 215
+
+gawk '{
+total = 0
+i = 1
+while (i<4)
+{
+total += $i
+i++
+}
+avg = total / 3
+print "Average:", avg
+}' data5
+# Average: 128.333
+# Average: 137.667
+# Average: 176.667
+```
+
+支持 break，continue 打断循环
+
+```sh
+gawk '{
+quote> total = 0      
+quote> i = 1   
+quote> while (i<4)                                  
+quote> {
+quote>      total += $i    
+quote>      if (i == 2)              
+quote>           break             
+quote>      i++     
+quote> }
+quote> avg = total/2                                                          
+quote> print "The average of the first two data is:" , avg
+quote> }' data5
+# The average of the first two data is: 125
+# The average of the first two data is: 136.5
+# The average of the first two data is: 157.5
+```
+
+#### The do-while statement
+
+格式：
+
+```sh
+do
+{
+    statemnets
+} while (condition)
+```
+
+```sh
+gawk '{
+quote> total = 0      
+quote> i = 1   
+quote> do                          
+quote> {
+quote> total += $i    
+quote> i++     
+quote> } while (total < 150)
+quote> print total }' data5                     
+# 250
+# 160
+# 315
+```
+
+#### The for statement
+
+格式 `for( variable assignment; condition; iteration process)`
+
+```sh
+gawk '{
+quote> total = 0      
+quote> for  (i=1; i<4; i++)
+quote> {
+quote> total += $i    
+quote> }
+quote> avg = total /3                                                           
+quote> print "Average:", avg                    
+quote> }' data5
+# Average: 128.333
+# Average: 137.667
+# Average: 176.667
+```
+
+### Formatted Printing
+
+gawk 使用 printf 格式化输出 `printf "format string", var1, var2...`
+
+format string 是格式化输出的关键，采用的 C 语言相同的 printf 功能。格式为 `%[modifier]control-letter`
+
+Format Specifier Control Letters
+
+| Control Letter | Desciption                                                                  |
+| :------------- | :-------------------------------------------------------------------------- |
+| c              | Displays a number as an ASCII character                                     |
+| d              | Displays an integer value                                                   |
+| i              | Displays an integer value(same as d)                                        |
+| e              | Displays a number in scientific notation                                    |
+| f              | Displays a floating-point value                                             |
+| g              | Displays eigher scientific notation or floating point, whichever is shorter |
+| o              | Displays an octal value                                                     |
+| s              | Displays a text string                                                      |
+| x              | Displays a hexadecimal value                                                |
+| X              | Displays a hexadecimal value, but using capital letters for A through F     |
+
+```sh
+gawk 'BEGIN{                                       
+quote> x = 1 * 100                              
+quote> printf "The answer is: %e\n", x
+quote> }'
+# The answer is: 1.000000e+02
+```
+
+出来上面的控制符外，printf 还提供了另外三个控制项
+
+* width, 控制宽度，小于设定值，给出空格补全，大于则用实际值覆盖
+* prec, 
+* -(minus sign) 强制左对齐
+
+```sh
+gawk 'BEGIN{FS="\n"; RS=""} {print $1, $4}' data2
+# Riley Mullen (312)555-1234
+# Frank Williams (317)555-9876
+# Haley Snell (313)555-4938
+
+gawk 'BEGIN{FS="\n"; RS=""} {printf "%s %s \n", $1, $4}' data2
+# Riley Mullen (312)555-1234 
+# Frank Williams (317)555-9876 
+# Haley Snell (313)555-4938
+```
+
+如果用 printf 需要自己打印换行符号，这种设定当你想讲多行数据放在一行的时候就很好使
+
+```sh
+gawk 'BEGIN{FS=","} {printf "%s ", $1} END{printf "\n"}' data1
+# data11 data21 data31
+```
+
+下面的例子我们通过 modifier 格式化名字这个字段
+
+```sh
+gawk 'BEGIN{FS="\n"; RS=""} {printf "%16s %s\n ", $1, $4}' data2
+#     Riley Mullen (312)555-1234
+#    Frank Williams (317)555-9876
+#       Haley Snell (313)555-4938
+```
+
+默认是右对齐的，可以使用 minus sign 来左对齐
+
+```sh
+# gawk 'BEGIN{FS="\n"; RS=""} {printf "%-16s %s\n ", $1, $4}' data2Riley Mullen     (312)555-1234
+# Frank Williams   (317)555-9876
+# Haley Snell      (313)555-4938
+```
+
+格式化浮点类型
+
+```sh
+gawk '{                                                          
+quote> total = 0      
+quote> for (i=0; i<4; i++)          
+quote> {
+quote> total += $i    
+quote> }
+quote> avg = total / 3                                                          
+quote> printf "Average: %5.1f\n", avg
+quote> }' data5
+# Average: 171.7
+# Average: 191.0
+# Average: 225.0
+```
