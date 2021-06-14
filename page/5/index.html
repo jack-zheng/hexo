@@ -206,6 +206,155 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/04/09/Design-pattern-adapter-and-facade/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/04/09/Design-pattern-adapter-and-facade/" class="post-title-link" itemprop="url">适配器模式和外观模式</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-04-09 12:40:47" itemprop="dateCreated datePublished" datetime="2021-04-09T12:40:47+08:00">2021-04-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-14 22:55:45" itemprop="dateModified" datetime="2021-06-14T22:55:45+08:00">2021-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index">
+                    <span itemprop="name">设计模式</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/HFDP/" itemprop="url" rel="index">
+                    <span itemprop="name">HFDP</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p><strong>The Adapter Pattern</strong> converts the interface of a class into another interface the clients expect.  Adapter lets classes work together that couldn’t otherwise because of incompatible interfaces.<br>适配器模式将一种接口类型转化为另一种，他用来解决类中的类型适配问题</p>
+</blockquote>
+<blockquote>
+<p><strong>The Facade Pattern</strong> provides a unified interface to a set of interfaces in a subsytem.  Facade defines a higher-level interface that makes the subsystem easier to use.<br>提供一套更 high-level 的接口简化子系统调用</p>
+</blockquote>
+<h2 id="引子"><a href="#引子" class="headerlink" title="引子"></a>引子</h2><p>举例一个现实生活中的案例：插头转换器。比如我们的手机是两脚插头，但是家里只有三脚插座，那怎么整？答案是找一个插口转化器，把两脚的转成三脚的即可。adapter 模式的工作方式和这种解决方案完全一致。</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">+--------------------+     +-------+     +-------------+                                                                                              </span><br><span class="line">| Your existing      |     |Adaptor|     | Vendor      |                                                                                              </span><br><span class="line">| system             |     |       |     | Class       |                                                                                              </span><br><span class="line">|                    |---&gt; |       |----&gt;|             |                                                                                              </span><br><span class="line">|                    |     |       |     |             |                                                                                              </span><br><span class="line">|                    |     |       |     |             |                                                                                              </span><br><span class="line">+--------------------+     +-------+     +-------------+                                                                                              </span><br></pre></td></tr></table></figure>
+
+<p>好了现在让我们用第一章的鸭子来举例子。话说有一天，PM 突然找到小码农说，我们的客户有一个特殊要求，想要一种有着火鸡内在的鸭子。小码农满脸的黑人问号，这也行？但是 PM 不管，说下周就要产品掩饰了，你自己看着办。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* 假设之前的鸭子实现是通过 interface 来做的, 我们现在已有了 Duck，Turkey 的接口定义，以及 Turkey 的实现</span></span><br><span class="line"><span class="comment">* 我们只需要新建一个适配器，实现目标接口的方法，并且适配器持有需要代理的实例。在对应的方法中通过调用实例方法即可</span></span><br><span class="line"><span class="comment">**/</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Duck</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">quack</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">fly</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Turkey</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">gobble</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">fly</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WildTurkey</span> <span class="keyword">implements</span> <span class="title">Turkey</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">gobble</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Gobble...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">fly</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Fly a short distance...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DuckAdaptor</span> <span class="keyword">implements</span> <span class="title">Duck</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Turkey turkey;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DuckAdaptor</span><span class="params">(Turkey turkey)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.turkey = turkey;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">quack</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        turkey.gobble();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">fly</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        turkey.fly();</span><br><span class="line">        turkey.fly();</span><br><span class="line">        turkey.fly();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        DuckAdaptor adaptor = <span class="keyword">new</span> DuckAdaptor(<span class="keyword">new</span> WildTurkey());</span><br><span class="line">        adaptor.quack();</span><br><span class="line">        adaptor.fly();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Gobble...</span></span><br><span class="line"><span class="comment">// Fly a short distance...</span></span><br><span class="line"><span class="comment">// Fly a short distance...</span></span><br><span class="line"><span class="comment">// Fly a short distance...</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="UML"><a href="#UML" class="headerlink" title="UML"></a>UML</h2><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">+-----------------+     +---------------+                                                                                                            </span><br><span class="line">|                 |---&gt; |&lt;&lt;Interface&gt;&gt;  |                                                                                                            </span><br><span class="line">|    Client       |     |  Target       |                                                                                                            </span><br><span class="line">|                 |     +---------------+                                                                                                            </span><br><span class="line">+-----------------+             ^                                                                                                                    </span><br><span class="line">                                |                                                                                                                    </span><br><span class="line">                                |                                                                                                                    </span><br><span class="line">                                |                                                                                                                    </span><br><span class="line">                         +-------------+      +-----------------+                                                                                    </span><br><span class="line">                         |   Adapter   |      |   Adaptee       |                                                                                    </span><br><span class="line">                         |-------------| ----&gt;|-----------------|                                                                                    </span><br><span class="line">                         | request()   |      | specialRequest()|                                                                                    </span><br><span class="line">                         |             |      |                 |                                                                                    </span><br><span class="line">                         +-------------+      +-----------------+                                                                                    </span><br></pre></td></tr></table></figure>
+
+<p>这里展示的是类 adaptor, 还有一种 class adaptor，但是由于 Java 是单继承的，语法上就不能实现 class adaptor 的这种定义。不过支持多继承的语言是可以实现的。</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">+-----------------+      +-------------+     +-----------------+                                                                                     </span><br><span class="line">|                 |---&gt;  |   Target    |     |   Adaptee       |                                                                                     </span><br><span class="line">|    Client       |      |-------------|     |-----------------|                                                                                     </span><br><span class="line">|                 |      | request()   |     | specialRequest()|                                                                                     </span><br><span class="line">+-----------------+      |             |     |                 |                                                                                     </span><br><span class="line">                         +-------------+     +-----------------+                                                                                     </span><br><span class="line">                                     ^         ^                                                                                                     </span><br><span class="line">                                     |         |                                                                                                     </span><br><span class="line">                                     |         |                                                                                                     </span><br><span class="line">                                     |         |                                                                                                     </span><br><span class="line">                                    +-------------+                                                                                                  </span><br><span class="line">                                    |   Adapter   |                                                                                                  </span><br><span class="line">                                    |-------------|                                                                                                  </span><br><span class="line">                                    | request()   |                                                                                                  </span><br><span class="line">                                    |             |                                                                                                  </span><br><span class="line">                                    +-------------+                                                                                                  </span><br></pre></td></tr></table></figure>
+
+<h2 id="项目中可能用到-Adapter-的地方"><a href="#项目中可能用到-Adapter-的地方" class="headerlink" title="项目中可能用到 Adapter 的地方"></a>项目中可能用到 Adapter 的地方</h2><p>比如老代码中，很多地方会用到 Enumeration 类，但是在 JDK 1.2 时就推出了 Iterator 接口代替他。如果新的代码都时采用的 Iterator 做迭代，那么怎么兼容老的 Enumeration 呢。</p>
+<p>可以新建一个 adapter 类，实现 iterator 接口，持有 enumeration 实现。在 client 中通过这个 adaptor 访问 enumeration。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AdapterToEnum</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Vector&lt;String&gt; strings = <span class="keyword">new</span> Vector&lt;&gt;();</span><br><span class="line">        strings.add(<span class="string">&quot;a&quot;</span>);</span><br><span class="line">        strings.add(<span class="string">&quot;b&quot;</span>);</span><br><span class="line">        strings.add(<span class="string">&quot;c&quot;</span>);</span><br><span class="line">        strings.add(<span class="string">&quot;d&quot;</span>);</span><br><span class="line"></span><br><span class="line">        Enumeration&lt;String&gt; enumeration = strings.elements();</span><br><span class="line"></span><br><span class="line">        IteratorAdapter adapter = <span class="keyword">new</span> IteratorAdapter(enumeration);</span><br><span class="line">        <span class="keyword">while</span> (adapter.hasNext()) &#123;</span><br><span class="line">            System.out.println(adapter.next());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// PS: 书中视角 EnumerationAdapter, 但是我觉得不是应该叫 迭代器适配器 才合适吗？应该是我和作者对数据流向的理解相反，但是对这里的使用没有造成影响</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">IteratorAdapter</span> <span class="keyword">implements</span> <span class="title">Iterator</span>&lt;<span class="title">String</span>&gt; </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Enumeration&lt;String&gt; enumeration;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">IteratorAdapter</span><span class="params">(Enumeration&lt;String&gt; enumeration)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.enumeration = enumeration;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">hasNext</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> enumeration.hasMoreElements();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">next</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> enumeration.nextElement();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Facade-外观-Pattern"><a href="#Facade-外观-Pattern" class="headerlink" title="Facade(外观) Pattern"></a>Facade(外观) Pattern</h2><p>假设我们要组一套家庭影院，我们有好多设备，比如投影仪，音响，爆米花机，DVD 等。我们每次想要看一场电影需要做如下事情</p>
+<ol>
+<li>开启 爆米花 机</li>
+<li>开始爆米花</li>
+<li>开启影响</li>
+<li>设置音量</li>
+<li>开启投影仪</li>
+<li>摄制亮度</li>
+<li>开启 DVD</li>
+<li>塞入光盘</li>
+<li>…</li>
+</ol>
+<p>而且等我们看完了，我们还需要逐个将上面的设备关掉，一套下来，可能以后再也不看电影了。</p>
+<p>Facade 模式就是用来解决这种问题的。</p>
+<blockquote>
+<p>A facade not only simplifies an interface, it decouples a client from a subsystem of components.<br>Facades and adapters may wrap multiple classes, but a facade’s intent is to simplify, while an adapter’s is to convert the interface to something different.<br>外观模式不仅仅是简化接口，同时他还将子系统和客户端解耦了<br>Facade 和 Adapter 都会在类外面包一层，但是 Facade 是为了简化，而 Adapter 是为了转换</p>
+</blockquote>
+<p>为了简化代码，我们一拿 DVD 和投影仪举例</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Player 类表示 DVD 机的开/关/放电影功能</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DvdPlayer</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">startPlayer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Start DVD Player...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">endPlayer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;End DVD Player...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">playMovie</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Show movie: &quot;</span> + name + <span class="string">&quot; ...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 表示屏幕功能</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Screen</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">downScreen</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Down screen...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">upScreen</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Up screen...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 家庭影院简化版</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HomeTheaterFacade</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Screen screen;</span><br><span class="line">    <span class="keyword">private</span> DvdPlayer player;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">HomeTheaterFacade</span><span class="params">(Screen screen, DvdPlayer player)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.screen = screen;</span><br><span class="line">        <span class="keyword">this</span>.player = player;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">startMovie</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        screen.downScreen();</span><br><span class="line">        player.startPlayer();</span><br><span class="line">        player.playMovie(name);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">endMovie</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        screen.upScreen();</span><br><span class="line">        player.endPlayer();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 客户端播放和结束放映</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        HomeTheaterFacade facade = <span class="keyword">new</span> HomeTheaterFacade(<span class="keyword">new</span> Screen(), <span class="keyword">new</span> DvdPlayer());</span><br><span class="line">        facade.startMovie(<span class="string">&quot;&lt;&lt;NeZha&gt;&gt;&quot;</span>);</span><br><span class="line">        facade.endMovie();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Down screen...</span></span><br><span class="line"><span class="comment">// Start DVD Player...</span></span><br><span class="line"><span class="comment">// Show movie: &lt;&lt;NeZha&gt;&gt; ...</span></span><br><span class="line"><span class="comment">// Up screen...</span></span><br><span class="line"><span class="comment">// End DVD Player...</span></span><br></pre></td></tr></table></figure>
+
+<p>其实说是 Facade 模式，但是我这里平时经常会用到，只不过我一般把这种类型的东西叫做 Util 或者 Action 类。封装一些经常使用的方法，感觉效果上还是很相似的。</p>
+<h2 id="The-Principle-of-Least-Knowledge"><a href="#The-Principle-of-Least-Knowledge" class="headerlink" title="The Principle of Least Knowledge"></a>The Principle of Least Knowledge</h2><p>这个规则是说，我们在写代码的时候要尽量减少涉及到多种返回值类型的链式调用。</p>
+<blockquote>
+<p>Principle of Least Knowledge - talk only to your immediate friends.</p>
+</blockquote>
+<p>在你的代码中，你只能调用下列对象的方法：</p>
+<ul>
+<li>对象本身</li>
+<li>通过方法参数传入的对象</li>
+<li>任何在本类中创建的对象</li>
+<li>任何本对象的 field</li>
+</ul>
+<p>这样做可以减少两个对象之间的 dependencies 但是同时也有一个弊端，你需要写跟多的代码，项目会变得更大，还可能会性能下降。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/04/09/Design-pattern-strategy/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +386,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-11 20:57:32" itemprop="dateModified" datetime="2021-06-11T20:57:32+08:00">2021-06-11</time>
+                <time title="修改时间：2021-06-14 22:55:45" itemprop="dateModified" datetime="2021-06-14T22:55:45+08:00">2021-06-14</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -381,7 +530,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-11 20:57:32" itemprop="dateModified" datetime="2021-06-11T20:57:32+08:00">2021-06-11</time>
+                <time title="修改时间：2021-06-14 22:55:45" itemprop="dateModified" datetime="2021-06-14T22:55:45+08:00">2021-06-14</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -501,7 +650,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-11 20:57:32" itemprop="dateModified" datetime="2021-06-11T20:57:32+08:00">2021-06-11</time>
+                <time title="修改时间：2021-06-14 22:55:45" itemprop="dateModified" datetime="2021-06-14T22:55:45+08:00">2021-06-14</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -638,7 +787,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-11 20:57:32" itemprop="dateModified" datetime="2021-06-11T20:57:32+08:00">2021-06-11</time>
+                <time title="修改时间：2021-06-14 22:55:45" itemprop="dateModified" datetime="2021-06-14T22:55:45+08:00">2021-06-14</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -767,7 +916,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-11 20:57:32" itemprop="dateModified" datetime="2021-06-11T20:57:32+08:00">2021-06-11</time>
+                <time title="修改时间：2021-06-14 22:55:45" itemprop="dateModified" datetime="2021-06-14T22:55:45+08:00">2021-06-14</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -867,7 +1016,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-11 20:57:32" itemprop="dateModified" datetime="2021-06-11T20:57:32+08:00">2021-06-11</time>
+                <time title="修改时间：2021-06-14 22:55:45" itemprop="dateModified" datetime="2021-06-14T22:55:45+08:00">2021-06-14</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -979,7 +1128,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-11 20:57:32" itemprop="dateModified" datetime="2021-06-11T20:57:32+08:00">2021-06-11</time>
+                <time title="修改时间：2021-06-14 22:55:45" itemprop="dateModified" datetime="2021-06-14T22:55:45+08:00">2021-06-14</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1077,7 +1226,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-11 20:57:32" itemprop="dateModified" datetime="2021-06-11T20:57:32+08:00">2021-06-11</time>
+                <time title="修改时间：2021-06-14 22:55:45" itemprop="dateModified" datetime="2021-06-14T22:55:45+08:00">2021-06-14</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1172,7 +1321,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-11 20:57:32" itemprop="dateModified" datetime="2021-06-11T20:57:32+08:00">2021-06-11</time>
+                <time title="修改时间：2021-06-14 22:55:45" itemprop="dateModified" datetime="2021-06-14T22:55:45+08:00">2021-06-14</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1270,137 +1419,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/03/09/Java-HashMap-things/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/03/09/Java-HashMap-things/" class="post-title-link" itemprop="url">Java HashMap things</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-03-09 15:16:54" itemprop="dateCreated datePublished" datetime="2021-03-09T15:16:54+08:00">2021-03-09</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-11 20:57:32" itemprop="dateModified" datetime="2021-06-11T20:57:32+08:00">2021-06-11</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/java/" itemprop="url" rel="index">
-                    <span itemprop="name">java</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>4.3k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>4 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>今天再看一个 defect 的时候涉及到 HashMap 存储的问题，回头想一下发现自己只对 HashMap 以 key 的 Hash 作为依存储依据这点比较清楚外，其他的印象很模糊，写这篇文章记录一下。想要了解的问题如下：</p>
-<ul>
-<li><input checked="" disabled="" type="checkbox"> HashMap 再存储时是否只用 key 的 hash 做依据，和 value 有关系吗 - 只和 key 有关系，只用 key 的 hashCode 做 hash 后的结果作为判断依据</li>
-<li><input checked="" disabled="" type="checkbox"> HashMap 底层使用什么数据结构存储的 - array + list/tree(红黑树)</li>
-<li><input checked="" disabled="" type="checkbox"> HashMap 的类继承关系</li>
-</ul>
-<p>以后对 HashMap 的知识点都可以考虑在这篇中做扩展，做成一个总集篇</p>
-<p>有趣的知识点：</p>
-<ul>
-<li>为什么因子选在 0.75? - 在头部注释中给出了解释，根据统计学的结果，hash 冲突符合泊松分布，在 7-8 之间时冲突概率最低</li>
-</ul>
-<h2 id="HashMap-图示"><a href="#HashMap-图示" class="headerlink" title="HashMap 图示"></a>HashMap 图示</h2><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"> +-------------------------------------------+ </span><br><span class="line"> |      |      |       |       |             | </span><br><span class="line"> | Node | Node | Tree  | Node  | ...         | </span><br><span class="line"> |      |      |       |       |             | </span><br><span class="line"> |      |      |       |       |             | </span><br><span class="line"> |------|------|       |------ |             | </span><br><span class="line"> | next | next |       | next  |             | </span><br><span class="line"> +------|------|-------|-------|-------------+ </span><br><span class="line">    .                                          </span><br><span class="line">    .                                          </span><br><span class="line">    .                                          </span><br><span class="line">+------+                                       </span><br><span class="line">| Node |                                       </span><br><span class="line">|      |                                       </span><br><span class="line">|      |                                       </span><br><span class="line">|----- |                                       </span><br><span class="line">| next |                                       </span><br><span class="line">+------+                                       </span><br></pre></td></tr></table></figure>
-
-<h2 id="HashMap-的类继承关系"><a href="#HashMap-的类继承关系" class="headerlink" title="HashMap 的类继承关系"></a>HashMap 的类继承关系</h2><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">  I               I                                                                                                                               </span><br><span class="line"> +--------+      +----------------------------+                                                                                                   </span><br><span class="line"> |  Map   |      | Map/Cloneable/Serializable |                                                                                                   </span><br><span class="line"> +--------+      +----------------------------+                                                                                                   </span><br><span class="line">      ^                    ^                                                                                                                      </span><br><span class="line">      |                    |                                                                                                                      </span><br><span class="line"> C    |                    |                                                                                                                      </span><br><span class="line">+-------------+            |                                                                                                                      </span><br><span class="line">| AbstractMap |            |                                                                                                                      </span><br><span class="line">+-------------+            |                                                                                                                      </span><br><span class="line">      ^                    |                                                                                                                      </span><br><span class="line">      |                    |                                                                                                                      </span><br><span class="line">      |                    |                                                                                                                      </span><br><span class="line">      |                    |                                                                                                                      </span><br><span class="line">      |                    |                                                                                                                      </span><br><span class="line">   +-------------------------------+                                                                                                              </span><br><span class="line">   |           HashMap             |                                                                                                              </span><br><span class="line">   |                               |                                                                                                              </span><br><span class="line">   +-------------------------------+ </span><br></pre></td></tr></table></figure>
-
-<p>JDK8 中对 HashMap 的实现做了改动，原先是 Array + link list, 时间复杂度 O(1)+O(n) 当哈希冲突严重时，性能就取决于后者了。新的实现采用 Array + list/tree, 当 list 长度大于 8 时就会将 list 转化为红黑树，即 O(1)+O(logn) 比原先会有提升</p>
-<h2 id="基本数据结构"><a href="#基本数据结构" class="headerlink" title="基本数据结构"></a>基本数据结构</h2><p>Map.Entry: 定义了基本 get/set 方法的接口</p>
-<p>HashMap.Node: 单项可延伸的链表结构</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> <span class="keyword">int</span> hash;</span><br><span class="line"><span class="keyword">final</span> K key;</span><br><span class="line">V value;</span><br><span class="line">Node&lt;K,V&gt; next;</span><br></pre></td></tr></table></figure>
-
-<p>LinkedHashMap.Entry: 增加了 before，after 属性，但是没有调用，好奇怪</p>
-<p>HashMap.TreeNode: 红黑树实现，extends LinkedHashMap.Entry, 但是在我看来直接继承 HashMap.Node 不是更好？</p>
-<h2 id="put-方法实现"><a href="#put-方法实现" class="headerlink" title="put 方法实现"></a>put 方法实现</h2><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">               +----------------+                             </span><br><span class="line">               |   Start        |                             </span><br><span class="line">               | Give node info |                             </span><br><span class="line">               +----------------+                             </span><br><span class="line">                       |                                      </span><br><span class="line">                       |                                      </span><br><span class="line">                       v                                      </span><br><span class="line">                 +-----------+                                </span><br><span class="line">                 |If Conflict|                                </span><br><span class="line">                 +-----------+                                </span><br><span class="line">             No   /         \   Yes                           </span><br><span class="line">                 /           \                                </span><br><span class="line">                v             v                               </span><br><span class="line">+------------------+      +------------------+                </span><br><span class="line">|  Creae new node  |      | Check key &amp; node |                </span><br><span class="line">+------------------+      +------------------+                </span><br><span class="line"> |                            /      |      \                 </span><br><span class="line"> |                           /       |       \                </span><br><span class="line"> |                          /        |        \               </span><br><span class="line"> |                         /         |         \              </span><br><span class="line"> |                        /          |          \             </span><br><span class="line"> |                       v           v           v            </span><br><span class="line"> |       +---------------+ +------------------+ +-----------+ </span><br><span class="line"> |       | key same with | |Node is tree type | |List type  | </span><br><span class="line"> |       | first element | +------------------+ +-----------+ </span><br><span class="line"> |       +---------------+    |                  /            </span><br><span class="line"> |                |           |                 /             </span><br><span class="line"> |                |           |                /              </span><br><span class="line"> |                v           v               v               </span><br><span class="line"> |           +-----------------------------------+            </span><br><span class="line"> |--------&gt;  |          Check if resize          |            </span><br><span class="line">             +-----------------------------------+            </span><br><span class="line">                         |                                    </span><br><span class="line">                         |                                    </span><br><span class="line">                         v                                    </span><br><span class="line">                     +--------+                               </span><br><span class="line">                     |  End   |                               </span><br><span class="line">                     +--------+                               </span><br></pre></td></tr></table></figure>
-
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 代码实现</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">final</span> V <span class="title">putVal</span><span class="params">(<span class="keyword">int</span> hash, K key, V value, <span class="keyword">boolean</span> onlyIfAbsent, <span class="keyword">boolean</span> evict)</span> </span>&#123;</span><br><span class="line">        Node&lt;K,V&gt;[] tab; Node&lt;K,V&gt; p; <span class="keyword">int</span> n, i;</span><br><span class="line">        <span class="keyword">if</span> ((tab = table) == <span class="keyword">null</span> || (n = tab.length) == <span class="number">0</span>) <span class="comment">// 如果 tab 是空的，给一个初始 size</span></span><br><span class="line">            n = (tab = resize()).length;</span><br><span class="line">        <span class="keyword">if</span> ((p = tab[i = (n - <span class="number">1</span>) &amp; hash]) == <span class="keyword">null</span>) <span class="comment">// 如果 bucket 位置没有值，直接填充一个</span></span><br><span class="line">            tab[i] = newNode(hash, key, value, <span class="keyword">null</span>);</span><br><span class="line">        <span class="keyword">else</span> &#123; <span class="comment">// 如果 bucket 位置上有值，则再看</span></span><br><span class="line">            Node&lt;K,V&gt; e; K k;</span><br><span class="line">            <span class="keyword">if</span> (p.hash == hash &amp;&amp; ((k = p.key) == key || (key != <span class="keyword">null</span> &amp;&amp; key.equals(k)))) <span class="comment">// 如果 key 已经存在，将值放入 e 在后面做 value 替换</span></span><br><span class="line">                e = p;</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (p <span class="keyword">instanceof</span> TreeNode) <span class="comment">// 如果是 tree, 则在 tree 后面添加节点</span></span><br><span class="line">                e = ((TreeNode&lt;K,V&gt;)p).putTreeVal(<span class="keyword">this</span>, tab, hash, key, value);</span><br><span class="line">            <span class="keyword">else</span> &#123; <span class="comment">// 处理 linked list 的情况</span></span><br><span class="line">                <span class="keyword">for</span> (<span class="keyword">int</span> binCount = <span class="number">0</span>; ; ++binCount) &#123;</span><br><span class="line">                    <span class="keyword">if</span> ((e = p.next) == <span class="keyword">null</span>) &#123; <span class="comment">// 如果是末尾节点，直接 append</span></span><br><span class="line">                        p.next = newNode(hash, key, value, <span class="keyword">null</span>);</span><br><span class="line">                        <span class="keyword">if</span> (binCount &gt;= TREEIFY_THRESHOLD - <span class="number">1</span>) <span class="comment">// 如果达到转化阀值，将链表转化为树</span></span><br><span class="line">                            treeifyBin(tab, hash);</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                    <span class="keyword">if</span> (e.hash == hash &amp;&amp; ((k = e.key) == key || (key != <span class="keyword">null</span> &amp;&amp; key.equals(k)))) <span class="comment">// 如果 key 重复，跳出循环</span></span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                    p = e; <span class="comment">// 给 p 赋值，继续循环</span></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (e != <span class="keyword">null</span>) &#123; <span class="comment">// 对已经存在的 node 做值替换</span></span><br><span class="line">                V oldValue = e.value;</span><br><span class="line">                <span class="keyword">if</span> (!onlyIfAbsent || oldValue == <span class="keyword">null</span>)</span><br><span class="line">                    e.value = value;</span><br><span class="line">                afterNodeAccess(e);</span><br><span class="line">                <span class="keyword">return</span> oldValue;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        ++modCount;</span><br><span class="line">        <span class="keyword">if</span> (++size &gt; threshold)</span><br><span class="line">            resize();</span><br><span class="line">        afterNodeInsertion(evict);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="get-方法实现"><a href="#get-方法实现" class="headerlink" title="get 方法实现"></a>get 方法实现</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Implements Map.get and related methods.</span></span><br><span class="line"><span class="comment">*</span></span><br><span class="line"><span class="comment">* <span class="doctag">@param</span> hash hash for key</span></span><br><span class="line"><span class="comment">* <span class="doctag">@param</span> key the key</span></span><br><span class="line"><span class="comment">* <span class="doctag">@return</span> the node, or null if none</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="keyword">final</span> Node&lt;K,V&gt; <span class="title">getNode</span><span class="params">(<span class="keyword">int</span> hash, Object key)</span> </span>&#123;</span><br><span class="line">   Node&lt;K,V&gt;[] tab; Node&lt;K,V&gt; first, e; <span class="keyword">int</span> n; K k;</span><br><span class="line">   <span class="keyword">if</span> ((tab = table) != <span class="keyword">null</span> &amp;&amp; (n = tab.length) &gt; <span class="number">0</span> &amp;&amp; (first = tab[(n - <span class="number">1</span>) &amp; hash]) != <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="keyword">if</span> (first.hash == hash &amp;&amp; ((k = first.key) == key || (key != <span class="keyword">null</span> &amp;&amp; key.equals(k)))) <span class="comment">// always check first node</span></span><br><span class="line">            <span class="keyword">return</span> first;</span><br><span class="line">      <span class="keyword">if</span> ((e = first.next) != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (first <span class="keyword">instanceof</span> TreeNode) <span class="comment">// 如果是 tree 类型，调用 tree 的 get 方法</span></span><br><span class="line">               <span class="keyword">return</span> ((TreeNode&lt;K,V&gt;)first).getTreeNode(hash, key);</span><br><span class="line">            <span class="keyword">do</span> &#123; <span class="comment">// 否则遍历链表</span></span><br><span class="line">               <span class="keyword">if</span> (e.hash == hash &amp;&amp;</span><br><span class="line">                  ((k = e.key) == key || (key != <span class="keyword">null</span> &amp;&amp; key.equals(k))))</span><br><span class="line">                  <span class="keyword">return</span> e;</span><br><span class="line">            &#125; <span class="keyword">while</span> ((e = e.next) != <span class="keyword">null</span>);</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="resize"><a href="#resize" class="headerlink" title="resize"></a>resize</h2><p>可以参考这篇内容: <a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000015812438">https://segmentfault.com/a/1190000015812438</a> , 现在状态不太好，看不进去。。。</p>
-<h2 id="Idea-调试优化"><a href="#Idea-调试优化" class="headerlink" title="Idea 调试优化"></a>Idea 调试优化</h2><p>当调试 HashMap 时，默认设置下 Node 只显示 K，V 值，对其他细节，比如静态变量，Node 的 next 都是忽略的，可以通过以下方式查看</p>
-<p><strong>临时方案</strong></p>
-<p>在底部 debug 界面，选中需要查看的 entry, 右键 View as -&gt; Object 即可，但是下次调试是会重制，需要再次设置</p>
-<p><strong>永久方案</strong></p>
-<p>Debug 是选中 tab 下的元素，右键 View as -&gt; Create… -&gt; Apply render to object of type 中输入 <code>java.util.HashMap$Node</code> 再 Apply 以下就行了。我这边是自动填充好了的</p>
-<p><strong>查看静态变量</strong></p>
-<p>Customize Data Views -&gt; 勾选 static fields, static final fields</p>
-<p>PS: 我本地设置了貌似没什么效果 （；￣ェ￣）</p>
-<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://blog.devwu.com/2018/06/07/IntelliJ%20IDEA%20%E6%96%AD%E7%82%B9%E8%B0%83%E8%AF%95%E6%97%B6%E6%9F%A5%E7%9C%8B%E6%89%80%E6%9C%89%E5%8F%98%E9%87%8F/">Debug 设置</a></li>
-<li><a target="_blank" rel="noopener" href="https://yikun.github.io/2015/04/01/Java-HashMap%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E7%8E%B0/">HashMap 原理</a></li>
-<li><a target="_blank" rel="noopener" href="http://openjdk.java.net/jeps/180">官方针对 7-8 HashMap 实现修改的说明</a></li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1451,20 +1469,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">157</span>
+          <span class="site-state-item-count">158</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/hexo/categories/">
           
-        <span class="site-state-item-count">29</span>
+        <span class="site-state-item-count">30</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">179</span>
+        <span class="site-state-item-count">181</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1498,12 +1516,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">766k</span>
+    <span title="站点总字数">776k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">11:36</span>
+    <span title="站点阅读时长">11:46</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
