@@ -5,7 +5,6 @@ categories:
 - Shell
 tags:
 - Linux命令行与shell脚本编程大全 3rd
-- TODO
 ---
 
 ## Creating Functions
@@ -3418,3 +3417,228 @@ quote> }' data5
 # Average: 191.0
 # Average: 225.0
 ```
+
+### Built-In Functions
+
+gawk 提供了不少的内建函数帮助你完成一些特定功能。
+
+#### Mathematical functions
+
+The gawk Mathematical Functions
+
+| Function    | Description                                                  |
+| :---------- | :----------------------------------------------------------- |
+| atan2(x, y) | The arctangent of x/y, with x and y specified in radians     |
+| cos(x)      | The cosine of x, with x specified in radians                 |
+| exp(x)      | The exponential of x                                         |
+| int(x)      | The integer part of x, truncated toward 0                    |
+| log(x)      | The natural logarithm of x                                   |
+| rand()      | A random floating point value larger thant 0 and less than 1 |
+| sin(x)      | The sine of x, with x specified in radians                   |
+| sqrt(x)     | The square root of x                                         |
+| srand(x)    | Specifies a seed value for calculating random numbers        |
+
+gawk 是有计算上线的，比如 exp(1000) 就会抛错
+
+gawk 还提供了位运算
+
+* and(v1, v2)
+* compl(val) 补全
+* lshift(val, count) 左移
+* or(v1, v2)
+* rshift(val, count)
+* xor(v1, v2) 异或
+
+#### String functions
+
+支持一些常规的字符操作，比如排序，截取，匹配，分割等
+
+| Function         | Description                                                                                                                          |
+| :--------------- | :----------------------------------------------------------------------------------------------------------------------------------- |
+| split(s, r [,a]) | This function splits s into array a using the FS character, or the regular expression r if supplied. It returns the number of fields |
+
+```sh
+gawk 'BEGIN{x="testing"; print toupper(x); print length(x)}'
+# TESTING
+# 7
+```
+
+sort 比较复杂, 下面的 asort 例子中，我们将原始 map 和输出结果 test 传给 asort 然后遍历打印 test. 打印时可以看到，原来的字母 index 被替换成了数字
+
+```sh
+gawk 'BEGIN{
+var["a"] = 1
+var["g"] = 2
+var["m"] = 3
+var["u"] = 4
+asort(var, test)
+for (i in test)
+print "Index:", i, " - value:", test[i]
+}'
+# Index: 1  - value: 1
+# Index: 2  - value: 2
+# Index: 3  - value: 3
+# Index: 4  - value: 4
+```
+
+下面是 split 的测试
+
+```sh
+cat data1
+# data11,data12,data13,data14,data15
+# data21,data22,data23,data24,data25
+# data31,data32,data33,data34,data35
+gawk 'BEGIN{FS=","}{
+split($0, var)
+    print var[1], var[5]                     
+}' data1
+# data11 data15
+# data21 data25
+# data31 data35
+```
+
+#### Time functions
+
+|Function|Description|
+|:----|:----|
+|mktime(datespec)|Converts a date specified in the format YYYY NN DD HH MM SS[DST] into a timestamp value|
+|strftime(format[,timestamp])|Formats either the current time of day timestamp, or timestamp if provided, into a formatted data and date, using the date() shell function format|
+|systime()|Returns the timestamp for the current time of day|
+
+时间函数在处理带时间相关的 log 文件时很有用
+
+```sh
+gawk 'BEGIN{        
+quote> date = systime()            
+quote> day = strftime("%A, %B %d, %Y", date)
+quote> print day                                
+quote> }'
+# Tuesday, June 15, 2021
+```
+
+### User-Defined Functions
+
+#### Defining a function
+
+语法
+
+```sh
+function name([variables])
+{
+    statements
+}
+```
+
+```sh
+function printthird()
+{
+    print $3
+}
+```
+
+允许返回值 `return value`
+
+```sh
+function myrand(limit)
+{
+    return int(limit * rand())
+}
+```
+
+#### Using your functions
+
+当你定义一个函数的时候，它必须在最开始部分(before BEGIN).
+
+```sh
+gawk '      
+quote> function myprint()                 
+quote> {
+quote> printf "%-16s - %s\n", $1, $4                                          
+quote> }
+quote> BEGIN{FS="\n"; RS=""}
+quote> {
+quote> myprint()
+quote> }' data2
+# Riley Mullen     - (312)555-1234
+# Frank Williams   - (317)555-9876
+# Haley Snell      - (313)555-4938
+```
+
+#### Creating a function library
+
+1. 为自定义还是创建库
+2. 将 gawk 脚本也存到文件中
+3. 在终端同时调用两个脚本
+
+```sh
+cat funclib 
+# function myprint()
+# {
+#     printf "%-16s - %s\n", $1, $4
+# }
+# function myrand(limit)
+# {
+#     return int(limit * rand())
+# }
+# function printthird()
+# {
+#     print $3
+# }
+cat script4
+# BEGIN{ FS="\n"; RS=""}
+# {
+#     myprint()
+# }
+gawk -f funclib -f script4 data2         
+# Riley Mullen     - (312)555-1234
+# Frank Williams   - (317)555-9876
+# Haley Snell      - (313)555-4938
+```
+
+### Working through a Practical Example
+
+When work with data files, the key is to first group related data records together and then perform any calculations required on the related data.
+
+下面是一个保龄球得分统计的例子, 每一行分别包含 名字，组名，得分 的信息
+
+```sh
+cat scores.txt 
+# Rich Blum,team1,100,115,95
+# Barbara Blum,team1,110,115,100
+# Christine Bresnahan,team2,120,115,118
+# Tim Bresnahan,team2,125,112,116
+```
+
+目标：统计每个 team 的总分以及平均分
+
+```sh
+cat bowling.sh                               
+#!/usr/local/bin/bash
+
+for team in $(gawk -F, '{print $2}' scores.txt | uniq)
+do
+    gawk -v team=$team '
+    BEGIN{ FS=","; total=0 }
+    {
+        if ($2==team)
+        {
+            total += $3 + $4 + $5;
+        }
+    }
+    END {
+        avg = total/6;
+        print "Total for", team, "is", total, ", the average is",avg
+    }
+    ' scores.txt
+done
+
+./bowling.sh 
+# Total for team1 is 635 , the average is 105.833
+# Total for team2 is 706 , the average is 117.667
+```
+
+计算方法：先遍历文件，取得所有的组名，然后再每个组名遍历一遍文件统计一次，打印一次。一开始我还以为可以一次对结果做分类统计的，如果是每次循环的话，还是很容易理解的
+
+## Working with Alternative Shells
+
+介绍除 bash 外其他一些常见的 shell, 暂时不关心，pass
