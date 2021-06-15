@@ -431,3 +431,39 @@ public class PropertiesServlet extends HttpServlet {
     </resources>
 </build>
 ```
+
+## HttpServletResponse
+
+web 服务器接收到客户端的 Http 请求，会封装两个对象 HttpServletReqeust 代表请求，HttpServletResponse 代表响应
+
+### 练习
+
+目标：通过设置 response 头信息，实现发送请求后，下载文件的效果
+
+描述：新建 servlet, 设置响应头包含 `response.setHeader("Content-Disposition", "attachment;filename="+filename);` 即可
+
+```java
+public class ResponseServlet extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+//        URL url = getClass().getClassLoader().getResource("tree.png");
+        String filePath = "C:\\Users\\jack\\IdeaProjects\\javaweb\\response\\src\\main\\resources\\tree.png";
+        String fileName = filePath.substring(filePath.lastIndexOf("//") + 1);
+        resp.setHeader("Content-Disposition", "attachment;filename=" + fileName);
+        byte[] buf= new byte[1024];
+        int len = 0;
+        InputStream is = new FileInputStream(filePath);
+        OutputStream os = resp.getOutputStream();
+        while((len=is.read(buf))>0) {
+            os.write(buf, 0, len);
+        }
+        os.close();
+        is.close();
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        doGet(req, resp);
+    }
+}
+```
