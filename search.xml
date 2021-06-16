@@ -27,6 +27,93 @@
       </tags>
   </entry>
   <entry>
+    <title>AWK c1 an AWK tutorial</title>
+    <url>/hexo/2021/06/16/AWK-c1-an-AWK-tutorial/</url>
+    <content><![CDATA[<h2 id="Getting-Started"><a href="#Getting-Started" class="headerlink" title="Getting Started"></a>Getting Started</h2><p>通过例子快速入门, 在如下结构化的数据中</p>
+<ul>
+<li>计算工作时长 &gt; 0 的总薪资</li>
+<li>显示时常 = 0 的用户</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">cat emp.data</span><br><span class="line"><span class="comment">#name, pay rate per hour, work time(hour)</span></span><br><span class="line">Beth   4.00 0</span><br><span class="line">Dan    3.75 0</span><br><span class="line">Kathy  4.00 10</span><br><span class="line">Mark   5.00 20</span><br><span class="line">Mary   5.50 22</span><br><span class="line">Susie  4.25 18</span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;$3 == 0 &#123;print $1&#125;&#x27;</span> emp.data</span><br><span class="line">Beth</span><br><span class="line">Dan</span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;$3 &gt; 0 &#123;print $1, $2 * $3&#125;&#x27;</span> emp.data </span><br><span class="line">Kathy 40</span><br><span class="line">Mark 100</span><br><span class="line">Mary 121</span><br><span class="line">Susie 76.5</span><br></pre></td></tr></table></figure>
+
+<h3 id="The-Structure-of-an-AWK-Program"><a href="#The-Structure-of-an-AWK-Program" class="headerlink" title="The Structure of an AWK Program"></a>The Structure of an AWK Program</h3><p>格式 <code>pattern &#123; action &#125;</code>, pattern 如果结果为 true 则执行 action 中定义的行为。然后执行下一行，一直到文本结束。</p>
+<h3 id="Running-an-AWK-Program"><a href="#Running-an-AWK-Program" class="headerlink" title="Running an AWK Program"></a>Running an AWK Program</h3><p><code>awk &#39;program&#39; input files</code>, 多文件 <code>awk &#39;program&#39; input file1 file2</code>, 不接文件，则从标准输入拿内容</p>
+<p>可以将程序部分写到文件中 <code>awk -f progfile optional_list_of_input_files</code></p>
+<h2 id="Simple-Output"><a href="#Simple-Output" class="headerlink" title="Simple Output"></a>Simple Output</h2><p><strong>Print Event Line</strong> 没有写 pattern 表示没行都输出，<code>&#123; print &#125;</code> 和 <code>&#123; print $0 &#125;</code> 等价，都是打印全部</p>
+<p><strong>Print Certain Fields</strong> <code>&#123; print $1, $3 &#125;</code></p>
+<p><strong>NF, the Number of Fields</strong> 内置变量 NF 表示最后一个 field 的 number, 下面的例子答应 field 数量 + 名字 + 最后一个 field</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123;print NF, $1, $NF&#125;&#x27;</span> emp.data</span><br><span class="line">3 Beth 0</span><br><span class="line">3 Dan 0</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p><strong>Computing and Printing</strong> field 可以直接用于计算 <code>&#123; print $1, $2 * $3 &#125;</code></p>
+<p><strong>Printing Line Numbers</strong> NR 代表行号, number of row(record?)</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123;print NR, $0&#125;&#x27;</span> emp.data</span><br><span class="line">1 Beth 4.00 0</span><br><span class="line">2 Dan 3.75 0</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p><strong>Putting Text in the Output</strong> 输出内容中加入自己的文本</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123;print &quot;total pay for&quot;, $1, &quot;is&quot;, $2 * $3&#125;&#x27;</span> emp.data</span><br><span class="line">total pay <span class="keyword">for</span> Beth is 0</span><br><span class="line">total pay <span class="keyword">for</span> Dan is 0</span><br><span class="line">total pay <span class="keyword">for</span> Kathy is 40</span><br><span class="line">total pay <span class="keyword">for</span> Mark is 100</span><br><span class="line">total pay <span class="keyword">for</span> Mary is 121</span><br><span class="line">total pay <span class="keyword">for</span> Susie is 76.5</span><br></pre></td></tr></table></figure>
+
+<h2 id="Fancier-Output"><a href="#Fancier-Output" class="headerlink" title="Fancier Output"></a>Fancier Output</h2><p>print 只是简单的打印内容，如果想要输出更丰富，使用 printf</p>
+<p><strong>Lining Up Fields</strong> printf 格式 <code>printf(format, value1, value2..., valuen)</code></p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123;printf(&quot;total pay for %s is %.2f\n&quot;, $1, $2 * $3)&#125;&#x27;</span> emp.data</span><br><span class="line">total pay <span class="keyword">for</span> Beth is 0.00</span><br><span class="line">total pay <span class="keyword">for</span> Dan is 0.00</span><br><span class="line">total pay <span class="keyword">for</span> Kathy is 40.00</span><br><span class="line">total pay <span class="keyword">for</span> Mark is 100.00</span><br><span class="line">total pay <span class="keyword">for</span> Mary is 121.00</span><br><span class="line">total pay <span class="keyword">for</span> Susie is 76.50</span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;&#123;printf(&quot;%-8s $%6.2f\n&quot;, $1, $2 * $3)&#125;&#x27;</span> emp.data</span><br><span class="line">Beth     $  0.00</span><br><span class="line">Dan      $  0.00</span><br><span class="line">Kathy    $ 40.00</span><br><span class="line">Mark     <span class="variable">$100</span>.00</span><br><span class="line">Mary     <span class="variable">$121</span>.00</span><br><span class="line">Susie    $ 76.50</span><br></pre></td></tr></table></figure>
+
+<p><strong>Sorting the Output</strong> 结合 pipe 进行排序</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123;printf(&quot;%6.2f %s\n&quot;, $2 * $3, $0)&#125;&#x27;</span> emp.data | sort</span><br><span class="line">  0.00 Beth 4.00 0</span><br><span class="line">  0.00 Dan 3.75 0</span><br><span class="line"> 40.00 Kathy 4.00 10</span><br><span class="line"> 76.50 Susie 4.25 18</span><br><span class="line">100.00 Mark 5.00 20</span><br><span class="line">121.00 Mary 5.50 22</span><br></pre></td></tr></table></figure>
+
+<h2 id="Selection"><a href="#Selection" class="headerlink" title="Selection"></a>Selection</h2><p>Awk 的 pattern 可用于删选数据</p>
+<p><strong>Selection by Comparison</strong> 通过比较删选</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 时薪大于5</span></span><br><span class="line">awk <span class="string">&#x27;$2 &gt;= 5&#x27;</span> emp.data</span><br><span class="line">Mark 5.00 20</span><br><span class="line">Mary 5.50 22</span><br></pre></td></tr></table></figure>
+
+<p><strong>Selection by Computation</strong> 结合计算删选</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">awk <span class="string">&#x27;$2 * $3 &gt;= 50 &#123; printf(&quot;$%.2f for %s\n&quot;, $2 * $3, $1)&#125;&#x27;</span> emp.data</span><br><span class="line"><span class="variable">$100</span>.00 <span class="keyword">for</span> Mark</span><br><span class="line"><span class="variable">$121</span>.00 <span class="keyword">for</span> Mary</span><br><span class="line"><span class="variable">$76</span>.50 <span class="keyword">for</span> Susie</span><br></pre></td></tr></table></figure>
+
+<p><strong>Selection by Text Content</strong> 文本匹配选择, == 精确匹配，/match/ 包含</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">awk <span class="string">&#x27;$1 == &quot;Susie&quot;&#x27;</span> emp.data</span><br><span class="line">Susie  4.25 18</span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;/Susie/&#x27;</span> emp.data</span><br><span class="line">Susie  4.25 18</span><br></pre></td></tr></table></figure>
+
+<p><strong>Combinations of Patterns</strong> 使用 ||, &amp;&amp; 做逻辑操作</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">awk <span class="string">&#x27;$2 &gt;= 4 || $3 &gt;= 20&#x27;</span> emp.data</span><br><span class="line">Beth   4.00 0</span><br><span class="line">Kathy  4.00 10</span><br><span class="line">Mark   5.00 20</span><br><span class="line">Mary   5.50 22</span><br><span class="line">Susie  4.25 18</span><br></pre></td></tr></table></figure>
+
+<p>如果不加逻辑操作符号，则符合条件的语句会重复输出</p>
+<p>‘$2 &gt;= 4 || $3 &gt;= 20’ 等价于 !($2 &lt; 4 &amp;&amp; $3 &lt; 20)</p>
+<p><strong>Data Validation</strong> Awk 是一款很优秀的数据校验工具</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 打印 field 不等于 3 的行</span></span><br><span class="line">awk <span class="string">&#x27;NF != 3 &#123;print $0, &quot;number of fields is not equal to 3&quot;&#125;&#x27;</span> emp.data</span><br><span class="line"><span class="comment"># 打印时薪小于 3.35 的行</span></span><br><span class="line">awk <span class="string">&#x27;$2 &lt; 3.35 &#123; print $0, &quot;rate is below minimum wage&quot; &#125;&#x27;</span> emp.data</span><br></pre></td></tr></table></figure>
+
+<p><strong>BEGIN and END</strong> 类似 before/after class 的操作</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">awk <span class="string">&#x27;BEGIN &#123; print &quot;NAME   RATE    HOURS&quot;; print &quot;&quot;&#125; &#123; print &#125;&#x27;</span> emp.data </span><br><span class="line">NAME   RATE    HOURS</span><br><span class="line"></span><br><span class="line">Beth   4.00 0</span><br><span class="line">Dan    3.75 0</span><br><span class="line">Kathy  4.00 10</span><br><span class="line">Mark   5.00 20</span><br><span class="line">Mary   5.50 22</span><br><span class="line">Susie  4.25 18</span><br></pre></td></tr></table></figure>
+
+<h2 id="Computing-with-AWK"><a href="#Computing-with-AWK" class="headerlink" title="Computing with AWK"></a>Computing with AWK</h2><p><code>pattern &#123;action &#125;</code> 中的 action 是一系列用换行或冒号分割的语句。这节介绍一些字符，数字操作，一些内置变量和自定义变量。自定义变量不需要声明。</p>
+<p><strong>Counting</strong> 统计时长大于 15 的用户</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">awk <span class="string">&#x27; $3 &gt; 15 &#123; emp++; &#125; END&#123; print emp, &quot;employees worked more than 15 hours&quot;&#125;&#x27;</span> emp.data </span><br><span class="line">3 employees worked more than 15 hours</span><br></pre></td></tr></table></figure>
+
+<p><strong>Computing Sums and Averages</strong> 计算总值和平均值</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">awk <span class="string">&#x27;END &#123; print NR, &quot;employees&quot;&#125;&#x27;</span> emp.data                                              </span><br><span class="line">6 employees</span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;&#123; pay = pay + $2 * $3 &#125;</span></span><br><span class="line"><span class="string">END &#123;</span></span><br><span class="line"><span class="string">print NR, &quot;employees&quot;</span></span><br><span class="line"><span class="string">print &quot;total pay is&quot;, pay</span></span><br><span class="line"><span class="string">print &quot;average pay is&quot;, pay/NR</span></span><br><span class="line"><span class="string">&#125;&#x27;</span> emp.data</span><br><span class="line">6 employees</span><br><span class="line">total pay is 337.5</span><br><span class="line">average pay is 56.25</span><br></pre></td></tr></table></figure>
+
+<p><strong>Handling Text</strong> Awk 有处理文字的能力， awk 中的变量可以持有数字会字符串，下面的例子显示报酬最多的用户</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">awk <span class="string">&#x27;                       </span></span><br><span class="line"><span class="string">$2 &gt; maxrate &#123; maxrate = $2; maxemp = $1 &#125;</span></span><br><span class="line"><span class="string">END &#123; print &quot;highest hourly rate:&quot;, maxrate, &quot;for&quot;, maxemp &#125;</span></span><br><span class="line"><span class="string">&#x27;</span> emp.data </span><br><span class="line">highest hourly rate: 5.50 <span class="keyword">for</span> Mary</span><br></pre></td></tr></table></figure>
+
+<p>可以看出来，默认的变量初始值为 0</p>
+<p><strong>String Concatenation</strong> 字符拼接</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123; names = names $1 &quot;  &quot; &#125;</span></span><br><span class="line"><span class="string">END &#123; print names &#125;&#x27;</span> emp.data </span><br><span class="line">Beth  Dan  Kathy  Mark  Mary  Susie </span><br></pre></td></tr></table></figure>
+
+<p>names 变量的初始值为 null</p>
+<p><strong>Printing the Last Input Line</strong> 打印最后一行</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123; last = $0 &#125; END &#123; print last &#125;&#x27;</span> emp.data </span><br><span class="line">Susie  4.25 18</span><br></pre></td></tr></table></figure>
+
+<p><strong>Built-in Functions</strong> awk 提供了很多内置函数，比如 length 计算字符串长度</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123; print $1, length($1) &#125;&#x27;</span> emp.data </span><br><span class="line">Beth 4</span><br><span class="line">Dan 3</span><br><span class="line">Kathy 5</span><br><span class="line">Mark 4</span><br><span class="line">Mary 4</span><br><span class="line">Susie 5</span><br></pre></td></tr></table></figure>
+
+<p><strong>Counting Lines, Words and Characters</strong> 通过使用 length，NF, NR 统计行基本信息，为了便于计算，我们将每一个 field 都当作 String 对待</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123;                                 </span></span><br><span class="line"><span class="string">    nc = nc + length($0) + 1</span></span><br><span class="line"><span class="string">    nw = nw + NF     </span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">END &#123; print NR, &quot;lines,&quot;, nw, &quot;words,&quot;, nc, &quot;characters&quot;&#125;&#x27;</span> emp.data </span><br><span class="line">6 lines, 18 words, 88 characters</span><br></pre></td></tr></table></figure>
+
+<p><code>nc = nc + length($0) + 1</code> 1 代表换行符</p>
+]]></content>
+      <categories>
+        <category>AWK</category>
+      </categories>
+      <tags>
+        <tag>shell</tag>
+        <tag>awk</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>冒泡排序</title>
     <url>/hexo/2021/04/20/Algorithm-bubble-sort/</url>
     <content><![CDATA[<ul>
