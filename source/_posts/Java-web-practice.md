@@ -436,7 +436,7 @@ public class PropertiesServlet extends HttpServlet {
 
 web 服务器接收到客户端的 Http 请求，会封装两个对象 HttpServletReqeust 代表请求，HttpServletResponse 代表响应
 
-### 练习
+### 设置 reponse 自动下载
 
 目标：通过设置 response 头信息，实现发送请求后，下载文件的效果
 
@@ -466,4 +466,121 @@ public class ResponseServlet extends HttpServlet {
         doGet(req, resp);
     }
 }
+```
+
+### 设置 response 自动刷新
+
+这个实验用到的技术不实用了，但是他最后的效果我挺喜欢的，还是手动撸一遍玩一下
+
+目标：页面显示一个定时刷新的数字验证码
+
+```java
+public class ImageServlet extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // auto refresh
+        resp.setHeader("refresh", "3");
+        // create image
+        BufferedImage image = new BufferedImage(80, 20, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = (Graphics2D)image.getGraphics();
+        g.setColor(Color.white);
+        g.fillRect(0, 0, 80, 20);
+        g.setColor(Color.BLUE);
+        g.setFont(new Font(null, Font.BOLD, 20));
+        g.drawString(makeNum(), 0, 20);
+
+        resp.setContentType("image/jpeg");
+        // no cache
+        resp.setDateHeader("expires", -1);
+        resp.setHeader("Cache-Control", "no-cache");
+        resp.setHeader("Pragma", "no-cache");
+        ImageIO.write(image, "jpg", resp.getOutputStream());
+    }
+
+    private String makeNum() {
+        Random random = new Random();
+        String num = random.nextInt(9999999) + "";
+        StringBuffer sb = new StringBuffer();
+        for (int i=0; i<7-num.length(); i++) {
+            sb.append("0");
+        }
+        num = sb.toString() + num;
+        return num;
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        doGet(req, resp);
+    }
+}
+```
+
+```xml
+<servlet>
+    <servlet-name>imageServlet</servlet-name>
+    <servlet-class>com.jzheng.servlet.ImageServlet</servlet-class>
+</servlet>
+<servlet-mapping>
+    <servlet-name>imageServlet</servlet-name>
+    <url-pattern>/image</url-pattern>
+</servlet-mapping>
+```
+
+### 实现重定向
+
+redirect 和 forward 的区别: redirect url 会变, 状态码 302， forward 不会，状态码 200
+
+实验目标：体验一下 redirect 和 jsp
+
+步骤描述：首页新建一个表单，同时新建一个 RequestServlet 作为表单的提交地址。设置表单 action 属性指向这个 servlet。servlet 的末尾添加 redirect 的逻辑指向 success.jsp
+
+新表单
+
+```jsp
+<html>
+<body>
+<h2>Hello World!</h2>
+<%--${pageContext.request.contextPath} for project --%>
+<form action="${pageContext.request.contextPath}/login" method="get">
+    name: <input type="text" name="username"><br>
+    pwd: <input type="password" name="password"><br>
+    <input type="submit">
+</form>
+</body>
+</html>
+```
+
+```java
+@Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        System.out.println("in to request servlet");
+        String uname = req.getParameter("username");
+        String pwd = req.getParameter("password");
+        System.out.println(uname + ";" + pwd);
+        resp.sendRedirect("/success.jsp");
+    }
+```
+
+重定向 jsp
+
+```jsp
+<html>
+<body>
+<h2>Success!</h2>
+</form>
+</body>
+</html>
+```
+
+别忘了在 web.xml 那边注册新加的 servlet
+
+```xml
+  <servlet>
+    <servlet-name>requestServlet</servlet-name>
+    <servlet-class>com.jzheng.servlet.RequestServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>requestServlet</servlet-name>
+    <url-pattern>/login</url-pattern>
+  </servlet-mapping>
 ```
