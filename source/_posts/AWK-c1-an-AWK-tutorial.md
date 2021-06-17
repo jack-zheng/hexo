@@ -1,5 +1,5 @@
 ---
-title: AWK c1 an AWK tutorial
+title: 第一章 an AWK tutorial
 date: 2021-06-16 19:08:44
 categories:
 - AWK
@@ -193,19 +193,19 @@ Susie  4.25 18
 
 ## Computing with AWK
 
-`pattern {action }` 中的 action 是一系列用换行或冒号分割的语句。这节介绍一些字符，数字操作，一些内置变量和自定义变量。自定义变量不需要声明。
+`pattern { action }` 中的 action 是一系列用换行或冒号分割的语句。这节介绍一些字符，数字操作，一些内置变量和自定义变量。自定义变量不需要声明。
 
 **Counting** 统计时长大于 15 的用户
 
 ```sh
-awk ' $3 > 15 { emp++; } END{ print emp, "employees worked more than 15 hours"}' emp.data 
+awk ' $3 > 15 { emp++; } END{ print emp, "employees worked more than 15 hours" }' emp.data 
 3 employees worked more than 15 hours
 ```
 
 **Computing Sums and Averages** 计算总值和平均值
 
 ```sh
-awk 'END { print NR, "employees"}' emp.data                                              
+awk 'END { print NR, "employees" }' emp.data                                              
 6 employees
 
 awk '{ pay = pay + $2 * $3 }
@@ -219,7 +219,7 @@ total pay is 337.5
 average pay is 56.25
 ```
 
-**Handling Text** Awk 有处理文字的能力， awk 中的变量可以持有数字会字符串，下面的例子显示报酬最多的用户
+**Handling Text** Awk 有处理文字的能力， awk 中的变量可以持有数字和字符串，下面的例子显示报酬最多的用户
 
 ```sh
 awk '                       
@@ -272,3 +272,110 @@ END { print NR, "lines,", nw, "words,", nc, "characters"}' emp.data
 ```
 
 `nc = nc + length($0) + 1` 1 代表换行符
+
+## Control-Flow Statemnets
+
+awk 中的流程控制和 C 语言中基本一直，这些控制语句只能用在 action 中
+
+### If-Else Statement
+
+统计时薪大于 6 的所有人的总收入及平均收入, 通过 if-else 控制打印的 loop
+
+```sh
+awk '    
+$2 > 6 { n = n+1; pay = pay+$2*$3 }
+END {
+  if (n > 0)
+    print n, "employees, total pay is", pay, "average pay is", pay/n
+  else     
+    print "no employees are paid more than $6/hour"
+}' emp.data 
+no employees are paid more than $6/hour
+```
+
+### While Statement
+
+while = condition + body. 下面实现一个计算存款的功能，表达式可以概括为 value = amount (1 + rate)<sup>years</sup>
+
+```sh
+cat interest1 
+# interest1 - compute compound interest
+#   input: amount rate years
+#   output: compounded value at the end of each year
+
+{
+    i = 1
+    while (i <= $3) {
+        printf("\t%.2f\n", $1 * (1 + $2) ^ i)
+        i = i + 1
+    }
+}
+
+awk -f interest1
+1000 .06 5
+        1060.00
+        1123.60
+        1191.02
+        1262.48
+        1338.23
+```
+
+### For Statement
+
+同样的计算，用 for 实现
+
+```sh
+cat interest2  
+# interest2 - compute compound interest
+#   input: amount rate years
+#   output: compounded value at the end of each year
+
+{
+    for (i=1; i<=$3; i++)
+        printf("\t%.2f\n", $1 * (1+$2) ^ i)
+}
+
+awk -f interest2
+1000 .06 5
+        1060.00
+        1123.60
+        1191.02
+        1262.48
+        1338.23
+```
+
+## Arrays
+
+awk 支持数组。下面的实验中，我们在 action 中将行信息存到数组中，在 END 中通过 while 倒序输出
+
+```sh
+awk '           
+{ line[NR] = $0 }
+END {
+  i = NR  
+  while (i>0) {                                
+    print line[i]                            
+    i = i-1 
+  }
+}' emp.data 
+Susie  4.25 18
+Mary   5.50 22
+Mark   5.00 20
+Kathy  4.00 10
+Dan    3.75 0
+Beth   4.00 0
+```
+
+## A Handful of Useful "One-liners"
+
+摘录一些简短但是令人印象深刻的 awk 脚本
+
+* print the total number of input lines `awk 'END { print NR }' emp.data`
+* 打印第三行 `awk 'NR == 3' emp.data `
+* 打印每行最后一个 field `awk '{ print $NF }' emp.data`
+* 打印最后一行的最后一个 field `awk '{ field = $NF } END { print field }' emp.data`
+* 打印 field 数量大于 4 的行 `awk 'NF > 4' emp.data`
+* 打印最后一个 field 大于 4 的行 `awk '$NF > 4' emp.data`
+* 用行号代替第一个 field `awk '{ $1 = NR; print }' emp.data`
+* 抹去第二个 field `awk '{ $2=""; print }' emp.data`
+* 倒序打印每一行 `awk '{for(i=NF; i>0;i--) printf("%s", $i); printf("\n")}' emp.data`
