@@ -584,3 +584,249 @@ redirect 和 forward 的区别: redirect url 会变, 状态码 302， forward �
     <url-pattern>/login</url-pattern>
   </servlet-mapping>
 ```
+
+## Cookies
+
+**会话：** 可以简单的理解为从打开浏览器访问页面到关闭浏览器，这一段时间内，浏览器和服务器之间的通信关系
+
+**有状态的会话：** 需要通过 session 或者 cookie 记录这个状态。cookie 记录在客户端，session 记录在服务器端
+
+### Cookies 实验01
+
+目的：通过在 response 中设置 cookie 的方式记录客户端访问时间
+
+步骤：新建 servlet，并在处理 request 的时候，在对应的 response 中返回当前时间。如果是第一次访问，则打印：这是第一次访问
+
+实现：
+
+创建 servlet，接收 req 并检查其中的 cookies 如果没有 lastlogin 相关的 cookie 则打印 第一次访问，有则打印上次访问时间
+
+```java
+public class CookieServlet01 extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        req.setCharacterEncoding("utf-8");
+        resp.setCharacterEncoding("utf-8");
+
+        // loop cookies and get login cookie if exist
+        Cookie loginCookie = null;
+        Cookie[] cookies = req.getCookies();
+        for (Cookie cookie : cookies) {
+            if (cookie.getName().equals("lastlogin")) {
+                loginCookie = cookie;
+            }
+        }
+
+        // if it's first time login, print log. else print last login time
+        if (loginCookie == null) {
+            resp.getWriter().print("it's the first time to login...");
+        } else {
+            String strDateFormat = "yyyy-MM-dd HH:mm:ss";
+            SimpleDateFormat sdf = new SimpleDateFormat(strDateFormat);
+            resp.getWriter().print("last login time: " + sdf.format(new Date(Long.parseLong(loginCookie.getValue()))));
+        }
+
+        // update login cookie
+        Cookie updateLoginTime = new Cookie("lastlogin", System.currentTimeMillis()+"");
+        resp.addCookie(updateLoginTime);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        doGet(req, resp);
+    }
+}
+```
+
+配置 web.xml 
+
+```xml
+  <servlet>
+    <servlet-name>cookie01</servlet-name>
+    <servlet-class>com.jzheng.CookieServlet01</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>cookie01</servlet-name>
+    <url-pattern>/c1</url-pattern>
+  </servlet-mapping>
+```
+
+启动 tomcat 第一次访问数据展示. 显示第一次登录信息，访问后，servlet 会向 resp 中插入 login cookie 的信息
+
+![cookie_c1](cookie_c1.png)
+
+第二次访问数据展示，时间显示为上次访问 servlet 的时间了。
+
+![cookie_c2](cookie_c2.png)
+
+观察 Network 中的 response 也能发现一些有趣的信息，他会显示默认的 cookie 有效时间 20mins, 还会显示 resp 中为 cookie 设置了值
+
+![cookie_c1_2](cookie_c1_2.png)
+
+### Cookies 实验02
+
+关闭浏览器，再访问这个网址的时候，都会显示第一次登录(IE) 那么怎么为他设置一个有效期限呢，可以通过 maxAge 属性. 设置后可以看到 resp 中多了过期时间的属性，关闭浏览器再登录还是可以看到时间
+
+![cookie_c3](cookie_c3.png)
+
+### cookie 一些细节
+
+* 一个 cookie 只能保存一个信息
+* 一个 web 站点可以给浏览器发送多个 cookie, 最多存放 20 个 cookie
+* cookie 大小有限制 4kb
+* 浏览器的 cookie 上限时 300 个
+
+### 删除 cookie
+
+1. 不设置有效期，删除自动清理
+2. 设置有效期为 0, `updateLoginTime.setMaxAge(0);` 访问 c1 后访问 c2 可以看到控制台中 login 的 cookie 删掉了
+
+### 问题
+
+servlet 中尝试使用 cookie.getName() == "xxx" 的表示，即使 name 和 xxx 值时一样的还是会判 false, 为什么？
+
+我猜测，可能 name 时通过 new String() 的方式生成的，具体得看底层实现，测试一下
+
+既然 session 时 server 和 client 之间的对话，那多 server 的情况下，这个 session 时怎么维护的？听 yi 的说法，我司貌似时登录的时候寻在对应的 server， 并不是存在公共的地方的
+
+## Session
+
+什么是 Session：
+
+* 服务器会给每个用户(浏览器)创建一个 Session 对象
+* 一个 Session 独占一个浏览器，只要浏览器没关闭，这个 session 就存在
+* 用户登录之后，整个网站都可以访问；保存用户、购物车的信息
+
+Session 和 cookie 的区别
+
+* cookie 把用户数据写到浏览器端保存
+* session 把数据写到用户独占的 session 中，保存在 server 端(保存重要数据，避免资源浪费)
+* session 由服务创建
+
+使用场景：
+
+* 保存一个登录用户的信息
+* 购物车信息
+* 整个网站中经常使用的数据
+
+TODO：画个图
+
+思考：我是不是可以通过拿到用户的 session id 来 hack 进系统？
+
+比 session 还高一层的变量叫 ServletContext, JSP 中交 ApplicationContext
+
+### 实验 01
+
+测试 session 的生命周期。session 是当你打开网页的时候就会生成的一个变量。实验中，我们在 servlet 的 req 对象中取得 session 对象，并判断是否存在，并打印 log
+
+```java
+public class SessionServlet01 extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // set encoding
+        req.setCharacterEncoding("UTF-8");
+        resp.setCharacterEncoding("UTF-8");
+        resp.setContentType("text/html;charset=utf-8");
+
+        // get session and check
+        HttpSession session = req.getSession();
+        session.setAttribute("name", "jack");
+        if (session.isNew()) {
+            resp.getWriter().write("session is new: " + session.getId());
+        } else {
+            resp.getWriter().write("session already exist: " + session.getId());
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        doGet(req, resp);
+    }
+}
+```
+
+```xml
+  <servlet>
+    <servlet-name>session01</servlet-name>
+    <servlet-class>com.jzheng.SessionServlet01</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>session01</servlet-name>
+    <url-pattern>/s1</url-pattern>
+  </servlet-mapping>
+```
+
+启动 tomcat，自动弹出首页，这时 session 已经建立，再访问 s1 显示已经存在。查看 Network reqeust 和 Application 的 cookie 信息可以看到，打印的 session id 和 request/cookie 中的 jsession id 的对应的
+
+PS：如果新启动一个 browser，直接访问 s1 会显示是新 session 的
+
+PPS: 在 web 的实现中，它会将 session id 塞到 cookie 的 jsession 中(貌似没有代码体现)
+
+### 实验02
+
+新建一个 servlet 获取上面实验中塞的值，并打印
+
+```java
+public class SessionServlet02 extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // set encoding
+        req.setCharacterEncoding("UTF-8");
+        resp.setCharacterEncoding("UTF-8");
+        resp.setContentType("text/html;charset=utf-8");
+
+        // get session and check
+        HttpSession session = req.getSession();
+
+        System.out.println("session attribute name, value is: " + session.getAttribute("name"));
+    }
+}
+```
+
+再配置 web.xml，启动 tomcat，先访问 s1 再访问 s2 可以看到终端答应 name log
+
+### 实验03
+
+通过 session 实现对象的存储
+
+新建一个 person 类
+
+```java
+public class Person {
+    private String name;
+    private int age;
+    // constrctor + getter/setter + toString
+}
+```
+
+将 SessionServlet01 中设置 name 的语句改为设置对象 `session.setAttribute("name", new Person("jack", 2));`
+
+启动 tomcat 访问 s1 再访问 s2 终端答应对象信息 `session attribute name, value is: Person{name='jack', age=2}`
+
+### 实验04
+
+注销 session，可以直接 invalid 的方式注销
+
+```java
+public class SessionServlet03 extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        HttpSession session = req.getSession();
+        session.removeAttribute("name");
+        session.invalidate();
+    }
+}
+```
+
+update web.xml 设置到 s3 这个节点。启动 tomcat，访问 s1 然后访问 s3 再访问 s1 发现 session id 变了
+
+除了上面的方式还可以通过配置 web.xml 中的 session-config 达到目的
+
+```xml
+  <session-config>
+    <!-- n minutes -->
+    <session-timeout>1</session-timeout>
+  </session-config>
+```
+
+启动 tomcat 访问 s1 然后等一分钟再刷新，发现 id 改变
