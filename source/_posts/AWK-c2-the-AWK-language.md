@@ -1,5 +1,5 @@
 ---
-title: AWK c2 the AWK language
+title: 第二章 the AWK language
 date: 2021-06-17 19:45:18
 categories:
 - AWK
@@ -278,7 +278,7 @@ countries:USA   3615    237     North America
 countries:Brazil        286     134     South America
 ```
 
-童谣的效果还可以写成
+同样的效果还可以写成
 
 ```sh
 awk 'FNR <= 5 { print FILENAME ": " $0 }' countries         
@@ -291,7 +291,7 @@ countries: Brazil       286     134     South America
 
 ### Summary of Patterns
 
-中介 pattern 支持的格式
+总结 pattern 支持的格式
 
 | PATTERN         | EXAMPLE                  | MATCHES                                           |
 | :-------------- | :----------------------- | :------------------------------------------------ |
