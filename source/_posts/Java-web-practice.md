@@ -831,6 +831,99 @@ update web.xml 设置到 s3 这个节点。启动 tomcat，访问 s1 然后访�
 
 启动 tomcat 访问 s1 然后等一分钟再刷新，发现 id 改变
 
+## JSP
+
+JSP 是 Java server pages 的简写，和 servlet 一样，用于动态 web 技术
+
+最大的特点是：写 JSP 就像写 HTML 一样
+
+区别：
+
+* Html 只给用户提供静态的数据
+* JSP 页面中可以嵌入 Java 代码，提供动态数据
+
+## JSP 原理
+
+思路：JSP 怎么执行的？
+
+新建一个 jsp-investigation project 举例。我当前的实验环境是 Mac + idea 社区版 + smart tomcat，启动项目后可以在 `/Users/myname/.SmartTomcat/javaweb/jsp-investigation/work/Catalina/localhost/jsp-investigation/` 下看到对应的 jsp 转化之后的 Java 文件。当访问 jsp 文件时才会动态生成。
+
+浏览器向服务器发送请求，不管访问什么资源，其实都是在访问 Servlet，JSP 最终也是转化为 servlet
+
+所以大致流程可以表示为 用户 -> servet -> jsp -> (谁做的转化，tomcat 还是 servlet？)java -> class -> html -> return -> user 这么一个过程
+
+TODO 图解
+
+JSP 页面中， Java代码原封不动的输出，HTML 代码就会转化成 `out.write("xxx")` 的形式输出
+
+下面是自带的 index.jsp 翻译后的 Java 文件
+
+```java
+// comment + package import
+
+// index_jsp 继承自 HttpJspBase, 再查看他的继承关系 HttpJspBase extends HttpServlet implements HttpJspPage，可以看出来，这个 HttpJspBase 本质还是一个 servlet
+// 拿到 request + response 处理
+public final class index_jsp extends org.apache.jasper.runtime.HttpJspBase
+    implements org.apache.jasper.runtime.JspSourceDependent,
+                 org.apache.jasper.runtime.JspSourceImports {
+// 移除一些变量声明方法。。。
+
+// 三个主体方法，init + destory + service, service 包含主要转化过程
+  public void _jspInit() {
+  }
+
+  public void _jspDestroy() {
+  }
+
+  public void _jspService(final javax.servlet.http.HttpServletRequest request, final javax.servlet.http.HttpServletResponse response)
+      throws java.io.IOException, javax.servlet.ServletException {
+
+    // request type 检测
+    if (!javax.servlet.DispatcherType.ERROR.equals(request.getDispatcherType())) {
+      final java.lang.String _jspx_method = request.getMethod();
+      if ("OPTIONS".equals(_jspx_method)) {
+        response.setHeader("Allow","GET, HEAD, POST, OPTIONS");
+        return;
+      }
+      if (!"GET".equals(_jspx_method) && !"POST".equals(_jspx_method) && !"HEAD".equals(_jspx_method)) {
+        response.setHeader("Allow","GET, HEAD, POST, OPTIONS");
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "JSPs only permit GET, POST or HEAD. Jasper also permits OPTIONS");
+        return;
+      }
+    }
+
+    // 声明一些内置变量
+    final javax.servlet.jsp.PageContext pageContext;
+    javax.servlet.http.HttpSession session = null;
+    // servlet context 命名为 application
+    final javax.servlet.ServletContext application;
+    final javax.servlet.ServletConfig config;
+    javax.servlet.jsp.JspWriter out = null;
+    final java.lang.Object page = this;
+    javax.servlet.jsp.JspWriter _jspx_out = null;
+    javax.servlet.jsp.PageContext _jspx_page_context = null;
+
+
+    // 移除一场处理，输出页面内容
+    response.setContentType("text/html");
+    pageContext = _jspxFactory.getPageContext(this, request, response,
+            null, true, 8192, true);
+    _jspx_page_context = pageContext;
+    application = pageContext.getServletContext();
+    config = pageContext.getServletConfig();
+    session = pageContext.getSession();
+    out = pageContext.getOut();
+    _jspx_out = out;
+
+    out.write("<html>\n");
+    out.write("<body>\n");
+    out.write("<h2>Hello World!</h2>\n");
+    out.write("</body>\n");
+    out.write("</html>\n");
+  }
+}
+```
+
 ## 思考题
 
 就公司需要 refactor 的代码，我有一段时间还想着，能不能把现在用到的从 session 里面拿数据的地方都换成从 request 里面拿。再仔细想一下，貌似不合适。request 的 scope 应该就只能持续到一次访问才对，设计如下的实验验证
