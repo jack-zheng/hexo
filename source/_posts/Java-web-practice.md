@@ -830,3 +830,64 @@ update web.xml 设置到 s3 这个节点。启动 tomcat，访问 s1 然后访�
 ```
 
 启动 tomcat 访问 s1 然后等一分钟再刷新，发现 id 改变
+
+## 思考题
+
+就公司需要 refactor 的代码，我有一段时间还想着，能不能把现在用到的从 session 里面拿数据的地方都换成从 request 里面拿。再仔细想一下，貌似不合适。request 的 scope 应该就只能持续到一次访问才对，设计如下的实验验证
+
+1. 新建 request01，对应 entrypoint r1, 在这个 request 中我们分别 request 和 session 中存储一个变量。
+2. 新建 request02，对应 entrypoint r2，在这个 request 中分别取之前 set 的变量，预期 之前 request 中 set 的变量访问不到，session 中可以
+
+```java
+public class SetVarServlet extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        req.setAttribute("reqVar", "reqVal");
+        req.getSession().setAttribute("sessionVar", "sessionVal");
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        doGet(req, resp);
+    }
+}
+
+public class GetVarServlet extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.getWriter().write("req val: " + req.getAttribute("reqVar")
+                + "; session val: " + req.getSession().getAttribute("sessionVar"));
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        doGet(req, resp);
+    }
+}
+```
+
+```xml
+  <servlet>
+    <servlet-name>setVar</servlet-name>
+    <servlet-class>com.jzheng.servlet.SetVarServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>setVar</servlet-name>
+    <url-pattern>/r1</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>getVar</servlet-name>
+    <servlet-class>com.jzheng.servlet.GetVarServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>getVar</servlet-name>
+    <url-pattern>/r2</url-pattern>
+  </servlet-mapping>
+```
+
+启动 tomcat 后先访问 r1 设置变量，在访问 r2 取得变量，可以看到页面显示如下 `req val: null; session val: sessionVal` 可以看到，request 中的变量没有拿到，而 session 中可以看到。
+
+session 是保存的从浏览器与服务器建立链接到浏览器关闭的这段时间内的信息，对这个概念感觉理解更充分了一点。
+
+相对于公司的重构项目，这部分应该对应着用户登录到退出之间的操作，登录之后可以进行多个 request 的交互，所以直接变成 request scope 可定是不可行的。
