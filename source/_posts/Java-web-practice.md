@@ -924,6 +924,112 @@ public final class index_jsp extends org.apache.jasper.runtime.HttpJspBase
 }
 ```
 
+## JSP 基础语法
+
+了解即可。新建普通 maven 项目，右键 module -> Add Framework Support -> Web Application。通过这种方式创建的 web 项目，更新的时候，有热更新的效果
+
+```jsp
+<!-- jsp 表达式 -->
+<%= new java.util.Date() %>
+
+<!-- 脚本片段  -->
+<%
+int sum = 0;
+for (int i = 0; i < 100; i++) {
+    sum+=i;
+}
+out.println("result = " + sum);
+%>
+
+<!-- 片段中间嵌入 html -->
+<%
+    int x = 10;
+    out.print("x = " + x);
+%>
+<p> 这是片段分割 </p>
+<%
+    int y = 10;
+    out.print("y = " + y);
+%>
+
+<!-- JSP 批量生产网页元素 -->
+<% for (int i = 0; i < 3; i++) { %>
+<h1>Hello <%=i%></h1>
+<% } %>
+
+<!-- jsp 声明，声明的内容会放在类中，其他的代码段则会生成在 _jspService 方法中 -->
+<%!
+    static {
+      System.out.println("Loading servlet!");
+    }
+    private int globalVar = 0;
+
+    public void test() {
+      System.out.println("into method test...");
+    }
+  %>
+
+ <!-- HTML COMMENT --> 
+ <%!-- JSP COMMENT --%>
+ jsp 的注释并不会在页面源代码中显示，html 可以
+```
+
+和 index.jsp 同级目录下新建一个页面 jsp2.jsp 并在 body 中写一个错误代码片段 `<% int x=1/0; %>` 访问 `http://localhost:8080/jsp2.jsp` 可以看到页面抛出异常
+
+这个处理不是很好，可以在这个页面的头部添加 `<%@ page errorPage="error/500.jsp" %>` 指定错误页面
+
+这个页面还可以配置错误的图片，不过本地测试的时候需要重启 idea 才能看到，不然图片是损坏状态
+
+除了上面的配置办法，还可以在 web.xml 中设置这些页面
+
+```xml
+   <error-page>
+        <error-code>404</error-code>
+        <location>/error/404.jsp</location>
+    </error-page>
+
+    <error-page>
+        <error-code>500</error-code>
+        <location>/error/500.jsp</location>
+    </error-page>
+```
+
+随便访问一个不存在的页面即可得到 404 error page, `http://localhost:8080/jsp2asdfasd.jsp`
+
+**include** 标签
+
+```jsp
+<%@include file="common/header.jsp"%>
+<h> 我是身体 </h>
+<%@include file="common/footer.jsp"%>
+```
+
+也可以使用标签的形式，效果一样
+
+```jsp
+<jsp:include page="/common/header.jsp"/>
+<h> 我是身体 </h>
+<jsp:include page="/common/footer.jsp"/>
+```
+
+区别：第一种将页面源码包含在 class 文件中，第二种是通过静态方法引入页面
+
+## 九大内置对象
+
+* PageContext 存东西
+* Request 存东西
+* Response
+* Session 存东西
+* Application - ServletContext 存东西
+* config - ServletConfig
+* out
+* page
+* exception
+
+### 实验01 测试内置对象作用域
+
+卡住了。。。。可面上最简单的 el 表达式 ${} 一直拿不到值，为 null，醉了。不解决的话后面进行不下去了。。。 明天再 research 一下试试
+
 ## 思考题
 
 就公司需要 refactor 的代码，我有一段时间还想着，能不能把现在用到的从 session 里面拿数据的地方都换成从 request 里面拿。再仔细想一下，貌似不合适。request 的 scope 应该就只能持续到一次访问才对，设计如下的实验验证
