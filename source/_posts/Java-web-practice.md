@@ -1028,7 +1028,97 @@ out.println("result = " + sum);
 
 ### 实验01 测试内置对象作用域
 
-卡住了。。。。可面上最简单的 el 表达式 ${} 一直拿不到值，为 null，醉了。不解决的话后面进行不下去了。。。 明天再 research 一下试试
+新建一个 jsp 页面再里面通过内置的对象设置值，并通过 pageContext.findAttribute 查找对应的值
+
+```jsp
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>demo01</title>
+</head>
+<body>
+
+<%
+    pageContext.setAttribute("name1", "val1"); // 一个页面中有效
+    request.setAttribute("name2", "val2"); // 一次请求中有效
+    session.setAttribute("name3", "val3"); // 一次会话中有效
+    application.setAttribute("name4", "val4"); // 服务器工作时一直有效
+
+    String n1 = (String)pageContext.findAttribute("name1");
+%>
+
+<h1>取得值为</h1>
+<h3>s1: ${name1}</h3>
+<h3>s1<%=n1%></h3>
+<h3>${name2}</h3>
+<h3>${name3}</h3>
+<h3>${name4}</h3>
+<h3>${name5}</h3>
+
+</body>
+</html>
+```
+
+不得不说，这里视频教学有问题，很大的误导了我，查了半天，还是通过其他看这个视频代码的人的 project 才找到根源。如果你使用 EL 表达式，就不需要使用 pageContext.findAttribute 方法了，拿就行。如果用的是 `<%=%>` 这种方式才需要使用前面提到的方式拿值。
+
+如果使用 EL 表达式，值为 null 则页面不显示，如果用 `<%=%>` 值为空则页面显示 null 字样
+
+### 实验02
+
+新建一个 jsp page, get 语句同上，先访问上面的页面再访问这个新页面，只有 session 和 application level 的变量值可以显示
+
+### 实验03
+
+pageContext.setAttribute(key, value, scope) 支持直接设置作用域
+
+## JSP 标签
+
+EL表达式：${}
+
+* 获取数据
+* 执行运算
+* 获取 web 开发的常用对象
+
+### 实验01 EL 标签转发
+
+新建 jsptag.jsp 通过 jsp:forward + param 将参数转发给 jsptag2.jsp 并再页面上显示
+
+```jsp
+<jsp:forward page="/jsptag2.jsp">
+    <jsp:param name="name" value="jack"/>
+    <jsp:param name="age" value="100"/>
+</jsp:forward>
+```
+
+显示页面代码
+
+```jsp
+name: <%=request.getParameter("name")%><br>
+age: <%=request.getParameter("age")%><br>
+
+name: ${param.get("name")}<br>
+age: ${param.get("age")}<br>
+```
+
+### JSTL
+
+JSTL 时为了弥补 HTML 标签的不足
+
+* 引入 taglib
+* 使用标签
+
+实验时抛异常 `org.apache.jasper.JasperException: 无法在web.xml或使用此应用程序部署的jar文件中解析绝对uri：[http://java.sun.com/jsp/jstl/core]`
+
+需要将 
+
+* jstl-1.2.jar 
+* standard-1.1.2.jar 
+* jstl-impl-1.2.jar
+* jstl-api-1.2.jar
+
+拷贝到 tomcat 的 lib 文件夹中即可，需要重启 tomcat
+
+介绍了 if, when 和 foreach 语法
 
 ## 思考题
 
