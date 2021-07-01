@@ -59,7 +59,7 @@
 <meta property="og:description" content="Getting Started通过例子快速入门, 在如下结构化的数据中  计算工作时长 &gt; 0 的总薪资 显示时常 &#x3D; 0 的用户  123456789101112131415161718cat emp.data#name, pay rate per hour, work time(hour)Beth   4.00 0Dan    3.75 0Kathy  4.00 10Mark   5.0">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-06-16T11:08:44.000Z">
-<meta property="article:modified_time" content="2021-06-29T17:25:05.000Z">
+<meta property="article:modified_time" content="2021-07-01T11:51:56.172Z">
 <meta property="article:author" content="Jack Zheng">
 <meta property="article:tag" content="shell">
 <meta property="article:tag" content="awk">
@@ -240,7 +240,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-30 01:25:05" itemprop="dateModified" datetime="2021-06-30T01:25:05+08:00">2021-06-30</time>
+                <time title="修改时间：2021-07-01 19:51:56" itemprop="dateModified" datetime="2021-07-01T19:51:56+08:00">2021-07-01</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -296,7 +296,7 @@
 <h3 id="The-Structure-of-an-AWK-Program"><a href="#The-Structure-of-an-AWK-Program" class="headerlink" title="The Structure of an AWK Program"></a>The Structure of an AWK Program</h3><p>格式 <code>pattern &#123; action &#125;</code>, pattern 如果结果为 true 则执行 action 中定义的行为。然后执行下一行，一直到文本结束。</p>
 <h3 id="Running-an-AWK-Program"><a href="#Running-an-AWK-Program" class="headerlink" title="Running an AWK Program"></a>Running an AWK Program</h3><p><code>awk &#39;program&#39; input files</code>, 多文件 <code>awk &#39;program&#39; input file1 file2</code>, 不接文件，则从标准输入拿内容</p>
 <p>可以将程序部分写到文件中 <code>awk -f progfile optional_list_of_input_files</code></p>
-<h2 id="Simple-Output"><a href="#Simple-Output" class="headerlink" title="Simple Output"></a>Simple Output</h2><p><strong>Print Event Line</strong> 没有写 pattern 表示没行都输出，<code>&#123; print &#125;</code> 和 <code>&#123; print $0 &#125;</code> 等价，都是打印全部</p>
+<h2 id="Simple-Output"><a href="#Simple-Output" class="headerlink" title="Simple Output"></a>Simple Output</h2><p><strong>Print Event Line</strong> 没有写 pattern 表示每行都输出，<code>&#123; print &#125;</code> 和 <code>&#123; print $0 &#125;</code> 等价，都是打印全部</p>
 <p><strong>Print Certain Fields</strong> <code>&#123; print $1, $3 &#125;</code></p>
 <p><strong>NF, the Number of Fields</strong> 内置变量 NF 表示最后一个 field 的 number, 下面的例子答应 field 数量 + 名字 + 最后一个 field</p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123;print NF, $1, $NF&#125;&#x27;</span> emp.data</span><br><span class="line">3 Beth 0</span><br><span class="line">3 Dan 0</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
@@ -315,11 +315,11 @@
 <p><strong>Sorting the Output</strong> 结合 pipe 进行排序</p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123;printf(&quot;%6.2f %s\n&quot;, $2 * $3, $0)&#125;&#x27;</span> emp.data | sort</span><br><span class="line">  0.00 Beth 4.00 0</span><br><span class="line">  0.00 Dan 3.75 0</span><br><span class="line"> 40.00 Kathy 4.00 10</span><br><span class="line"> 76.50 Susie 4.25 18</span><br><span class="line">100.00 Mark 5.00 20</span><br><span class="line">121.00 Mary 5.50 22</span><br></pre></td></tr></table></figure>
 
-<h2 id="Selection"><a href="#Selection" class="headerlink" title="Selection"></a>Selection</h2><p>Awk 的 pattern 可用于删选数据</p>
-<p><strong>Selection by Comparison</strong> 通过比较删选</p>
+<h2 id="Selection"><a href="#Selection" class="headerlink" title="Selection"></a>Selection</h2><p>Awk 的 pattern 可用于筛选数据</p>
+<p><strong>Selection by Comparison</strong> 通过比较筛选</p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 时薪大于5</span></span><br><span class="line">awk <span class="string">&#x27;$2 &gt;= 5&#x27;</span> emp.data</span><br><span class="line">Mark 5.00 20</span><br><span class="line">Mary 5.50 22</span><br></pre></td></tr></table></figure>
 
-<p><strong>Selection by Computation</strong> 结合计算删选</p>
+<p><strong>Selection by Computation</strong> 结合计算筛选</p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;$2 * $3 &gt;= 50 &#123; printf(&quot;$%.2f for %s\n&quot;, $2 * $3, $1)&#125;&#x27;</span> emp.data</span><br><span class="line"><span class="variable">$100</span>.00 <span class="keyword">for</span> Mark</span><br><span class="line"><span class="variable">$121</span>.00 <span class="keyword">for</span> Mary</span><br><span class="line"><span class="variable">$76</span>.50 <span class="keyword">for</span> Susie</span><br></pre></td></tr></table></figure>
 
 <p><strong>Selection by Text Content</strong> 文本匹配选择, == 精确匹配，/match/ 包含</p>
@@ -533,12 +533,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">811k</span>
+    <span title="站点总字数">812k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">12:17</span>
+    <span title="站点阅读时长">12:18</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
