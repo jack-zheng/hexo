@@ -16,11 +16,11 @@ pattern { action }
 ...
 ```
 
-有时 pattern 会省略，有时 action 会省略。当 awk 检查完程序段没有语法错误后，他会一句一句的执行。pattern 没有写即表示匹配每一行。
+有时 pattern 会省略，有时 action 会省略。当 awk 检测程序段没有语法错误后，他会一句一句的执行。pattern 没有写即表示匹配每一行。
 
 本章第一节会介绍 pattern， 后面会介绍表达式，赋值等，剩余部分则是介绍函数等信息。
 
-这里的准备文件是有讲究的，直接用 vscode 准备可能会出问题，最好在终端使用 echo + \t 的方式手动打一遍
+这里的准备文件是有讲究的，直接用 vscode 准备会出问题，最好在终端使用 echo + \t 的方式手动打一遍
 
 ```sh
 cat countries                  
@@ -62,10 +62,6 @@ bat -A countries
   10   │ Germany├──┤96├──┤61├──┤Europe␊
   11   │ England├──┤94├──┤56├──┤Europe␊
 ```
-
-PS: 试着用 cat 和 sed -n 'l' 观察一下文件
-
-PPS: bat -A 这个工具很赞呦，可视化度很高，显示那些非打印字符
 
 ## Patterns
 
@@ -301,3 +297,74 @@ countries: Brazil       286     134     South America
 | string-matching | /Asia/                   | lines that contain Asia                           |
 | compound        | $3 < 100 && $4 == "Asia" | thrid fields less than 100 + fourth field is Asia |
 | range           | NR==10, NR==20           | tenth to twentieth lines of input inclusive       |
+
+## Actions
+
+在 pattern-action 的格式中，pattern 决定了是否执行 action。action 可以很简单，比如打印；也可以很复杂，比如多语句操作或者包含控制流什么的。下面章节会介绍自定义函数和输入，输出的一些语法。
+
+actions 中可以包含下列语法
+
+* 包含常量，变量，赋值函数调用的 expressions
+* print
+* printf
+* if 语句
+* if - else
+* while
+* for (expression; expression; expression) statement
+* for (variable in array) statement
+* do statement while (expression)
+* break
+* continue
+* next
+* exit
+* exit expression
+* { statement }
+
+### Expressions
+
+expression 是最简单的语句，expression 之间可以通过 operators 连接，有五种 operators
+
+* arthmetic
+* comparison
+* logical
+* conditional
+* assignment
+
+#### Constants
+
+两种常数类型：string and numberic
+
+string = 双引号 + 字符 + 双引号，字符包括转义字符
+
+numberic 都是由浮点类型的值表示的，可以有不同的形态，但是内存中都是浮点表示，比如 1e6, 1.00E6 等形式
+
+#### Variables
+
+* user-defined
+* built-in
+* fields
+
+由于变量的类型是没有声明的，所以 awk 会根据上下文推断变量类型，必要时它会做 string 和 numberic 之间的转换。
+
+还没有初始化的时候 string 默认是 "" (the null string), numberic 默认是 0
+
+#### Built-in Variables
+
+下面是一些自带的变量，FILENAME 在每次读文件时都会自动赋值。FNR，NF 和 NR 在每次读入一行时重置。
+
+| VARIABLE | MEANING                                    | DEFAULT |
+| :------- | :----------------------------------------- | :------ |
+| ARGC     | number of command line arguments           | -       |
+| ARGV     | array of command line arguments            | -       |
+| FILENAME | name of current input file                 | -       |
+| FNR      | record number in current file              | -       |
+| FS       | controls the input field separator         | " "     |
+| NF       | number of fields in current record         | -       |
+| NR       | number of records read so far              | -       |
+| OFMT     | output format for numbers                  | "%.6g"  |
+| OFS      | output field separator                     | " "     |
+| ORS      | output record separator                    | "\n"    |
+| RLENGTH  | length of string matched by match function | -       |
+| RS       | controls the input recrod separator        | "\n"    |
+| RSTART   | start of string matched by match function  | -       |
+| SUBSEP   | subscript separator                        | "\034"  |
