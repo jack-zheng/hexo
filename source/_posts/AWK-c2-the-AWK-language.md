@@ -16,11 +16,11 @@ pattern { action }
 ...
 ```
 
-有时 pattern 会省略，有时 action 会省略。当 awk 检查完程序段没有语法错误后，他会一句一句的执行。pattern 没有写即表示匹配每一行。
+有时 pattern 会省略，有时 action 会省略。当 awk 检测程序段没有语法错误后，他会一句一句的执行。pattern 没有写即表示匹配每一行。
 
 本章第一节会介绍 pattern， 后面会介绍表达式，赋值等，剩余部分则是介绍函数等信息。
 
-这里的准备文件是有讲究的，直接用 vscode 准备可能会出问题，最好在终端使用 echo + \t 的方式手动打一遍
+这里的准备文件是有讲究的，直接用 vscode 准备会出问题，最好在终端使用 echo + \t 的方式手动打一遍
 
 ```sh
 cat countries                  
@@ -62,10 +62,6 @@ bat -A countries
   10   │ Germany├──┤96├──┤61├──┤Europe␊
   11   │ England├──┤94├──┤56├──┤Europe␊
 ```
-
-PS: 试着用 cat 和 sed -n 'l' 观察一下文件
-
-PPS: bat -A 这个工具很赞呦，可视化度很高，显示那些非打印字符
 
 ## Patterns
 
@@ -301,3 +297,228 @@ countries: Brazil       286     134     South America
 | string-matching | /Asia/                   | lines that contain Asia                           |
 | compound        | $3 < 100 && $4 == "Asia" | thrid fields less than 100 + fourth field is Asia |
 | range           | NR==10, NR==20           | tenth to twentieth lines of input inclusive       |
+
+## Actions
+
+在 pattern-action 的格式中，pattern 决定了是否执行 action。action 可以很简单，比如打印；也可以很复杂，比如多语句操作或者包含控制流什么的。下面章节会介绍自定义函数和输入，输出的一些语法。
+
+actions 中可以包含下列语法
+
+* 包含常量，变量，赋值函数调用的 expressions
+* print
+* printf
+* if 语句
+* if - else
+* while
+* for (expression; expression; expression) statement
+* for (variable in array) statement
+* do statement while (expression)
+* break
+* continue
+* next
+* exit
+* exit expression
+* { statement }
+
+### Expressions
+
+expression 是最简单的语句，expression 之间可以通过 operators 连接，有五种 operators
+
+* arthmetic
+* comparison
+* logical
+* conditional
+* assignment
+
+#### Constants
+
+两种常数类型：string and numberic
+
+string = 双引号 + 字符 + 双引号，字符包括转义字符
+
+numberic 都是由浮点类型的值表示的，可以有不同的形态，但是内存中都是浮点表示，比如 1e6, 1.00E6 等形式
+
+#### Variables
+
+* user-defined
+* built-in
+* fields
+
+由于变量的类型是没有声明的，所以 awk 会根据上下文推断变量类型，必要时它会做 string 和 numberic 之间的转换。
+
+还没有初始化的时候 string 默认是 "" (the null string), numberic 默认是 0
+
+#### Built-in Variables
+
+下面是一些自带的变量，FILENAME 在每次读文件时都会自动赋值。FNR，NF 和 NR 在每次读入一行时重置。
+
+| VARIABLE | MEANING                                    | DEFAULT |
+| :------- | :----------------------------------------- | :------ |
+| ARGC     | number of command line arguments           | -       |
+| ARGV     | array of command line arguments            | -       |
+| FILENAME | name of current input file                 | -       |
+| FNR      | record number in current file              | -       |
+| FS       | controls the input field separator         | " "     |
+| NF       | number of fields in current record         | -       |
+| NR       | number of records read so far              | -       |
+| OFMT     | output format for numbers                  | "%.6g"  |
+| OFS      | output field separator                     | " "     |
+| ORS      | output record separator                    | "\n"    |
+| RLENGTH  | length of string matched by match function | -       |
+| RS       | controls the input recrod separator        | "\n"    |
+| RSTART   | start of string matched by match function  | -       |
+| SUBSEP   | subscript separator                        | "\034"  |
+
+#### Field Variables
+
+表示当前行的 field 参数，从 $1 - $NF, $0 表示整行。运行一些例子找找感觉
+
+```sh
+# 第二个 field 值缩小 1000 倍并打印
+awk '{ $2 = $2 / 1000; print }' countries 
+
+USSR 8.649 275 Asia
+Canada 3.852 25 North America
+China 3.705 1032 Asia
+...
+```
+
+将 North America 和 South America 替换为简写
+
+```sh
+awk 'BEGIN { FS = OFS = "\t" }
+$4 == "North America" { $4 = "NA" }
+$4 == "South America" { $4 = "SA" } 
+{print}
+' countries
+USSR    8649    275     Asia
+Canada  3852    25      NA
+China   3705    1032    Asia
+USA     3615    237     NA
+Brazil  286     134     SA
+India   1267    746     Asia
+Mexico  762     78      NA
+France  211     55      Europe
+Japan   144     120     Asia
+Germany 96      61      Europe
+England 94      56      Europe
+```
+
+PS: 这里之前我倒是没有意识到，上面的做法其实就是多种情况替换的案例了
+
+还有一些比较神奇的使用方式，比如 $(NF - 1) 可以取得倒数第二个 field。如果 field 不存在，默认值为 null string, 比如 $(NF + 1), 一个新的 field 可以通过赋值得到，比如下面的例子是在原有的数据后面添加第五列元素
+
+```sh
+awk 'BEGIN { FS = OFS = "\t" }; { $5 = 1000 * $3 / $2; print }' countries 
+USSR    8649    275     Asia    31.7956
+Canada  3852    25      North America   6.49013
+...
+```
+
+#### Arthmetic Operators
+
+awk 提供常规计算 +, -, *, %, ^.
+
+#### Comparison Operators
+
+支持常见的比较操作：<, <=, ==, !=, >=, >。还有匹配符号 ～ 和 ！～。比较的结果为 1(true)/0(false) 二选一。
+
+#### Logical Operators
+
+逻辑运算符有：&&, ||, !
+
+#### Condition Expressions
+
+expr1 ? expr2 : expr3 效果和 Java 中的一致. 下面的例子会打印 $1 的倒数，如果 $1 为 0 则打印提示信息
+
+```sh
+awk '{ print ($1 !=0 ? 1/$1 : "$1 is zero, line " NR) }' 
+```
+
+#### Assignment Operators
+
+var = expr, 下面的例子计算所有亚洲国家的人口和
+
+```sh
+awk '$4 == "Asia" { pop = pop + $3; n = n + 1}
+END { print "Total population of the ", n, "Asian countries is", pop, "million"}' countries 
+Total population of the  4 Asian countries is 2173 million
+```
+
+统计人口最多的国家
+
+```sh
+awk '$3 > maxpop {maxpop = $3; country = $1}
+END { print "country with largest population:", country, maxpop }' countries
+country with largest population: China 1032
+```
+
+#### Increment and Decrement Oerators
+
+n = n + 1 通常简写为 ++n 或者 n++, 区别是，如果有赋值，则 n++ 会将原始值赋给变量再自增，++n 则先自增再赋值
+
+```sh
+awk 'BEGIN { n=1; i=n++ }; END { print i }' countries
+1
+awk 'BEGIN { n=1; i=++n }; END { print i }' countries
+2
+```
+
+#### Built-In Arithmetic Functions
+
+| FUNCTION    | VALUE RETURNED                                    |
+| :---------- | :------------------------------------------------ |
+| atan2(y, x) | arctangent of y/x in the range -pi to pi          |
+| cos(x)      | cosine of x, with x in radians                    |
+| exp(x)      | exponential function of x, e<sup>x</sup>          |
+| int(x)      | integer part of x; truncated towards 0 when x > 0 |
+| log(x)      | natural (base e) logarithm of x                   |
+| rand()      | random number r, where 0 <= r < 1                 |
+| sin(x)      | sine of x, with x in radians                      |
+| sqrt(x)     | square root of x                                  |
+| srand(x)    | x is new seed for rand ()                         |
+
+#### String Operators
+
+awk 只支持一种字符串操作 - 拼接。拼接不需要任何的连接符, 比如下面的例子是在每行前面打印行号 + 冒号的前缀
+
+```sh
+awk '{ print NR ":" $0 }' countries                  
+1:USSR  8649    275     Asia
+2:Canada        3852    25      North America
+...
+```
+
+#### Strings as Regular Expressions
+
+`awk 'BEGIN { digits = "^[0-9]+$" }; $2 ~ digits' countries`, 表达式可以动态拼装，所以下面的例子也是合法的
+
+```sh
+BEGIN {
+  sign = "[+-]?"
+  decimal= "[0-9]+[.]?[0-9]*"
+  fraction= "[.][0-9]+"
+  exponent= "([eEl" sign "[0-9]+)?"
+  number= "^" sign "(" decimal "|" fraction ")" exponent "$"
+}
+$0 .. number
+```
+
+#### Built-In String Functions
+
+| Function                  | Description                                                                                            |
+| :------------------------ | :----------------------------------------------------------------------------------------------------- |
+| gsub(r,s)                 | substitute s for r globally in $0, return number of substitutions made                                 |
+| gsub(r ,s ,t)             | substitutes for r globally in string t, return number of substitutions made                            |
+| index(s ,t)               | return first position of string t in s, or 0 if t is not present                                       |
+| length(s)                 | return number of characters in s                                                                       |
+| match(s ,r)               | test whether s contains a substring matched by r,return index or 0; sets RSTART and RLENGTH            |
+| split(s ,a)               | split s into array a on FS, return number of fields                                                    |
+| split(s ,a ,fs)           | splits into array a on field separator fs, return number of fields                                     |
+| sprintf(fmt, expr -list ) | return expr -list formatted according to format string fmt                                             |
+| sub(r ,s)                 | substitutes for the leftmost longest substring of $0 matched by r, return number of substitutions made |
+| sub(r ,s ,t)              | substitute s for the leftmost longest substring of t matched by r, return number of substitutions made |
+| substr (s ,p)             | return suffix of s starting at position p                                                              |
+| substr (s ,p ,n)          | return substring of s of length n starting at position p                                               |
+
+p42

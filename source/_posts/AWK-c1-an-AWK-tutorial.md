@@ -49,7 +49,7 @@ Susie 76.5
 
 ## Simple Output
 
-**Print Event Line** 没有写 pattern 表示没行都输出，`{ print }` 和 `{ print $0 }` 等价，都是打印全部
+**Print Event Line** 没有写 pattern 表示每行都输出，`{ print }` 和 `{ print $0 }` 等价，都是打印全部
 
 **Print Certain Fields** `{ print $1, $3 }`
 
@@ -123,9 +123,9 @@ awk '{printf("%6.2f %s\n", $2 * $3, $0)}' emp.data | sort
 
 ## Selection
 
-Awk 的 pattern 可用于删选数据
+Awk 的 pattern 可用于筛选数据
 
-**Selection by Comparison** 通过比较删选
+**Selection by Comparison** 通过比较筛选
 
 ```sh
 # 时薪大于5
@@ -134,7 +134,7 @@ Mark 5.00 20
 Mary 5.50 22
 ```
 
-**Selection by Computation** 结合计算删选
+**Selection by Computation** 结合计算筛选
 
 ```sh
 awk '$2 * $3 >= 50 { printf("$%.2f for %s\n", $2 * $3, $1)}' emp.data

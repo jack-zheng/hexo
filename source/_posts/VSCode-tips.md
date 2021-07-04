@@ -34,6 +34,8 @@ tags:
 Preference -> settings, 搜索关键字 editor.copyWithSyntaxHighlighting 然后 disable 就行了
 ```
 
+> 在 VSCode 中写 markdown 时，段落过长会自动换行，有表格的时候就很难看。可以 ctrl + p 然后搜索 word wrap 关闭换行即可
+
 ## 插件
 
 * Ascii Tree Generator: 快速生产 Ascii 类型的目录树，在写文档的时候很游泳，喜欢 (´▽｀)
