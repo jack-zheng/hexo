@@ -1120,6 +1120,325 @@ JSTL 时为了弥补 HTML 标签的不足
 
 介绍了 if, when 和 foreach 语法
 
+## java bean
+
+实体类
+
+Java bean 的特定写法
+
+* 必须有无参构造
+* 属性私有化
+* 必须有对应的 get/set 方法
+
+一般用来和数据库字段做映射 ORM
+
+ORM：对象关系映射
+
+* 表 - 类
+* 字段 - 属性
+* 行 - 对象
+
+## MVC三层架构
+
+* Controller: 接收请求；交给业务层处理对应的代码；控制视图跳转
+* View: 展示数据，提供链接发起 servlet 请求
+* Model: 对应 service + Dao 部分
+
+## 过滤器 Filter
+
+为某种特殊的需求提供同意的处理方式
+
+1. 配置依赖
+2. 实现 Filter 接口
+3. 再 web.xml 中配置 filter 参数
+
+实验描述：新建一个 servlet 类，返回中文内容。新建一个 filter 实现类提供 utf-8 转码。在 web.xml 中为 servlet 配置两个入口，一个入口经过 filter，另一个不经过。得到的结果，经过 filter 的中文能正常显示，没有经过的为乱码
+
+新建 servlet
+
+```java
+public class Show extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.getWriter().print("你好，世界");
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        doGet(req, resp);
+    }
+}
+```
+
+配置 web.xml
+
+```xml
+    <servlet>
+        <servlet-name>Show</servlet-name>
+        <servlet-class>org.jzheng.servlet.Show</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>Show</servlet-name>
+        <url-pattern>/show</url-pattern>
+    </servlet-mapping>
+        <servlet-mapping>
+        <servlet-name>Show</servlet-name>
+        <url-pattern>/filter/show</url-pattern>
+    </servlet-mapping>
+```
+
+两个地址都能访问且给出乱码。添加 filter 实现
+
+```java
+public class EncodingFilter implements Filter {
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+        System.out.println("filter init...");
+    }
+
+    @Override
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+        servletResponse.setCharacterEncoding("UTF-8");
+        servletResponse.setContentType("text/html;charset=UTF-8");
+        filterChain.doFilter(servletRequest, servletResponse);
+    }
+
+    @Override
+    public void destroy() {
+        System.out.println("filter destroy...");
+    }
+}
+```
+
+配置 web.xml
+
+```xml
+    <filter>
+        <filter-name>EncodingFilter</filter-name>
+        <filter-class>org.jzheng.servlet.EncodingFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>EncodingFilter</filter-name>
+        <url-pattern>/filter/*</url-pattern>
+    </filter-mapping>
+```
+
+重启服务器，访问 /show 还是乱码，访问 /filter/show 中文显示正常
+
+PS: 从 server 的 log 可以看出 filter 在 server 启动时做一次 init, server 停止时做一次销毁
+
+## 监听器 Listener
+
+实验描述：新建一个监听器统计在线人数
+
+1. 实现监听器接口
+2. 注册到 web.xml
+
+```java
+public class CountListener implements HttpSessionListener {
+    @Override
+    public void sessionCreated(HttpSessionEvent httpSessionEvent) {
+        ServletContext context = httpSessionEvent.getSession().getServletContext();
+        Integer onlineCount = (Integer) context.getAttribute("OnlineCount");
+        if (onlineCount == null) {
+            onlineCount = 1;
+        } else {
+            onlineCount += 1;
+        }
+        context.setAttribute("OnlineCount", onlineCount );
+    }
+
+    @Override
+    public void sessionDestroyed(HttpSessionEvent httpSessionEvent) {
+        ServletContext context = httpSessionEvent.getSession().getServletContext();
+        Integer onlineCount = (Integer) context.getAttribute("OnlineCount");
+        if (onlineCount == null) {
+            onlineCount = 0;
+        } else {
+            onlineCount -= 1;
+        }
+        context.setAttribute("OnlineCount", onlineCount );
+    }
+}
+```
+
+```xml
+    <listener>
+        <listener-class>org.jzheng.servlet.CountListener</listener-class>
+    </listener>
+```
+
+restart 之后显示 3 个人，貌似时因为服务器默认会启动几个 session，redeploy 之后修复了。多个几个不同类型的浏览器，session 数量会上升
+
+### 练习
+
+使用过滤器做一个权限拦截。管理员登录后将信息存到 session 中，注销后从 session 中移除，如果没有登录则无法访问成功页面
+
+新建登录界面 jsp
+
+```jsp
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>login</title>
+</head>
+<body>
+
+<h1> 登录 </h1>
+
+<form action="/servlet/login" method="post">
+    <input type="text" name="username">
+    <input type="submit">
+</form>
+
+</body>
+</html>
+```
+
+创建 login 对应的 servlet
+
+```java
+public class LoginServlet extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String username = req.getParameter("username");
+        if (username.equals("admin")) {
+            req.getSession().setAttribute(Constant.USER_SESSION, req.getSession().getId());
+            resp.sendRedirect("/sys/success.jsp");
+        } else {
+            resp.sendRedirect("/error.jsp");
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        doGet(req, resp);
+    }
+}
+```
+
+配置 web.xml
+
+```xml
+    <servlet>
+        <servlet-name>LoginServlet</servlet-name>
+        <servlet-class>org.jzheng.servlet.LoginServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LoginServlet</servlet-name>
+        <url-pattern>/servlet/login</url-pattern>
+    </servlet-mapping>
+```
+
+创建登录失败页面
+
+```jsp
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>error</title>
+</head>
+<body>
+<h1> 登录失败 </h1>
+</body>
+</html>
+```
+
+启动测试，访问 localhost:8080/login.jsp 输入 admin 成功登录，输入其他内容，登录失败跳转到 error.jsp
+
+完善流程，创建 logout 并移除 session 属性的操作. 在 success 页面添加 logout 超链接
+
+```jsp
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>success</title>
+</head>
+<body>
+
+<h1> 登录成功 </h1>
+<p><a href="/servlet/logout">logout</a></p>
+</body>
+</html>
+```
+
+添加 logout 的 servlet 和 web.xml 配置
+
+```java
+public class LogoutServlet extends HttpServlet {
+        @Override
+        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+            if (req.getSession().getAttribute(Constant.USER_SESSION) != null) {
+                req.getSession().removeAttribute(Constant.USER_SESSION);
+                resp.sendRedirect("/login.jsp");
+            }
+        }
+
+        @Override
+        protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+            doGet(req, resp);
+        }
+}
+```
+
+```xml
+    <servlet>
+        <servlet-name>Logout</servlet-name>
+        <servlet-class>org.jzheng.servlet.LogoutServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>Logout</servlet-name>
+        <url-pattern>/servlet/logout</url-pattern>
+    </servlet-mapping>
+```
+
+上面使用移除属性，而不是 invalid 达到 session 重用的效果。新建 session 是一个比较重的操作
+
+重启之后，admin 登录，点击 logout 跳会到 login 页面。这里如果我们手动访问 sys/success.jsp 还是可以访问到。我们可以通过添加 filter，判断 USER_SESSION 是否为空作为跳转条件
+
+新建 filter 类
+
+```java
+public class SysFilter implements Filter {
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+
+    }
+
+    @Override
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+        HttpServletRequest req = (HttpServletRequest) servletRequest;
+        HttpServletResponse resp = (HttpServletResponse) servletResponse;
+
+        if (req.getSession().getAttribute(Constant.USER_SESSION) == null) {
+            resp.sendRedirect("/login.jsp");
+        }
+
+        filterChain.doFilter(req, servletResponse);
+    }
+
+    @Override
+    public void destroy() {
+
+    }
+}
+```
+
+添加 web.xml 配置
+
+```xml
+    <filter>
+        <filter-name>SysFilter</filter-name>
+        <filter-class>org.jzheng.servlet.SysFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>SysFilter</filter-name>
+        <url-pattern>/sys/*</url-pattern>
+    </filter-mapping>
+```
+
+启动服务器，直接访问 sys/success.jsp 还是显示 login 页面，被阻挡
+
 ## 思考题
 
 就公司需要 refactor 的代码，我有一段时间还想着，能不能把现在用到的从 session 里面拿数据的地方都换成从 request 里面拿。再仔细想一下，貌似不合适。request 的 scope 应该就只能持续到一次访问才对，设计如下的实验验证
