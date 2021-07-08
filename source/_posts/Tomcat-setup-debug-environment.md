@@ -1,9 +1,11 @@
 ---
 title: Tomcat setup debug environment
 date: 2021-07-05 18:54:11
-- How tomcat works
+categories:
+- Tomcat
 tags:
 - setup
+- How Tomcat Works
 ---
 
 本来像原滋原味的 setup tomcat4/5 的环境的，但是找了一圈没现成资源，还是拿了别人已经搞过的 Tomcat 8 过来，先搞起来再说，有必要再找 4/5 版本的代码。
