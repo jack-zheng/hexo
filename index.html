@@ -206,6 +206,360 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/07/08/VSCode-with-Hexo-and-PlantUML/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/07/08/VSCode-with-Hexo-and-PlantUML/" class="post-title-link" itemprop="url">VSCode 中配置 Hexo 集成 PlantUML 插件</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-07-08 13:33:40 / 修改时间：20:08:07" itemprop="dateCreated datePublished" datetime="2021-07-08T13:33:40+08:00">2021-07-08</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E5%B0%8F%E5%B7%A5%E5%85%B7/" itemprop="url" rel="index">
+                    <span itemprop="name">小工具</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>870</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>本地使用 VSCode 作为文本编辑器，集成 Hexo 和 PlantUML 在写博客的时候可以插入 UML 图。</p>
+<h2 id="安装插件"><a href="#安装插件" class="headerlink" title="安装插件"></a>安装插件</h2><ol>
+<li>安装插件 <code>npm install hexo-tag-plantuml --save</code></li>
+<li><code>_config.yml</code> 中添加配置</li>
+</ol>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">tag_plantuml:</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">static</span></span><br></pre></td></tr></table></figure>
+
+<p>UML 测试</p>
+<img  src=http://www.plantuml.com/plantuml/svg/SyfFqhLppCbCJbMmKiX8pSd91m00>
+
+<p>提交到 remote repo, 等 hexo deploy 之后可以看到 UML 图</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/two/hexo-tag-plantuml">插件地址 git 地址</a></li>
+</ul>
+<h2 id="VSCode-中显示-UML"><a href="#VSCode-中显示-UML" class="headerlink" title="VSCode 中显示 UML"></a>VSCode 中显示 UML</h2><p>上面的方式虽然远端可以显示了，但是本地查看的时候并不方便。VSCode 有提供插件可以在编辑器中显示对应的 UML</p>
+<h3 id="默认官方服务器生成-UML"><a href="#默认官方服务器生成-UML" class="headerlink" title="默认官方服务器生成 UML"></a>默认官方服务器生成 UML</h3><p>打开 VSCode, 在插件列表中搜索 PlantUML 并安装即可，使用 <code>@startuml</code> 和 <code>@enduml</code> 包裹 UML 代码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">@startuml</span><br><span class="line">Bob-&gt;Alice : hello</span><br><span class="line">@enduml</span><br></pre></td></tr></table></figure>
+
+<p>点开 preview mode 可以看到 UML 成功生成</p>
+<h3 id="使用-local-server-显示-UML"><a href="#使用-local-server-显示-UML" class="headerlink" title="使用 local server 显示 UML"></a>使用 local server 显示 UML</h3><p>默认情况下插件使用官方服务器生成 UML，优点是方便，缺点是要联网，可能生存有延时。我们可以配置 local server 提供这个服务。已经有现成的 docker 镜像了，配置简单</p>
+<ol>
+<li>启动 container: <code>docker run -d -p 8080:8080 plantuml/plantuml-server:jetty</code> 或者 <code>docker run -d -p 8080:8080 plantuml/plantuml-server:tomcat</code> 效果一样，只是用了不同类型的服务器实现</li>
+<li>我本地有其他服务占用了 8080, 修改端口映射 <code>-p 7999:8080</code></li>
+<li>访问 <code>http://localhost:7999</code> 查看服务是否启动</li>
+<li>修改 VSCode 中 PlantUML 插件配置</li>
+</ol>
+<ul>
+<li>cmd+shift+p 搜索 open user setting</li>
+<li>关键子搜索 plantuml</li>
+<li>Plantuml:render 设置下选择 local</li>
+<li>Plantuml:server 输入本地 server 地址 <code>http://localhost:7999</code></li>
+</ul>
+<p>截图如下</p>
+<p><img src="VSCode-with-Hexo-and-PlantUML/plantuml_setting.png" alt="uml plugin setting"></p>
+<p>点击 preview 之前的 UML 正常显示，设置完成</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/plantuml/plantuml-server">PlantUML image git project</a></li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/07/05/Tomcat-setup-debug-environment/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/07/05/Tomcat-setup-debug-environment/" class="post-title-link" itemprop="url">Tomcat setup debug environment</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-07-05 18:54:11" itemprop="dateCreated datePublished" datetime="2021-07-05T18:54:11+08:00">2021-07-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-07-08 20:08:07" itemprop="dateModified" datetime="2021-07-08T20:08:07+08:00">2021-07-08</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/Tomcat/" itemprop="url" rel="index">
+                    <span itemprop="name">Tomcat</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>本来像原滋原味的 setup tomcat4/5 的环境的，但是找了一圈没现成资源，还是拿了别人已经搞过的 Tomcat 8 过来，先搞起来再说，有必要再找 4/5 版本的代码。</p>
+<ol>
+<li>访问<a target="_blank" rel="noopener" href="https://tomcat.apache.org/download-80.cgi">官网</a>, 选择 Source Code Distributions 下的 zip 或者 tar.gz，下载。瞄了一眼 README 貌似两者的区别是 zip 是 CRLF 换行而 tar 是 LF 换行。应该对应 windows 和 Linux 系统。</li>
+<li>下载后得到一个 apache-tomcat-8.5.68-src.tar.gz 压缩包，解压它</li>
+<li>在解压后目录中新建 catalina-home 文件夹，并将源码中的 conf, webapps 文件夹拷贝进去。webapps 下的 example 文件夹删掉，不然后面启动会抛异常</li>
+<li>在 catalina-home 下新建四个文件夹：lib, temp, work, logs</li>
+<li>在源文件目录下新建 pom.xml 文件并添加依赖</li>
+<li>删除源文件中的 test 目录避免一些不必要的错误</li>
+<li>打开 Idea, 导入项目，run/debug 处配置启动参数如下</li>
+<li>修改 ContextConfig 文件，在 <code>webConfig();</code> 后添加 <code>context.addServletContainerInitializer(new JasperInitializer(), null);</code> 不然访问页面会抛 <code>org.apache.jasper.JasperException: java.lang.NullPointerException</code> 的异常</li>
+<li>点击 Idea 上的 run 测试启动，成功</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- 启动参数 --&gt;</span><br><span class="line">main class: org.apache.catalina.startup.Bootstrap</span><br><span class="line">vm options: </span><br><span class="line">-Dcatalina.home&#x3D;&quot;&#x2F;Users&#x2F;i306454&#x2F;IdeaProjects&#x2F;apache-tomcat-8.5.68-src&#x2F;catalina-home&quot;</span><br><span class="line">-Duser.language&#x3D;en</span><br><span class="line">-Duser.region&#x3D;US</span><br><span class="line">-Dfile.encoding&#x3D;UTF-8</span><br></pre></td></tr></table></figure>
+
+<p>PS: Idea 2021.1.3 版本的 vm options 需要点击 Modify Options 自己添加，默认不显示</p>
+<p><img src="application.png" alt="application"></p>
+<p>最终，项目的目录结构如下</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">└── apache-tomcat-8.5.68-src</span><br><span class="line">    ├── catalina-home</span><br><span class="line">    │   ├── conf</span><br><span class="line">    │   ├── lib</span><br><span class="line">    │   ├── logs</span><br><span class="line">    │   ├── temp</span><br><span class="line">    │   ├── webapps</span><br><span class="line">    │   └── work</span><br><span class="line">    └── pom.xml</span><br></pre></td></tr></table></figure>
+
+<p>PS: <a target="_blank" rel="noopener" href="https://archive.apache.org/dist/tomcat/tomcat-5/">Tomcat 5 源码地址</a></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/07/05/HTW-intro-and-ex01/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/07/05/HTW-intro-and-ex01/" class="post-title-link" itemprop="url">How tomcat works 之 intro + ex01</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-07-05 12:51:24" itemprop="dateCreated datePublished" datetime="2021-07-05T12:51:24+08:00">2021-07-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-07-08 20:08:07" itemprop="dateModified" datetime="2021-07-08T20:08:07+08:00">2021-07-08</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/Tomcat/" itemprop="url" rel="index">
+                    <span itemprop="name">Tomcat</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="Introduce"><a href="#Introduce" class="headerlink" title="Introduce"></a>Introduce</h2><p>Basically there are three things that a servlet container does to service a request for a servlet:</p>
+<ul>
+<li>创建 request 对象并塞入后续要用到的信息，比如 parameters，cookies 等。request 是 javax.servlet(.http).ServletRequest 的一个实现</li>
+<li>创建一个 response 对象返回给 web client. response 是 javax.servlet(.http).ServletResponse 的一个实现</li>
+<li>调用 service 方法，service 中接受 request 的参数，处理结果塞入 response 中</li>
+</ul>
+<h3 id="Catalina-Block-Diagram"><a href="#Catalina-Block-Diagram" class="headerlink" title="Catalina Block Diagram"></a>Catalina Block Diagram</h3><p>Catalina 很复杂，但是他的设计很优雅，采用模块化的思想。主要可以分为两部分 Connector 和 Container，关系如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">@startuml</span><br><span class="line">Connector &quot;*&quot;*-&quot;1&quot; Container</span><br><span class="line">@enduml</span><br></pre></td></tr></table></figure>
+
+<p>connector 主要作用是构建 request/response 并传递给 container 处理，这里只是简化的模型。container 除了处理 request 还有很多东西需要做，比如加载 servlet，更新 session 等。</p>
+<h2 id="ex01"><a href="#ex01" class="headerlink" title="ex01"></a>ex01</h2><p>第一个练习的目标，创建一个简单的 web server. 服务启动后，浏览器输入地址，server 返回请求的静态资源.</p>
+<p>逻辑层面上来说模型可以像下面这样展示，但是代码层面上却不行。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">@startuml</span><br><span class="line"></span><br><span class="line">(Client) -&gt; (Web Server) : request</span><br><span class="line">(Web Server) -&gt; (Client) : response</span><br><span class="line"></span><br><span class="line">@enduml</span><br></pre></td></tr></table></figure>
+
+<img  src=http://www.plantuml.com/plantuml/svg/qt3EoKpDAz5KqBLJq0XFJL88JYqgIotILB1IA4ejB4qjBk524GOfWsa1AIakoCyhJWK0>
+
+<p>如果按照上面的图示，难道 client 是直接 new 一个 request 和 web server 进行交互吗？难道 web server 会 new 一个 response 发送给 client 吗? 非也。模型化成下面的样子应该更合适</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">@startuml</span><br><span class="line">left to right direction</span><br><span class="line">skinparam packageStyle rectangle</span><br><span class="line"></span><br><span class="line">(Client)</span><br><span class="line">rectangle &quot;Web Server&quot; &#123;</span><br><span class="line">    cloud &quot;service&quot; &#123;</span><br><span class="line">        (req)</span><br><span class="line">        (resp)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    (Client) &lt;--&gt; service : socket</span><br><span class="line">&#125;</span><br><span class="line">@enduml</span><br></pre></td></tr></table></figure>
+
+<img  src=http://www.plantuml.com/plantuml/svg/JOmn3i8m40JxUyNALLBa0mZHy8GKrCOvp2d6DlQ1X53-JW84iSrgPwK9V59eGX5_LWnIsAcaI7MKc6sn5sJhHkkvrqTWBBUDFZ1Him_2KLlwCPW37z5pkNCnU1Bck91k0qoTeJXUwPAcyBNzNpL_vaJlMltOTjqENm4sgCcDh3Iz0000>
+
+<p>Client 和 Web Server 之间通过 socket 进行交互。在 server 内部，会将 socket 分化为 input 和 output 两个 IO 流，分别对应读取 Client 发送的数据和发送给 Client 相应</p>
+<p>项目目录设置如下</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">how-tomcat-works</span><br><span class="line">├── ex01</span><br><span class="line">│   ├── pom.xml</span><br><span class="line">│   └── src</span><br><span class="line">│       └── ex01</span><br><span class="line">│           ├── HttpServer.java</span><br><span class="line">│           ├── Request.java</span><br><span class="line">│           └── Response.java</span><br><span class="line">├── pom.xml</span><br><span class="line">└── webroot</span><br><span class="line">    ├── images</span><br><span class="line">    │   └── logo.gif</span><br><span class="line">    └── index.html</span><br></pre></td></tr></table></figure>
+
+<p>HttpServer 表示服务器类，内部实现主要依赖于 ServerSocket 这个 java.net 包下的类，他在绑定本地端口并死循环等待 Client 端的 socket 访问</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HttpServer</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 指定静态资源目录</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String WEB_ROOT = System.getProperty(<span class="string">&quot;user.dir&quot;</span>) + File.separator + <span class="string">&quot;webroot&quot;</span>;</span><br><span class="line">    <span class="comment">// shutdown command</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String SHUTDOWN_COMMAND = <span class="string">&quot;/SHUTDOWN&quot;</span>;</span><br><span class="line">    <span class="comment">// the shutdown command received</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">boolean</span> shutdown = <span class="keyword">false</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        HttpServer server = <span class="keyword">new</span> HttpServer();</span><br><span class="line">        server.await();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">await</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        ServerSocket serverSocket = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">int</span> port = <span class="number">8080</span>;</span><br><span class="line">        <span class="comment">// 绑定端口和地址</span></span><br><span class="line">        serverSocket = <span class="keyword">new</span> ServerSocket(port, <span class="number">1</span>, InetAddress.getByName(<span class="string">&quot;127.0.0.1&quot;</span>));</span><br><span class="line">        <span class="comment">// 死循环等待 request</span></span><br><span class="line">        <span class="keyword">while</span> (!shutdown) &#123;</span><br><span class="line">            Socket socket = <span class="keyword">null</span>;</span><br><span class="line">            InputStream input = <span class="keyword">null</span>;</span><br><span class="line">            OutputStream output = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 拿到 socket</span></span><br><span class="line">            socket = serverSocket.accept();</span><br><span class="line">            <span class="comment">// 分化 socket</span></span><br><span class="line">            input = socket.getInputStream();</span><br><span class="line">            output = socket.getOutputStream();</span><br><span class="line">            <span class="comment">// create Request object and parse</span></span><br><span class="line">            Request request = <span class="keyword">new</span> Request(input);</span><br><span class="line">            request.parse();</span><br><span class="line"></span><br><span class="line">            <span class="comment">// create Response object</span></span><br><span class="line">            Response response = <span class="keyword">new</span> Response(output);</span><br><span class="line">            response.setRequest(request);</span><br><span class="line">            response.sendStaticResource();</span><br><span class="line"></span><br><span class="line">            <span class="comment">// Close the socket</span></span><br><span class="line">            socket.close();</span><br><span class="line">            <span class="comment">// check if the previous URI is a shutdown command</span></span><br><span class="line">            shutdown = request.getUri().equals(SHUTDOWN_COMMAND);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Request 类的主要职责是拿到 socket 的输入流，解析并提取 Client 发送过来的信息，这个例子中主要是提取请求的资源路径</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Request</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> InputStream input;</span><br><span class="line">    <span class="keyword">private</span> String uri;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Request</span><span class="params">(InputStream input)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.input = input;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">parse</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// Read a set of characters from the socket</span></span><br><span class="line">        StringBuilder request = <span class="keyword">new</span> StringBuilder(<span class="number">2048</span>);</span><br><span class="line">        <span class="keyword">int</span> i;</span><br><span class="line">        <span class="keyword">byte</span>[] buffer = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">2048</span>];</span><br><span class="line">        i = input.read(buffer);</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; i; j++) &#123;</span><br><span class="line">            request.append((<span class="keyword">char</span>) buffer[j]);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 打印请求信息</span></span><br><span class="line">        System.out.print(request);</span><br><span class="line">        uri = parseUri(request.toString());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 解析请求，拿到请求的路径</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> String <span class="title">parseUri</span><span class="params">(String requestString)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> index1, index2;</span><br><span class="line">        index1 = requestString.indexOf(<span class="string">&#x27; &#x27;</span>);</span><br><span class="line">        <span class="keyword">if</span> (index1 != -<span class="number">1</span>) &#123;</span><br><span class="line">            index2 = requestString.indexOf(<span class="string">&#x27; &#x27;</span>, index1 + <span class="number">1</span>);</span><br><span class="line">            <span class="keyword">if</span> (index2 &gt; index1)</span><br><span class="line">                <span class="keyword">return</span> requestString.substring(index1 + <span class="number">1</span>, index2);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getUri</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> uri;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Response 负责向 Client 返回信息</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Response</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> BUFFER_SIZE = <span class="number">1024</span>;</span><br><span class="line">    Request request;</span><br><span class="line">    OutputStream output;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Response</span><span class="params">(OutputStream output)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.output = output;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setRequest</span><span class="params">(Request request)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.request = request;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sendStaticResource</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        <span class="keyword">byte</span>[] bytes = <span class="keyword">new</span> <span class="keyword">byte</span>[BUFFER_SIZE];</span><br><span class="line">        FileInputStream fis = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            File file = <span class="keyword">new</span> File(HttpServer.WEB_ROOT, request.getUri());</span><br><span class="line">            <span class="keyword">if</span> (file.exists()) &#123;</span><br><span class="line">                <span class="comment">// 书上这段是没有的，当时 browser 比较老，不检测格式，现在浏览器不加这个页面会不能显示，curl 测试倒是不受影响</span></span><br><span class="line">                String header = <span class="string">&quot;HTTP/1.1 200 OK\r\n&quot;</span> +</span><br><span class="line">                        <span class="string">&quot;Content-Type: text/html\r\n&quot;</span> +</span><br><span class="line">                        <span class="string">&quot;\r\n&quot;</span>;</span><br><span class="line">                output.write(header.getBytes());</span><br><span class="line"></span><br><span class="line">                fis = <span class="keyword">new</span> FileInputStream(file);</span><br><span class="line">                <span class="keyword">int</span> ch = fis.read(bytes, <span class="number">0</span>, BUFFER_SIZE);</span><br><span class="line">                <span class="keyword">while</span> (ch != -<span class="number">1</span>) &#123;</span><br><span class="line">                    output.write(bytes, <span class="number">0</span>, ch);</span><br><span class="line">                    ch = fis.read(bytes, <span class="number">0</span>, BUFFER_SIZE);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="comment">// file not found</span></span><br><span class="line">                String errorMessage = <span class="string">&quot;HTTP/1.1 404 File Not Found\r\n&quot;</span></span><br><span class="line">                        + <span class="string">&quot;Content-Type: text/html\r\n&quot;</span></span><br><span class="line">                        + <span class="string">&quot;Content-Length: 23\r\n&quot;</span> + <span class="string">&quot;\r\n&quot;</span></span><br><span class="line">                        + <span class="string">&quot;&lt;h1&gt;File Not Found&lt;/h1&gt;&quot;</span>;</span><br><span class="line">                output.write(errorMessage.getBytes());</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="comment">// thrown if cannot instantiate a File object</span></span><br><span class="line">            System.out.println(e.toString());</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (fis != <span class="keyword">null</span>) &#123;</span><br><span class="line">                fis.close();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>结合之前学的计网知识，巩固一下，挺有意思</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/06/18/Shell-tar-use-sample/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +591,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-07 00:39:10" itemprop="dateModified" datetime="2021-07-07T00:39:10+08:00">2021-07-07</time>
+                <time title="修改时间：2021-07-08 20:08:07" itemprop="dateModified" datetime="2021-07-08T20:08:07+08:00">2021-07-08</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -358,7 +712,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-07 00:39:10" itemprop="dateModified" datetime="2021-07-07T00:39:10+08:00">2021-07-07</time>
+                <time title="修改时间：2021-07-08 20:08:07" itemprop="dateModified" datetime="2021-07-08T20:08:07+08:00">2021-07-08</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -886,7 +1240,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-07 00:39:10" itemprop="dateModified" datetime="2021-07-07T00:39:10+08:00">2021-07-07</time>
+                <time title="修改时间：2021-07-08 20:08:07" itemprop="dateModified" datetime="2021-07-08T20:08:07+08:00">2021-07-08</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1075,7 +1429,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-07 00:39:10" itemprop="dateModified" datetime="2021-07-07T00:39:10+08:00">2021-07-07</time>
+                <time title="修改时间：2021-07-08 20:08:07" itemprop="dateModified" datetime="2021-07-08T20:08:07+08:00">2021-07-08</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1543,7 +1897,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-07 00:39:10" itemprop="dateModified" datetime="2021-07-07T00:39:10+08:00">2021-07-07</time>
+                <time title="修改时间：2021-07-08 20:08:07" itemprop="dateModified" datetime="2021-07-08T20:08:07+08:00">2021-07-08</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -2821,7 +3175,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-07 00:39:10" itemprop="dateModified" datetime="2021-07-07T00:39:10+08:00">2021-07-07</time>
+                <time title="修改时间：2021-07-08 20:08:07" itemprop="dateModified" datetime="2021-07-08T20:08:07+08:00">2021-07-08</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -3968,7 +4322,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-07 00:39:10" itemprop="dateModified" datetime="2021-07-07T00:39:10+08:00">2021-07-07</time>
+                <time title="修改时间：2021-07-08 20:08:07" itemprop="dateModified" datetime="2021-07-08T20:08:07+08:00">2021-07-08</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -5406,398 +5760,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/05/20/Spring-bean-injection/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/05/20/Spring-bean-injection/" class="post-title-link" itemprop="url">Spring 如何注入 bean</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-05-20 16:47:39" itemprop="dateCreated datePublished" datetime="2021-05-20T16:47:39+08:00">2021-05-20</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-07 00:39:10" itemprop="dateModified" datetime="2021-07-07T00:39:10+08:00">2021-07-07</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/Spring/" itemprop="url" rel="index">
-                    <span itemprop="name">Spring</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>202</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="通过工长方法-注解注入-bean"><a href="#通过工长方法-注解注入-bean" class="headerlink" title="通过工长方法 + 注解注入 bean"></a>通过工长方法 + 注解注入 bean</h2><p>今天接到一个任务，需要通过工厂方法注入一个 bean 到 context 中，抄了别人的代码，但是还是不生效，再三测试，发现是类型赋错了。简化后，示例如下</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">person</span><br><span class="line"></span><br><span class="line">student -&gt; person</span><br><span class="line"></span><br><span class="line">factory::getStudent<span class="meta">@Bean</span>, <span class="keyword">return</span> Person</span><br><span class="line"></span><br><span class="line">返回值错了，导致注入失败</span><br></pre></td></tr></table></figure>
-
-<h2 id="spring-如何加载-bean？"><a href="#spring-如何加载-bean？" class="headerlink" title="spring 如何加载 bean？"></a>spring 如何加载 bean？</h2><p>对于公司这个老项目，它又是如何加载的？</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/05/18/Hexo-bugs-investigation/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/05/18/Hexo-bugs-investigation/" class="post-title-link" itemprop="url">Hexo bug 记录</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-05-18 10:41:25" itemprop="dateCreated datePublished" datetime="2021-05-18T10:41:25+08:00">2021-05-18</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-07 00:39:10" itemprop="dateModified" datetime="2021-07-07T00:39:10+08:00">2021-07-07</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/Hexo/" itemprop="url" rel="index">
-                    <span itemprop="name">Hexo</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>408</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="navigation-side-bar-issue"><a href="#navigation-side-bar-issue" class="headerlink" title="navigation side bar issue"></a>navigation side bar issue</h2><p>发现一个 Hexo 的 bug. 使用版本</p>
-<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">hexo version </span><br><span class="line">INFO  Validating config</span><br><span class="line">hexo: 5.0.0</span><br><span class="line">hexo-cli: 4.1.0</span><br><span class="line">os: Darwin 20.4.0 darwin x64</span><br><span class="line">node: 15.10.0</span><br><span class="line">v8: 8.6.395.17-node.25</span><br><span class="line">uv: 1.41.0</span><br><span class="line">zlib: 1.2.11</span><br><span class="line">brotli: 1.0.9</span><br><span class="line">ares: 1.17.1</span><br><span class="line">modules: 88</span><br><span class="line">nghttp2: 1.42.0</span><br><span class="line">napi: 7</span><br><span class="line">llhttp: 2.1.3</span><br><span class="line">openssl: 1.1.1j</span><br><span class="line">cldr: 38.1</span><br><span class="line">icu: 68.2</span><br><span class="line">tz: 2020d</span><br><span class="line">unicode: 13.0</span><br></pre></td></tr></table></figure>
-
-<p>问题描述：</p>
-<p>Outline 中的中文导航会失败，英文的可以正常工作</p>
-<p><img src="outline.png" alt="Outline display issue"></p>
-<p>怎么修还不清楚，简单搜索了一下并没有查到解决方案，有机会的话可以看看 Hexo 源码再提一个 fix 的 PR ╮(￣▽￣””)╭</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/05/17/LSSC-shell-something-out/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/05/17/LSSC-shell-something-out/" class="post-title-link" itemprop="url">牛刀小试</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-05-17 19:27:05" itemprop="dateCreated datePublished" datetime="2021-05-17T19:27:05+08:00">2021-05-17</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-07 00:39:10" itemprop="dateModified" datetime="2021-07-07T00:39:10+08:00">2021-07-07</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/Shell/" itemprop="url" rel="index">
-                    <span itemprop="name">Shell</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>12k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>11 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p><strong>Man</strong> 帮助文档操作方式</p>
-<ul>
-<li>ctrl + F或者 Page Down：向下翻页</li>
-<li>ctrl + B或者 Page Up：向上翻页</li>
-<li>gg到第一行</li>
-<li>GG到最后一行</li>
-<li>/start：能在整手册中搜索start相关字符，使用n查找下一个，使用N查找上一个</li>
-<li>j，k与vi中一样使用，j向下一行，k向上一行</li>
-<li>d下翻半页</li>
-<li>u上翻半页</li>
-<li>h获取man使用帮助</li>
-<li>q退出man</li>
-</ul>
-<h2 id="Introduce"><a href="#Introduce" class="headerlink" title="Introduce"></a>Introduce</h2><p>以下实验均基于 bas</p>
-<ul>
-<li>提示符 <code>$</code> 表示普通用户， <code>#</code> 表示 root 用户</li>
-<li>shebang: shell 文件首部的，以 <code>#!</code> 开头指定 shell 版本的语句</li>
-<li>两种运行方式，终端对话框运行 or 运行脚本文件 <code>bash /path/to/file.script.sh</code></li>
-<li>历史记录存储在 <code>.bash_history</code> 文件中</li>
-<li>两个 cmd 可以写在同一行，但是需要用 <code>;</code> 隔开， <code>echo a ; echo b</code> 等价于 <code>echo a \n echo b</code></li>
-</ul>
-<blockquote>
-<p>什么是 login shell<br>A login shell is the shell which you get just after logging in to a machine. However, if you open up a shell while logged in to a graphical environment (such as GNOME, KDE, and so on), then it is not a login shell.</p>
-</blockquote>
-<h2 id="Printing-in-the-terminal"><a href="#Printing-in-the-terminal" class="headerlink" title="Printing in the terminal"></a>Printing in the terminal</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 打印，自带结尾换行效果</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Welcome to Bash&quot;</span></span><br><span class="line"><span class="comment"># Welcome to Bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 不带引号也可以</span></span><br><span class="line"><span class="built_in">echo</span> Welcome to Bash</span><br><span class="line"><span class="comment"># Welcome to Bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 单引号也可以</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;text in quotes&#x27;</span></span><br><span class="line"><span class="comment"># text in quotes</span></span><br></pre></td></tr></table></figure>
-
-<p>从上面效果看，都能打印，而且结果都一致，但是这几种使用方式还是有区别的</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># &quot; 中不能以 ！ 结尾, 在 bash 中 ！有特殊含义，表示前一个</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;hi !&quot;</span></span><br><span class="line"><span class="comment"># bash: !&quot;: event not found</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 调用之前命令测试</span></span><br><span class="line"><span class="built_in">echo</span> aaa</span><br><span class="line"><span class="comment"># aaa</span></span><br><span class="line">!<span class="built_in">echo</span></span><br><span class="line"><span class="comment"># echo aaa</span></span><br><span class="line"><span class="comment"># aaa</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 但是如果 ！ 后面接空格则正常</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;hi ! &quot;</span></span><br><span class="line"><span class="comment"># hi !</span></span><br></pre></td></tr></table></figure>
-
-<p>echo 的几种用法的副作用：</p>
-<ol>
-<li>光杆 echo, 后面不能接 <code>;</code> 不然命令断裂了</li>
-<li>单引号 echo, 变量复制不起作用</li>
-</ol>
-<p>echo 的其他用法：</p>
-<ol>
-<li><code>echo -n &quot;hi&quot;</code> 使用 <code>-n</code> 取出换行</li>
-<li><code>echo -e &quot;1\t2\t3&quot;</code> 使用 <code>-e</code> 打印转义符</li>
-</ol>
-<p>echo 输出变色：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># \e[1;31m 设置字体为红色, \e[0m 重制</span></span><br><span class="line"><span class="built_in">echo</span> -e <span class="string">&quot;\e[1;31m This is red text \e[0m&quot;</span></span><br><span class="line"><span class="comment"># This is red text</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># \e[1;42m 设置背景为绿色, \e[0m 重制</span></span><br><span class="line"><span class="built_in">echo</span> -e <span class="string">&quot;\e[1;42m Green Background \e[0m&quot;</span></span><br><span class="line"><span class="comment"># Green Background</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 混合使用也是 OK 的</span></span><br><span class="line"><span class="built_in">echo</span> -e <span class="string">&quot;\e[1;42m\e[1;31m Green Background \e[0m&quot;</span></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># printf 和 C 语言中用法一致，默认不带换行</span></span><br><span class="line">bash-3.2$ <span class="built_in">printf</span> <span class="string">&quot;hello world&quot;</span></span><br><span class="line">hello worldbash-3.2$</span><br><span class="line"></span><br><span class="line"><span class="comment"># 打印示例</span></span><br><span class="line"><span class="built_in">printf</span>  <span class="string">&quot;%-5s %-10s %-4s\n&quot;</span> No Name  Mark</span><br><span class="line"><span class="built_in">printf</span>  <span class="string">&quot;%-5s %-10s %-4.2f\n&quot;</span> 1 Sarath 80.3456</span><br><span class="line"><span class="built_in">printf</span>  <span class="string">&quot;%-5s %-10s %-4.2f\n&quot;</span> 2 James 90.9989</span><br><span class="line"><span class="built_in">printf</span>  <span class="string">&quot;%-5s %-10s %-4.2f\n&quot;</span> 3 Jeff 77.564</span><br><span class="line"><span class="comment"># No    Name       Mark</span></span><br><span class="line"><span class="comment"># 1     Sarath     80.35</span></span><br><span class="line"><span class="comment"># 2     James      91.00</span></span><br><span class="line"><span class="comment"># 3     Jeff       77.56</span></span><br></pre></td></tr></table></figure>
-
-<p>PS: -5, 左对齐，占 5 个位置</p>
-<h2 id="Session-3-Playing-with-variables-and-environment-variables"><a href="#Session-3-Playing-with-variables-and-environment-variables" class="headerlink" title="Session 3 Playing with variables and environment variables"></a>Session 3 Playing with variables and environment variables</h2><p>赋值语句 <code>var=value</code>，需要注意的是，<code>var = value</code> 是不对的，后者是等于运算。如果 value 中间没有空格，则直接写，不然需要用引号包裹。当使用 echo 或者 prinf 输出变量时，需要用<strong>双引号</strong></p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">name=jack</span><br><span class="line">echo $name # or `echo $&#123;name&#125;`</span><br><span class="line"><span class="meta">#</span><span class="bash"> jack</span></span><br><span class="line"></span><br><span class="line">name2 = jaack</span><br><span class="line"><span class="meta">#</span><span class="bash"> zsh: <span class="built_in">command</span> not found: name2</span></span><br><span class="line"></span><br><span class="line">name=&quot;jack zheng&quot;</span><br><span class="line">echo $&#123;name&#125;</span><br><span class="line"><span class="meta">#</span><span class="bash"> jack zheng</span></span><br><span class="line"></span><br><span class="line">name=&#x27;jack zheng&#x27;</span><br><span class="line">echo $&#123;name&#125;</span><br><span class="line"><span class="meta">#</span><span class="bash"> jack zheng</span></span><br><span class="line"></span><br><span class="line">fruit=apple</span><br><span class="line">count=5 </span><br><span class="line">echo &quot;We have $count $&#123;fruit&#125;(s)&quot;</span><br><span class="line"><span class="meta">#</span><span class="bash"> We have 5 apple(s)</span></span><br><span class="line">echo &#x27;We have $count $&#123;fruit&#125;(s)&#x27;</span><br><span class="line"><span class="meta">#</span><span class="bash"> We have <span class="variable">$count</span> <span class="variable">$&#123;fruit&#125;</span>(s)</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 输出变量长度</span></span><br><span class="line">length=$&#123;#name&#125;</span><br><span class="line">echo $length</span><br><span class="line"><span class="meta">#</span><span class="bash"> 10 - it<span class="string">&#x27;s the length of &#x27;</span>jack zheng<span class="string">&#x27;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 显示当前的 shell 种类</span></span><br><span class="line">echo $SHELL # or `echo $0`</span><br><span class="line"><span class="meta">#</span><span class="bash"> /bin/zsh</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 如果运行 script 的用户不是 root，打印提示信息</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 注意点：</span></span><br><span class="line"><span class="meta">#</span><span class="bash">   1. 书上的例子首字母写错了</span></span><br><span class="line"><span class="meta">#</span><span class="bash">   2. <span class="keyword">if</span> [ 之间都有空格的，不然会抛语法错误</span></span><br><span class="line"><span class="meta">#</span><span class="bash">   3. root user 的 UID 为 0</span></span><br><span class="line">if [ $UID -ne 0 ]; then</span><br><span class="line">    echo Non root user. Please run as root.</span><br><span class="line">else</span><br><span class="line">    echo Root user</span><br><span class="line">fi</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 修改提示符内容</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 可以通过修改 .bashrc 中的 PS1 变量来达到该效果，不过我本地用的 zsh 和书上说的略有不同，就不是试了</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="Function-to-prepend-to-environmnet-variables"><a href="#Function-to-prepend-to-environmnet-variables" class="headerlink" title="Function to prepend to environmnet variables"></a>Function to prepend to environmnet variables</h2><p>假设我们安装了新的应用到 <code>/opt/myapp</code>，这个应用包含 <code>bin</code> 和 <code>lib</code> 目录。为了使他生效，我们需要做如下设置</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> PATH=/opt/myapp/bin:<span class="variable">$PATH</span></span><br><span class="line"><span class="built_in">export</span> LD_LIBRARY_PATH=/opt/myapp/lib;<span class="variable">$LD_LIBRARY_PATH</span></span><br></pre></td></tr></table></figure>
-
-<p>如果想简化上面的设置的话，我们可以在 <code>.bashrc</code> 里自定义一些函数</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">prepend</span></span>() &#123; [ -d <span class="string">&quot;<span class="variable">$2</span>&quot;</span> ] &amp;&amp; <span class="built_in">eval</span> <span class="variable">$1</span>=\&quot;<span class="variable">$2</span><span class="string">&#x27;:&#x27;</span>\$<span class="variable">$1</span>\&quot; &amp;&amp; <span class="built_in">export</span> <span class="variable">$1</span>; &#125;</span><br><span class="line"><span class="comment"># $1=\&quot;$2&#x27;:&#x27;\$$1\&quot; 人话说就是 PATH=&quot;New_Path:$PATH&quot;</span></span><br><span class="line"><span class="comment"># 可以通过 echo $1=\&quot;$2&#x27;:&#x27;\$$1\&quot; 测试</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 之前的命令可以简化为</span></span><br><span class="line">prepend PATH /opt/myapp/bin</span><br><span class="line">prepend LD_LIBRARY_PATH /opt/myapp/lib</span><br></pre></td></tr></table></figure>
-
-<p>但是上面的脚本有瑕疵，当原始 PATH 为 null 时，新生成的 PATH 就会以 <code>:</code> 结果，我们可以改进如下</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">prepend</span></span>() &#123; [ -d <span class="string">&quot;<span class="variable">$2</span>&quot;</span> ] &amp;&amp; <span class="built_in">eval</span> <span class="variable">$1</span>=\&quot;<span class="variable">$2</span>\$\&#123;<span class="variable">$1</span>:+<span class="string">&#x27;:&#x27;</span>\$<span class="variable">$1</span>\&#125;\&quot; &amp;&amp; <span class="built_in">export</span> <span class="variable">$1</span> ; &#125;</span><br></pre></td></tr></table></figure>
-
-<p>PS: shell 中定义变量的格式 <code>$&#123;parameter:+expression&#125;</code></p>
-<h2 id="上例中语法解释"><a href="#上例中语法解释" class="headerlink" title="上例中语法解释"></a>上例中语法解释</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 如何定义函数？</span></span><br><span class="line"><span class="comment"># 格式如下，写在 .zshrc 中，source 一下即可调用</span></span><br><span class="line"><span class="function"><span class="title">demoFun</span></span>() &#123;</span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;This is a function...&quot;</span></span><br><span class="line">&#125;</span><br><span class="line">demoFun   </span><br><span class="line"><span class="comment"># This is a function...</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 如何取得调用时传入的参数？</span></span><br><span class="line"><span class="comment"># 当位数超过 10 时需要用 $&#123;n&#125; 获取参数</span></span><br><span class="line"><span class="comment"># 其他特殊字符表示含义：</span></span><br><span class="line"><span class="comment">#   * $#: 传入参数的个数</span></span><br><span class="line"><span class="comment">#   * $*: 以一个字符串显示所有参数</span></span><br><span class="line"><span class="comment">#   * $@: 同上，但是需要加引号</span></span><br><span class="line"><span class="comment">#   * $$: 脚本运行的当前进程 ID</span></span><br><span class="line"><span class="comment">#   * $!: 后台运行的最后一个进程的 ID</span></span><br><span class="line"><span class="comment">#   * $?: 显示最后命令的退出状态，0 表示没错误，其他值表示有错误</span></span><br><span class="line"><span class="function"><span class="title">funWithParam</span></span>()&#123;</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;第一个参数为 <span class="variable">$1</span> !&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;第二个参数为 <span class="variable">$2</span> !&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;第十个参数为 <span class="variable">$10</span> !&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;第十个参数为 <span class="variable">$&#123;10&#125;</span> !&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;第十一个参数为 <span class="variable">$&#123;11&#125;</span> !&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;参数总数有 <span class="variable">$#</span> 个!&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;作为一个字符串输出所有参数 $* !&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">funWithParam 1 2 3 4 5 6 7 8 9 34 73</span><br><span class="line"><span class="comment"># 第一个参数为 1 !</span></span><br><span class="line"><span class="comment"># 第二个参数为 2 !</span></span><br><span class="line"><span class="comment"># 第十个参数为 34 !</span></span><br><span class="line"><span class="comment"># 第十个参数为 34 !</span></span><br><span class="line"><span class="comment"># 第十一个参数为 73 !</span></span><br><span class="line"><span class="comment"># 参数总数有 11 个!</span></span><br><span class="line"><span class="comment"># 作为一个字符串输出所有参数 1 2 3 4 5 6 7 8 9 34 73 !</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># [] 什么意思？</span></span><br><span class="line"><span class="comment"># shell 中方括号和 Test 等价</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># -d 什么意思？</span></span><br><span class="line"><span class="comment"># -d filename 表示是否为目录，但是总感觉用在这里词不达意</span></span><br><span class="line"><span class="comment"># 类似的还有 -eq，判等</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># eval 什么意思？</span></span><br><span class="line"><span class="comment"># eval 如果后面直接跟命令，直接运行，如果命令中包含变量，则计算变量后运行</span></span><br><span class="line"><span class="built_in">set</span> 11 22 33 44</span><br><span class="line"><span class="comment"># 假设我们不知道参数长度，可以如下输出最后一个参数</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$#</span></span><br><span class="line"><span class="comment"># 4</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;\$<span class="variable">$#</span>&quot;</span></span><br><span class="line"><span class="comment"># $4</span></span><br><span class="line"><span class="built_in">eval</span> <span class="built_in">echo</span> <span class="string">&quot;\$<span class="variable">$#</span>&quot;</span></span><br><span class="line"><span class="comment"># 44</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 修改后的 \$\&#123;$1:+&#x27;:&#x27;\$$1\&#125; 是什么意思？</span></span><br><span class="line"><span class="comment"># :+ 表示覆盖缺省值</span></span><br><span class="line"><span class="comment"># 只有当var不是空的时候才替换成string, 若var为空时则不替换或者说是替换成变量var的值,即空值</span></span><br><span class="line">COMPANY=<span class="string">&quot;Nightlight Inc.&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$&#123;COMPANY:+Company has been overridden&#125;</span>&quot;</span></span><br><span class="line"><span class="comment"># Company has been overridden</span></span><br><span class="line">COMPANY=</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$&#123;COMPANY:+Company has been overridden&#125;</span>&quot;</span></span><br><span class="line"><span class="comment"># 打印空行</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># &amp;&amp; 什么意思</span></span><br><span class="line"><span class="comment"># 逻辑与，前面条件成立才能执行后面的逻辑</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="Math-with-the-shell"><a href="#Math-with-the-shell" class="headerlink" title="Math with the shell"></a>Math with the shell</h2><p>体验下来就一个感觉，bash 下的计算略微繁琐</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 准备变量</span></span><br><span class="line">no1=4; no2=5</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用 let 关键字</span></span><br><span class="line"><span class="comment"># 整个表达式没有空格，不然报错！！！</span></span><br><span class="line"><span class="built_in">let</span> result=no1+no2</span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$result</span></span><br><span class="line"><span class="comment"># 9</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 支持自增/减</span></span><br><span class="line"><span class="built_in">let</span> no1++ <span class="comment"># 也支持写成 no1+=1</span></span><br><span class="line"><span class="built_in">let</span> no2-- <span class="comment"># 也支持写成 no2-=1</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$no1</span> <span class="variable">$no2</span></span><br><span class="line"><span class="comment"># 6 4</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 和 let 功能相同的还有 []</span></span><br><span class="line">result=$[ no1 + no2 ]   <span class="comment"># 等号两边不能有空格，中括号中间无所谓</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$result</span></span><br><span class="line"><span class="comment"># 10</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 方括号中间的变量可以带 $，不影响结果</span></span><br><span class="line">result=$[ <span class="variable">$no1</span> + 100 ]</span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$result</span></span><br><span class="line"><span class="comment"># 106</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 相同的功能还有 (()), 用法和 [] 一致</span></span><br><span class="line">result=$(( <span class="variable">$no1</span> + <span class="number">50</span> ))</span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$result</span></span><br><span class="line"><span class="comment"># 56</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 相同功能的还有 expr</span></span><br><span class="line">result=`expr <span class="variable">$no1</span> + 4`</span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$result</span></span><br><span class="line"><span class="comment"># 10</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 但是它们貌似都只能做整数计算</span></span><br><span class="line"><span class="built_in">let</span> result=3+4.0</span><br><span class="line"><span class="comment"># bash: let: result=3+4.0: syntax error: invalid arithmetic operator (error token is &quot;.0&quot;)</span></span><br><span class="line">result=$[expr <span class="variable">$no1</span> + 4.0]</span><br><span class="line"><span class="comment"># bash: expr 6 + 4.0: syntax error in expression (error token is &quot;6 + 4.0&quot;)</span></span><br><span class="line">bash-3.2$ result=$((expr <span class="variable">$no1</span> + <span class="number">4.0</span>))</span><br><span class="line"><span class="comment"># bash: expr 6 + 4.0: syntax error in expression (error token is &quot;6 + 4.0&quot;)</span></span><br><span class="line">result=`expr <span class="variable">$no1</span> + 4.0`</span><br><span class="line"><span class="comment"># expr: not a decimal number: &#x27;4.0&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<p>如果想要有精度的计算，可以使用 <code>bc</code>, bc 是basic calculator/bench calculator的简称。其语法类似于C语言，支持加减乘除还有更多复杂的运算。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt;&gt; bc</span><br><span class="line">1+2</span><br><span class="line"><span class="comment"># 3</span></span><br><span class="line">quit</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;4 * 0.56&quot;</span> | bc</span><br><span class="line"><span class="comment"># 2.24</span></span><br><span class="line"></span><br><span class="line">result=`<span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$no</span> * 1.5&quot;</span> | bc`</span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$result</span></span><br><span class="line"><span class="comment"># 81.0</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 可以指定精确的位数</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;scale=2;3/8&quot;</span> | bc</span><br><span class="line"><span class="comment"># .37</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 可以做进制转化, 而且必须先设置 obase 在设置 ibase</span></span><br><span class="line">no=100</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;obase=2;<span class="variable">$no</span>&quot;</span> | bc</span><br><span class="line"><span class="comment"># 1100100</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;obase=10;ibase=2;1100100&quot;</span> | bc</span><br><span class="line">100</span><br><span class="line"></span><br><span class="line"><span class="comment"># echo 也可以达到进制转化的效果，不过只能转成 10 进制</span></span><br><span class="line"><span class="built_in">echo</span> $[8<span class="comment">#11] # 效果等同与 $((8#11))</span></span><br><span class="line"><span class="comment"># 11</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># bash 中也有自带的函数，比如次方和开方</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;10^2&quot;</span> | bc</span><br><span class="line"><span class="comment"># 100</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;sqrt(100)&quot;</span> | bc</span><br><span class="line"><span class="comment"># 10</span></span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>man page 说明如下:<br>There are four special variables, scale, ibase, obase, and last. scale defines how some operations use digits after the decimal point. The default value of scale is 0.<br>ibase and obase define the conversion base for input and output numbers. The default for both input and output is base 10.<br>last (an extension) is a variable that has the value of the last printed number. These will be discussed in further detail where appropriate.<br>All of these variables may have values assigned to them as well as used in expressions.</p>
-</blockquote>
-<h2 id="Playing-with-file-descriptors-and-redirection"><a href="#Playing-with-file-descriptors-and-redirection" class="headerlink" title="Playing with file descriptors and redirection"></a>Playing with file descriptors and redirection</h2><p>文件描述符：</p>
-<ul>
-<li>0: stdin</li>
-<li>1: stdout</li>
-<li>2: stderr</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 基操，输入到文件，如果原来有值，会覆盖</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This is a sample text 1&quot;</span> &gt; tmp.txt</span><br><span class="line">ls</span><br><span class="line"><span class="comment"># tmp.txt</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># append 内容</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;This is a sample text 2&quot;</span> &gt;&gt; tmp.txt</span><br><span class="line">cat tmp.txt</span><br><span class="line"><span class="comment"># This is a sample text 1</span></span><br><span class="line"><span class="comment"># This is a sample text 2</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 重定向错误信息</span></span><br><span class="line">ls +</span><br><span class="line"><span class="comment"># ls: +: No such file or directory</span></span><br><span class="line"><span class="comment"># 打印命令返回值，非 0 都是失败</span></span><br><span class="line"><span class="built_in">echo</span> $?</span><br><span class="line"><span class="comment"># 1</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 尝试将 err 导入文件</span></span><br><span class="line">ls + &gt; out.txt</span><br><span class="line"><span class="comment"># ls: +: No such file or directory</span></span><br><span class="line">cat out.txt</span><br><span class="line"><span class="comment"># 无内容</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># stderr 标识符 2，所以 2&gt; 表示把错误信息导入到某个流处理的意思</span></span><br><span class="line">ls + 2&gt; out.txt</span><br><span class="line">cat out.txt </span><br><span class="line"><span class="comment"># ls: +: No such file or directory</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 还可以分别指定流出口</span></span><br><span class="line">cmd 2&gt;stderr.txt 1&gt;stdout.txt</span><br><span class="line">cat stderr.txt </span><br><span class="line"><span class="comment"># bash: cmd: command not found</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 将标准输出和错误信息一起写入文件</span></span><br><span class="line">cmd &gt; out.txt 2&gt;&amp;1</span><br><span class="line"><span class="comment"># 他还有一个简写方式</span></span><br><span class="line">cmd &amp;&gt; out.txt</span><br><span class="line"></span><br><span class="line"><span class="comment"># 测试 /dev/null</span></span><br><span class="line"><span class="comment"># 这个测试感觉上不怎么贴切，但是，它用来生产 err 的方式还是很可以的</span></span><br><span class="line"><span class="comment"># 测试描述：生产三个文件，将其中一个权限变为 000, cat 这三个文件就会抛异常</span></span><br><span class="line"><span class="built_in">echo</span> a1 &gt; a1; cp a1 a2; cp a1 a3; chmod 000 a1;</span><br><span class="line">cat a* 2&gt; err.txt</span><br><span class="line"><span class="comment"># a1</span></span><br><span class="line"><span class="comment"># a1</span></span><br><span class="line">cat err.txt</span><br><span class="line"><span class="comment"># cat: a1: Permission denied</span></span><br><span class="line"><span class="comment"># 将 err 导向 /dev/null 则没有输出</span></span><br><span class="line">cmd 2&gt; /dev/null</span><br><span class="line"></span><br><span class="line"><span class="comment"># tee 将输出写入文件的同时，给一份到 stdout</span></span><br><span class="line"><span class="comment"># 默认情况下 tee 会覆盖原文件，用 tee -a 可以达到 append 的效果</span></span><br><span class="line">cat a* | tee out.txt | cat -n</span><br><span class="line"><span class="comment"># cat: a1: Permission denied</span></span><br><span class="line"><span class="comment">#      1    a1</span></span><br><span class="line"><span class="comment">#      2    a1</span></span><br><span class="line">cat out.txt</span><br><span class="line"><span class="comment"># a1</span></span><br><span class="line"><span class="comment"># a1</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># tee 后接多个 file，内容都是重复的</span></span><br><span class="line"><span class="built_in">echo</span> aaa | tee f1 f2</span><br><span class="line">cat f1 f2</span><br><span class="line"><span class="comment"># aaa</span></span><br><span class="line"><span class="comment"># aaa</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># `-` 代表标准输入, </span></span><br><span class="line"><span class="built_in">echo</span> who is this | tee -</span><br><span class="line"><span class="comment"># who is this</span></span><br></pre></td></tr></table></figure>
-
-<p><code>&gt;</code> Vs <code>&gt;&gt;</code>: 前者是覆盖，后者是续接</p>
-<blockquote>
-<p>./dev/null is a special device file where any data received by the file is discarded. The null device is often known as a black hole as all the data that goes into it is lost forever.<br>/dev/null 是一个特殊的设备，可以将它看作一个黑洞，所有进去的东西都没了 </p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 终端多行输入</span></span><br><span class="line">cat &lt;&lt; EOF &gt; log.txt</span><br><span class="line">LOG FILE HEADER</span><br><span class="line">This is a <span class="built_in">test</span> <span class="built_in">log</span> file</span><br><span class="line">Function: System statistics</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">cat log.txt</span><br><span class="line"><span class="comment"># LOG FILE HEADER</span></span><br><span class="line"><span class="comment"># This is a test log file</span></span><br><span class="line"><span class="comment"># Function: System statistics</span></span><br></pre></td></tr></table></figure>
-
-<p>自定义文件描述符</p>
-<p>可用模式：Read mode, Write with truncate mode, Write with append mode</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># `&lt;` 用于将文件导向 stdin</span></span><br><span class="line"><span class="built_in">echo</span> this is a <span class="built_in">test</span> line &gt; input.txt</span><br><span class="line"><span class="built_in">exec</span> 3&lt;input.txt</span><br><span class="line">cat &lt;&amp;3</span><br><span class="line"><span class="comment"># this is a test line</span></span><br><span class="line">cat &lt;&amp;3</span><br><span class="line"><span class="comment"># 没有输出，这种方式不能复用，需要重新赋值</span></span><br></pre></td></tr></table></figure>
-
-<p>为写操作自定义文件描述符</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">exec</span> 4&gt; output.txt</span><br><span class="line"><span class="built_in">echo</span> newline &gt;&amp;4</span><br><span class="line">cat output.txt</span><br><span class="line"><span class="comment"># newline</span></span><br><span class="line"><span class="comment"># 书上说这种方式再次调用会覆盖的才对，我这边测试是以 append 方式附加的</span></span><br><span class="line"><span class="built_in">echo</span> aaa &gt;&amp;4</span><br><span class="line">cat output.txt</span><br><span class="line"><span class="comment"># newline</span></span><br><span class="line"><span class="comment"># aaa</span></span><br></pre></td></tr></table></figure>
-
-<p>为 append 模式的 write 定义文件描述符</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">exec</span> 5&gt;&gt;out.txt</span><br><span class="line"><span class="built_in">echo</span> appended line &gt;&amp;5</span><br><span class="line">cat out.txt</span><br><span class="line"><span class="comment"># appended line</span></span><br><span class="line"><span class="built_in">echo</span> appended line2 &gt;&amp;5</span><br><span class="line">cat out.txt</span><br><span class="line"><span class="comment"># appended line</span></span><br><span class="line"><span class="comment"># appended line2</span></span><br></pre></td></tr></table></figure>
-
-<p>PS: <code>&gt;&gt;</code> 自带会车，如果不想要，需要用可以用 <code>echo -n</code> 或者 <code>printf &quot;%s&quot; &quot;$(value)&quot;</code></p>
-<h2 id="Arrays-and-associative-arrays"><a href="#Arrays-and-associative-arrays" class="headerlink" title="Arrays and associative arrays"></a>Arrays and associative arrays</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 数组声明及调用</span></span><br><span class="line">array_var=(1 2 3 4 5 6)</span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$&#123;array_var[0]&#125;</span></span><br><span class="line"><span class="comment"># 1</span></span><br><span class="line"><span class="comment"># 输出全部</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$&#123;array_var[*]&#125;</span>  <span class="comment"># or echo $&#123;array_var[@]&#125;</span></span><br><span class="line"><span class="comment"># 1 2 3 4 5 6</span></span><br><span class="line"><span class="comment"># 打印长度</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$&#123;#array_var[*]&#125;</span></span><br><span class="line"><span class="comment"># 6</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 输出 index 下标</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$&#123;!array_var[*]&#125;</span> <span class="comment"># or echo $&#123;!array_var[@]&#125;</span></span><br><span class="line"><span class="comment"># 0 1 2 3 4 5</span></span><br></pre></td></tr></table></figure>
-
-<p>Associative arrays: 关系型数组，普通数组只能存整形，但是关系型数组可以存储混合的，任何 text 格式的数据。这种数据类型是在 Bash 4.0 引入的</p>
-<p>Mac 升级 Bash 版本</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看当前版本</span></span><br><span class="line">bash --version</span><br><span class="line"><span class="comment"># GNU bash, version 3.2.57(1)-release (x86_64-apple-darwin20)</span></span><br><span class="line"><span class="comment"># Copyright (C) 2007 Free Software Foundation, Inc.</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 小八卦：Bash 在 3.2 后的版本改了协议，开始使用 GPLv3 许可，Apple 不想支持，所以 Mac 上默认 Bash 只到 3.2 为止</span></span><br><span class="line"><span class="comment"># 新的 Bash 有很强的 tab 补全，值得期待</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看以安装 bash 路径</span></span><br><span class="line"><span class="built_in">which</span> bash</span><br><span class="line"><span class="comment"># /bin/bash</span></span><br><span class="line"></span><br><span class="line">brew install bash</span><br><span class="line"><span class="comment"># Updating Homebrew...</span></span><br><span class="line"><span class="comment"># ==&gt; Downloading https://mirrors.ustc.edu.cn/homebrew-bottles/bash-5.1.8.big_sur.bottle.tar.gz</span></span><br><span class="line"><span class="comment"># ######################################################################## 100.0%</span></span><br><span class="line"><span class="comment"># ==&gt; Pouring bash-5.1.8.big_sur.bottle.tar.gz</span></span><br><span class="line"><span class="comment"># /usr/local/Cellar/bash/5.1.8: 157 files, 10.9MB</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">which</span> bash</span><br><span class="line">/usr/<span class="built_in">local</span>/bin/bash</span><br><span class="line"></span><br><span class="line">bash --version</span><br><span class="line"><span class="comment"># GNU bash, version 5.1.8(1)-release (x86_64-apple-darwin20.3.0)</span></span><br><span class="line"><span class="comment"># Copyright (C) 2020 Free Software Foundation, Inc.</span></span><br><span class="line"><span class="comment"># License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># This is free software; you are free to change and redistribute it.</span></span><br><span class="line"><span class="comment"># There is NO WARRANTY, to the extent permitted by law.</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## 安装结束</span></span><br></pre></td></tr></table></figure>
-
-<p>Associative arrays 使用案例</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">declare</span> -A fruits_value</span><br><span class="line">fruits_value=([apple]=<span class="string">&#x27;100 dollars&#x27;</span> [orange]=<span class="string">&#x27;150 dollars&#x27;</span>)</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Apple costs <span class="variable">$&#123;fruits_value[apple]&#125;</span>&quot;</span></span><br><span class="line"><span class="comment"># Apple costs 100 dollars</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 输出下标，或者索引更贴切</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$&#123;!fruits_value[*]&#125;</span></span><br><span class="line"><span class="comment"># orange apple</span></span><br></pre></td></tr></table></figure>
-
-<p>PS: 感觉被骗了，这 TM 叫数组？！！命名就是字典嘛</p>
-<h2 id="Visiting-aliases"><a href="#Visiting-aliases" class="headerlink" title="Visiting aliases"></a>Visiting aliases</h2><p>alias: 将很长的命令用一个简写来代替， 声明形式 <code>alias new_command=&#39;command sequence&#39;</code>, 例如 <code>alias install=&#39;sudo apt-get install&#39;</code></p>
-<p>终端声明的 alias 是零时的，重启终端后失效，可以将其写入 rc 文件 <code>echo &#39;alias cmd=&quot;command seq&quot;&#39; &gt;&gt; ~/.bashrc</code></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 显示所有可用的别名</span></span><br><span class="line"><span class="built_in">alias</span> </span><br><span class="line"></span><br><span class="line"><span class="comment"># 重新定义 rm 行为，删除文件时将它备份</span></span><br><span class="line"><span class="comment"># 测试失败。。。</span></span><br><span class="line"><span class="built_in">alias</span> rm=<span class="string">&#x27;cp $@ ~/backup &amp;&amp; rm $@&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 这应该就是持续失败的原因，参数为止调换了</span></span><br><span class="line"><span class="comment"># 搜了下好像每有类似的问题，难道我系统坏了？？ 在 docker 容器中可以重现这个错误</span></span><br><span class="line"><span class="built_in">alias</span> mycp=<span class="string">&#x27;echo &quot;cp $@ ~/backup&quot;&#x27;</span></span><br><span class="line">mycp aaa.txt</span><br><span class="line"><span class="comment"># cp  ~/backup aaa.txt</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 经过多方查证，作者这里的脚本写的有问题。按官方的原画，alias 是不支持传入参数的(补贴切)</span></span><br><span class="line"><span class="comment"># 这里可以用函数代替，在 alias 里面定义函数格式和外面不一样</span></span><br><span class="line"><span class="built_in">alias</span> mycp=<span class="string">&#x27;function _mycp() &#123; echo &quot;aaa $@ bbb&quot;; &#125;;_mycp&#x27;</span></span><br><span class="line">mycp xxx</span><br><span class="line"><span class="comment"># aaa xxx bbb</span></span><br><span class="line"><span class="built_in">alias</span> mycp=<span class="string">&#x27;function _mycp() &#123; echo &quot;aaa $1 bbb $2 ccc&quot;; &#125;;_mycp&#x27;</span></span><br><span class="line">mycp xxx yyy</span><br><span class="line"><span class="comment"># aaa xxx bbb yyy ccc</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># PS: 另外，如果只需要在末尾添加参数的话，alias 还是可以做到的</span></span><br><span class="line"><span class="built_in">alias</span> myls=<span class="string">&#x27;ls -al $@&#x27;</span> <span class="comment"># 或者 alias myls=&#x27;ls -al&#x27;</span></span><br><span class="line">myls ~/backup</span><br><span class="line"><span class="comment"># total 0</span></span><br><span class="line"><span class="comment"># drwxr-xr-x   2 i306454  staff    64 May 20 20:25 .</span></span><br><span class="line"><span class="comment"># drwxr-xr-x+ 76 i306454  staff  2432 May 21 13:05 ..</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 宗上所属，定制的 rm 应该写成如下形式</span></span><br><span class="line"><span class="built_in">alias</span> rm=<span class="string">&#x27;function _rm() &#123; cp $@ ~/backup &amp;&amp; rm $@;  &#125;; _rm&#x27;</span></span><br><span class="line">rm java_error_in_idea_12605.log</span><br><span class="line">ls ./backup</span><br><span class="line"><span class="comment"># java_error_in_idea_12605.log</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># disable alias, 前面加一个反斜杠</span></span><br><span class="line">\<span class="built_in">command</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 显示定义的 alias</span></span><br><span class="line"><span class="built_in">alias</span> rm</span><br><span class="line"><span class="comment"># alias rm=&#x27;cp $@ ~/backup &amp;&amp; rm $@&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除</span></span><br><span class="line"><span class="built_in">unalias</span> rm</span><br><span class="line"><span class="built_in">alias</span> rm</span><br><span class="line"><span class="comment"># bash: alias: rm: not found</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><a target="_blank" rel="noopener" href="https://www.gnu.org/software/bash/manual/html_node/Aliases.html">Gun - Alias</a></li>
-</ul>
-<blockquote>
-<p>There is no mechanism for using arguments in the replacement text, as in csh. If arguments are needed, a shell function should be used (see Shell Functions).</p>
-</blockquote>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -5848,20 +5810,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">161</span>
+          <span class="site-state-item-count">163</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/hexo/categories/">
           
-        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-count">32</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">183</span>
+        <span class="site-state-item-count">184</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -5895,12 +5857,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">825k</span>
+    <span title="站点总字数">832k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">12:30</span>
+    <span title="站点阅读时长">12:36</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>

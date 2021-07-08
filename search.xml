@@ -2026,6 +2026,52 @@
       </tags>
   </entry>
   <entry>
+    <title>How tomcat works 之 intro + ex01</title>
+    <url>/hexo/2021/07/05/HTW-intro-and-ex01/</url>
+    <content><![CDATA[<h2 id="Introduce"><a href="#Introduce" class="headerlink" title="Introduce"></a>Introduce</h2><p>Basically there are three things that a servlet container does to service a request for a servlet:</p>
+<ul>
+<li>创建 request 对象并塞入后续要用到的信息，比如 parameters，cookies 等。request 是 javax.servlet(.http).ServletRequest 的一个实现</li>
+<li>创建一个 response 对象返回给 web client. response 是 javax.servlet(.http).ServletResponse 的一个实现</li>
+<li>调用 service 方法，service 中接受 request 的参数，处理结果塞入 response 中</li>
+</ul>
+<h3 id="Catalina-Block-Diagram"><a href="#Catalina-Block-Diagram" class="headerlink" title="Catalina Block Diagram"></a>Catalina Block Diagram</h3><p>Catalina 很复杂，但是他的设计很优雅，采用模块化的思想。主要可以分为两部分 Connector 和 Container，关系如下</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@startuml</span><br><span class="line">Connector &quot;*&quot;*-&quot;1&quot; Container</span><br><span class="line">@enduml</span><br></pre></td></tr></table></figure>
+
+<p>connector 主要作用是构建 request/response 并传递给 container 处理，这里只是简化的模型。container 除了处理 request 还有很多东西需要做，比如加载 servlet，更新 session 等。</p>
+<h2 id="ex01"><a href="#ex01" class="headerlink" title="ex01"></a>ex01</h2><p>第一个练习的目标，创建一个简单的 web server. 服务启动后，浏览器输入地址，server 返回请求的静态资源.</p>
+<p>逻辑层面上来说模型可以像下面这样展示，但是代码层面上却不行。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@startuml</span><br><span class="line"></span><br><span class="line">(Client) -&gt; (Web Server) : request</span><br><span class="line">(Web Server) -&gt; (Client) : response</span><br><span class="line"></span><br><span class="line">@enduml</span><br></pre></td></tr></table></figure>
+
+<img  src=http://www.plantuml.com/plantuml/svg/qt3EoKpDAz5KqBLJq0XFJL88JYqgIotILB1IA4ejB4qjBk524GOfWsa1AIakoCyhJWK0>
+
+<p>如果按照上面的图示，难道 client 是直接 new 一个 request 和 web server 进行交互吗？难道 web server 会 new 一个 response 发送给 client 吗? 非也。模型化成下面的样子应该更合适</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@startuml</span><br><span class="line">left to right direction</span><br><span class="line">skinparam packageStyle rectangle</span><br><span class="line"></span><br><span class="line">(Client)</span><br><span class="line">rectangle &quot;Web Server&quot; &#123;</span><br><span class="line">    cloud &quot;service&quot; &#123;</span><br><span class="line">        (req)</span><br><span class="line">        (resp)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    (Client) &lt;--&gt; service : socket</span><br><span class="line">&#125;</span><br><span class="line">@enduml</span><br></pre></td></tr></table></figure>
+
+<img  src=http://www.plantuml.com/plantuml/svg/JOmn3i8m40JxUyNALLBa0mZHy8GKrCOvp2d6DlQ1X53-JW84iSrgPwK9V59eGX5_LWnIsAcaI7MKc6sn5sJhHkkvrqTWBBUDFZ1Him_2KLlwCPW37z5pkNCnU1Bck91k0qoTeJXUwPAcyBNzNpL_vaJlMltOTjqENm4sgCcDh3Iz0000>
+
+<p>Client 和 Web Server 之间通过 socket 进行交互。在 server 内部，会将 socket 分化为 input 和 output 两个 IO 流，分别对应读取 Client 发送的数据和发送给 Client 相应</p>
+<p>项目目录设置如下</p>
+<figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">how-tomcat-works</span><br><span class="line">├── ex01</span><br><span class="line">│   ├── pom.xml</span><br><span class="line">│   └── src</span><br><span class="line">│       └── ex01</span><br><span class="line">│           ├── HttpServer.java</span><br><span class="line">│           ├── Request.java</span><br><span class="line">│           └── Response.java</span><br><span class="line">├── pom.xml</span><br><span class="line">└── webroot</span><br><span class="line">    ├── images</span><br><span class="line">    │   └── logo.gif</span><br><span class="line">    └── index.html</span><br></pre></td></tr></table></figure>
+
+<p>HttpServer 表示服务器类，内部实现主要依赖于 ServerSocket 这个 java.net 包下的类，他在绑定本地端口并死循环等待 Client 端的 socket 访问</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HttpServer</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 指定静态资源目录</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String WEB_ROOT = System.getProperty(<span class="string">&quot;user.dir&quot;</span>) + File.separator + <span class="string">&quot;webroot&quot;</span>;</span><br><span class="line">    <span class="comment">// shutdown command</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String SHUTDOWN_COMMAND = <span class="string">&quot;/SHUTDOWN&quot;</span>;</span><br><span class="line">    <span class="comment">// the shutdown command received</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">boolean</span> shutdown = <span class="keyword">false</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        HttpServer server = <span class="keyword">new</span> HttpServer();</span><br><span class="line">        server.await();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">await</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        ServerSocket serverSocket = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">int</span> port = <span class="number">8080</span>;</span><br><span class="line">        <span class="comment">// 绑定端口和地址</span></span><br><span class="line">        serverSocket = <span class="keyword">new</span> ServerSocket(port, <span class="number">1</span>, InetAddress.getByName(<span class="string">&quot;127.0.0.1&quot;</span>));</span><br><span class="line">        <span class="comment">// 死循环等待 request</span></span><br><span class="line">        <span class="keyword">while</span> (!shutdown) &#123;</span><br><span class="line">            Socket socket = <span class="keyword">null</span>;</span><br><span class="line">            InputStream input = <span class="keyword">null</span>;</span><br><span class="line">            OutputStream output = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 拿到 socket</span></span><br><span class="line">            socket = serverSocket.accept();</span><br><span class="line">            <span class="comment">// 分化 socket</span></span><br><span class="line">            input = socket.getInputStream();</span><br><span class="line">            output = socket.getOutputStream();</span><br><span class="line">            <span class="comment">// create Request object and parse</span></span><br><span class="line">            Request request = <span class="keyword">new</span> Request(input);</span><br><span class="line">            request.parse();</span><br><span class="line"></span><br><span class="line">            <span class="comment">// create Response object</span></span><br><span class="line">            Response response = <span class="keyword">new</span> Response(output);</span><br><span class="line">            response.setRequest(request);</span><br><span class="line">            response.sendStaticResource();</span><br><span class="line"></span><br><span class="line">            <span class="comment">// Close the socket</span></span><br><span class="line">            socket.close();</span><br><span class="line">            <span class="comment">// check if the previous URI is a shutdown command</span></span><br><span class="line">            shutdown = request.getUri().equals(SHUTDOWN_COMMAND);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Request 类的主要职责是拿到 socket 的输入流，解析并提取 Client 发送过来的信息，这个例子中主要是提取请求的资源路径</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Request</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> InputStream input;</span><br><span class="line">    <span class="keyword">private</span> String uri;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Request</span><span class="params">(InputStream input)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.input = input;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">parse</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// Read a set of characters from the socket</span></span><br><span class="line">        StringBuilder request = <span class="keyword">new</span> StringBuilder(<span class="number">2048</span>);</span><br><span class="line">        <span class="keyword">int</span> i;</span><br><span class="line">        <span class="keyword">byte</span>[] buffer = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">2048</span>];</span><br><span class="line">        i = input.read(buffer);</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; i; j++) &#123;</span><br><span class="line">            request.append((<span class="keyword">char</span>) buffer[j]);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 打印请求信息</span></span><br><span class="line">        System.out.print(request);</span><br><span class="line">        uri = parseUri(request.toString());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 解析请求，拿到请求的路径</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> String <span class="title">parseUri</span><span class="params">(String requestString)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> index1, index2;</span><br><span class="line">        index1 = requestString.indexOf(<span class="string">&#x27; &#x27;</span>);</span><br><span class="line">        <span class="keyword">if</span> (index1 != -<span class="number">1</span>) &#123;</span><br><span class="line">            index2 = requestString.indexOf(<span class="string">&#x27; &#x27;</span>, index1 + <span class="number">1</span>);</span><br><span class="line">            <span class="keyword">if</span> (index2 &gt; index1)</span><br><span class="line">                <span class="keyword">return</span> requestString.substring(index1 + <span class="number">1</span>, index2);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getUri</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> uri;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Response 负责向 Client 返回信息</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Response</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> BUFFER_SIZE = <span class="number">1024</span>;</span><br><span class="line">    Request request;</span><br><span class="line">    OutputStream output;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Response</span><span class="params">(OutputStream output)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.output = output;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setRequest</span><span class="params">(Request request)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.request = request;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sendStaticResource</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        <span class="keyword">byte</span>[] bytes = <span class="keyword">new</span> <span class="keyword">byte</span>[BUFFER_SIZE];</span><br><span class="line">        FileInputStream fis = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            File file = <span class="keyword">new</span> File(HttpServer.WEB_ROOT, request.getUri());</span><br><span class="line">            <span class="keyword">if</span> (file.exists()) &#123;</span><br><span class="line">                <span class="comment">// 书上这段是没有的，当时 browser 比较老，不检测格式，现在浏览器不加这个页面会不能显示，curl 测试倒是不受影响</span></span><br><span class="line">                String header = <span class="string">&quot;HTTP/1.1 200 OK\r\n&quot;</span> +</span><br><span class="line">                        <span class="string">&quot;Content-Type: text/html\r\n&quot;</span> +</span><br><span class="line">                        <span class="string">&quot;\r\n&quot;</span>;</span><br><span class="line">                output.write(header.getBytes());</span><br><span class="line"></span><br><span class="line">                fis = <span class="keyword">new</span> FileInputStream(file);</span><br><span class="line">                <span class="keyword">int</span> ch = fis.read(bytes, <span class="number">0</span>, BUFFER_SIZE);</span><br><span class="line">                <span class="keyword">while</span> (ch != -<span class="number">1</span>) &#123;</span><br><span class="line">                    output.write(bytes, <span class="number">0</span>, ch);</span><br><span class="line">                    ch = fis.read(bytes, <span class="number">0</span>, BUFFER_SIZE);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="comment">// file not found</span></span><br><span class="line">                String errorMessage = <span class="string">&quot;HTTP/1.1 404 File Not Found\r\n&quot;</span></span><br><span class="line">                        + <span class="string">&quot;Content-Type: text/html\r\n&quot;</span></span><br><span class="line">                        + <span class="string">&quot;Content-Length: 23\r\n&quot;</span> + <span class="string">&quot;\r\n&quot;</span></span><br><span class="line">                        + <span class="string">&quot;&lt;h1&gt;File Not Found&lt;/h1&gt;&quot;</span>;</span><br><span class="line">                output.write(errorMessage.getBytes());</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="comment">// thrown if cannot instantiate a File object</span></span><br><span class="line">            System.out.println(e.toString());</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (fis != <span class="keyword">null</span>) &#123;</span><br><span class="line">                fis.close();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>结合之前学的计网知识，巩固一下，挺有意思</p>
+]]></content>
+      <categories>
+        <category>Tomcat</category>
+      </categories>
+      <tags>
+        <tag>How Tomcat Works</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Hexo 搜索</title>
     <url>/hexo/2020/05/28/Hexo-Search-Plugin/</url>
     <content><![CDATA[<p>Hexo 提供全区搜索功能很方便，在两个 <code>_config.yml</code> 文件下添加配置就行了，一个在 hexo 下，一个在 next 皮肤下。</p>
@@ -2159,29 +2205,6 @@
       </categories>
       <tags>
         <tag>theme</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Hexo 中插入 UML</title>
-    <url>/hexo/2021/04/29/Hexo-embed-plantuml/</url>
-    <content><![CDATA[<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><ol>
-<li>安装插件 <code>npm install hexo-tag-plantuml --save</code></li>
-<li><code>_config.yml</code> 中添加配置</li>
-</ol>
-<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="attr">tag_plantuml:</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">static</span></span><br></pre></td></tr></table></figure>
-
-<p>UML 测试</p>
-<img  src=http://www.plantuml.com/plantuml/svg/SyfFqhLppCbCJbMmKiX8pSd91m00>
-
-<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
-<li><a href="https://github.com/two/hexo-tag-plantuml">插件地址</a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>Hexo</category>
-      </categories>
-      <tags>
-        <tag>uml</tag>
       </tags>
   </entry>
   <entry>
@@ -5694,6 +5717,38 @@
       </tags>
   </entry>
   <entry>
+    <title>Tomcat setup debug environment</title>
+    <url>/hexo/2021/07/05/Tomcat-setup-debug-environment/</url>
+    <content><![CDATA[<p>本来像原滋原味的 setup tomcat4/5 的环境的，但是找了一圈没现成资源，还是拿了别人已经搞过的 Tomcat 8 过来，先搞起来再说，有必要再找 4/5 版本的代码。</p>
+<ol>
+<li>访问<a href="https://tomcat.apache.org/download-80.cgi">官网</a>, 选择 Source Code Distributions 下的 zip 或者 tar.gz，下载。瞄了一眼 README 貌似两者的区别是 zip 是 CRLF 换行而 tar 是 LF 换行。应该对应 windows 和 Linux 系统。</li>
+<li>下载后得到一个 apache-tomcat-8.5.68-src.tar.gz 压缩包，解压它</li>
+<li>在解压后目录中新建 catalina-home 文件夹，并将源码中的 conf, webapps 文件夹拷贝进去。webapps 下的 example 文件夹删掉，不然后面启动会抛异常</li>
+<li>在 catalina-home 下新建四个文件夹：lib, temp, work, logs</li>
+<li>在源文件目录下新建 pom.xml 文件并添加依赖</li>
+<li>删除源文件中的 test 目录避免一些不必要的错误</li>
+<li>打开 Idea, 导入项目，run/debug 处配置启动参数如下</li>
+<li>修改 ContextConfig 文件，在 <code>webConfig();</code> 后添加 <code>context.addServletContainerInitializer(new JasperInitializer(), null);</code> 不然访问页面会抛 <code>org.apache.jasper.JasperException: java.lang.NullPointerException</code> 的异常</li>
+<li>点击 Idea 上的 run 测试启动，成功</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;!-- 启动参数 --&gt;</span><br><span class="line">main class: org.apache.catalina.startup.Bootstrap</span><br><span class="line">vm options: </span><br><span class="line">-Dcatalina.home&#x3D;&quot;&#x2F;Users&#x2F;i306454&#x2F;IdeaProjects&#x2F;apache-tomcat-8.5.68-src&#x2F;catalina-home&quot;</span><br><span class="line">-Duser.language&#x3D;en</span><br><span class="line">-Duser.region&#x3D;US</span><br><span class="line">-Dfile.encoding&#x3D;UTF-8</span><br></pre></td></tr></table></figure>
+
+<p>PS: Idea 2021.1.3 版本的 vm options 需要点击 Modify Options 自己添加，默认不显示</p>
+<p><img src="application.png" alt="application"></p>
+<p>最终，项目的目录结构如下</p>
+<figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">.</span><br><span class="line">└── apache-tomcat-8.5.68-src</span><br><span class="line">    ├── catalina-home</span><br><span class="line">    │   ├── conf</span><br><span class="line">    │   ├── lib</span><br><span class="line">    │   ├── logs</span><br><span class="line">    │   ├── temp</span><br><span class="line">    │   ├── webapps</span><br><span class="line">    │   └── work</span><br><span class="line">    └── pom.xml</span><br></pre></td></tr></table></figure>
+
+<p>PS: <a href="https://archive.apache.org/dist/tomcat/tomcat-5/">Tomcat 5 源码地址</a></p>
+]]></content>
+      <categories>
+        <category>Tomcat</category>
+      </categories>
+      <tags>
+        <tag>How Tomcat Works</tag>
+        <tag>setup</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>UML 常见关系表示</title>
     <url>/hexo/2020/10/13/UML-object-relationship/</url>
     <content><![CDATA[<p>例举 UML 图中常见的关系及其表示方式</p>
@@ -5785,16 +5840,6 @@
 <li>Bracket Pair Colorizer: 括号色彩标识</li>
 <li>rainbow csv: CSV 文件色彩标识</li>
 </ul>
-<h3 id="PlantUML"><a href="#PlantUML" class="headerlink" title="PlantUML"></a>PlantUML</h3><p>此插件用于生成 UML，甚好（≧∇≦）</p>
-<ol>
-<li>打开 VSCode, 在插件列表中搜索 PlantUML 并安装</li>
-<li>设置 render server, 有两个可选项，一个是用官方的，另一个是用 local 的<ol>
-<li>local 的话，可以参照 <a href="https://github.com/plantuml/plantuml-server">Git project</a> 安装 docker 版本的</li>
-<li><code>cmd + ,</code> 打开配置页，搜索 plantuml, 更具实际情况，修改 render 和 server 的配置，都有提示的</li>
-<li>如果用的 local 的 server，还需要改一个配置，这个配置会在生产图片后通过 popup 的形式提示，选择第二个即可</li>
-</ol>
-</li>
-</ol>
 ]]></content>
       <categories>
         <category>小工具</category>
@@ -5804,6 +5849,56 @@
         <tag>快捷键</tag>
         <tag>vscode</tag>
         <tag>小知识</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>VSCode 中配置 Hexo 集成 PlantUML 插件</title>
+    <url>/hexo/2021/07/08/VSCode-with-Hexo-and-PlantUML/</url>
+    <content><![CDATA[<p>本地使用 VSCode 作为文本编辑器，集成 Hexo 和 PlantUML 在写博客的时候可以插入 UML 图。</p>
+<h2 id="安装插件"><a href="#安装插件" class="headerlink" title="安装插件"></a>安装插件</h2><ol>
+<li>安装插件 <code>npm install hexo-tag-plantuml --save</code></li>
+<li><code>_config.yml</code> 中添加配置</li>
+</ol>
+<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="attr">tag_plantuml:</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">static</span></span><br></pre></td></tr></table></figure>
+
+<p>UML 测试</p>
+<img  src=http://www.plantuml.com/plantuml/svg/SyfFqhLppCbCJbMmKiX8pSd91m00>
+
+<p>提交到 remote repo, 等 hexo deploy 之后可以看到 UML 图</p>
+<ul>
+<li><a href="https://github.com/two/hexo-tag-plantuml">插件地址 git 地址</a></li>
+</ul>
+<h2 id="VSCode-中显示-UML"><a href="#VSCode-中显示-UML" class="headerlink" title="VSCode 中显示 UML"></a>VSCode 中显示 UML</h2><p>上面的方式虽然远端可以显示了，但是本地查看的时候并不方便。VSCode 有提供插件可以在编辑器中显示对应的 UML</p>
+<h3 id="默认官方服务器生成-UML"><a href="#默认官方服务器生成-UML" class="headerlink" title="默认官方服务器生成 UML"></a>默认官方服务器生成 UML</h3><p>打开 VSCode, 在插件列表中搜索 PlantUML 并安装即可，使用 <code>@startuml</code> 和 <code>@enduml</code> 包裹 UML 代码</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@startuml</span><br><span class="line">Bob-&gt;Alice : hello</span><br><span class="line">@enduml</span><br></pre></td></tr></table></figure>
+
+<p>点开 preview mode 可以看到 UML 成功生成</p>
+<h3 id="使用-local-server-显示-UML"><a href="#使用-local-server-显示-UML" class="headerlink" title="使用 local server 显示 UML"></a>使用 local server 显示 UML</h3><p>默认情况下插件使用官方服务器生成 UML，优点是方便，缺点是要联网，可能生存有延时。我们可以配置 local server 提供这个服务。已经有现成的 docker 镜像了，配置简单</p>
+<ol>
+<li>启动 container: <code>docker run -d -p 8080:8080 plantuml/plantuml-server:jetty</code> 或者 <code>docker run -d -p 8080:8080 plantuml/plantuml-server:tomcat</code> 效果一样，只是用了不同类型的服务器实现</li>
+<li>我本地有其他服务占用了 8080, 修改端口映射 <code>-p 7999:8080</code></li>
+<li>访问 <code>http://localhost:7999</code> 查看服务是否启动</li>
+<li>修改 VSCode 中 PlantUML 插件配置</li>
+</ol>
+<ul>
+<li>cmd+shift+p 搜索 open user setting</li>
+<li>关键子搜索 plantuml</li>
+<li>Plantuml:render 设置下选择 local</li>
+<li>Plantuml:server 输入本地 server 地址 <code>http://localhost:7999</code></li>
+</ul>
+<p>截图如下</p>
+<p><img src="VSCode-with-Hexo-and-PlantUML/plantuml_setting.png" alt="uml plugin setting"></p>
+<p>点击 preview 之前的 UML 正常显示，设置完成</p>
+<ul>
+<li><a href="https://github.com/plantuml/plantuml-server">PlantUML image git project</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>小工具</category>
+      </categories>
+      <tags>
+        <tag>vscode</tag>
+        <tag>hexo</tag>
       </tags>
   </entry>
   <entry>
