@@ -12,7 +12,7 @@ tags:
 
 ## 安装插件
 
-1. 安装插件 `npm install hexo-tag-plantuml --save`
+1. 安装插件 `npm install hexo-tag-plantuml --save`, [插件 git 地址](https://github.com/two/hexo-tag-plantuml)
 2. `_config.yml` 中添加配置
 
 ```yml
@@ -27,8 +27,6 @@ UML 测试
 {% endplantuml %}
 
 提交到 remote repo, 等 hexo deploy 之后可以看到 UML 图
-
-* [插件地址 git 地址](https://github.com/two/hexo-tag-plantuml)
 
 ## VSCode 中显示 UML
 
@@ -62,8 +60,8 @@ Bob->Alice : hello
 
 截图如下
 
-![uml plugin setting](VSCode-with-Hexo-and-PlantUML/plantuml_setting.png)
+![uml plugin setting](plantuml_setting.png)
 
 点击 preview 之前的 UML 正常显示，设置完成
 
-* [PlantUML image git project](https://github.com/plantuml/plantuml-server)
+* [PlantUML docker 版 git 地址](https://github.com/plantuml/plantuml-server)

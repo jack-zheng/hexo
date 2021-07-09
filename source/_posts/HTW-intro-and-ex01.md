@@ -249,4 +249,4 @@ public class Response {
 }
 ```
 
-结合之前学的计网知识，巩固一下，挺有意思
+结合计网的知识坐下分层的整理，这里当然是属于 Application 层，HTTP 规范是在处理 socket 的时候体现的. 那这里来说就是写 reponse 的时候，需要特殊指定 HTTP 版本，header 等信息，他都是服务器端指定的。
