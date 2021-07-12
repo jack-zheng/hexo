@@ -27,7 +27,12 @@ Connector "*"*-"1" Container
 
 connector 主要作用是构建 request/response 并传递给 container 处理，这里只是简化的模型。container 除了处理 request 还有很多东西需要做，比如加载 servlet，更新 session 等。
 
-## ex01
+## A Simple Web Server
+
+> **Chapter1** starts this book by presenting a simple HTTP server.
+> To build a working HTTP server, you need to know the internal workings of two classes in the java.net package: Socket and ServerSocket.
+> There is sufficient background information in this chapter about these two classes for you to understand how the accompanying application works.
+
 
 第一个练习的目标，创建一个简单的 web server. 服务启动后，浏览器输入地址，server 返回请求的静态资源.
 

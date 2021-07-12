@@ -13,6 +13,32 @@ tags:
 
 `sh` 是一种协议 shell command language. 而 `/bin/sh` 和 `/bin/bash` 是对他的两种不同的实现, 早起他们基本是一致的，但是随着 bash 的发展，他们变得不兼容起来。`/bin/sh` 还是标准，`/bin/bash` 则效率更高
 
+## 查看当前目录下文件最近修改时间
+
+两种方式，一种是通过 `ls --full-time` 显示
+
+```sh
+ls --full-time
+total 60
+drwxr-xr-x    2 root     root          4096 2021-04-14 10:24:04 +0000 srv
+dr-xr-xr-x   13 root     root             0 2021-07-12 02:52:11 +0000 sys
+drwxr-xr-x    2 root     root          4096 2021-07-12 02:53:15 +0000 test
+drwxrwxrwt    1 root     root          4096 2021-05-04 17:21:05 +0000 tmp
+```
+
+另一种是 `stat file_name`
+
+```sh
+stat test
+  File: test
+  Size: 4096      	Blocks: 8          IO Block: 4096   directory
+Device: bbh/187d	Inode: 1055968     Links: 2
+Access: (0755/drwxr-xr-x)  Uid: (    0/    root)   Gid: (    0/    root)
+Access: 2021-07-12 02:53:32.000000000
+Modify: 2021-07-12 02:53:15.000000000
+Change: 2021-07-12 02:53:15.000000000
+```
+
 ## tee
 
 查看信息的同时做写入操作
