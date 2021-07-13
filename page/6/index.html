@@ -206,6 +206,150 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/04/09/Design-pattern-strategy/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/04/09/Design-pattern-strategy/" class="post-title-link" itemprop="url">策略模式</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-04-09 12:39:57" itemprop="dateCreated datePublished" datetime="2021-04-09T12:39:57+08:00">2021-04-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-07-13 20:08:04" itemprop="dateModified" datetime="2021-07-13T20:08:04+08:00">2021-07-13</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index">
+                    <span itemprop="name">设计模式</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/HFDP/" itemprop="url" rel="index">
+                    <span itemprop="name">HFDP</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>6.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>6 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>Design Principle: </p>
+<ul>
+<li>Identify the aspects of your application that vary and separate them from what stays the same - 将频繁改变的部分从系统中抽离出来</li>
+<li>Program to an interface, not an implementation - 面向接口编程而非实现</li>
+<li>Favor composition over inheritance - 组合优于继承</li>
+</ul>
+<blockquote>
+<p>The <strong>Strategy Pattern</strong> defines a family of algorithms, encapsulates each one, and makes them interchangeable.  Strategy lets the algorithm vary independently from clients that use it.  </p>
+<p>完成共一个任务往往有多种不同的方法，每一种方法我们称之为策略，我们可以通过不同的条件选择不同的算法完成任务</p>
+</blockquote>
+<h2 id="UML"><a href="#UML" class="headerlink" title="UML"></a>UML</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">+-----------------+                                                                                                                               </span><br><span class="line">|  Context        |                                                                                                                               </span><br><span class="line">|---------------- |               +-------------------+                                                                                           </span><br><span class="line">| - strategy      |&lt;&gt;------------ | &lt;&lt;Interface&gt;&gt;     |                                                                                           </span><br><span class="line">|---------------- |               |   Strategy        |                                                                                           </span><br><span class="line">| + setStrategy(s)|               |------------------ |                                                                                           </span><br><span class="line">| + perfStratecy()|               | algorithm()       |                                                                                           </span><br><span class="line">|                 |               +-------------------+                                                                                           </span><br><span class="line">|                 |                 ^                                                                                                             </span><br><span class="line">|                 |                 |----------------------------------                                                                           </span><br><span class="line">+-----------------+                 |                |                |                                                                           </span><br><span class="line">                                    |                |                |                                                                           </span><br><span class="line">                   +-------------------+   +-------------------+      |                                                                           </span><br><span class="line">                   |ConcreateStrategyA |   |ConcreateStrategyB |      |                                                                           </span><br><span class="line">                   |------------------ |   |------------------ |     ...                                                                          </span><br><span class="line">                   | algorithm()       |   | algorithm()       |                                                                                  </span><br><span class="line">                   +-------------------+   +-------------------+                                                                                  </span><br></pre></td></tr></table></figure>
+
+<h2 id="案例"><a href="#案例" class="headerlink" title="案例"></a>案例</h2><p>已有一段鸭子模拟器代码，所有鸭子都有一个基类，基类中定义了一些常用方法，并给了实现。只有 display() 是需要每个类定制的，声明成了 abstract 并在子类中各自实现</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">            +--------------------+                                                                                                                  </span><br><span class="line">            |  Duck              |                                                                                                                  </span><br><span class="line">            |--------------------|                                                                                                                  </span><br><span class="line">            | swim()             |                                                                                                                  </span><br><span class="line">            | display()          |                                                                                                                  </span><br><span class="line">            | quack()            |                                                                                                                  </span><br><span class="line">            | //other methods    |                                                                                                                  </span><br><span class="line">            +--------------------+                                                                                                                  </span><br><span class="line">               ^                                                                                                                                    </span><br><span class="line">               |                                                                                                                                    </span><br><span class="line">               |---------------                                                                                                                     </span><br><span class="line">               |              |                                                                                                                     </span><br><span class="line">               |              |                                                                                                                     </span><br><span class="line">+----------------+     +----------------+                                                                                                           </span><br><span class="line">|  MallardDuck   |     |  RedHeadDuck   |                                                                                                           </span><br><span class="line">|--------------- |     |--------------- |                                                                                                           </span><br><span class="line">|display()       |     |display()       |                                                                                                           </span><br><span class="line">|                |     |                |                                                                                                           </span><br><span class="line">|                |     |                |                                                                                                           </span><br><span class="line">+----------------+     +----------------+                                                                                                           </span><br></pre></td></tr></table></figure>
+
+<p>某个 release，客户突然想要看到鸭子能飞。。。小码农一拍脑袋：嗨，这还不简单。就直接在基类里添加了 fly() 的实现。然后转头就去写其他功能了。</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">            +--------------------+                                                                                                                  </span><br><span class="line">            |  Duck              |                                                                                                                  </span><br><span class="line">            |--------------------|                                                                                                                  </span><br><span class="line">            | swim()             |                                                                                                                  </span><br><span class="line">            | display()          |                                                                                                                  </span><br><span class="line">            | quack()            |                                                                                                                  </span><br><span class="line">            | fly()              |                                                                                                                  </span><br><span class="line">            | //other methods    |                                                                                                                  </span><br><span class="line">            +--------------------+                                                                                                                  </span><br><span class="line">               ^                                                                                                                                    </span><br><span class="line">               |                                                                                                                                    </span><br><span class="line">               |---------------                                                                                                                     </span><br><span class="line">               |              |                                                                                                                     </span><br><span class="line">               |              |                                                                                                                     </span><br><span class="line">+----------------+     +----------------+                                                                                                           </span><br><span class="line">|  MallardDuck   |     |  RedHeadDuck   |                                                                                                           </span><br><span class="line">|--------------- |     |--------------- |                                                                                                           </span><br><span class="line">|display()       |     |display()       |                                                                                                           </span><br><span class="line">|                |     |                |                                                                                                           </span><br><span class="line">|                |     |                |                                                                                                           </span><br><span class="line">+----------------+     +----------------+                                                                                                           </span><br></pre></td></tr></table></figure>
+
+<p>三天后，Sales 一个夺命连环 call 打到小码农这儿，说自己给客户演示功能的时候，突然发现，程序里的橡皮鸭子起飞了！！！这还了得，小码农打开了 IDE 看了橡皮鸭子的代码</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">            +--------------------+                                                                                                                  </span><br><span class="line">            |  Duck              |                                                                                                                  </span><br><span class="line">            |--------------------|                                                                                                                  </span><br><span class="line">            | swim()             |                                                                                                                  </span><br><span class="line">            | display()          |                                                                                                                  </span><br><span class="line">            | quack()            |                                                                                                                  </span><br><span class="line">            | fly()              |                                                                                                                  </span><br><span class="line">            | //other methods    |                                                                                                                  </span><br><span class="line">            +--------------------+                                                                                                                  </span><br><span class="line">               ^                                                                                                                                    </span><br><span class="line">               |                                                                                                                                    </span><br><span class="line">               |----------------------------------------                                                                                            </span><br><span class="line">               |              |                        |                                                                                            </span><br><span class="line">               |              |                        |                                                                                            </span><br><span class="line">+----------------+     +----------------+     +----------------+                                                                                    </span><br><span class="line">|  MallardDuck   |     |  RedHeadDuck   |     |  RubberDuck    |                                                                                    </span><br><span class="line">|--------------- |     |--------------- |     |--------------- |                                                                                    </span><br><span class="line">|display()       |     |display()       |     |display()       |                                                                                    </span><br><span class="line">|                |     |                |     |quack()&#123;        |                                                                                    </span><br><span class="line">|                |     |                |     |override quack  |                                                                                    </span><br><span class="line">+----------------+     +----------------+     |&#125;               |                                                                                    </span><br><span class="line">                                              |                |                                                                                    </span><br><span class="line">                                              +----------------+                                                                                    </span><br></pre></td></tr></table></figure>
+
+<p>好嘛，原来基类加完 fly() 方法之后忘了重写橡皮鸭子这个子类了，还能咋整，要不重写一下 fly() 呗</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">+-------------------------+                                                                                                                           </span><br><span class="line">|    RubberDuck           |                                                                                                                           </span><br><span class="line">| ----------------------  |                                                                                                                           </span><br><span class="line">|                         |                                                                                                                           </span><br><span class="line">| display()               |                                                                                                                           </span><br><span class="line">| quack()&#123;// rubber quck &#125;|                                                                                                                           </span><br><span class="line">| fly()&#123; // do nothing &#125;  |                                                                                                                           </span><br><span class="line">|                         |                                                                                                                           </span><br><span class="line">+-------------------------+ </span><br></pre></td></tr></table></figure>
+
+<p>不过转念一下，这也不是办法啊，不然哪天要新加一个什么木头鸭子，不是还得和相比鸭子一样再来一遍？于是小码农就寻思着，把 quack 和 fly 整成接口？</p>
+<p>把这个想法和同事小美一说，小美立马就不乐意了，这个那个产品老几十个类，把这两个玩意儿整成接口，你不得在这几十个类里面都改一遍，你改啊？！</p>
+<p>小码农想也是，但是没什么法子，就去问自己的师傅大能耐了。小码农把情况和大能耐说了一遍。</p>
+<p>‘耐哥，就上面的情况，听说你精通设计模式，这种情况，有法儿吗’</p>
+<p>‘咱先不说设计模式的事儿，写代码最起码得掌握一个原则：先把频繁变动的代码和不变的拆分开了后我们再说事儿’</p>
+<p>按照耐哥的思路，小码农把 quack 和 fly 从鸭子类里面单独拿出来写成接口，并为他们做了各种实现</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">                 +-------------------------+                                                                                                       </span><br><span class="line">                 |    &lt;&lt;Interface&gt;&gt;        |                                                                                                       </span><br><span class="line">                 |    FlyBehavior          |                                                                                                       </span><br><span class="line">                 | ----------------------  |                                                                                                       </span><br><span class="line">                 | fly()                   |                                                                                                       </span><br><span class="line">                 |                         |                                                                                                       </span><br><span class="line">                 +-------------------------+                                                                                                       </span><br><span class="line">                       ^                                                                                                                           </span><br><span class="line">                       |---------------------                                                                                                      </span><br><span class="line">                       |                    |                                                                                                      </span><br><span class="line">                       |                    |                                                                                                      </span><br><span class="line">+-------------------------+   +-------------------------+                                                                                          </span><br><span class="line">|    FlyWithWings         |   |    FlyNoWay             |                                                                                          </span><br><span class="line">| ----------------------  |   | ----------------------  |                                                                                          </span><br><span class="line">| fly()&#123; // duck flying &#125; |   | fly()&#123; // can&#x27;t fly &#125;   |                                                                                          </span><br><span class="line">|                         |   |                         |                                                                                          </span><br><span class="line">+-------------------------+   +-------------------------+ </span><br></pre></td></tr></table></figure>
+
+<p>既然将这两个属性从基类中抽出来了，那原来的基类中我们再用这两个新的接口代替，并新建方法调用接口实现 fly 和 quack 的功能</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">+--------------------+                                                                                                                             </span><br><span class="line">|  Duck              |                                                                                                                             </span><br><span class="line">|--------------------|                                                                                                                             </span><br><span class="line">| FlyBehavior fb     |                                                                                                                             </span><br><span class="line">| QuackBehavior qb   |                                                                                                                             </span><br><span class="line">|                    |                                                                                                                             </span><br><span class="line">|--------------------|                                                                                                                             </span><br><span class="line">| swim()             |                                                                                                                             </span><br><span class="line">| display()          |                                                                                                                             </span><br><span class="line">| perormQuack()  &lt;----------- qb.quack();                                                                                                          </span><br><span class="line">| performFly()   &lt;----------- fb.fly();                                                                                                            </span><br><span class="line">| //other methods    |                                                                                                                             </span><br><span class="line">|                    |                                                                                                                             </span><br><span class="line">+--------------------+                     </span><br></pre></td></tr></table></figure>
+
+<p>按照这个逻辑，小码农重构了以后的代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Fly 接口及其实现</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">FlyBehavior</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">fly</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FlyNoWay</span> <span class="keyword">implements</span> <span class="title">FlyBehavior</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">fly</span><span class="params">()</span> </span>&#123; System.out.println(<span class="string">&quot;I can&#x27;t fly...&quot;</span>); &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FlyWithWings</span> <span class="keyword">implements</span> <span class="title">FlyBehavior</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">fly</span><span class="params">()</span> </span>&#123; System.out.println(<span class="string">&quot;I can fly...&quot;</span>); &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Quack 接口及其实现</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">QuackBehavior</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">quack</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Quack</span> <span class="keyword">implements</span> <span class="title">QuackBehavior</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">quack</span><span class="params">()</span> </span>&#123; System.out.println(<span class="string">&quot;Quack...Quack...&quot;</span>); &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Squack</span> <span class="keyword">implements</span> <span class="title">QuackBehavior</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">quack</span><span class="params">()</span> </span>&#123; System.out.println(<span class="string">&quot;Squack...&quot;</span>); &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MuteQuack</span> <span class="keyword">implements</span> <span class="title">QuackBehavior</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">quack</span><span class="params">()</span> </span>&#123; System.out.println(<span class="string">&quot;&lt;&lt; Silence &gt;&gt;&quot;</span>); &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Duck 抽象方法</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">Duck</span> </span>&#123;</span><br><span class="line">    QuackBehavior quackBehavior;</span><br><span class="line">    FlyBehavior flyBehavior;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">performQuack</span><span class="params">()</span> </span>&#123; quackBehavior.quack(); &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">performFly</span><span class="params">()</span> </span>&#123; flyBehavior.fly(); &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">swim</span><span class="params">()</span> </span>&#123; System.out.println(<span class="string">&quot;All ducks float, even decoys!&quot;</span>); &#125;</span><br><span class="line">    <span class="comment">// other shared methods</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">display</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 具体种类的鸭子类</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MallardDuck</span> <span class="keyword">extends</span> <span class="title">Duck</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MallardDuck</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.flyBehavior = <span class="keyword">new</span> FlyWithWings();</span><br><span class="line">        <span class="keyword">this</span>.quackBehavior = <span class="keyword">new</span> Quack();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">display</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;I&#x27;m a Mallard duck...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 测试类</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MiniDuckSimulator</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        MallardDuck mallardDuck = <span class="keyword">new</span> MallardDuck();</span><br><span class="line">        mallardDuck.performQuack();</span><br><span class="line">        mallardDuck.performFly();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Quack...Quack...</span></span><br><span class="line"><span class="comment">// I can fly...</span></span><br></pre></td></tr></table></figure>
+
+<p>大功告成，小码农拿着自己的成果找了大能耐 review 代码</p>
+<p>‘不错不错，不过你有没有想过你的代码还可以更灵活，只要在 Duck 里面添加一个 set 方法，你就可以动态的改变鸭子的行为了哟’</p>
+<p>小码农一想，立马知道了其中的关键，修改了代码</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">+--------------------+                                                                                                                             </span><br><span class="line">|  Duck              |                                                                                                                             </span><br><span class="line">|--------------------|                                                                                                                             </span><br><span class="line">| FlyBehavior fb     |                                                                                                                             </span><br><span class="line">| QuackBehavior qb   |                                                                                                                             </span><br><span class="line">|                    |                                                                                                                             </span><br><span class="line">|--------------------|                                                                                                                             </span><br><span class="line">| swim()             |                                                                                                                             </span><br><span class="line">| display()          |                                                                                                                             </span><br><span class="line">| perormQuack()  &lt;----------- qb.quack();                                                                                                          </span><br><span class="line">| performFly()   &lt;----------- fb.fly();                                                                                                            </span><br><span class="line">| //other methods    |                                                                                                                             </span><br><span class="line">| setFlyBehavior()   |                                                                                                                             </span><br><span class="line">| setQuackBehavior() |                                                                                                                             </span><br><span class="line">|                    |                                                                                                                             </span><br><span class="line">+--------------------+                     </span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">Duck</span> </span>&#123;</span><br><span class="line">    QuackBehavior quackBehavior;</span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setQuackBehavior</span><span class="params">(QuackBehavior quackBehavior)</span> </span>&#123; <span class="keyword">this</span>.quackBehavior = quackBehavior; &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setFlyBehavior</span><span class="params">(FlyBehavior flyBehavior)</span> </span>&#123; <span class="keyword">this</span>.flyBehavior = flyBehavior; &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>正巧项目组想要一个新的鸭子模型，能够动态的改变飞行模式，在氪金以前是不能飞的，但是氪金以后能弹射起步。。。正好赶巧了，小码农三下五除二就实现了功能</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RocketFly</span> <span class="keyword">implements</span> <span class="title">FlyBehavior</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">fly</span><span class="params">()</span> </span>&#123;  System.out.println(<span class="string">&quot;Fly in rocket speed...&quot;</span>); &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MiniDuckSimulator</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ModelDuck modelDuck = <span class="keyword">new</span> ModelDuck();</span><br><span class="line">        modelDuck.performFly();</span><br><span class="line"></span><br><span class="line">        modelDuck.setFlyBehavior(<span class="keyword">new</span> RocketFly());</span><br><span class="line">        modelDuck.performFly();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// I can&#x27;t fly...</span></span><br><span class="line"><span class="comment">// Fly in rocket speed...</span></span><br></pre></td></tr></table></figure>
+
+<p>小码农哼着小曲儿锁了屏，转头跑到走廊上掏出手机开启了王者农药。。。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/04/08/Algorithm-quick-sort/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +381,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-12 19:45:12" itemprop="dateModified" datetime="2021-07-12T19:45:12+08:00">2021-07-12</time>
+                <time title="修改时间：2021-07-13 20:08:04" itemprop="dateModified" datetime="2021-07-13T20:08:04+08:00">2021-07-13</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -357,7 +501,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-12 19:45:12" itemprop="dateModified" datetime="2021-07-12T19:45:12+08:00">2021-07-12</time>
+                <time title="修改时间：2021-07-13 20:08:04" itemprop="dateModified" datetime="2021-07-13T20:08:04+08:00">2021-07-13</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -494,7 +638,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-12 19:45:12" itemprop="dateModified" datetime="2021-07-12T19:45:12+08:00">2021-07-12</time>
+                <time title="修改时间：2021-07-13 20:08:04" itemprop="dateModified" datetime="2021-07-13T20:08:04+08:00">2021-07-13</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -623,7 +767,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-12 19:45:12" itemprop="dateModified" datetime="2021-07-12T19:45:12+08:00">2021-07-12</time>
+                <time title="修改时间：2021-07-13 20:08:04" itemprop="dateModified" datetime="2021-07-13T20:08:04+08:00">2021-07-13</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -723,7 +867,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-12 19:45:12" itemprop="dateModified" datetime="2021-07-12T19:45:12+08:00">2021-07-12</time>
+                <time title="修改时间：2021-07-13 20:08:04" itemprop="dateModified" datetime="2021-07-13T20:08:04+08:00">2021-07-13</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -835,7 +979,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-12 19:45:12" itemprop="dateModified" datetime="2021-07-12T19:45:12+08:00">2021-07-12</time>
+                <time title="修改时间：2021-07-13 20:08:04" itemprop="dateModified" datetime="2021-07-13T20:08:04+08:00">2021-07-13</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -933,7 +1077,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-12 19:45:12" itemprop="dateModified" datetime="2021-07-12T19:45:12+08:00">2021-07-12</time>
+                <time title="修改时间：2021-07-13 20:08:04" itemprop="dateModified" datetime="2021-07-13T20:08:04+08:00">2021-07-13</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1028,7 +1172,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-12 19:45:12" itemprop="dateModified" datetime="2021-07-12T19:45:12+08:00">2021-07-12</time>
+                <time title="修改时间：2021-07-13 20:08:04" itemprop="dateModified" datetime="2021-07-13T20:08:04+08:00">2021-07-13</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1161,7 +1305,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-12 19:45:12" itemprop="dateModified" datetime="2021-07-12T19:45:12+08:00">2021-07-12</time>
+                <time title="修改时间：2021-07-13 20:08:04" itemprop="dateModified" datetime="2021-07-13T20:08:04+08:00">2021-07-13</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1257,105 +1401,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/03/03/Python-re-lib-method-abstrct/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/03/03/Python-re-lib-method-abstrct/" class="post-title-link" itemprop="url">Python re 包中方法简介</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-03-03 19:28:29" itemprop="dateCreated datePublished" datetime="2021-03-03T19:28:29+08:00">2021-03-03</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-12 19:45:12" itemprop="dateModified" datetime="2021-07-12T19:45:12+08:00">2021-07-12</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/python/" itemprop="url" rel="index">
-                    <span itemprop="name">python</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>Python 的 re 包里面的 search 和 match 经常搞不清楚，特意整理记录下 re 包支持的方法</p>
-<p><strong>re.search(pattern, string, flags=0)</strong> 字符串任意位置匹配</p>
-<p>Scan through string looking for the first location where the regular expression pattern produces a match, and return a corresponding match object. Return None if no position in the string matches the pattern; note that this is different from finding a zero-length match at some point in the string.</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ret = re.search(<span class="string">r&#x27;[\d]+&#x27;</span>, <span class="string">&#x27;aaa123bbbb&#x27;</span>)</span><br><span class="line">ret.group(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># &#x27;123&#x27;</span></span><br></pre></td></tr></table></figure>
-
-
-<p><strong>re.match(pattern, string, flags=0)</strong> 从头开始匹配</p>
-<p>If zero or more characters at the beginning of string match the regular expression pattern, return a corresponding match object. Return None if the string does not match the pattern; note that this is different from a zero-length match.</p>
-<p>Note that even in MULTILINE mode, re.match() will only match at the beginning of the string and not at the beginning of each line.</p>
-<p>If you want to locate a match anywhere in string, use search() instead (see also search() vs. match()).</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">re.match(<span class="string">r&#x27;[\d]+&#x27;</span>, <span class="string">&#x27;aaa123aaa&#x27;</span>)</span><br><span class="line"><span class="comment"># null</span></span><br><span class="line"></span><br><span class="line">re.match(<span class="string">r&#x27;[\d]+&#x27;</span>, <span class="string">&#x27;123aaa&#x27;</span>) </span><br><span class="line">&lt;re.Match object; span=(<span class="number">0</span>, <span class="number">3</span>), match=<span class="string">&#x27;123&#x27;</span>&gt;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1406,7 +1451,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">166</span>
+          <span class="site-state-item-count">167</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1453,12 +1498,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">843k</span>
+    <span title="站点总字数">846k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">12:46</span>
+    <span title="站点阅读时长">12:50</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>

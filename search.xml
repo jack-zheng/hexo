@@ -2026,6 +2026,56 @@
       </tags>
   </entry>
   <entry>
+    <title>HTW ex03</title>
+    <url>/hexo/2021/07/13/HTW-ex03/</url>
+    <content><![CDATA[<blockquote>
+<p><strong>Chapter3</strong> presents a simplified version of Tomcat 4’s default connector.<br>The application built in this chapter serves as a learning tool to understand the connector discussed in <strong>Chapter4</strong></p>
+</blockquote>
+<p>PS: 这个 project 有点老了，其中用到的 Catalina 包比较老, 找了半天</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>tomcat<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>catalina<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>4.0.4<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>相比于 ex02 这章节实现的服务器多了如下功能</p>
+<ul>
+<li>connector parse request headers</li>
+<li>servlet can obtain headers, cookies parameter name/values, etc</li>
+<li>enhance response’s getWriter</li>
+</ul>
+<p>完成上述功能后，这个就是简化版的 Tomcat4 的 connector 了。Tomcat 的默认 connector 在 Tomcat4 时被 deprecated 了，不过还是有参考价值的。</p>
+<p>开篇先介绍了一个用于做类似国际化的类 org.apache.catalina.util.StringManager. 原理很简单，就是这个类通过单例模式生成唯一对象，加载预先定义好的 properties，通过 getString 方法拿到对应语言的翻译。</p>
+<p>相比之前的 project，这张开始，代码开始分包</p>
+<figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">.</span><br><span class="line">├── ServletProcessor.java</span><br><span class="line">├── StaticResourceProcessor.java</span><br><span class="line">├── connector</span><br><span class="line">│   ├── RequestStream.java</span><br><span class="line">│   ├── ResponseStream.java</span><br><span class="line">│   ├── ResponseWriter.java</span><br><span class="line">│   └── http</span><br><span class="line">│       ├── Constants.java</span><br><span class="line">│       ├── HttpConnector.java</span><br><span class="line">│       ├── HttpHeader.java</span><br><span class="line">│       ├── HttpProcessor.java</span><br><span class="line">│       ├── HttpRequest.java</span><br><span class="line">│       ├── HttpRequestFacade.java</span><br><span class="line">│       ├── HttpRequestLine.java</span><br><span class="line">│       ├── HttpResponse.java</span><br><span class="line">│       ├── HttpResponseFacade.java</span><br><span class="line">│       ├── LocalStrings.properties</span><br><span class="line">│       ├── LocalStrings_es.properties</span><br><span class="line">│       ├── LocalStrings_ja.properties</span><br><span class="line">│       └── SocketInputStream.java</span><br><span class="line">└── startup</span><br><span class="line">    └── Bootstrap.java</span><br></pre></td></tr></table></figure>
+
+<p>Bootstrap.java 为启动类，内容很简单，就是 new 一个 connector 然后执行 start 方法，让 connector 常驻。</p>
+<p>connector 下的类可以分为五类</p>
+<ul>
+<li>connect 即该类的辅助类 HttpConnector + HttpProcessor</li>
+<li>代表 Http Request 的类即其辅助类</li>
+<li>代表 Http Response 的类即其辅助类</li>
+<li>Facade 类</li>
+<li>Constant 常量类</li>
+</ul>
+<p>类关系图</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@startuml</span><br><span class="line">HttpConnector &quot;1&quot;-&quot;1&quot; HttpProcessor</span><br><span class="line"></span><br><span class="line">HttpProcessor &quot;uses&quot;.up.&gt; StringManager</span><br><span class="line">HttpProcessor &quot;uses&quot;.up.&gt; SocketInputStream</span><br><span class="line"></span><br><span class="line">HttpProcessor &quot;uses&quot;.up.&gt; HttpHeader</span><br><span class="line">HttpProcessor &quot;uses&quot;.up.&gt; HttpRequestLine</span><br><span class="line"></span><br><span class="line">HttpProcessor &quot;1&quot;*.down.&quot;1&quot; ServletProcessor</span><br><span class="line">HttpProcessor &quot;1&quot;*.down.&quot;1&quot; StaticResourceProcessor</span><br><span class="line"></span><br><span class="line">ServletProcessor &quot;uses&quot;.down.&gt; HttpRequest</span><br><span class="line">ServletProcessor &quot;uses&quot;.down.&gt; HttpResponse</span><br><span class="line">StaticResourceProcessor &quot;uses&quot;.down.&gt; HttpRequest</span><br><span class="line">StaticResourceProcessor &quot;uses&quot;.down.&gt; HttpResponse</span><br><span class="line">@enduml</span><br></pre></td></tr></table></figure>
+
+<img  src=http://www.plantuml.com/plantuml/svg/bP1D2i9038NtFKMPfU10B-36JGK5iISOfezIr6ISPFJwjefe5GTTP97alIy_jMfOCX6ySYnDPUP3bFLGtKRs4E5O59EqD4aWngPW5sMZiQTkuyXrY3aT-prqHI7fO84xvg1ZfuPhiyIniyCfGNJT4pvubPdPbYzantiQnFC1-ZmfArQdlTz1E4MFbpUyKnxxt9oJZNwJIc0I55_cvUX_EEv3hW00>
+
+<p>和 ex02 比，这里将 HttpServer 拆成了 HttpConnector 和 HttpProcessor 两个类。HttpConnector 等待 request， HttpProcessor 负责 request/response 的生成和处理。</p>
+<p>为了提高 connector 的效率，设计的时候将 request 中的 parse 的行为经可能的延后了(比如有些 servlet 根本不需要 request 中的参数，这样 parse 就显得很多余，白白浪费了时间)。</p>
+<p>TODO：connector 中的 SocketInputStream 有很方便的处理 request line 的方法，明天有机会可以测试一波</p>
+<p>HttpProcessor 新建 request 并填充信息，比如 header 之类的，具体到 url 参数的解析，则由 request 类自己负责。</p>
+<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><blockquote>
+<p>server 启动后访问 URL 抛异常 <code>Exception in thread &quot;Thread-0&quot; java.util.MissingResourceException: Can&#39;t find bundle for base name com.jzheng.connector.http.LocalStrings, locale en_US</code></p>
+</blockquote>
+<p>查看了一下编译后的 target 文件加，其中咩有 properties 文件，怀疑是一些类型的文件编译时没有同步过去，试着在 pom 中添加以前项目中用过的 build 代码，问题解决</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">plugins</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-compiler-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">source</span>&gt;</span>1.8<span class="tag">&lt;/<span class="name">source</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">target</span>&gt;</span>1.8<span class="tag">&lt;/<span class="name">target</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 在 build 的时候将工程中的配置文件也一并 copy 到编译文件中，即 target 文件夹下 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">resources</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">resource</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">directory</span>&gt;</span>src/main/resources<span class="tag">&lt;/<span class="name">directory</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">includes</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">include</span>&gt;</span>**/*.properties<span class="tag">&lt;/<span class="name">include</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">include</span>&gt;</span>**/*.xml<span class="tag">&lt;/<span class="name">include</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">includes</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">resource</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">resource</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">directory</span>&gt;</span>src/main/java<span class="tag">&lt;/<span class="name">directory</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">includes</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">include</span>&gt;</span>**/*.properties<span class="tag">&lt;/<span class="name">include</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">include</span>&gt;</span>**/*.xml<span class="tag">&lt;/<span class="name">include</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">includes</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">filtering</span>&gt;</span>true<span class="tag">&lt;/<span class="name">filtering</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">resource</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">resources</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">build</span>&gt;</span></span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Tomcat</category>
+      </categories>
+      <tags>
+        <tag>How Tomcat Works</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>How tomcat works 之 intro + ex01</title>
     <url>/hexo/2021/07/05/HTW-intro-and-ex01/</url>
     <content><![CDATA[<h2 id="Introduce"><a href="#Introduce" class="headerlink" title="Introduce"></a>Introduce</h2><p>Basically there are three things that a servlet container does to service a request for a servlet:</p>
