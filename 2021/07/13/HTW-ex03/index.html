@@ -59,7 +59,7 @@
 <meta property="og:description" content="Chapter3 presents a simplified version of Tomcat 4’s default connector.The application built in this chapter serves as a learning tool to understand the connector discussed in Chapter4  PS: 这个 projec">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-07-13T09:23:41.000Z">
-<meta property="article:modified_time" content="2021-07-13T12:08:04.732Z">
+<meta property="article:modified_time" content="2021-07-15T12:03:38.552Z">
 <meta property="article:author" content="Jack Zheng">
 <meta property="article:tag" content="How Tomcat Works">
 <meta name="twitter:card" content="summary">
@@ -231,10 +231,16 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2021-07-13 17:23:41 / 修改时间：20:08:04" itemprop="dateCreated datePublished" datetime="2021-07-13T17:23:41+08:00">2021-07-13</time>
+              <time title="创建时间：2021-07-13 17:23:41" itemprop="dateCreated datePublished" datetime="2021-07-13T17:23:41+08:00">2021-07-13</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-07-15 20:03:38" itemprop="dateModified" datetime="2021-07-15T20:03:38+08:00">2021-07-15</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
@@ -260,14 +266,14 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>3.6k</span>
+              <span>4.3k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>3 分钟</span>
+              <span>4 分钟</span>
             </span>
 
         </div>
@@ -314,6 +320,22 @@
 <p>为了提高 connector 的效率，设计的时候将 request 中的 parse 的行为经可能的延后了(比如有些 servlet 根本不需要 request 中的参数，这样 parse 就显得很多余，白白浪费了时间)。</p>
 <p>TODO：connector 中的 SocketInputStream 有很方便的处理 request line 的方法，明天有机会可以测试一波</p>
 <p>HttpProcessor 新建 request 并填充信息，比如 header 之类的，具体到 url 参数的解析，则由 request 类自己负责。</p>
+<p>HttpRequest 的继承关系图如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">@startuml</span><br><span class="line">skinparam linetype ortho</span><br><span class="line">interface javax.servlet.http.HttpServletRequest</span><br><span class="line"></span><br><span class="line">HttpRequestFacade .up.|&gt; javax.servlet.http.HttpServletRequest</span><br><span class="line">HttpRequest .up.|&gt; javax.servlet.http.HttpServletRequest</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">interface javax.servlet.ServletInputStream</span><br><span class="line">RequestStream .up.|&gt; javax.servlet.ServletInputStream</span><br><span class="line"></span><br><span class="line">RequestStream &quot;1&quot;-*&quot;1&quot; HttpRequest</span><br><span class="line">@enduml</span><br></pre></td></tr></table></figure>
+
+<img  src=http://www.plantuml.com/plantuml/svg/AyxEp2j8B4hCLSZ9p4ijgIn8LSWlAid8vyhCAqajIajCJbN8IYnBhD0hJYqgoqajqSieAIdGym0ImH21eDJ2qjJY4Yuka1YKuvQOd9YIgg1NMg1NOqUaVYJjf6damkbKg4BFl8BIak2IejJ4N2we9WWFkprOTA5fKp9KqjK24Wf8RWO0>
+
+<p>servlet/JSP 程序中通过 JsessionId 指代 sessio。 解析 request 相关的内容时，需要解析 cookie 中的这个值，如果客户端没有 enable cookie 还需要将它 append 到 URL 中</p>
+<p>关于本章中用到的 HttpHeader 你暂时只需要知道如下几点就行</p>
+<ul>
+<li>可以使用无参数构造器创建实例</li>
+<li>SocketInputStream 的 readHeader 会将流中的 header 部分解析并填充进指定的 HttpHeader 对象</li>
+<li>通过 header.name 和 header.nameEnd 可以方便的提取属性名和值</li>
+</ul>
+<p>HttpReponse 类图</p>
+<img  src=http://www.plantuml.com/plantuml/svg/dOyn2y8m48Nt_8hGKSY1ktGKdHGxE1_rfD4s2PThKV37MsaBDYY8onsylEzUNhnQ5v2nqRLr9FT0shDKNgcj4-8pbgGlsE4D8d5Naq0b4c3JZs8G3XI3Tv6-0gDlrqfefH0cR18lM0zxjawER7jTgTyIzUe1e5yFaxB64a_qDwxIv0zV7wY96EiCN59ZxfoggVT0dIspXQbDtk_qvjpNHegPOPCd1vy0>
+
+<p>通过设置 PrintWriter 的 auto flush 功能，之前打印的 behavior 才修复了，不然只会打印第一句话。为了了解这里说的东西，你需要查一下 Writer 相关的知识点。</p>
 <h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><blockquote>
 <p>server 启动后访问 URL 抛异常 <code>Exception in thread &quot;Thread-0&quot; java.util.MissingResourceException: Can&#39;t find bundle for base name com.jzheng.connector.http.LocalStrings, locale en_US</code></p>
 </blockquote>
@@ -461,7 +483,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">846k</span>
+    <span title="站点总字数">847k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
