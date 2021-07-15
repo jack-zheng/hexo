@@ -116,6 +116,71 @@ TODO：connector 中的 SocketInputStream 有很方便的处理 request line 的
 
 HttpProcessor 新建 request 并填充信息，比如 header 之类的，具体到 url 参数的解析，则由 request 类自己负责。
 
+HttpRequest 的继承关系图如下
+
+```plantuml
+@startuml
+skinparam linetype ortho
+interface javax.servlet.http.HttpServletRequest
+
+HttpRequestFacade .up.|> javax.servlet.http.HttpServletRequest
+HttpRequest .up.|> javax.servlet.http.HttpServletRequest
+
+
+interface javax.servlet.ServletInputStream
+RequestStream .up.|> javax.servlet.ServletInputStream
+
+RequestStream "1"-*"1" HttpRequest
+@enduml
+```
+
+{% plantuml %}
+skinparam linetype ortho
+interface javax.servlet.http.HttpServletRequest
+
+HttpRequestFacade .up.|> javax.servlet.http.HttpServletRequest
+HttpRequest .up.|> javax.servlet.http.HttpServletRequest
+
+
+interface javax.servlet.ServletInputStream
+RequestStream .up.|> javax.servlet.ServletInputStream
+
+RequestStream "1"-*"1" HttpRequest
+{% endplantuml %}
+
+servlet/JSP 程序中通过 JsessionId 指代 sessio。 解析 request 相关的内容时，需要解析 cookie 中的这个值，如果客户端没有 enable cookie 还需要将它 append 到 URL 中
+
+关于本章中用到的 HttpHeader 你暂时只需要知道如下几点就行
+
+* 可以使用无参数构造器创建实例
+* SocketInputStream 的 readHeader 会将流中的 header 部分解析并填充进指定的 HttpHeader 对象
+* 通过 header.name 和 header.nameEnd 可以方便的提取属性名和值
+
+HttpReponse 类图
+
+{% plantuml %}
+skinparam linetype ortho
+
+Interface javax.servlet.http.HttpServletResponse
+Interface javax.servlet.ServletOutputStream
+Interface java.io.PrintWriter
+
+javax.servlet.http.HttpServletResponse <|.. HttpResponseFacade
+javax.servlet.http.HttpServletResponse <|.. HttpResponse
+
+
+javax.servlet.ServletOutputStream <|.. ResponseStream
+
+
+java.io.PrintWriter <|.. ResponseWriter
+
+
+HttpResponse "1"*-l->"1" ResponseStream
+HttpResponse "uses"-r-> ResponseWriter
+{% endplantuml %}
+
+通过设置 PrintWriter 的 auto flush 功能，之前打印的 behavior 才修复了，不然只会打印第一句话。为了了解这里说的东西，你需要查一下 Writer 相关的知识点。
+
 ## 问题
 
 > server 启动后访问 URL 抛异常 `Exception in thread "Thread-0" java.util.MissingResourceException: Can't find bundle for base name com.jzheng.connector.http.LocalStrings, locale en_US`
