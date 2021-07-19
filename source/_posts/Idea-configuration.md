@@ -66,6 +66,12 @@ Navigate -> Type Hierarchy 或者 Ctrl + H
 
 快捷搜索 `Automatically check update for` 然后将更新选项去掉
 
+### 设置注释文字不顶格子
+
+搜索 comment code 并将 Line comment at first column 和 Block comment at frist column 的选项 disable 掉
+
+![comment code](comment_code.png)
+
 ### Class 生成 Enter就会提示自动创建serialVersionUID
 
 1. Setting->Inspections->Serialization issues->Serializable class without ’serialVersionUID’ 

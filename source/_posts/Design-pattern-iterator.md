@@ -2,11 +2,9 @@
 title: 迭代器模式
 date: 2021-04-16 17:39:36
 categories:
-- 设计模式
-- HFDP
+- 设计模式 
 tags:
-- iterator pattern
-- 迭代器模式
+- Design Pattern
 ---
 
 > **The Iterator Pattern** provides a way to access the elements of an aggregate object sequentially without exposing its underlying representation.

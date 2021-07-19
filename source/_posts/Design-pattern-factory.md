@@ -2,11 +2,9 @@
 title: 工厂模式
 date: 2021-05-08 17:14:36
 categories:
-- 设计模式
-- HFDP 
+- 设计模式 
 tags:
-- factory pattern
-- 工厂模式
+- Design Pattern
 ---
 
 * 简单工厂并不是一种设计模式，而是一种良好的编码习惯

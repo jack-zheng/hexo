@@ -2,11 +2,9 @@
 title: 组合模式
 date: 2021-04-19 19:00:00
 categories:
-- HFDP
-- 设计模式
+- 设计模式 
 tags:
-- composite pattern
-- 组合模式
+- Design Pattern
 ---
 
 > **The Composite Pattern** allows you to compose objects into tree structures to represent part-whole hierarchies. Composite lets clients treat individual objects and compositions of objects uniformly.

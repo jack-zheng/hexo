@@ -47,7 +47,7 @@ PS: 这个 project 有点老了，其中用到的 Catalina 包比较老, 找了�
 │       ├── HttpProcessor.java
 │       ├── HttpRequest.java
 │       ├── HttpRequestFacade.java
-│       ├── HttpRequestLine.java
+│       ├── HttpRequestLine.java            拆出来一个单独的类代表 request 的第一行，包括请求类型，URI，协议等信息
 │       ├── HttpResponse.java
 │       ├── HttpResponseFacade.java
 │       ├── LocalStrings.properties
@@ -55,7 +55,7 @@ PS: 这个 project 有点老了，其中用到的 Catalina 包比较老, 找了�
 │       ├── LocalStrings_ja.properties
 │       └── SocketInputStream.java
 └── startup
-    └── Bootstrap.java
+    └── Bootstrap.java                      启动类，实例化 HttpConnector 并调用 start() 方法
 ```
 
 Bootstrap.java 为启动类，内容很简单，就是 new 一个 connector 然后执行 start 方法，让 connector 常驻。
@@ -180,6 +180,114 @@ HttpResponse "uses"-r-> ResponseWriter
 {% endplantuml %}
 
 通过设置 PrintWriter 的 auto flush 功能，之前打印的 behavior 才修复了，不然只会打印第一句话。为了了解这里说的东西，你需要查一下 Writer 相关的知识点。
+
+## 深入了解各个类的细节
+
+### HttpConnector
+
+服务器的主体部分，负责指定 ip 和 port 并 stand by. 每当有 request 过来就新建一个 HttpProcessor 对象处理对应的 socket。 
+
+### HttpRequestLine
+
+代表的是 request 的第一行的内容，示例如下 `GET /servlet/ModernServlet?userName=tarzan&password=pwd HTTP/1.1` 不过它的实现比较有意思，它为这一样中的各个部分声明了一个存储的 char 数组，并标识了结束地址 `char[] method, int methodEnd`
+
+```plantuml
+@startuml
+Class HttpRequestLine {
+    +char[] method;
+    +int methodEnd;
+    +char[] uri;
+    +int uriEnd;
+    +char[] protocol;
+    +int protocolEnd;
+
+    +HttpRequestLine();
+    +HttpRequestLine(method, methodEnd, uri, uriEnd, protocol, protocolEnd);
+}
+@enduml
+```
+
+SocketInputStream 是处理 HttpRequestLine 的类，主要涉及的方法 
+
+* readRequestLine(HttpRequestLine) 填充 line 对象的方法入口
+* fill() 使用 buffer 的方式读取输入流中的内容，这个过程中会初始化 pos 和 count 的值。pos 表示当前位置，count 表示流中内容长度
+* read() 放回 pos 位置上的内容
+
+SocketInputStream 的 read() 方法有一个很有意思的处理方式
+
+```java
+/**
+* Read byte.
+*/
+public int read()
+    throws IOException {
+    if (pos >= count) {
+        fill();
+        if (pos >= count)
+            return -1;
+    }
+    return buf[pos++] & 0xff;
+}
+```
+
+可以看到最后的处理方式是返回 `buf[n] & 0xff` 0xff 即 0000 0000 0000 1111 做与操作可以将前面的值置位
+
+readRequestLine 中用了三个 while 循环通过判断空格和行结束符将首行的信息提取出来。很雷同的还有一个叫 readHeader() 的方法处理解析 request 中的 headers.
+
+### HttpProcessor
+
+HttpProcessor 的主体方法是 process， 只做了几件事
+
+* 解析 request line
+* 解析 headers
+* 根据 uri 调用对应的 processor
+
+```plantuml
+@startuml
+(*) --> "init request, response"
+--> "parse request line"
+--> "parse headers"
+if "uri contains '/servlet/'" then
+    --> "init ServletProcessor"
+    --> "invoke process()"
+else
+    --> "init StaticProessor"
+    --> "invoke process()"
+endif
+--> (*)
+@endurl
+```
+
+parseReauest 过程如下
+
+```plantuml
+@startuml
+(*) --> "populate to HttpRequestLine obj"
+if "requestLine contains '?'" then
+    --> [true] "request.setQueryString() + init uri"
+    --> "absolute uri check"
+else
+    --> "init uri"
+endif
+--> "absolute uri check"
+if "uri contains jsession" then
+    --> [true] "parse + reqeust.setReqeustedSessionId() + set flag"
+    --> "normalize uri"
+else
+--> "set flag"
+endif
+--> "normalize uri"
+--> (*)
+@enduml
+```
+
+normalize 即处理一些特殊字符，比如 `..` 是上一级目录
+
+parseHeaders 的过程和 parseRequest 雷同，while 循环逐行解析并向 request 中设置值。不过 ex03 中只处理了 cookie, content-length 和 content-type 几种类型的 header
+
+### HttpResponse
+
+实现了 HttpServletResponse 接口，包含各种常用的状态量，我最看不过的是作者将处理静态请求的部分也放在 response 的实现类中了。。。
 
 ## 问题
 

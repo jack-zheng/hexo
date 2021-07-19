@@ -2,12 +2,9 @@
 title: 生成器/建造者模式
 date: 2020-10-13 10:05:37
 categories:
-- 设计模式
-- DHSJMS
-- EJ3
+- 设计模式 
 tags:
-- builder pattern
-- 生成器模式
+- Design Pattern
 ---
 
 > Builder Pattern: 将一个复杂对象的构建与它的表示分离, 使得同样的构建过程可以创建不同的表示. 建造者模式是一种对象创建型模式.

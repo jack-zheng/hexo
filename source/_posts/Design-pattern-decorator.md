@@ -2,11 +2,9 @@
 title: 装饰器模式
 date: 2021-04-13 19:58:44
 categories:
-- 设计模式
-- HFDP 
+- 设计模式 
 tags:
-- decorator pattern
-- 装饰器模式
+- Design Pattern
 ---
 
 **Design Principle:** Classes should be open for extension, but closed for modification.

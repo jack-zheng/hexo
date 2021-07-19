@@ -1439,6 +1439,10 @@ public class SysFilter implements Filter {
 
 启动服务器，直接访问 sys/success.jsp 还是显示 login 页面，被阻挡
 
+## 鸽鸽鸽
+
+DB 以及后续的项目实践部分，暂时用不到，先鸽了。
+
 ## 思考题
 
 就公司需要 refactor 的代码，我有一段时间还想着，能不能把现在用到的从 session 里面拿数据的地方都换成从 request 里面拿。再仔细想一下，貌似不合适。request 的 scope 应该就只能持续到一次访问才对，设计如下的实验验证

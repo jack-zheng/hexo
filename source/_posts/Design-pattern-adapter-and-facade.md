@@ -2,13 +2,9 @@
 title: 适配器模式和外观模式
 date: 2021-04-09 12:40:47
 categories:
-- 设计模式
-- HFDP
+- 设计模式 
 tags:
-- adapter pattern
-- facade pattern
-- 适配器模式
-- 外观模式
+- Design Pattern
 ---
 
 > **The Adapter Pattern** converts the interface of a class into another interface the clients expect.  Adapter lets classes work together that couldn’t otherwise because of incompatible interfaces.
