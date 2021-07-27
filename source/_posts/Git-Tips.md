@@ -7,6 +7,19 @@ tags:
 - git
 ---
 
+## 怎么查看一个月之前的版本信息
+
+最近发现一个 bug 不知道是不是自己的代码改出来的，由于是一些 context 的改动不好查。打算直接一点，使用一个月之前(我的改动还没有进去的节点)的 build 起一个服务测试一下, git 支持类似的查找
+
+```bash
+git log --after="2014-02-12T16:36:00-07:00"
+git log --before="2014-02-12T16:36:00-07:00"
+git log --since="1 month ago"
+git log --since="2 weeks 3 days 2 hours 30 minutes 59 seconds ago"
+```
+
+结合 reverse 使用效果更佳 `git log --since="1 month ago" --reverse`
+
 ## 怎么添加 commited file 到 `.gitignore` 中
 
 > [StackOverflow: applying-gitignore-to-committed-files](https://stackoverflow.com/questions/7527982/applying-gitignore-to-committed-files/7528016)
