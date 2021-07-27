@@ -206,6 +206,379 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/07/29/Python-version-control-with-pyenv/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2020/07/29/Python-version-control-with-pyenv/" class="post-title-link" itemprop="url">Python 使用 pyenv 进行版本管理</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-07-29 13:20:05" itemprop="dateCreated datePublished" datetime="2020-07-29T13:20:05+08:00">2020-07-29</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/python/" itemprop="url" rel="index">
+                    <span itemprop="name">python</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.6k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>poetry 推荐使用 pyenv 进行本地 python 的多版本管理，以前用过，但是也没什么特别的印象了，特此记录一下使用情况</p>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/pyenv/pyenv">官方教程</a></li>
+</ul>
+<p>Win 平台不支持这个工具，残念。。。</p>
+<p>通过 brew 安装, brew 加速的教程在另一篇教程里有提到</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">brew update</span><br><span class="line">brew install pyenv</span><br></pre></td></tr></table></figure>
+
+<p>在 profile 中添加配置使能，我本地用的 zsh, 各版本的 shell 稍有区别，指定的文件不一样</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> -e <span class="string">&#x27;if command -v pyenv 1&gt;/dev/null 2&gt;&amp;1; then\n  eval &quot;$(pyenv init -)&quot;\nfi&#x27;</span> &gt;&gt; ~/.zshrc</span><br></pre></td></tr></table></figure>
+
+<p>安装推荐的工具机，各种系统不一样</p>
+<p>For MacOS, install Xcode Command Line Tools (xcode-select –install) and HomeBrew, then optional but best install</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">brew install openssl readline sqlite3 xz zlib</span><br></pre></td></tr></table></figure>
+
+<p>在系统中可以通过输入 <code>echo $(pyenv root)</code> 拿到目录地址</p>
+<h2 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h2><p>直接输入 <code>pyenv</code> 查看所有的 cmd 信息</p>
+<h3 id="安装某个版本的-python"><a href="#安装某个版本的-python" class="headerlink" title="安装某个版本的 python"></a>安装某个版本的 python</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pyenv install 3.7.8</span><br></pre></td></tr></table></figure>
+
+<p>如果没打全，他会给提示可用的版本，很人性化。安装的 python 版本会被放到 <code>~/.pyenv/versions/</code> 管理</p>
+<h3 id="删除对应版本"><a href="#删除对应版本" class="headerlink" title="删除对应版本"></a>删除对应版本</h3><p><code>pyenv uninstall 3.7.8</code> 或直接去 versions 文件夹下删除</p>
+<h3 id="显示可用版本"><a href="#显示可用版本" class="headerlink" title="显示可用版本"></a>显示可用版本</h3><p><code>pyenv versions</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">pyenv versions</span><br><span class="line">* system (<span class="built_in">set</span> by /Users/jack/.python-version)</span><br><span class="line">  3.6.5</span><br><span class="line">  3.7.8</span><br></pre></td></tr></table></figure>
+
+<h3 id="切换版本"><a href="#切换版本" class="headerlink" title="切换版本"></a>切换版本</h3><p>多用 <code>pyenv version</code> 查看当前的环境版本信息</p>
+<p>使用前的情况：系统自带 python 版本 2.7.16， pyenv 可用版本 3.6.5 和 3.7.8。此时 cmd 输入 <code>python -V</code> 给出版本 <code>2.7.16</code></p>
+<p>全局切换版本 <code>pyenv gloabl 3.7.8</code>，他会将这个版本存放到 <code>.pyenv/version</code> 文件中，再打开终端查看版本，变为 <code>3.7.8</code>。</p>
+<p><code>pyenv local 3.6.5</code> 可以指定 folder 下的 python 版本，他会将版本信息写入当前目录下的 <code>.python-version</code> 文件中</p>
+<p>如果想要指定终端的 python 版本，可以用 <code>pyenv shell xxx</code>, 这个我没有需求，未亲测</p>
+<p>作用范围和其编程语言一样，范围最精确的那个生效 <code>shell &gt; local &gt; gloabl</code></p>
+<h3 id="查看-python-路径"><a href="#查看-python-路径" class="headerlink" title="查看 python 路径"></a>查看 python 路径</h3><p><code>pyenv which python</code></p>
+<h3 id="更新"><a href="#更新" class="headerlink" title="更新"></a>更新</h3><p>每次新安装版本，记得跑一下 <code>pyenv rehash</code> 更新信息</p>
+<h2 id="Issues"><a href="#Issues" class="headerlink" title="Issues"></a>Issues</h2><p>pyenv install 下载失败, 报错</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"> Jack &gt; ~ &gt; pyenv install 3.7.3</span><br><span class="line">python-build: use openssl@1.1 from homebrew</span><br><span class="line">python-build: use readline from homebrew</span><br><span class="line">Downloading Python-3.7.3.tar.xz...</span><br><span class="line">-&gt; https://www.python.org/ftp/python/3.7.3/Python-3.7.3.tar.xz</span><br><span class="line">error: failed to download Python-3.7.3.tar.xz</span><br><span class="line"></span><br><span class="line">BUILD FAILED (OS X 10.15.6 using python-build 20180424)</span><br></pre></td></tr></table></figure>
+
+<p>可以自行下载对应的 tar.xz 文件然后放到 pyenv 的 cache 文件夹下，pyenv install 的时候会取对应的安装包进行安装</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget -P $(pyenv root)/cache https://www.python.org/ftp/python/3.7.3/Python-3.7.3.tar.xz</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Refer"><a href="#Refer" class="headerlink" title="Refer"></a>Refer</h2><ul>
+<li><a target="_blank" rel="noopener" href="http://einverne.github.io/post/2017/04/pyenv.html">参考</a></li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/07/22/Chrome-%E6%8F%92%E4%BB%B6%E8%AE%B0%E4%BA%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2020/07/22/Chrome-%E6%8F%92%E4%BB%B6%E8%AE%B0%E4%BA%8B/" class="post-title-link" itemprop="url">Chrome 插件记事</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-07-22 18:39:41" itemprop="dateCreated datePublished" datetime="2020-07-22T18:39:41+08:00">2020-07-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E5%B0%8F%E5%B7%A5%E5%85%B7/" itemprop="url" rel="index">
+                    <span itemprop="name">小工具</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.6k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>公司日常维护过程中，同事自己写的一个 Chrome 小插件很精巧，符合我小而美的审美，很适合处理某些需求，特此记录一下 Chrome 插件的小知识和一个阅读源码的收获</p>
+<h2 id="插件目录结构"><a href="#插件目录结构" class="headerlink" title="插件目录结构"></a>插件目录结构</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">Root</span><br><span class="line">├── README.md</span><br><span class="line">├── background.js &lt;- 定义一些 js 脚本</span><br><span class="line">├── content.js</span><br><span class="line">├── doc</span><br><span class="line">│   └── images</span><br><span class="line">│       ├── extend_all.png</span><br><span class="line">│       ├── extend_status.png</span><br><span class="line">│       ├── extension_icon.png</span><br><span class="line">│       ├── extension_loaded.png</span><br><span class="line">│       └── load_unpacked_extension.png</span><br><span class="line">├── icon.png &lt;- icon 定义</span><br><span class="line">├── images</span><br><span class="line">│   ├── icon128.png</span><br><span class="line">│   ├── icon16.png</span><br><span class="line">│   └── icon48.png</span><br><span class="line">├── jquery-3.0.0.min.js</span><br><span class="line">├── manifest.json &lt;- 定义了 extension 的基本信息，权限等，可以概览整个应用</span><br><span class="line">├── options.html &lt;- 为客户提供可选项</span><br><span class="line">├── options.js</span><br><span class="line">├── popup.html &lt;- 点击弹出页面，用于交互</span><br><span class="line">├── popup.js</span><br><span class="line">├── style.css</span><br><span class="line">└── test.js</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><a target="_blank" rel="noopener" href="https://developer.chrome.com/extensions/getstarted">Chrome Extension Official</a> 官方文档好又多</li>
+</ul>
+<h2 id="JS-的一些知识点"><a href="#JS-的一些知识点" class="headerlink" title="JS 的一些知识点"></a>JS 的一些知识点</h2><ul>
+<li>.aspx 页面，是基于微软 .Net 开发的站点</li>
+<li>html 页面中可以直接在 onclick 里面写 logic，简直是随心所欲</li>
+<li>通过 ajax 可以实现表单提交</li>
+</ul>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- click 中设置 confirm 内容 --&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;button&quot;</span> <span class="attr">name</span>=<span class="string">&quot;ctl00$ContentPlaceHolder$GridViewLive$ctl02$Deletion&quot;</span> <span class="attr">value</span>=<span class="string">&quot;Delete&quot;</span> <span class="attr">onclick</span>=<span class="string">&quot;if (!confirm(<span class="symbol">&amp;#39;</span>Are you sure you want to delete the company?<span class="symbol">&amp;#39;</span>)) return false; console.log(&#x27;Click Confirmed&#x27;)&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">$.ajax(&#123;</span><br><span class="line">  type: <span class="string">&quot;POST&quot;</span>,</span><br><span class="line">  url: url,</span><br><span class="line">  data: data,</span><br><span class="line">  success: success,</span><br><span class="line">  dataType: dataType</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 简写形式</span></span><br><span class="line">$.post( <span class="string">&quot;ajax/test.html&quot;</span>, <span class="function"><span class="keyword">function</span>(<span class="params"> data </span>) </span>&#123;</span><br><span class="line">  $( <span class="string">&quot;.result&quot;</span> ).html( data );</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// form.serialize() 可以方便的实现数据提取</span></span><br><span class="line">$.post( <span class="string">&quot;test.php&quot;</span>, $( <span class="string">&quot;#testform&quot;</span> ).serialize() );</span><br><span class="line"></span><br><span class="line"><span class="comment">// 如果想要成功提示，还可以</span></span><br><span class="line">$.post(url, $(<span class="string">&quot;#ctl00&quot;</span>).serialize()).done(</span><br><span class="line">    <span class="function"><span class="keyword">function</span>(<span class="params"> data </span>) </span>&#123;</span><br><span class="line">    alert( <span class="string">&quot;extends success&quot;</span> );</span><br><span class="line">    &#125;</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<h2 id="调试脚本"><a href="#调试脚本" class="headerlink" title="调试脚本"></a>调试脚本</h2><p>由于这次只是查看代码，而且验证一些函数的功能，调试还是挺顺利的，直接通过 Chrome console 就完成了，各种变量自动装载完成，美滋滋儿。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/07/17/Python-poetry-quick-start/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2020/07/17/Python-poetry-quick-start/" class="post-title-link" itemprop="url">Poetry 快速入门</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-07-17 17:59:45" itemprop="dateCreated datePublished" datetime="2020-07-17T17:59:45+08:00">2020-07-17</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/python/" itemprop="url" rel="index">
+                    <span itemprop="name">python</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>Poetry 类 pipenv 工具，据说 lock 什么的速度更快，而且有集成发布功能，刚好 rich 这个项目有用这个，刚好在看源码的时候体验一把</p>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><h3 id="Win"><a href="#Win" class="headerlink" title="Win"></a>Win</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># powershell 输入</span></span><br><span class="line">(Invoke-WebRequest -Uri https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py -UseBasicParsing).Content | python</span><br><span class="line"></span><br><span class="line"><span class="comment"># 提示 error, 原因是 DNS 污染</span></span><br><span class="line">Invoke-WebRequest : 未能解析此远程名称: <span class="string">&#x27;raw.githubusercontent.com&#x27;</span></span><br><span class="line">所在位置 行:1 字符: 2</span><br><span class="line">+ (Invoke-WebRequest -Uri https://raw.githubusercontent.com/python-poet ...</span><br><span class="line">+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span><br><span class="line">    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-WebRequest]，WebExce</span><br><span class="line">    ption</span><br><span class="line">    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeWebRequestCommand</span><br><span class="line"></span><br><span class="line"><span class="comment"># 解决方案：修改 host 文件</span></span><br><span class="line"><span class="comment"># 目录：C:/Windows/System32/drivers/etc/</span></span><br><span class="line"><span class="comment"># 管理员模式打开，添加文本: 151.101.0.133 raw.githubusercontent.com</span></span><br><span class="line"><span class="comment"># 刷新DNS</span></span><br><span class="line">ipconfig /flushdns</span><br><span class="line"></span><br><span class="line"><span class="comment"># 链接成功，但是报其他错误</span></span><br><span class="line">Invoke-WebRequest : 基础连接已经关闭: 发送时发生错误。</span><br><span class="line">所在位置 行:1 字符: 2</span><br><span class="line">+ (Invoke-WebRequest -Uri https://raw.githubusercontent.com/python-poet ...</span><br><span class="line">+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span><br><span class="line">    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-WebRequest]，WebExce</span><br><span class="line">    ption</span><br><span class="line">    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeWebRequestCommand</span><br><span class="line"></span><br><span class="line"><span class="comment"># 改完之后各种报错，烦躁。这个命令就是下载一个 get-poetry.py 的 raw 文件，然后使用 python get-poetry.py 安装。我直接下载这个文件然后安装了。。。</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 尼玛，被墙了安装超级慢 (╬▔皿▔)╯ 最后用小飞机开启全局代理， 再 CMD 窗口 python get-poetry.py 安装成功</span></span><br><span class="line"></span><br><span class="line">Retrieving Poetry metadata</span><br><span class="line"></span><br><span class="line">Before we start, please answer the following questions.</span><br><span class="line">You may simply press the Enter key to leave unchanged.</span><br><span class="line">Modify PATH variable? ([y]/n)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Welcome to Poetry!</span></span><br><span class="line">This will download and install the latest version of Poetry,</span><br><span class="line">a dependency and package manager <span class="keyword">for</span> Python.</span><br><span class="line">It will add the `poetry` <span class="built_in">command</span> to Poetry<span class="string">&#x27;s bin directory, located at:</span></span><br><span class="line"><span class="string">%USERPROFILE%\.poetry\bin</span></span><br><span class="line"><span class="string">This path will then be added to your `PATH` environment variable by</span></span><br><span class="line"><span class="string">modifying the `HKEY_CURRENT_USER/Environment/PATH` registry key.</span></span><br><span class="line"><span class="string">You can uninstall at any time by executing this script with the --uninstall option,</span></span><br><span class="line"><span class="string">and these changes will be reverted.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">Installing version: 1.0.10</span></span><br><span class="line"><span class="string">  - Downloading poetry-1.0.10-win32.tar.gz (11.96MB)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">Poetry (1.0.10) is installed now. Great!</span></span><br><span class="line"><span class="string">To get started you need Poetry&#x27;</span>s bin directory (%USERPROFILE%\.poetry\bin) <span class="keyword">in</span> your `PATH`</span><br><span class="line">environment variable. Future applications will automatically have the</span><br><span class="line">correct environment, but you may need to restart your current shell.</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重启一下终端，输入命令检测安装</span></span><br><span class="line">poetry --version</span><br><span class="line"></span><br><span class="line"><span class="comment"># 但是在 vscode 的终端中还是不能识别，手动将 user\.poetry\bin 添加到系统 path 中重启 vscode, 识别成功</span></span><br></pre></td></tr></table></figure>
+
+<p>PS: 国内安装各种软件有助于增长火气！！！</p>
+<h2 id="常用-Command"><a href="#常用-Command" class="headerlink" title="常用 Command"></a>常用 Command</h2><h3 id="poetry-new-project-name"><a href="#poetry-new-project-name" class="headerlink" title="poetry new project-name"></a>poetry new project-name</h3><p>初始化项目, 创建必要文件。你可以在 git 上先建一个空的仓库然后，本地做完 poetry init 和 git init 之后 match 一下</p>
+<p>初始化后目录为</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">job-spider</span><br><span class="line">├── pyproject.toml</span><br><span class="line">├── README.rst</span><br><span class="line">├── job_spider</span><br><span class="line">│   └── __init__.py</span><br><span class="line">└── tests</span><br><span class="line">    ├── __init__.py</span><br><span class="line">    └── test_job_spider.py</span><br></pre></td></tr></table></figure>
+
+<p>通过配置 toml 文件指定国内源加速</p>
+<figure class="highlight toml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[[tool.poetry.source]]</span></span><br><span class="line"><span class="attr">name</span> = <span class="string">&quot;douban&quot;</span></span><br><span class="line"><span class="attr">url</span> = <span class="string">&quot;https://pypi.doubanio.com/simple/&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="poetry-config-–list"><a href="#poetry-config-–list" class="headerlink" title="poetry config –list"></a>poetry config –list</h3><p>查看配置，比如 virtualenv 会创建在哪里之类的。这个 cmd 还是很有帮助的，可以通过它知道你的虚拟环境创建在哪里，是不是要在 project 创建 venv 等</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ poetry config --list</span><br><span class="line">cache-dir = <span class="string">&quot;/Users/jack/Library/Caches/pypoetry&quot;</span></span><br><span class="line">virtualenvs.create = <span class="literal">true</span></span><br><span class="line">virtualenvs.in-project = <span class="literal">false</span></span><br><span class="line">virtualenvs.path = <span class="string">&quot;&#123;cache-dir&#125;/virtualenvs&quot;</span> <span class="comment"># /Users/jack/Library/Caches/pypoetry/virtualenvs</span></span><br></pre></td></tr></table></figure>
+
+<p>通过指定 <code>poetry config virtualenvs.in-project true</code> 可以指定将虚拟环境创建到 project 目录下面，方便管理</p>
+<h3 id="poetry-shell"><a href="#poetry-shell" class="headerlink" title="poetry shell"></a>poetry shell</h3><p>激活环境, 如果还没有创建过虚拟环境，他还会根据 toml 文件新建一个</p>
+<h3 id="poetry-install"><a href="#poetry-install" class="headerlink" title="poetry install"></a>poetry install</h3><p>并不是安装依赖，而是根据 toml 文件安装项目依赖，对标 <code>pipenv sync</code></p>
+<h3 id="poetry-add"><a href="#poetry-add" class="headerlink" title="poetry add"></a>poetry add</h3><p>对标 pipenv 中的 <code>pipenv install</code>, 使用 <code>add --dev/-D flask</code> 安装 dev 相关的包</p>
+<h3 id="poetry-env-info"><a href="#poetry-env-info" class="headerlink" title="poetry env info"></a>poetry env info</h3><p><code>poetry env info</code>: 显示运行环境信息，包括本地 OS 和虚拟环境</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Virtualenv</span><br><span class="line">Python:         3.7.5</span><br><span class="line">Implementation: CPython</span><br><span class="line">Path:           /Users/jack/gitStore/mycommands/.venv</span><br><span class="line">Valid:          True</span><br><span class="line"></span><br><span class="line">System</span><br><span class="line">Platform: darwin</span><br><span class="line">OS:       posix</span><br><span class="line">Python:   /Library/Frameworks/Python.framework/Versions/3.7</span><br></pre></td></tr></table></figure>
+
+<p><code>poetry env list</code>: 显示可用的 env 列表</p>
+<p>官方推荐 poetry 结合 pyenv 管理各种版本的虚拟环境</p>
+<h2 id="poetry-show"><a href="#poetry-show" class="headerlink" title="poetry show"></a>poetry show</h2><p>显示已安装的依赖</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">poetry show</span><br><span class="line">atomicwrites       1.4.0  Atomic file writes.</span><br><span class="line">attrs              19.3.0 Classes Without Boilerplate</span><br><span class="line">click              7.1.2  Composable <span class="built_in">command</span> line interface toolkit</span><br><span class="line">flask              1.1.2  A simple framework <span class="keyword">for</span> building complex web applications.</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<h2 id="遇到的问题"><a href="#遇到的问题" class="headerlink" title="遇到的问题"></a>遇到的问题</h2><h3 id="Resolving-dependency-挺慢"><a href="#Resolving-dependency-挺慢" class="headerlink" title="Resolving dependency 挺慢"></a>Resolving dependency 挺慢</h3><p>在安装更新的时候 resolving dependency 挺慢的，等了好一会儿，一度认为进程死了。但是第二次就快多了，可能是有 cache</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">C:\Users\jack\gitStore\job-spider\job_spider&gt;poetry install --verbose</span><br><span class="line">Updating dependencies</span><br><span class="line">Resolving dependencies...</span><br></pre></td></tr></table></figure>
+
+<h3 id="编译器识别有问题"><a href="#编译器识别有问题" class="headerlink" title="编译器识别有问题"></a>编译器识别有问题</h3><p>观察 VSCode 的左下角，python 编译器经常选择有问题，会找不到自己创建的虚拟环境路径。可以点击它，然后根据 poetry shell 的提示手动设置，路径如 <code>C:\Users\jack\AppData\Local\pypoetry\Cache\virtualenvs\job-spider-UlnXzhyt-py3.7</code> 做完后他会自动保存到 <code>.vscode</code> 的工程文件夹下。但是我默认这个文件是不 check in 的，所以然并卵 ┑(￣Д ￣)┍</p>
+<h3 id="Win-启动-flask-失败"><a href="#Win-启动-flask-失败" class="headerlink" title="Win 启动 flask 失败"></a>Win 启动 flask 失败</h3><p>新建了一个 flask demo，启动的时候报错</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">PS C:\Users\jack\gitStore\job-spider&gt; poetry run .\job_spider\main.py</span><br><span class="line"></span><br><span class="line">[OSError]</span><br><span class="line">[WinError 193] %1 不是有效的 Win32 应用程序。</span><br></pre></td></tr></table></figure>
+
+<p>据说是 windows 上安装了 64 位的 python， 调用了 32 位的 dll 会报这个错，换个 32 位的 python 就能解决。将原有的 64 位卸载，删除各种环境变量，重新安装 32 位 python，然并卵，要自闭了 (￣ε(#￣)</p>
+<p>暂时没有什么其他更好的解决方案，打算用虚拟机或者在 MacOS 上完成开发以节省时间</p>
+<p>今天在 Mac 上用 3.7.8 的版本也会抛同样的错误！！！难道是版本有问题？果断用 <code>3.6.6</code>, <code>3.7.3</code> 试试，可行。。。。回去再到 Windows 的机子上试试这个版本。</p>
+<p>在 Win 上换 3.7.3 之后一切正常 ╰(艹皿艹 )</p>
+<h3 id="MacOS-poetry-install-报错"><a href="#MacOS-poetry-install-报错" class="headerlink" title="MacOS poetry install 报错"></a>MacOS poetry install 报错</h3><p>切换到 3.6.5 之后 poetry install 报错</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[EnvCommandError]</span><br><span class="line">Command [<span class="string">&#x27;/Users/jack/gitStore/splunk-collector/.venv/bin/pip&#x27;</span>, <span class="string">&#x27;install&#x27;</span>, <span class="string">&#x27;--no-deps&#x27;</span>, <span class="string">&#x27;zipp==3.1.0&#x27;</span>] errored with the following <span class="built_in">return</span> code 1, and output:</span><br><span class="line">pip is configured with locations that require TLS/SSL, however the ssl module <span class="keyword">in</span> Python is not available.</span><br><span class="line">...</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>是 OpenSSL 包缺失导致的</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 修复，第一行可以不运行，下载包经常卡住</span></span><br><span class="line">brew update &amp;&amp; brew upgrade</span><br><span class="line">brew uninstall --ignore-dependencies openssl; brew install https://github.com/tebelorg/Tump/releases/download/v1.0.0/openssl.rb</span><br><span class="line"></span><br><span class="line">brew reinstall python</span><br></pre></td></tr></table></figure>
+
+<p>这之后还重新将 pyenv 管理的 python 重新卸载安装了一下，问题解决</p>
+<h3 id="MacOS-poetry-run"><a href="#MacOS-poetry-run" class="headerlink" title="MacOS poetry run"></a>MacOS poetry run</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"> poetry run splunk_collector/main.py</span><br><span class="line"></span><br><span class="line">[PermissionError]</span><br><span class="line">[Errno 13] Permission denied</span><br></pre></td></tr></table></figure>
+
+<p>运行 flask demo, permission 报错。完全搞错了。。。。flask 并不是那样运行的。保存完文件之后, 通过如下方式运行，而不是直接用 poetry 或者 python 运行，我 凸^-^凸</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">export</span> FLASK_APP=hello.py</span><br><span class="line">$ flask run</span><br><span class="line"> * Running on http://127.0.0.1:5000/</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/07/08/Linux-cmd-tips/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +610,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-19 20:05:21" itemprop="dateModified" datetime="2021-07-19T20:05:21+08:00">2021-07-19</time>
+                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -375,7 +748,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-19 20:05:21" itemprop="dateModified" datetime="2021-07-19T20:05:21+08:00">2021-07-19</time>
+                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -468,7 +841,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-19 20:05:21" itemprop="dateModified" datetime="2021-07-19T20:05:21+08:00">2021-07-19</time>
+                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -603,7 +976,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-19 20:05:21" itemprop="dateModified" datetime="2021-07-19T20:05:21+08:00">2021-07-19</time>
+                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -714,7 +1087,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-19 20:05:21" itemprop="dateModified" datetime="2021-07-19T20:05:21+08:00">2021-07-19</time>
+                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -807,7 +1180,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-19 20:05:21" itemprop="dateModified" datetime="2021-07-19T20:05:21+08:00">2021-07-19</time>
+                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -906,7 +1279,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-19 20:05:21" itemprop="dateModified" datetime="2021-07-19T20:05:21+08:00">2021-07-19</time>
+                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -986,322 +1359,11 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/06/18/Python-datetime/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2020/06/18/Python-datetime/" class="post-title-link" itemprop="url">Python 日期和时间</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-06-18 16:34:33" itemprop="dateCreated datePublished" datetime="2020-06-18T16:34:33+08:00">2020-06-18</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-19 20:05:21" itemprop="dateModified" datetime="2021-07-19T20:05:21+08:00">2021-07-19</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/python/" itemprop="url" rel="index">
-                    <span itemprop="name">python</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.3k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>对 python 中涉及到时间的类库做一个大致的了解并收集一些常用的 sample。类库包括：time, date, datetime, timezone 等</p>
-<h2 id="datetime-日期时间"><a href="#datetime-日期时间" class="headerlink" title="datetime 日期时间"></a>datetime 日期时间</h2><p>时间类型分为感知型和简单型，感知型包含 timezone 信息，简单型则没有这种意义。</p>
-<ul>
-<li>date 都是简单型的</li>
-<li>time 和 datetime 可以是简单型也可以是感知型，通过 d.tzinfo 不等于 None 或者 d.tzinfo.utcoffset(d) 部位 None 来确定</li>
-</ul>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> datetime <span class="keyword">import</span> datetime</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取当前时间</span></span><br><span class="line">datetime.now()</span><br><span class="line"><span class="comment"># Out[18]: datetime.datetime(2020, 6, 18, 17, 2, 48, 14847)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 感知型 now</span></span><br><span class="line"><span class="keyword">from</span> datetime <span class="keyword">import</span> timezone</span><br><span class="line">dt =datetime.now(timezone.utc)</span><br><span class="line"></span><br><span class="line"><span class="comment"># datetime 得到 s</span></span><br><span class="line">dt.timestamp()</span><br><span class="line"><span class="comment"># Out[41]: 1592472504.59345</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># s 转 datetime, ms 的话把时间除1000.0即可 1592472504.59345/1000.0</span></span><br><span class="line">d = datetime.fromtimestamp(<span class="number">1592472504.59345</span>)</span><br><span class="line"><span class="comment"># Out[43]: datetime.datetime(2020, 6, 18, 17, 28, 24, 593450)</span></span><br></pre></td></tr></table></figure>
-
-<p>date, time, datetime 都支持 strftime(), 只有 datetime 支持 strptime()。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># strftime: string from time, 即格式化输出时间, 对象方法</span></span><br><span class="line">now = datetime.now()</span><br><span class="line">now.strftime(<span class="string">&#x27;[%y%m%d]-[%H:%M:%S]&#x27;</span>)</span><br><span class="line"><span class="comment"># Out[22]: &#x27;[200618]-[17:12:46]&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># strptime: string parse to time, 即将字符串转化为时间, 类方法</span></span><br><span class="line">dt = datetime.strptime(<span class="string">&#x27;[200618]-[17:12:46]&#x27;</span>, <span class="string">&#x27;[%y%m%d]-[%H:%M:%S]&#x27;</span>)</span><br><span class="line"><span class="comment"># Out[24]: datetime.datetime(2020, 6, 18, 17, 12, 46)</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="deltatime-时间间隔"><a href="#deltatime-时间间隔" class="headerlink" title="deltatime 时间间隔"></a>deltatime 时间间隔</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> datetime <span class="keyword">import</span> timedelta</span><br><span class="line">delta = timedelta(days=<span class="number">50</span>, seconds=<span class="number">27</span>, microseconds=<span class="number">10</span>, milliseconds=<span class="number">29000</span>, minutes=<span class="number">5</span>, hours=<span class="number">8</span>, weeks=<span class="number">2</span>)</span><br><span class="line"><span class="comment"># Out[16]: datetime.timedelta(days=64, seconds=29156, microseconds=10)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 可以通过 datetime 做计算得到</span></span><br><span class="line">now - dt</span><br><span class="line"><span class="comment"># Out[26]: datetime.timedelta(seconds=329, microseconds=894908)</span></span><br></pre></td></tr></table></figure>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/06/14/Search-Tips/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2020/06/14/Search-Tips/" class="post-title-link" itemprop="url">搜索小技巧</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-06-14 23:23:18" itemprop="dateCreated datePublished" datetime="2020-06-14T23:23:18+08:00">2020-06-14</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-19 20:05:21" itemprop="dateModified" datetime="2021-07-19T20:05:21+08:00">2021-07-19</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E7%94%9F%E6%B4%BB/" itemprop="url" rel="index">
-                    <span itemprop="name">生活</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>132</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>搜索引擎使用小技巧</p>
-<ol>
-<li><code>-</code> + 关键词：排除不想看到的关键词</li>
-<li>“关键词加”：锁定关键词</li>
-<li>site:域名 + 关键词， 在指定网站内搜索</li>
-<li>filetype:文件格式 + 关键词</li>
-<li>intitile: + 关键词，指定标题搜素</li>
-<li>intext/allintext: + 关键词,两种指定范围搜索</li>
-<li>以上技巧叠加使用</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/06/13/Python-serialization-data-to-json/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2020/06/13/Python-serialization-data-to-json/" class="post-title-link" itemprop="url">Python 使用 json 序列化</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-06-13 16:11:08" itemprop="dateCreated datePublished" datetime="2020-06-13T16:11:08+08:00">2020-06-13</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-19 20:05:21" itemprop="dateModified" datetime="2021-07-19T20:05:21+08:00">2021-07-19</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/python/" itemprop="url" rel="index">
-                    <span itemprop="name">python</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>5.6k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>5 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="dump-Vs-dumps"><a href="#dump-Vs-dumps" class="headerlink" title="dump Vs dumps"></a>dump Vs dumps</h2><p>这两个函数都可以用来做序列化，唯一的区别是 dump 需要指定一个 io，比如打开的文件作为输出的地方，而 dumps 默认是以 stdout 做为输出端的，也就是打印在终端</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line">a = &#123;<span class="string">&#x27;name&#x27;</span>: <span class="string">&#x27;jack&#x27;</span>&#125;</span><br><span class="line">json.dump(a)</span><br><span class="line"><span class="comment"># Out[6]: &#x27;&#123;&quot;name&quot;: &quot;jack&quot;&#125;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">with</span> open(<span class="string">&#x27;data.json&#x27;</span>, <span class="string">&#x27;w&#x27;</span>) <span class="keyword">as</span> file:</span><br><span class="line">    json.dump([a, a], file)</span><br><span class="line"><span class="comment"># 当前目录下会生产名为 data.json 的文件，内容为 [&#123;&quot;name&quot;: &quot;jack&quot;&#125;, &#123;&quot;name&quot;: &quot;jack&quot;&#125;]</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="load-Vs-loads"><a href="#load-Vs-loads" class="headerlink" title="load Vs loads"></a>load Vs loads</h2><p>有了前面的基础，理解 load 和 loads 也是一个套路，一个直接从你指定的 string 加载，一个从你指定的文件加载</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ret = json.loads(<span class="string">&#x27;&#123;&quot;name&quot;: &quot;jack&quot;&#125;&#x27;</span>)</span><br><span class="line">ret, type(ret)</span><br><span class="line"><span class="comment"># Out[11]: (&#123;&#x27;name&#x27;: &#x27;jack&#x27;&#125;, dict)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">with</span> open(<span class="string">&#x27;data.json&#x27;</span>) <span class="keyword">as</span> file:</span><br><span class="line">    ret = json.load(file)</span><br><span class="line">print(ret)</span><br><span class="line"><span class="comment"># [&#123;&#x27;name&#x27;: &#x27;jack&#x27;&#125;, &#123;&#x27;name&#x27;: &#x27;jack&#x27;&#125;]</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="支持中文"><a href="#支持中文" class="headerlink" title="支持中文"></a>支持中文</h2><p>写入文件是指定 encoding 和 ensure_ascii 参数，读取时指定 encoding 就可以了</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">me = &#123;<span class="string">&#x27;name&#x27;</span>: <span class="string">&#x27;我&#x27;</span>&#125;</span><br><span class="line"><span class="keyword">with</span> open(<span class="string">&#x27;dump3.json&#x27;</span>, <span class="string">&#x27;w&#x27;</span>, encoding=<span class="string">&#x27;utf-8&#x27;</span>) <span class="keyword">as</span> file:</span><br><span class="line">    json.dump(me, file, ensure_ascii=<span class="literal">False</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">with</span> open(<span class="string">&#x27;dump3.json&#x27;</span>, encoding=<span class="string">&#x27;utf-8&#x27;</span>) <span class="keyword">as</span> file:</span><br><span class="line">    ret = json.load(file)</span><br><span class="line">    print(ret)</span><br><span class="line"><span class="comment"># &#123;&#x27;name&#x27;: &#x27;我&#x27;&#125;</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="序列化-Object"><a href="#序列化-Object" class="headerlink" title="序列化 Object"></a>序列化 Object</h2><p>序列化对象时可以在 dump(s) 的方法中指定一个自己的序列化规则类, 一种是通过 cls 参数，一种是通过 default 参数。不过有一个需要注意的点是，使用时并不指代整个对象的序列化逻辑，而是对那些不知道怎么序列化的部分给出逻辑，这块挺绕的</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 该例子中，Person 是自定义的类，所以调用 dumps 时，如果直接传入，会抛 exception: TypeError: Object of type Person is not JSON serializable</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, name, age</span>):</span></span><br><span class="line">        self.name = name</span><br><span class="line">        self.age = age</span><br><span class="line"></span><br><span class="line"><span class="comment"># 可以通过指定 default 参数，给出转化规则</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">PersonConvert</span>(<span class="params">person</span>):</span></span><br><span class="line">    <span class="keyword">if</span> isinstance(person, Person):</span><br><span class="line">        <span class="keyword">return</span> person.__dict__</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">raise</span> TypeError</span><br><span class="line"></span><br><span class="line">p = Person(<span class="string">&#x27;jack&#x27;</span>,<span class="number">30</span>)</span><br><span class="line">json.dumps(p, default=PersonConvert)</span><br><span class="line"><span class="comment"># Out[28]: &#x27;&#123;&quot;name&quot;: &quot;jack&quot;, &quot;age&quot;: 30&#125;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 也可以通过指定 cls 参数，给出转化规则</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">PersonEncoder</span>(<span class="params">json.JSONEncoder</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">default</span>(<span class="params">self, obj</span>):</span></span><br><span class="line">        <span class="keyword">if</span> isinstance(obj, Person):</span><br><span class="line">            <span class="keyword">return</span> obj.__dict__</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">return</span> json.JSONEncoder.default(self, obj)</span><br><span class="line"></span><br><span class="line">json.dumps(p, cls=PersonEncoder)</span><br><span class="line"><span class="comment"># Out[30]: &#x27;&#123;&quot;name&quot;: &quot;jack&quot;, &quot;age&quot;: 30&#125;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果此时我们对 Person 做一下升级，添加一个 datetime 属性</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, name, age</span>):</span></span><br><span class="line">        self.name = name</span><br><span class="line">        self.age = age</span><br><span class="line">        self.create_date = datetime.now()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 那么之前的函数就不够用了，我们除了要处理 Person 的逻辑，还要处理 datetime 的逻辑</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">PersonConvertV2</span>(<span class="params">obj</span>):</span></span><br><span class="line">    <span class="keyword">if</span> isinstance(obj, Person):</span><br><span class="line">        <span class="keyword">return</span> obj.__dict__</span><br><span class="line">    <span class="keyword">elif</span> isinstance(obj, datetime):</span><br><span class="line">        <span class="keyword">return</span> obj.timestamp()</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">raise</span> TypeError</span><br><span class="line"></span><br><span class="line">p2 = Person(<span class="string">&#x27;Tom&#x27;</span>, <span class="number">31</span>)</span><br><span class="line">json.dumps(p2, default=PersonConvertV2)</span><br><span class="line"><span class="comment"># Out[46]: &#x27;&#123;&quot;name&quot;: &quot;Tom&quot;, &quot;age&quot;: 31, &quot;create_date&quot;: 1592802400.657711&#125;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 网上有给出比较多经典的转化方式，在转化过程中会携带 class, module 的信息，为反序列化做准备</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">obj_to_dict</span>(<span class="params">obj</span>):</span></span><br><span class="line">    <span class="keyword">if</span> isinstance(obj, Person):</span><br><span class="line">        d = &#123;&#125;</span><br><span class="line">        d[<span class="string">&#x27;__class__&#x27;</span>] = obj.__class__.__name__</span><br><span class="line">        d[<span class="string">&#x27;__module__&#x27;</span>] = obj.__module__</span><br><span class="line">        d.update(obj.__dict__)</span><br><span class="line">            <span class="keyword">return</span> d</span><br><span class="line">        <span class="keyword">elif</span> isinstance(obj, datetime):</span><br><span class="line">            <span class="keyword">return</span> obj.timestamp()</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">raise</span> TypeError</span><br><span class="line"></span><br><span class="line">json.dumps(p2, default=obj_to_dict)</span><br><span class="line"><span class="comment"># Out[54]: &#x27;&#123;&quot;__class__&quot;: &quot;Person&quot;, &quot;__module__&quot;: &quot;__main__&quot;, &quot;name&quot;: &quot;Tom&quot;, &quot;age&quot;: 31, &quot;create_date&quot;: 1592802400.657711&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<p>理解了 encode 的逻辑，decode 也差不多。不过逻辑稍微有点区别，他是在遇到 dict 的时候去做判断的。而且从他的输出看，应该是由内而外的进行解析的。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"> <span class="function"><span class="keyword">def</span> <span class="title">dict_to_obj</span>(<span class="params">d</span>):</span></span><br><span class="line">    <span class="keyword">if</span> <span class="string">&quot;level01&quot;</span> <span class="keyword">in</span> d:</span><br><span class="line">        print(<span class="string">&quot;l1: %s&quot;</span> % d)</span><br><span class="line">        <span class="keyword">return</span> d</span><br><span class="line">    <span class="keyword">elif</span> <span class="string">&quot;level02&quot;</span> <span class="keyword">in</span> d:</span><br><span class="line">        print(<span class="string">&quot;l2: %s&quot;</span> %d)</span><br><span class="line">        <span class="keyword">return</span> d</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">raise</span> TypeError</span><br><span class="line"></span><br><span class="line">json.loads(jstr, object_hook=dict_to_obj)</span><br><span class="line"><span class="comment"># l2: &#123;&#x27;level02&#x27;: &#x27;true&#x27;, &#x27;age&#x27;: 30&#125;</span></span><br><span class="line"><span class="comment"># l1: &#123;&#x27;level01&#x27;: &#x27;true&#x27;, &#x27;name&#x27;: &#x27;jack&#x27;, &#x27;info&#x27;: &#123;&#x27;level02&#x27;: &#x27;true&#x27;, &#x27;age&#x27;: 30&#125;&#125;     </span></span><br><span class="line"><span class="comment"># Out[13]: &#123;&#x27;level01&#x27;: &#x27;true&#x27;, &#x27;name&#x27;: &#x27;jack&#x27;, &#x27;info&#x27;: &#123;&#x27;level02&#x27;: &#x27;true&#x27;, &#x27;age&#x27;: 30&#125;&#125;</span></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">dict_to_obj</span>(<span class="params">our_dict</span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Function that takes in a dict and returns a custom object associated with the dict.</span></span><br><span class="line"><span class="string">    This function makes use of the &quot;__module__&quot; and &quot;__class__&quot; metadata in the dictionary</span></span><br><span class="line"><span class="string">    to know which object type to create.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">if</span> <span class="string">&quot;__class__&quot;</span> <span class="keyword">in</span> our_dict:</span><br><span class="line">        <span class="comment"># Pop ensures we remove metadata from the dict to leave only the instance arguments</span></span><br><span class="line">        class_name = our_dict.pop(<span class="string">&quot;__class__&quot;</span>)</span><br><span class="line">        <span class="comment"># Get the module name from the dict and import it</span></span><br><span class="line">        module_name = our_dict.pop(<span class="string">&quot;__module__&quot;</span>)</span><br><span class="line">        <span class="comment"># We use the built in __import__ function since the module name is not yet known at runtime</span></span><br><span class="line">        module = __import__(module_name)</span><br><span class="line">        <span class="comment"># Get the class from the module</span></span><br><span class="line">        class_ = getattr(module,class_name)</span><br><span class="line">        <span class="comment"># Use dictionary unpacking to initialize the object</span></span><br><span class="line">        obj = class_.__new__(class_)</span><br><span class="line">        <span class="keyword">for</span> key, value <span class="keyword">in</span> our_dict.items():</span><br><span class="line">            <span class="keyword">if</span> key == <span class="string">&#x27;create_date&#x27;</span>:</span><br><span class="line">                value = datetime.fromtimestamp(value)</span><br><span class="line">            setattr(obj, key, value)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        obj = our_dict</span><br><span class="line">    <span class="keyword">return</span> obj</span><br><span class="line"></span><br><span class="line">jstr = <span class="string">&#x27;&#123;&quot;__class__&quot;: &quot;Person&quot;, &quot;__module__&quot;: &quot;__main__&quot;, &quot;name&quot;: &quot;Jack&quot;, &quot;age&quot;: 30, &quot;create_date&quot;: 1592805275.55762&#125;&#x27;</span></span><br><span class="line">jstr = <span class="string">&#x27;&#123;&quot;name&quot;:&quot;jack&quot;, &quot;info&quot;:&#123;&quot;level02&quot;: &quot;true&quot;, &quot;age&quot;:30&#125;&#125;&#x27;</span></span><br><span class="line">o = json.loads(jstr, object_hook=dict_to_obj)</span><br><span class="line">print(o.create_date)</span><br><span class="line">print(type(o.create_date))</span><br><span class="line"><span class="comment"># 2020-06-22 13:54:35.557620</span></span><br><span class="line"><span class="comment"># &lt;class &#x27;datetime.datetime&#x27;&gt;</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="其他的一些收获"><a href="#其他的一些收获" class="headerlink" title="其他的一些收获"></a>其他的一些收获</h2><ul>
-<li>在 class 的方法中可以有一个 toJSON 的方法快速得到序列化的字符串</li>
-<li>在 class 的构造函数里可以有一个 dict 参数用来快速构造对象</li>
-</ul>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person04</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, name=<span class="string">&#x27;&#x27;</span>, age=<span class="number">-1</span>, pairs=None</span>):</span></span><br><span class="line">        self.name = name</span><br><span class="line">        self.age = age</span><br><span class="line">        <span class="keyword">if</span> pairs:</span><br><span class="line">            self.__dict__ = pairs</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">toJSON</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="keyword">return</span> json.dumps(self,</span><br><span class="line">                            default=<span class="keyword">lambda</span> o: o.__dict__,</span><br><span class="line">                            sort_keys=<span class="literal">True</span>,</span><br><span class="line">                            indent=<span class="number">4</span>)</span><br></pre></td></tr></table></figure>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/hexo/page/12/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/hexo/">1</a><span class="space">&hellip;</span><a class="page-number" href="/hexo/page/12/">12</a><span class="page-number current">13</span><a class="page-number" href="/hexo/page/14/">14</a><span class="space">&hellip;</span><a class="page-number" href="/hexo/page/17/">17</a><a class="extend next" rel="next" href="/hexo/page/14/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <a class="extend prev" rel="prev" href="/hexo/page/12/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/hexo/">1</a><span class="space">&hellip;</span><a class="page-number" href="/hexo/page/12/">12</a><span class="page-number current">13</span><a class="page-number" href="/hexo/page/14/">14</a><span class="space">&hellip;</span><a class="page-number" href="/hexo/page/18/">18</a><a class="extend next" rel="next" href="/hexo/page/14/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1347,7 +1409,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">168</span>
+          <span class="site-state-item-count">171</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1394,12 +1456,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">853k</span>
+    <span title="站点总字数">869k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">12:56</span>
+    <span title="站点阅读时长">13:10</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>

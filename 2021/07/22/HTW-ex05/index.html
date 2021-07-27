@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/hexo/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/hexo/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/hexo/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/hexo/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="UgODgWVmvTsdD--vjodDR3tPUZRWM3i7JpHzbYejxUM">
+
+<link rel="stylesheet" href="/hexo/css/main.css">
+
+
+<link rel="stylesheet" href="/hexo/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/hexo/',
+    scheme: 'Muse',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="Chapter 5 discusses the container module.A container is represented by the org.apache.catalina.Container interface and there are four types of containers: engine, host, context, and wrapper.This chap">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTW ex05">
+<meta property="og:url" content="https://jack-zheng.github.io/hexo/2021/07/22/HTW-ex05/index.html">
+<meta property="og:site_name" content="Jackpot">
+<meta property="og:description" content="Chapter 5 discusses the container module.A container is represented by the org.apache.catalina.Container interface and there are four types of containers: engine, host, context, and wrapper.This chap">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://jack-zheng.github.io/hexo/2021/07/22/HTW-ex05/pipeline_valve.png">
+<meta property="article:published_time" content="2021-07-22T07:47:11.000Z">
+<meta property="article:modified_time" content="2021-07-27T12:20:48.668Z">
+<meta property="article:author" content="Jack Zheng">
+<meta property="article:tag" content="How Tomcat Works">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jack-zheng.github.io/hexo/2021/07/22/HTW-ex05/pipeline_valve.png">
+
+<link rel="canonical" href="https://jack-zheng.github.io/hexo/2021/07/22/HTW-ex05/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>HTW ex05 | Jackpot</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/hexo/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jackpot</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-tags">
+
+    <a href="/hexo/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/hexo/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/hexo/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/jack-zheng" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/07/22/HTW-ex05/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          HTW ex05
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-07-22 15:47:11" itemprop="dateCreated datePublished" datetime="2021-07-22T15:47:11+08:00">2021-07-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/Tomcat/" itemprop="url" rel="index">
+                    <span itemprop="name">Tomcat</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>6.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>6 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p><strong>Chapter 5</strong> discusses the container module.<br>A container is represented by the org.apache.catalina.Container interface and there are four types of containers: engine, host, context, and wrapper.<br>This chapter offers two applications that work with contexts and wrappers.</p>
+</blockquote>
+<p>Tomcat 中有 4 中 container: Wrapper, Context, Engine and Host. container module 的主要作用是用来处理 request 并向 response 中填充处理结果。这节主要介绍前两种，后两种将在 13 节中介绍。</p>
+<h2 id="The-Container-Interface"><a href="#The-Container-Interface" class="headerlink" title="The Container Interface"></a>The Container Interface</h2><p>container 必须实现 catalina 的 Container 接口。connector 会调用实现类的 invoke 逻辑(怎么调用的我一直没看到，估摸着应该在 Lifecycle 部分才涉及到)。按处理的业务来分，有四种类型的 Container</p>
+<ul>
+<li>Engine: 代表整个 Catalina servlet engine - 虽然我对这里说的 engine 是个什么东西不怎么清楚</li>
+<li>Host: 代表了含有 contexts 的虚拟 host </li>
+<li>Context: 代表了一个 web application, 一个 application 可以包含一个或多个 wrapper</li>
+<li>Wrapper: 代表一个独立的 servlet</li>
+</ul>
+<p>以上四种概念的接口定义放在 org.apache.catalina 包下，对应的实现放在 org.apache.catalina.core 下</p>
+<img  src=http://www.plantuml.com/plantuml/svg/TP6n3i8W48RtFWLXDA69U-DWOs9d1mVZG0IrYQ5DON3muQMqXtVNkfJmtN5VVsXSiCDTtwoeEnTqw-nGD9aTt2CI18wT3sWxdh5lJCw3xliuetvfxtypzzhReiXRKNsKWkcC9WLZu64uon0kIswTD49TdgqnrbrtasByO8WTSSKbyCmhFuKJfjYde9tHWu6014xv2CfgGi4A0L8sDZg588LyVMC6KW4Bf235B2E1H1LlcQVvsq1VRb5UFEAY8_y4LGgvbQ9JGcuaTU7DMXCOsNwjTLP_0G00>
+
+<p>一个可用的 container 并不需要具备四种 container 类型，最简单的案例只需要一个 wrapper 即可。wrapper 是最低等级的 container，不能再包含其他 container。container 支持的常规操作</p>
+<ol>
+<li>addChild() - wrapper 除外</li>
+<li>removeChild()</li>
+<li>findChild()</li>
+<li>findChildren()</li>
+</ol>
+<p>container 还可以包含其他辅助类，比如 Loader, Logger, Manager, Realm 和 Resources. container 还可以通过配置 server.xml 使他在启动服务器时达到动态指定的效果。这种特性是通过 pipeline 和 valves 达到的。</p>
+<h2 id="Pipeline-Tasks"><a href="#Pipeline-Tasks" class="headerlink" title="Pipeline Tasks"></a>Pipeline Tasks</h2><p>这节介绍当 container 的 invoke 方法被调用的时候会发生什么。主要涉及到四个接口 Pipeline, Valve, ValveContext 和 Contained. pipeline 包含了 container 将要执行的 tasks, valve 即将要执行的 task. container 默认有一个 valves 但是我们可以自己添加任意多个自定义的 valves. valves 也可以通过配置 server.xml 指定。</p>
+<p>这里有个图，但是没显示，我猜是这种责任链的图</p>
+<p><img src="pipeline_valve.png" alt="pipeline and valves"></p>
+<p>pipeline 的工作原理和 servlet 的 filter 是一样的, 使用责任链模式。pipeline 相当于链，valves 相当去 filter。当一个 valve 执行完了之后，会调用下一个 valve 继续执行。自带的那个 basic valve 总是在最后才被调用。</p>
+<p>按上面的逻辑，你可能会用如下方式实现 pipeline</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// invoke each valve added to the pipeline</span></span><br><span class="line"><span class="keyword">for</span>(<span class="keyword">int</span> n=<span class="number">0</span>; n&lt;valves.length; n++) &#123;</span><br><span class="line">    valves[n].invoke(...);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// then, invoke the basic valve</span></span><br><span class="line">basicValve.invoke(...);</span><br></pre></td></tr></table></figure>
+
+<p>但是 Tomcat 的设计者通过引入 ValveContext 这个 interface 来解决这个问题，工作原理如下</p>
+<p>Container 的 invoke() 方法被调用的时候，并不是 hard code 需要做的事情，而是通过调用 pipeline 的 invoke() 方法。pipeline 和 container 的 invoke() 方法定义如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Pipeline</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">invoke</span><span class="params">(Request request, Response response)</span></span></span><br><span class="line"><span class="function">        <span class="keyword">throws</span> IOException, ServletException</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Container</span> </span>&#123;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">invoke</span><span class="params">(Request request, Response response)</span></span></span><br><span class="line"><span class="function">        <span class="keyword">throws</span> IOException, ServletException</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// container 的实现</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">ContainerBase</span> <span class="keyword">implements</span> <span class="title">Container</span>, <span class="title">Lifecycle</span>, <span class="title">Pipeline</span> </span>&#123;</span><br><span class="line">    <span class="keyword">protected</span> Pipeline pipeline = <span class="keyword">new</span> StandardPipeline(<span class="keyword">this</span>);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">invoke</span><span class="params">(Request request, Response response)</span></span></span><br><span class="line"><span class="function">        <span class="keyword">throws</span> IOException, ServletException </span>&#123;</span><br><span class="line"></span><br><span class="line">        pipeline.invoke(request, response);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>pipeline 需要保证所有被添加进来的 valves 和 basic valve 只被调用一次。pipeline 是通过 ValveContext 这个接口实现该功能的。ValveContext 是 pipeline 的一个内部类(innerClass)，通过这种定义是的 ValveContext 可以访问 pipeline 中的所有对象。ValveContext 中最重要的方法是 invokeNext</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">ValveContext</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">invokeNext</span><span class="params">(Request request, Response response)</span></span></span><br><span class="line"><span class="function">        <span class="keyword">throws</span> IOException, ServletException</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SimplePipeline</span> <span class="keyword">implements</span> <span class="title">Pipeline</span> </span>&#123;</span><br><span class="line">    <span class="keyword">protected</span> <span class="class"><span class="keyword">class</span> <span class="title">SimplePipelineValveContext</span> <span class="keyword">implements</span> <span class="title">ValveContext</span> </span>&#123;</span><br><span class="line">        <span class="keyword">protected</span> <span class="keyword">int</span> stage = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> String <span class="title">getInfo</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">invokeNext</span><span class="params">(Request request, Response response)</span></span></span><br><span class="line"><span class="function">                <span class="keyword">throws</span> IOException, ServletException </span>&#123;</span><br><span class="line">            <span class="comment">// subscript: 下标 + stage 用来标记被调用的 valve</span></span><br><span class="line">            <span class="keyword">int</span> subscript = stage;</span><br><span class="line">            stage = stage + <span class="number">1</span>;</span><br><span class="line">            <span class="comment">// Invoke the requested Valve for the current request thread</span></span><br><span class="line">            <span class="keyword">if</span> (subscript &lt; valves.length) &#123;</span><br><span class="line">                valves[subscript].invoke(request, response, <span class="keyword">this</span>);</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> ((subscript == valves.length) &amp;&amp; (basic != <span class="keyword">null</span>)) &#123;</span><br><span class="line">                basic.invoke(request, response, <span class="keyword">this</span>);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> ServletException(<span class="string">&quot;No valve&quot;</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>ValveContxt 会调用第一个 valve 的 invoke 方法，第一个 valve 会调用第二个 valve 的 invoke 方法。Valve 的 invoke 方法的参数列表中包含 ValveContext 方便调用 invokeNext 方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Valve</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">invoke</span><span class="params">(Request request, Response response, ValveContext context)</span> <span class="keyword">throws</span> IOException, ServletException</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="The-Pipeline-Interface"><a href="#The-Pipeline-Interface" class="headerlink" title="The Pipeline Interface"></a>The Pipeline Interface</h3><p>Pipeline 接口定义, container 通过调用它来处理 valves 和 basic valve.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Pipeline</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 操作 basic valve</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Valve <span class="title">getBasic</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setBasic</span><span class="params">(Valve valve)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addValve</span><span class="params">(Valve valve)</span></span>;</span><br><span class="line">    <span class="keyword">public</span> Valve[] getValves();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">invoke</span><span class="params">(Request request, Response response)</span></span></span><br><span class="line"><span class="function">        <span class="keyword">throws</span> IOException, ServletException</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">removeValve</span><span class="params">(Valve valve)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="The-Valve-Interface"><a href="#The-Valve-Interface" class="headerlink" title="The Valve Interface"></a>The Valve Interface</h3><p>这个 component 用于处理一个 request，只有两个方法 invoke 和 getInfo</p>
+<h3 id="The-ValveContext-Interface"><a href="#The-ValveContext-Interface" class="headerlink" title="The ValveContext Interface"></a>The ValveContext Interface</h3><p>只有 invokeNext 和 getInfo 两个方法</p>
+<h3 id="The-Contained-Interface"><a href="#The-Contained-Interface" class="headerlink" title="The Contained Interface"></a>The Contained Interface</h3><p>valve 可以选择性的实现 Contained 接口，这个接口表明对应的实现最多只能和一个 container 有关系</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Contained</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Container <span class="title">getContainer</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setContainer</span><span class="params">(Container container)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="The-Wrapper-Interface"><a href="#The-Wrapper-Interface" class="headerlink" title="The Wrapper Interface"></a>The Wrapper Interface</h2><p>Wrapper 表示一个独立的 servlet 定义。Wrapper 的实现类负责管理 servlet 的生命周期。比如调用 init, service 和 destroy 方法。它是最底层的 container 实现，所以不能添加 child, 添加会抛错</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addChild</span><span class="params">(Container child)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(sm.getString(<span class="string">&quot;standardWrapper.notChild&quot;</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其他一些比较重要的方法比如 allocate 和 load</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Wrapper</span> <span class="keyword">extends</span> <span class="title">Container</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Servlet <span class="title">allocate</span><span class="params">()</span> <span class="keyword">throws</span> ServletException</span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">load</span><span class="params">()</span> <span class="keyword">throws</span> ServletException</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>allocate 用于指定 wrapper 指代的 servlet，load 用于加载 servlet 的实例。</p>
+<h2 id="The-Context-Interface"><a href="#The-Context-Interface" class="headerlink" title="The Context Interface"></a>The Context Interface</h2><p>Context 知道一个 web application. 一个 context 可以包含一个或多个 wrapper</p>
+<h2 id="The-Wrapper-Application"><a href="#The-Wrapper-Application" class="headerlink" title="The Wrapper Application"></a>The Wrapper Application</h2><p>下面是本章的第一个例子，一个简单的 container，只由一个 wrapper 来充当 container 主体。包含七个类</p>
+<ul>
+<li>SimpleWrapper: Wrapper 的实现类，包含一个 Pipeline, 通过一个 Loader 来加载 servlet。</li>
+<li>SimplePipeline: Pipeline 的实现类，包含一个 basic value 和两个额外 valve</li>
+<li>SimpleLoader: 用于加载 servlet</li>
+<li>SimpleWrapperValve: basic valve 的实现类</li>
+<li>ClientIPLoggerValve, HeaderLoggerValve: 额外 valve 的实现类</li>
+<li>Bootstrap1: 启动类</li>
+</ul>
+<p>SimpleWrapperValve 和额外的 Valve 最大的区别是，SimpleWrapperValve 没有在调用 invkeNext, 因为规则上来说，它是最后一个需要调用的 valve 了。</p>
+<img  src=http://www.plantuml.com/plantuml/svg/RP0n2y8m48Nt_8gGKKZ1NLowA7Ge23g8Gx1dFOX9Y6bnyCURrfYBw7J7-zwxkmHD07zHP-2DLHruzYvyzQmgliERqv00msojhGaA3Rd5KaWl5x4Kh0WSl78kIXd6-L9ccQMct9ePJMdHWOxfR9V7AtOTc1CXzkd-pVh7A4cBzagFGExfMLPoOKGYR2vSE0yZsk4kv3gH10my0eb9_JsepCoqrWWcRDl6zlsCXo-yWUct2_W2>
+
+<h3 id="Running-the-Application"><a href="#Running-the-Application" class="headerlink" title="Running the Application"></a>Running the Application</h3><p>启动服务器，访问 <code>http://localhost:8080</code> 终端显内容如下</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">ModernServlet -- init</span><br><span class="line">Client IP Logger Valve</span><br><span class="line">0:0:0:0:0:0:0:1</span><br><span class="line">------------------------------------</span><br><span class="line">Header Logger Valve</span><br><span class="line">host:localhost:8080</span><br><span class="line">connection:keep-alive</span><br><span class="line">sec-ch-ua:&quot;Chromium&quot;;v=&quot;92&quot;, &quot; Not A;Brand&quot;;v=&quot;99&quot;, &quot;Google Chrome&quot;;v=&quot;92&quot;</span><br><span class="line">sec-ch-ua-mobile:?0</span><br><span class="line">upgrade-insecure-requests:1</span><br><span class="line">user-agent:Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36</span><br><span class="line">accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9</span><br><span class="line">sec-fetch-site:none</span><br><span class="line">sec-fetch-mode:navigate</span><br><span class="line">sec-fetch-user:?1</span><br><span class="line">sec-fetch-dest:document</span><br><span class="line">accept-encoding:gzip, deflate, br</span><br><span class="line">accept-language:en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7,zh-TW;q=0.6</span><br><span class="line">cookie:loginMethodCookieKey=PWD; bizxThemeId=2wyfwkupsp; fontstyle=null; _pk_id.1.1fff=9a13b6b396550ca6.1619008137.; Idea-12b942b0=d6d70da6-7368-4631-b3f7-a91eafcb1e9f; Idea-cead54cd=ce25569f-051c-4d11-b8f4-6b99d512503d; JSESSIONID=B3BD850D653D266A9BB2346D7D97B8A2</span><br><span class="line">------------------------------------</span><br></pre></td></tr></table></figure>
+
+
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Jack Zheng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://jack-zheng.github.io/hexo/2021/07/22/HTW-ex05/" title="HTW ex05">https://jack-zheng.github.io/hexo/2021/07/22/HTW-ex05/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/null" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/hexo/tags/How-Tomcat-Works/" rel="tag"># How Tomcat Works</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+                <a href="/hexo/2021/07/20/HTW-ex04/" rel="next" title="HTW ex04">
+                  <i class="fa fa-chevron-left"></i> HTW ex04
+                </a>
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+                <a href="/hexo/2021/07/23/Design-pattern-chain-of-responsibility/" rel="prev" title="Design-pattern-chain-of-responsibility">
+                  Design-pattern-chain-of-responsibility <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#The-Container-Interface"><span class="nav-number">1.</span> <span class="nav-text">The Container Interface</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Pipeline-Tasks"><span class="nav-number">2.</span> <span class="nav-text">Pipeline Tasks</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-Pipeline-Interface"><span class="nav-number">2.1.</span> <span class="nav-text">The Pipeline Interface</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-Valve-Interface"><span class="nav-number">2.2.</span> <span class="nav-text">The Valve Interface</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-ValveContext-Interface"><span class="nav-number">2.3.</span> <span class="nav-text">The ValveContext Interface</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-Contained-Interface"><span class="nav-number">2.4.</span> <span class="nav-text">The Contained Interface</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-Wrapper-Interface"><span class="nav-number">3.</span> <span class="nav-text">The Wrapper Interface</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-Context-Interface"><span class="nav-number">4.</span> <span class="nav-text">The Context Interface</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-Wrapper-Application"><span class="nav-number">5.</span> <span class="nav-text">The Wrapper Application</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Running-the-Application"><span class="nav-number">5.1.</span> <span class="nav-text">Running the Application</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Jack Zheng"
+      src="/hexo/images/jack.jpg">
+  <p class="site-author-name" itemprop="name">Jack Zheng</p>
+  <div class="site-description" itemprop="description">我是张江搬砖小码农, 知识搬运工</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/hexo/archives/">
+        
+          <span class="site-state-item-count">171</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/hexo/categories/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/hexo/tags/">
+          
+        <span class="site-state-item-count">167</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jack Zheng</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">869k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">13:10</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.5.0
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/hexo/lib/anime.min.js"></script>
+  <script src="/hexo/lib/velocity/velocity.min.js"></script>
+  <script src="/hexo/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/hexo/js/utils.js"></script>
+
+<script src="/hexo/js/motion.js"></script>
+
+
+<script src="/hexo/js/schemes/muse.js"></script>
+
+
+<script src="/hexo/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/hexo/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'd444c814810f7e73ee3a',
+      clientSecret: '9b3c417a0c1076887b3cf583c7d7a27456b708ef',
+      repo: 'hexo-comments',
+      owner: 'jack-zheng',
+      admin: ['jack-zheng'],
+      id: 'b3fa9046943770010fc3bc19cd1f5261',
+        language: '',
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>
