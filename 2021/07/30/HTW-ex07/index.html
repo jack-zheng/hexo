@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/hexo/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/hexo/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/hexo/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/hexo/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="UgODgWVmvTsdD--vjodDR3tPUZRWM3i7JpHzbYejxUM">
+
+<link rel="stylesheet" href="/hexo/css/main.css">
+
+
+<link rel="stylesheet" href="/hexo/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/hexo/',
+    scheme: 'Muse',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="Chapter 7 covers loggers, which are components used for recording error messages and other messages. 分三节介绍 Catalina 中的 log 机制。第一部分介绍 Logger 接口，Catalina 中所有的 logger 都要实现的。第二节介绍 Tomcat 中的 loggers。第三节介绍本">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTW ex07">
+<meta property="og:url" content="https://jack-zheng.github.io/hexo/2021/07/30/HTW-ex07/index.html">
+<meta property="og:site_name" content="Jackpot">
+<meta property="og:description" content="Chapter 7 covers loggers, which are components used for recording error messages and other messages. 分三节介绍 Catalina 中的 log 机制。第一部分介绍 Logger 接口，Catalina 中所有的 logger 都要实现的。第二节介绍 Tomcat 中的 loggers。第三节介绍本">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-07-30T11:29:43.000Z">
+<meta property="article:modified_time" content="2021-08-02T12:17:17.117Z">
+<meta property="article:author" content="Jack Zheng">
+<meta property="article:tag" content="How Tomcat Works">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://jack-zheng.github.io/hexo/2021/07/30/HTW-ex07/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>HTW ex07 | Jackpot</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/hexo/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jackpot</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-tags">
+
+    <a href="/hexo/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/hexo/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/hexo/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/jack-zheng" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/07/30/HTW-ex07/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          HTW ex07
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-07-30 19:29:43" itemprop="dateCreated datePublished" datetime="2021-07-30T19:29:43+08:00">2021-07-30</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/Tomcat/" itemprop="url" rel="index">
+                    <span itemprop="name">Tomcat</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>Chapter 7</strong> covers loggers, which are components used for recording error messages and other messages.</p>
+<p>分三节介绍 Catalina 中的 log 机制。第一部分介绍 Logger 接口，Catalina 中所有的 logger 都要实现的。第二节介绍 Tomcat 中的 loggers。第三节介绍本章中使用案例。</p>
+<h2 id="The-Logger-Interface"><a href="#The-Logger-Interface" class="headerlink" title="The Logger Interface"></a>The Logger Interface</h2><p>提供了很多 log 方法，最简单的只需要一个 string 参数即可。定义了五种 log 级别，很常规 FATAL， ERROR，WARNING 等。</p>
+<h2 id="Tomcat‘s-Loggers"><a href="#Tomcat‘s-Loggers" class="headerlink" title="Tomcat‘s Loggers"></a>Tomcat‘s Loggers</h2><p>Tomcat 自带的 logger 有 FileLogger，SystemErrLogger 和 SystemOutLogger. 他本都继承自 LoggerBase 类， LoggerBase 实现了 Logger 接口</p>
+<p>{ plantuml }<br>interface Logger<br>Logger &lt;|.. logger.LoggerBase</p>
+<p>logger.LoggerBase &lt;|– logger.SystemOutLogger<br>logger.LoggerBase &lt;|– logger.SystemErrLogger<br>logger.LoggerBase &lt;|– logger.FileLogger<br>{ endplantuml }</p>
+<h3 id="The-LoggerBase-Class"><a href="#The-LoggerBase-Class" class="headerlink" title="The LoggerBase Class"></a>The LoggerBase Class</h3><p>LoggerBase 实现了除 log(string) 外的所有接口方法。这个方法的实现放在子类中完成。</p>
+<h3 id="The-SystemOutLogger-Class"><a href="#The-SystemOutLogger-Class" class="headerlink" title="The SystemOutLogger Class"></a>The SystemOutLogger Class</h3><p>在它的实现中，所有 log 都会被输出到终端</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">log</span><span class="params">(String msg)</span> </span>&#123;</span><br><span class="line">    System.out.println(msg);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="The-SystemErrLogger-Class"><a href="#The-SystemErrLogger-Class" class="headerlink" title="The SystemErrLogger Class"></a>The SystemErrLogger Class</h3><p>与上面雷同，只不过用了 <code>System.err.println(msg);</code></p>
+<h3 id="The-FileLogger-Class"><a href="#The-FileLogger-Class" class="headerlink" title="The FileLogger Class"></a>The FileLogger Class</h3><p>将 log 记录到文件并附带时间戳信息。按天为单位常见新文件记录信息，允许指定前/后缀。Tomcat 4 中这个类也实现了 Lifecycle 接口，这样它就可以和容器同开同关了。在 Tomcat 5 中，这个接口被移到父类去了。</p>
+<p>主要方法实现如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">start</span><span class="params">()</span> <span class="keyword">throws</span> LifecycleException </span>&#123;</span><br><span class="line">    <span class="comment">// Validate and update our current component state</span></span><br><span class="line">    <span class="keyword">if</span> (started)<span class="keyword">throw</span> <span class="keyword">new</span> LifecycleException (sm.getString(<span class="string">&quot;fileLogger.alreadyStarted&quot;</span>));</span><br><span class="line">    lifecycle.fireLifecycleEvent(START_EVENT, <span class="keyword">null</span>);</span><br><span class="line">    started = <span class="keyword">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">stop</span><span class="params">()</span> <span class="keyword">throws</span> LifecycleException </span>&#123;</span><br><span class="line">    <span class="comment">// Validate and update our current component state</span></span><br><span class="line">    <span class="keyword">if</span> (!started)<span class="keyword">throw</span> <span class="keyword">new</span> LifecycleException (sm.getString(<span class="string">&quot;fileLogger.notStarted&quot;</span>));</span><br><span class="line">    lifecycle.fireLifecycleEvent(STOP_EVENT, <span class="keyword">null</span>);</span><br><span class="line">    started = <span class="keyword">false</span>;</span><br><span class="line">    close();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">log</span><span class="params">(String msg)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Construct the timestamp we will use, if requested</span></span><br><span class="line">    Timestamp ts = <span class="keyword">new</span> Timestamp(System.currentTimeMillis());</span><br><span class="line">    String tsString = ts.toString().substring(<span class="number">0</span>, <span class="number">19</span>);</span><br><span class="line">    String tsDate = tsString.substring(<span class="number">0</span>, <span class="number">10</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// If the date has changed, switch log files</span></span><br><span class="line">    <span class="keyword">if</span> (!date.equals(tsDate)) &#123;</span><br><span class="line">        <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (!date.equals(tsDate)) &#123;</span><br><span class="line">                close();</span><br><span class="line">                date = tsDate;</span><br><span class="line">                open();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// Log this message, timestamped if necessary</span></span><br><span class="line">    <span class="keyword">if</span> (writer != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (timestamp) &#123;</span><br><span class="line">            writer.println(tsString + <span class="string">&quot; &quot;</span> + msg);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            writer.println(msg);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通常情况下 FileLogger 会操作多个文件，在操作下一个时会把前一个先关掉。</p>
+<h3 id="The-open-method"><a href="#The-open-method" class="headerlink" title="The open method"></a>The open method</h3><p>先检查文件夹是否存在，没有就建一个。然后在创建对应的 log 文件再写内容。</p>
+<h3 id="The-close-method"><a href="#The-close-method" class="headerlink" title="The close method"></a>The close method</h3><p>flush + close 流</p>
+<h3 id="The-log-method"><a href="#The-log-method" class="headerlink" title="The log method"></a>The log method</h3><p>不说了，看代码，很简单的，不过它用系统时间生成如期的做法还是挺好的，以后项目可以借鉴一些。</p>
+<h3 id="The-Application"><a href="#The-Application" class="headerlink" title="The Application"></a>The Application</h3><p>测试代码和第 6 章基本一样，只是在 Bootstrap 部分添加了对 log 文件的定制</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ------ add logger --------</span></span><br><span class="line">System.setProperty(<span class="string">&quot;catalina.base&quot;</span>, System.getProperty(<span class="string">&quot;user.dir&quot;</span>));</span><br><span class="line">FileLogger logger = <span class="keyword">new</span> FileLogger();</span><br><span class="line">logger.setPrefix(<span class="string">&quot;FileLog_&quot;</span>);</span><br><span class="line">logger.setSuffix(<span class="string">&quot;.txt&quot;</span>);</span><br><span class="line">logger.setTimestamp(<span class="keyword">true</span>);</span><br><span class="line">logger.setDirectory(<span class="string">&quot;webroot&quot;</span>);</span><br><span class="line">context.setLogger(logger);</span><br></pre></td></tr></table></figure>
+
+<p>访问 <code>http://localhost:8080/Modern</code> 后在 webroot 文件夹下面会生成定制的 log 文件 <code>FileLog_2021-08-02.txt</code></p>
+<p>这个案例运行的时候大概卡了快一分钟才执行完，看了 log 原来是有 class 找不到, 应该是我用的 jar 包已经是 Catalina 了，不是 tomcat 了，版本太高</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">2021-08-02 10:38:13 HttpProcessor[8080][4] process.invoke</span><br><span class="line">java.lang.NoClassDefFoundError: org&#x2F;apache&#x2F;tomcat&#x2F;util&#x2F;log&#x2F;SystemLogHandler</span><br><span class="line">    at org.apache.catalina.connector.RequestBase.recycle(RequestBase.java:562)</span><br><span class="line">    at org.apache.catalina.connector.HttpRequestBase.recycle(HttpRequestBase.java:417)</span><br><span class="line">    at org.apache.catalina.connector.http.HttpRequestImpl.recycle(HttpRequestImpl.java:195)</span><br><span class="line">    at org.apache.catalina.connector.http.HttpProcessor.process(HttpProcessor.java:1101)</span><br><span class="line">    at org.apache.catalina.connector.http.HttpProcessor.run(HttpProcessor.java:1151)</span><br><span class="line">    at java.lang.Thread.run(Thread.java:836)</span><br><span class="line">Caused by: java.lang.ClassNotFoundException: org.apache.tomcat.util.log.SystemLogHandler</span><br><span class="line">    at java.net.URLClassLoader.findClass(URLClassLoader.java:444)</span><br><span class="line">    at java.lang.ClassLoader.loadClass(ClassLoader.java:480)</span><br><span class="line">    at sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:384)</span><br><span class="line">    at java.lang.ClassLoader.loadClass(ClassLoader.java:413)</span><br><span class="line">    ... 6 more</span><br></pre></td></tr></table></figure>
+
+<p>这个类被放到 tomcat-util 中去了，添加对应的 reference 到 pom 中即可解决</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- https:<span class="comment">//mvnrepository.com/artifact/tomcat/tomcat-util --&gt;</span></span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;tomcat&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;tomcat-util&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;4.1.31&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Jack Zheng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://jack-zheng.github.io/hexo/2021/07/30/HTW-ex07/" title="HTW ex07">https://jack-zheng.github.io/hexo/2021/07/30/HTW-ex07/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/null" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/hexo/tags/How-Tomcat-Works/" rel="tag"># How Tomcat Works</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+                <a href="/hexo/2021/07/29/HTW-ex06/" rel="next" title="HTW ex06">
+                  <i class="fa fa-chevron-left"></i> HTW ex06
+                </a>
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+                <a href="/hexo/2021/08/02/HTW-ex08/" rel="prev" title="HTW ex08">
+                  HTW ex08 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#The-Logger-Interface"><span class="nav-number">1.</span> <span class="nav-text">The Logger Interface</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Tomcat%E2%80%98s-Loggers"><span class="nav-number">2.</span> <span class="nav-text">Tomcat‘s Loggers</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-LoggerBase-Class"><span class="nav-number">2.1.</span> <span class="nav-text">The LoggerBase Class</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-SystemOutLogger-Class"><span class="nav-number">2.2.</span> <span class="nav-text">The SystemOutLogger Class</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-SystemErrLogger-Class"><span class="nav-number">2.3.</span> <span class="nav-text">The SystemErrLogger Class</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-FileLogger-Class"><span class="nav-number">2.4.</span> <span class="nav-text">The FileLogger Class</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-open-method"><span class="nav-number">2.5.</span> <span class="nav-text">The open method</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-close-method"><span class="nav-number">2.6.</span> <span class="nav-text">The close method</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-log-method"><span class="nav-number">2.7.</span> <span class="nav-text">The log method</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-Application"><span class="nav-number">2.8.</span> <span class="nav-text">The Application</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Jack Zheng"
+      src="/hexo/images/jack.jpg">
+  <p class="site-author-name" itemprop="name">Jack Zheng</p>
+  <div class="site-description" itemprop="description">我是张江搬砖小码农, 知识搬运工</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/hexo/archives/">
+        
+          <span class="site-state-item-count">175</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/hexo/categories/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/hexo/tags/">
+          
+        <span class="site-state-item-count">167</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jack Zheng</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">880k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">13:20</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.5.0
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/hexo/lib/anime.min.js"></script>
+  <script src="/hexo/lib/velocity/velocity.min.js"></script>
+  <script src="/hexo/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/hexo/js/utils.js"></script>
+
+<script src="/hexo/js/motion.js"></script>
+
+
+<script src="/hexo/js/schemes/muse.js"></script>
+
+
+<script src="/hexo/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/hexo/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'd444c814810f7e73ee3a',
+      clientSecret: '9b3c417a0c1076887b3cf583c7d7a27456b708ef',
+      repo: 'hexo-comments',
+      owner: 'jack-zheng',
+      admin: ['jack-zheng'],
+      id: '93a76f34fec4cdf93ec9fd197410d0df',
+        language: '',
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

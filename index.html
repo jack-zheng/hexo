@@ -206,6 +206,477 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/08/02/HTW-ex08/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/08/02/HTW-ex08/" class="post-title-link" itemprop="url">HTW ex08</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-08-02 11:14:13 / 修改时间：20:17:17" itemprop="dateCreated datePublished" datetime="2021-08-02T11:14:13+08:00">2021-08-02</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/Tomcat/" itemprop="url" rel="index">
+                    <span itemprop="name">Tomcat</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p><strong>Chapter 8</strong> explains about loaders.<br>A loader is an important Catalina module responsible for loading servlet and other classes that a web application uses.<br>This chapter also shows how application reloading is achieved.</p>
+</blockquote>
+<p>之前章节我们已经给出了一个简单的 loader 实现用于加载 servlet。这章我们将介绍 tomcat 的 standard web application loader. servlet container 必须实现自己的 loader，而不能使用系统自带的那个。因为它不能相信 运行的 servlets。如果它像我们之前的例子那样使用默认的类加载器，那么 servlet 将可以访问任何 JVM classpath 下的 class 和 lib，这和 security 的规则相违背。</p>
+<p>一个 servlet 只允许加载 WEB-INF/classes 和 WEB-INF/lib 文件夹下的内容, 那个 web application(context) 需要有它自己的 loader。Catalina 中，org.apache.catalina.Loader 表示 loader 类。</p>
+<p>另一个 tomcat 需要自己的 loader 的原因是它需要支持自动加载的功能。当 WEB-INF/classes 和 lib 下的内容发生改变时，这个 loader 需要自动检测并重新加载。Tomcat 新起一个线程完成这个功能。reload 的接口为 org.apache.catalina.loader.Reloader</p>
+<p>本章第一部分介绍 Java 中的类加载机制。之后介绍 Loader 接口，最后延时 tomcat 的 loader 使用案例</p>
+<p>本章中两个术语 repository 表示 class loader 会搜索的地方，resources 表示 DirContext，它指向 context 的 document 目录。</p>
+<p>PS: 看这章的介绍感觉可以复习一下类加载机制相关章节了，中间说的用同一个 class loader 会有安全问题的事情不是很清楚</p>
+<h2 id="Java-Class-Loader"><a href="#Java-Class-Loader" class="headerlink" title="Java Class Loader"></a>Java Class Loader</h2><p>每当你创建一个 Java 实例时，对应的类必须加载到内存中。JVM 会使用 class loader 搜索 Java 的核心类库和 classpath 中包含的环境变量。如果没有找到对应的实例，则会跑出 ClassNotFoundException。</p>
+<p>Java 1.2 开始，JVM 通过三个类加载类文件，他们是 bootstrap class loader, extension class loader 和 system class loader。三者是父子关系，bootstrap class loader 是父节点，system class loader 是最后的子节点。</p>
+<p>bootstrap class loader 用来 bootstrap JVM，它用来加载 JVM 启动所需的类，通过 native code 实现。它还负责加载所有的 Java 核心类，比如 java.lang 和 i。 也加载 rt.jar 和 i8n.jar 等 lib.</p>
+<p>extension class loader 负责加载 standard extension 文件夹下的内容，各个供应商的文件夹可能不一样，Sun 的标准扩展文件夹是 /jdk/jre/lib/ext</p>
+<p>system class loader 负责加载classpath 中的环境变量</p>
+<p>为了保证安全，JVM 使用 delegation model 来加载类。每当一个类需要被加载时，他会先委托给 system class loader 然后再委托给 extension class loader 最后给 bootstrap class loader。当 bootstrap 找不到时，extension class loader 再找，最后是 system class loader。如果都没找到，抛出 ClassNotFoundException.</p>
+<p>PS: 感觉这三者唯一的区别就是 load class 的路径不同，是不是可以理解为我在指定路径下加载类，保证特定的类是安全的</p>
+<p>举例这种安全模型的作用，比如我是黑客，像破坏 Java 系统，我自己写了一个 java.lang.Object 的 class 来代替官方的这个类。但是由于前面说的这种代理机制，JVM 会到指定路径下加载 Object 类，所以我的企图不能实现。</p>
+<p>Java 允许你定制自己的 class loader，只需继承 java.lang.ClassLoader 即可。以下是 tomcat 需要定制 loader 的原因</p>
+<ul>
+<li>To specify certain rules in loading classes.</li>
+<li>To cache the previously loaded classes.</li>
+<li>To pre-load classes so they are ready to use.</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/07/30/HTW-ex07/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/07/30/HTW-ex07/" class="post-title-link" itemprop="url">HTW ex07</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-07-30 19:29:43" itemprop="dateCreated datePublished" datetime="2021-07-30T19:29:43+08:00">2021-07-30</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/Tomcat/" itemprop="url" rel="index">
+                    <span itemprop="name">Tomcat</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p><strong>Chapter 7</strong> covers loggers, which are components used for recording error messages and other messages.</p>
+<p>分三节介绍 Catalina 中的 log 机制。第一部分介绍 Logger 接口，Catalina 中所有的 logger 都要实现的。第二节介绍 Tomcat 中的 loggers。第三节介绍本章中使用案例。</p>
+<h2 id="The-Logger-Interface"><a href="#The-Logger-Interface" class="headerlink" title="The Logger Interface"></a>The Logger Interface</h2><p>提供了很多 log 方法，最简单的只需要一个 string 参数即可。定义了五种 log 级别，很常规 FATAL， ERROR，WARNING 等。</p>
+<h2 id="Tomcat‘s-Loggers"><a href="#Tomcat‘s-Loggers" class="headerlink" title="Tomcat‘s Loggers"></a>Tomcat‘s Loggers</h2><p>Tomcat 自带的 logger 有 FileLogger，SystemErrLogger 和 SystemOutLogger. 他本都继承自 LoggerBase 类， LoggerBase 实现了 Logger 接口</p>
+<p>{ plantuml }<br>interface Logger<br>Logger &lt;|.. logger.LoggerBase</p>
+<p>logger.LoggerBase &lt;|– logger.SystemOutLogger<br>logger.LoggerBase &lt;|– logger.SystemErrLogger<br>logger.LoggerBase &lt;|– logger.FileLogger<br>{ endplantuml }</p>
+<h3 id="The-LoggerBase-Class"><a href="#The-LoggerBase-Class" class="headerlink" title="The LoggerBase Class"></a>The LoggerBase Class</h3><p>LoggerBase 实现了除 log(string) 外的所有接口方法。这个方法的实现放在子类中完成。</p>
+<h3 id="The-SystemOutLogger-Class"><a href="#The-SystemOutLogger-Class" class="headerlink" title="The SystemOutLogger Class"></a>The SystemOutLogger Class</h3><p>在它的实现中，所有 log 都会被输出到终端</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">log</span><span class="params">(String msg)</span> </span>&#123;</span><br><span class="line">    System.out.println(msg);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="The-SystemErrLogger-Class"><a href="#The-SystemErrLogger-Class" class="headerlink" title="The SystemErrLogger Class"></a>The SystemErrLogger Class</h3><p>与上面雷同，只不过用了 <code>System.err.println(msg);</code></p>
+<h3 id="The-FileLogger-Class"><a href="#The-FileLogger-Class" class="headerlink" title="The FileLogger Class"></a>The FileLogger Class</h3><p>将 log 记录到文件并附带时间戳信息。按天为单位常见新文件记录信息，允许指定前/后缀。Tomcat 4 中这个类也实现了 Lifecycle 接口，这样它就可以和容器同开同关了。在 Tomcat 5 中，这个接口被移到父类去了。</p>
+<p>主要方法实现如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">start</span><span class="params">()</span> <span class="keyword">throws</span> LifecycleException </span>&#123;</span><br><span class="line">    <span class="comment">// Validate and update our current component state</span></span><br><span class="line">    <span class="keyword">if</span> (started)<span class="keyword">throw</span> <span class="keyword">new</span> LifecycleException (sm.getString(<span class="string">&quot;fileLogger.alreadyStarted&quot;</span>));</span><br><span class="line">    lifecycle.fireLifecycleEvent(START_EVENT, <span class="keyword">null</span>);</span><br><span class="line">    started = <span class="keyword">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">stop</span><span class="params">()</span> <span class="keyword">throws</span> LifecycleException </span>&#123;</span><br><span class="line">    <span class="comment">// Validate and update our current component state</span></span><br><span class="line">    <span class="keyword">if</span> (!started)<span class="keyword">throw</span> <span class="keyword">new</span> LifecycleException (sm.getString(<span class="string">&quot;fileLogger.notStarted&quot;</span>));</span><br><span class="line">    lifecycle.fireLifecycleEvent(STOP_EVENT, <span class="keyword">null</span>);</span><br><span class="line">    started = <span class="keyword">false</span>;</span><br><span class="line">    close();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">log</span><span class="params">(String msg)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Construct the timestamp we will use, if requested</span></span><br><span class="line">    Timestamp ts = <span class="keyword">new</span> Timestamp(System.currentTimeMillis());</span><br><span class="line">    String tsString = ts.toString().substring(<span class="number">0</span>, <span class="number">19</span>);</span><br><span class="line">    String tsDate = tsString.substring(<span class="number">0</span>, <span class="number">10</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// If the date has changed, switch log files</span></span><br><span class="line">    <span class="keyword">if</span> (!date.equals(tsDate)) &#123;</span><br><span class="line">        <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (!date.equals(tsDate)) &#123;</span><br><span class="line">                close();</span><br><span class="line">                date = tsDate;</span><br><span class="line">                open();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// Log this message, timestamped if necessary</span></span><br><span class="line">    <span class="keyword">if</span> (writer != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (timestamp) &#123;</span><br><span class="line">            writer.println(tsString + <span class="string">&quot; &quot;</span> + msg);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            writer.println(msg);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通常情况下 FileLogger 会操作多个文件，在操作下一个时会把前一个先关掉。</p>
+<h3 id="The-open-method"><a href="#The-open-method" class="headerlink" title="The open method"></a>The open method</h3><p>先检查文件夹是否存在，没有就建一个。然后在创建对应的 log 文件再写内容。</p>
+<h3 id="The-close-method"><a href="#The-close-method" class="headerlink" title="The close method"></a>The close method</h3><p>flush + close 流</p>
+<h3 id="The-log-method"><a href="#The-log-method" class="headerlink" title="The log method"></a>The log method</h3><p>不说了，看代码，很简单的，不过它用系统时间生成如期的做法还是挺好的，以后项目可以借鉴一些。</p>
+<h3 id="The-Application"><a href="#The-Application" class="headerlink" title="The Application"></a>The Application</h3><p>测试代码和第 6 章基本一样，只是在 Bootstrap 部分添加了对 log 文件的定制</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ------ add logger --------</span></span><br><span class="line">System.setProperty(<span class="string">&quot;catalina.base&quot;</span>, System.getProperty(<span class="string">&quot;user.dir&quot;</span>));</span><br><span class="line">FileLogger logger = <span class="keyword">new</span> FileLogger();</span><br><span class="line">logger.setPrefix(<span class="string">&quot;FileLog_&quot;</span>);</span><br><span class="line">logger.setSuffix(<span class="string">&quot;.txt&quot;</span>);</span><br><span class="line">logger.setTimestamp(<span class="keyword">true</span>);</span><br><span class="line">logger.setDirectory(<span class="string">&quot;webroot&quot;</span>);</span><br><span class="line">context.setLogger(logger);</span><br></pre></td></tr></table></figure>
+
+<p>访问 <code>http://localhost:8080/Modern</code> 后在 webroot 文件夹下面会生成定制的 log 文件 <code>FileLog_2021-08-02.txt</code></p>
+<p>这个案例运行的时候大概卡了快一分钟才执行完，看了 log 原来是有 class 找不到, 应该是我用的 jar 包已经是 Catalina 了，不是 tomcat 了，版本太高</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">2021-08-02 10:38:13 HttpProcessor[8080][4] process.invoke</span><br><span class="line">java.lang.NoClassDefFoundError: org&#x2F;apache&#x2F;tomcat&#x2F;util&#x2F;log&#x2F;SystemLogHandler</span><br><span class="line">    at org.apache.catalina.connector.RequestBase.recycle(RequestBase.java:562)</span><br><span class="line">    at org.apache.catalina.connector.HttpRequestBase.recycle(HttpRequestBase.java:417)</span><br><span class="line">    at org.apache.catalina.connector.http.HttpRequestImpl.recycle(HttpRequestImpl.java:195)</span><br><span class="line">    at org.apache.catalina.connector.http.HttpProcessor.process(HttpProcessor.java:1101)</span><br><span class="line">    at org.apache.catalina.connector.http.HttpProcessor.run(HttpProcessor.java:1151)</span><br><span class="line">    at java.lang.Thread.run(Thread.java:836)</span><br><span class="line">Caused by: java.lang.ClassNotFoundException: org.apache.tomcat.util.log.SystemLogHandler</span><br><span class="line">    at java.net.URLClassLoader.findClass(URLClassLoader.java:444)</span><br><span class="line">    at java.lang.ClassLoader.loadClass(ClassLoader.java:480)</span><br><span class="line">    at sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:384)</span><br><span class="line">    at java.lang.ClassLoader.loadClass(ClassLoader.java:413)</span><br><span class="line">    ... 6 more</span><br></pre></td></tr></table></figure>
+
+<p>这个类被放到 tomcat-util 中去了，添加对应的 reference 到 pom 中即可解决</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- https:<span class="comment">//mvnrepository.com/artifact/tomcat/tomcat-util --&gt;</span></span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;tomcat&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;tomcat-util&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;4.1.31&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/07/29/HTW-ex06/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/07/29/HTW-ex06/" class="post-title-link" itemprop="url">HTW ex06</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-07-29 16:36:06" itemprop="dateCreated datePublished" datetime="2021-07-29T16:36:06+08:00">2021-07-29</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/Tomcat/" itemprop="url" rel="index">
+                    <span itemprop="name">Tomcat</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p><strong>Chapter 6</strong> explains the Lifecycle interface.<br>This interface defines the lifecycle of a Catalina component and provides an elegant way of notifying other components of events that occur in that component.<br>In addition, the Lifecycle interface provides an elegant mechanism for starting and stopping all the components in Catalina by one single start/stop.</p>
+</blockquote>
+<p>Catalina 是由多个模块组成的，当 Catalina 开始时，这些模块也要开始。当 Catalina 停止时，这些模块需要执行停止相关的操作。比如 destroy 所有的 servlet，将 session 存到二级缓存中等。Catalina 通过 Lifecycle 接口管理这些事件。</p>
+<p>实现了 Lifecycle 的组件可以出发以下事件</p>
+<ul>
+<li>BEFORE_START_EVENT</li>
+<li>START_EVENT</li>
+<li>AFTER_START_EVENT</li>
+<li>BEFORE_STOP_EVENT</li>
+<li>STOP_EVENT</li>
+<li>AFTER_STOP_EVENT</li>
+</ul>
+<p>LifecycleEvent 这个接口表示上面这些事件。这些事件可以由 LifecycleListener 监听。本章会介绍上面这些类，介绍 LifecycleSupport，他可以帮助组件处理事件和监听器。</p>
+<h2 id="The-Lifecycle-Interface"><a href="#The-Lifecycle-Interface" class="headerlink" title="The Lifecycle Interface"></a>The Lifecycle Interface</h2><p>Catalina 允许一个 component 包含另一个 component。比如 container 可以包含 loader，manager 等。父组件需要管理自组件的开始和停止。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Lifecycle</span> </span>&#123;</span><br><span class="line">    String START_EVENT = <span class="string">&quot;start&quot;</span>;</span><br><span class="line">    String BEFORE_START_EVENT = <span class="string">&quot;before_start&quot;</span>;</span><br><span class="line">    String AFTER_START_EVENT = <span class="string">&quot;after_start&quot;</span>;</span><br><span class="line">    String STOP_EVENT = <span class="string">&quot;stop&quot;</span>;</span><br><span class="line">    String BEFORE_STOP_EVENT = <span class="string">&quot;before_stop&quot;</span>;</span><br><span class="line">    String AFTER_STOP_EVENT = <span class="string">&quot;after_stop&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">addLifecycleListener</span><span class="params">(LifecycleListener var1)</span></span>;</span><br><span class="line"></span><br><span class="line">    LifecycleListener[] findLifecycleListeners();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">removeLifecycleListener</span><span class="params">(LifecycleListener var1)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">start</span><span class="params">()</span> <span class="keyword">throws</span> LifecycleException</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">stop</span><span class="params">()</span> <span class="keyword">throws</span> LifecycleException</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>start 和 stop 是其中的核心方法，component 提供对应的实现，parent component 可以 调用start/stop 方法。其他三个方法是用来监听事件的。</p>
+<h2 id="The-LifecycleEvent-Class"><a href="#The-LifecycleEvent-Class" class="headerlink" title="The LifecycleEvent Class"></a>The LifecycleEvent Class</h2><p>单纯的源码，就不贴了</p>
+<h2 id="The-LifecycleListener-Interface"><a href="#The-LifecycleListener-Interface" class="headerlink" title="The LifecycleListener Interface"></a>The LifecycleListener Interface</h2><h2 id="The-LifecycleSupport-Class"><a href="#The-LifecycleSupport-Class" class="headerlink" title="The LifecycleSupport Class"></a>The LifecycleSupport Class</h2><p>这个 support 类主就三个方法</p>
+<ul>
+<li>addLifecycleListener</li>
+<li>findLifecycleListeners</li>
+<li>fireLifecycleEvent</li>
+<li>removeLifecycleListener</li>
+</ul>
+<p>addLifecycleListener(LifecycleListener listener) 被调用时，老的 listener list size + 1， 老的 listener 被拷贝，最后再加上新的这个 listener。</p>
+<p>removeLifecycleListener(LifecycleListener listener): 遍历所有的 listener 如果有则删除，最后新建一个 size - 1 的 list，将原来的 list 拷贝进去</p>
+<h2 id="The-Application"><a href="#The-Application" class="headerlink" title="The Application"></a>The Application</h2><p>实验环境是在 ex05 之上，删掉了额外 valves，context 实现了 Lifecycle 和 listener 接口。</p>
+<p>{ plantuml }<br>class LifecycleSupport<br>interface Lifecycle<br>interface LifecycleListener</p>
+<p>LifecycleSupport &lt;.. “uses” SimpleContext<br>LifecycleSupport &lt;.. “uses” SimpleWrapper</p>
+<p>Lifecycle &lt;|.. SimpleContext<br>Lifecycle &lt;|.. SimpleWrapper<br>Lifecycle &lt;|.. SimplePipeline<br>Lifecycle &lt;|.. SimpleLoader<br>Lifecycle &lt;|.. SimpleContextMapper</p>
+<p>LifecycleListener &lt;|.. SimpleContextLifecycleListener</p>
+<p>Lifecycle .&gt; LifecycleListener<br>{ endplantuml }</p>
+<p>启动项目可以看到如下 log</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">HttpConnector Opening server socket on all host IP addresses</span><br><span class="line">HttpConnector[8080] Starting background thread</span><br><span class="line">SimpleContextLifecycleListener&#x27;s event before_start</span><br><span class="line">Starting SimpleLoader</span><br><span class="line">Starting Wrapper Primitive</span><br><span class="line">Starting Wrapper Modern</span><br><span class="line">SimpleContextLifecycleListener&#x27;s event start</span><br><span class="line">Starting context.</span><br><span class="line">SimpleContextLifecycleListener&#x27;s event after_start</span><br><span class="line"></span><br><span class="line">SimpleContextLifecycleListener&#x27;s event before_stop</span><br><span class="line">SimpleContextLifecycleListener&#x27;s event stop</span><br><span class="line">Stopping context.</span><br><span class="line">Stopping wrapper Primitive</span><br><span class="line">Stopping wrapper Modern</span><br><span class="line">SimpleContextLifecycleListener&#x27;s event after_stop</span><br></pre></td></tr></table></figure>
+
+<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>Q: SimpleContext 中 fire 的 event 是什么时候被 listener 执行的，代码在哪里</p>
+<p>A: 在 SimpleContext 的 start() 里。但是和我臆想的事件处理不同，感觉这最多是个伪事件。我本以为他会有一个多线程之类的东西。<br>实际处理的时候，start() 方法一开始就通过 support 发出了一个 before 的 event，support 发送的时候会调用 listener 实现对应的逻辑。说到底还是串行操作。</p>
+<p>Q: 这个 event 和 listener 是不是用了观察这模式啊，复习一下</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/07/28/What-is-IPv6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/07/28/What-is-IPv6/" class="post-title-link" itemprop="url">What is IPv6</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-07-28 11:30:31" itemprop="dateCreated datePublished" datetime="2021-07-28T11:30:31+08:00">2021-07-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/What/" itemprop="url" rel="index">
+                    <span itemprop="name">What</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>985</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="What-is-IPv6"><a href="#What-is-IPv6" class="headerlink" title="What is IPv6"></a>What is IPv6</h2><p>Internet Protocol version 6: 网际协议第六版，用于解决 IPv4 地址枯竭的问题</p>
+<p><strong>格式:</strong> IPv6二进位制下为128位长度，以16位为一组，每组以冒号“:”隔开，可以分为8组，每组以4位十六进制方式表示。例如：2001:0db8:86a3:08d3:1319:8a2e:0370:7344 是一个合法的IPv6地址。</p>
+<p>同时IPv6在某些条件下可以省略：</p>
+<p>每项数字前导的0可以省略，省略后前导数字仍是0则继续，例如下组IPv6是等价的。</p>
+<ul>
+<li>2001:0db8:02de:0000:0000:0000:0000:0e13</li>
+<li>2001:db8:2de:0000:0000:0000:0000:e13</li>
+<li>2001:db8:2de:000:000:000:000:e13</li>
+<li>2001:db8:2de:00:00:00:00:e13</li>
+<li>2001:db8:2de:0:0:0:0:e13</li>
+</ul>
+<p>可以用双冒号“::”表示一组0或多组连续的0，但只能出现一次：如果四组数字都是零，可以被省略。遵照以上省略规则，下面这两组IPv6都是相等的。</p>
+<ul>
+<li>2001:db8:2de:0:0:0:0:e13</li>
+<li>2001:db8:2de::e13</li>
+<li>2001:0db8:0000:0000:0000:0000:1428:57ab</li>
+<li>2001:0db8:0000:0000:0000::1428:57ab</li>
+<li>2001:0db8:0:0:0:0:1428:57ab</li>
+<li>2001:0db8:0::0:1428:57ab</li>
+<li>2001:0db8::1428:57ab</li>
+</ul>
+<p>2001::25de::cade 是非法的，因为双冒号出现了两次。它有可能是下种情形之一，造成无法推断。</p>
+<ul>
+<li>2001:0000:0000:0000:0000:25de:0000:cade</li>
+<li>2001:0000:0000:0000:25de:0000:0000:cade</li>
+<li>2001:0000:0000:25de:0000:0000:0000:cade</li>
+<li>2001:0000:25de:0000:0000:0000:0000:cade</li>
+</ul>
+<p>如果这个地址实际上是IPv4的地址，后32位可以用10进制数表示；因此::ffff:192.168.89.9 相等于::ffff:c0a8:5909。另外，::ffff:1.2.3.4 格式叫做IPv4映射地址。</p>
+<h2 id="How-to-test"><a href="#How-to-test" class="headerlink" title="How to test"></a>How to test</h2><p>本地怎么模拟一个 IPv6 的地址做测试？</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/07/23/Design-pattern-chain-of-responsibility/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +708,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -346,7 +817,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -366,14 +837,14 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>6.3k</span>
+              <span>7.6k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>6 分钟</span>
+              <span>7 分钟</span>
             </span>
 
         </div>
@@ -455,7 +926,29 @@
 <h3 id="Running-the-Application"><a href="#Running-the-Application" class="headerlink" title="Running the Application"></a>Running the Application</h3><p>启动服务器，访问 <code>http://localhost:8080</code> 终端显内容如下</p>
 <figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">ModernServlet -- init</span><br><span class="line">Client IP Logger Valve</span><br><span class="line">0:0:0:0:0:0:0:1</span><br><span class="line">------------------------------------</span><br><span class="line">Header Logger Valve</span><br><span class="line">host:localhost:8080</span><br><span class="line">connection:keep-alive</span><br><span class="line">sec-ch-ua:&quot;Chromium&quot;;v=&quot;92&quot;, &quot; Not A;Brand&quot;;v=&quot;99&quot;, &quot;Google Chrome&quot;;v=&quot;92&quot;</span><br><span class="line">sec-ch-ua-mobile:?0</span><br><span class="line">upgrade-insecure-requests:1</span><br><span class="line">user-agent:Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36</span><br><span class="line">accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9</span><br><span class="line">sec-fetch-site:none</span><br><span class="line">sec-fetch-mode:navigate</span><br><span class="line">sec-fetch-user:?1</span><br><span class="line">sec-fetch-dest:document</span><br><span class="line">accept-encoding:gzip, deflate, br</span><br><span class="line">accept-language:en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7,zh-TW;q=0.6</span><br><span class="line">cookie:loginMethodCookieKey=PWD; bizxThemeId=2wyfwkupsp; fontstyle=null; _pk_id.1.1fff=9a13b6b396550ca6.1619008137.; Idea-12b942b0=d6d70da6-7368-4631-b3f7-a91eafcb1e9f; Idea-cead54cd=ce25569f-051c-4d11-b8f4-6b99d512503d; JSESSIONID=B3BD850D653D266A9BB2346D7D97B8A2</span><br><span class="line">------------------------------------</span><br></pre></td></tr></table></figure>
 
+<h2 id="The-Context-Application"><a href="#The-Context-Application" class="headerlink" title="The Context Application"></a>The Context Application</h2><p>当服务器需要处理多个 servlet 时，就需要用到 context 和 mapper 了。mapper 帮助父容器选择子 container 处理 request。</p>
+<p>PS: mapper 只在 Tomcat4 中使用，到 Tomcat5 就使用其他技术了。</p>
+<p>一个 container 可以使用多个 mapper 支持多种 protocols. 这个例子中只处理一种。比如一个 container 可以配置一个 mapper 处理 http 请求，配置另一个 mapper 处理 https.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Mapper</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Container <span class="title">getContainer</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setContainer</span><span class="params">(Container container)</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getProtocol</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setProtocol</span><span class="params">(String protocol)</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Container <span class="title">map</span><span class="params">(Request request, <span class="keyword">boolean</span> update)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<p>{ plantuml }<br>interface Container<br>interface Loader<br>interface Mapper</p>
+<p>Mapper “*”-*”1” Container<br>Container “1”-“1” Loader</p>
+<p>Mapper &lt;|.. SimpleContextMapper<br>Loader &lt;|.. SimpleLoader</p>
+<p>interface Context<br>interface Wrapper<br>interface Pipeline<br>interface Valve</p>
+<p>Context -[hidden] Wrapper<br>Wrapper -[hidden] Pipeline<br>Pipeline -[hidden] Valve</p>
+<p>Pipeline “1” *- Valve</p>
+<p>Container &lt;|– Context<br>Container &lt;|– Wrapper</p>
+<p>Context &lt;|.. SimpleContext<br>Wrapper &lt;|.. SimpleWrapper</p>
+<p>Pipeline &lt;|.. SimplePipeline<br>Pipeline &lt;|.. SimpleContext<br>Pipeline &lt;|.. SimpleWrapper</p>
+<p>SimpleContext -[hidden] SimpleWrapper</p>
+<p>Valve &lt;|.. SimpleContextValve<br>Valve &lt;|.. SimpleWrapperValve<br>Valve &lt;|.. ClientIPLoggerValve<br>Valve &lt;|.. HeaderLoggerValve</p>
+<p>SimpleContext “1” o– “*” SimpleWrapper: “contains”<br>{ endplantuml }</p>
+<p>过程：</p>
+<ol>
+<li>SimpleContext 调用 pipeline 的 invoke 方法</li>
+<li>pipeline 的 invoke 方先调用额外 valves 再调用 basic valve</li>
+<li>basic valve 的 invoke 方法会调用 map 方法找到子 wrapper，如果存在则调用其 invoke 方法</li>
+</ol>
 
       
     </div>
@@ -506,7 +999,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -668,7 +1161,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -841,7 +1334,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -972,7 +1465,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1068,473 +1561,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/07/09/Java-servlet-forward-vs-redirect/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/07/09/Java-servlet-forward-vs-redirect/" class="post-title-link" itemprop="url">forward Vs redirect</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-07-09 11:00:04" itemprop="dateCreated datePublished" datetime="2021-07-09T11:00:04+08:00">2021-07-09</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/java/" itemprop="url" rel="index">
-                    <span itemprop="name">java</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>2.5k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>2 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>问题：</p>
-<ul>
-<li>forward 和 redirect 时 request 传递的区别</li>
-<li>forward 和 redirect 时 url 传递的区别</li>
-</ul>
-<h2 id="问-forward-和-redirect-时-request-传递的区别"><a href="#问-forward-和-redirect-时-request-传递的区别" class="headerlink" title="问: forward 和 redirect 时 request 传递的区别"></a>问: forward 和 redirect 时 request 传递的区别</h2><p>forward 可以将 request 传递下去，而 redirect 不能。其实写了 code 之后才意识到，forward 的传递性是因为它直接把之前的 request 当参数传递了，当然是一致的。而 redirect 是不带 request 参数的。</p>
-<p>新建一个 ForwardServlet 在这个 servlet 中我们向 request 中设置 name 属性，然后 forward 到 ForwardedServlet. 在 ForwardServlet 中打印处之前设置的属性</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ForwardServlet</span> <span class="keyword">extends</span> <span class="title">HttpServlet</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">doGet</span><span class="params">(HttpServletRequest req, HttpServletResponse resp)</span> <span class="keyword">throws</span> ServletException, IOException </span>&#123;</span><br><span class="line">        req.setAttribute(<span class="string">&quot;name&quot;</span>, <span class="string">&quot;jack&quot;</span>);</span><br><span class="line">        RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(<span class="string">&quot;/forwarded&quot;</span>);</span><br><span class="line">        dispatcher.forward(req, resp);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ForwardedServlet</span> <span class="keyword">extends</span> <span class="title">HttpServlet</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">doGet</span><span class="params">(HttpServletRequest req, HttpServletResponse resp)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Name in request: &quot;</span> + req.getAttribute(<span class="string">&quot;name&quot;</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>在 web.xml 中配置 mapping 关系</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">servlet</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">servlet-name</span>&gt;</span>Forward<span class="tag">&lt;/<span class="name">servlet-name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">servlet-class</span>&gt;</span>com.jzheng.servlet.ForwardServlet<span class="tag">&lt;/<span class="name">servlet-class</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">servlet</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">servlet-mapping</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">servlet-name</span>&gt;</span>Forward<span class="tag">&lt;/<span class="name">servlet-name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">url-pattern</span>&gt;</span>/forward<span class="tag">&lt;/<span class="name">url-pattern</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">servlet-mapping</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">servlet</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">servlet-name</span>&gt;</span>Forwarded<span class="tag">&lt;/<span class="name">servlet-name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">servlet-class</span>&gt;</span>com.jzheng.servlet.ForwardedServlet<span class="tag">&lt;/<span class="name">servlet-class</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">servlet</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">servlet-mapping</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">servlet-name</span>&gt;</span>Forwarded<span class="tag">&lt;/<span class="name">servlet-name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">url-pattern</span>&gt;</span>/forwarded<span class="tag">&lt;/<span class="name">url-pattern</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">servlet-mapping</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>name 在终端正确显示。其实光看 dispatch 部分的代码应该就有数了 <code>dispatcher.forward(req, resp);</code> 会将 request 传递下去，能拿到也不奇怪</p>
-<p>同样的思路我们设计一个 redirect 的测试。新建 RedirectServlet 并在 request 对象中设置 name 属性，接着 redirect 到 RedirectedServlet 并打印 name</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RedirectServlet</span> <span class="keyword">extends</span> <span class="title">HttpServlet</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">doGet</span><span class="params">(HttpServletRequest req, HttpServletResponse resp)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        req.setAttribute(<span class="string">&quot;name&quot;</span>, <span class="string">&quot;jack&quot;</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;context path: &quot;</span> + req.getContextPath());</span><br><span class="line">        resp.sendRedirect(req.getContextPath() + <span class="string">&quot;/redirected&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RedirectedServlet</span> <span class="keyword">extends</span> <span class="title">HttpServlet</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">doGet</span><span class="params">(HttpServletRequest req, HttpServletResponse resp)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Name in request: &quot;</span> + req.getAttribute(<span class="string">&quot;name&quot;</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>name 为 null. 远影也很简单 <code>resp.sendRedirect(req.getContextPath() + &quot;/redirected&quot;);</code> 并没有传递 request 参数。</p>
-<h2 id="问-forward-和-redirect-时-url-传递的区别"><a href="#问-forward-和-redirect-时-url-传递的区别" class="headerlink" title="问: forward 和 redirect 时 url 传递的区别"></a>问: forward 和 redirect 时 url 传递的区别</h2><p>forward 方式不会改变 URL，redirect 会变。上面的实验中，我们访问 <code>/redirect</code> 时，最终浏览器显示的是 <code>/redirected</code></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/07/08/VSCode-with-Hexo-and-PlantUML/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/07/08/VSCode-with-Hexo-and-PlantUML/" class="post-title-link" itemprop="url">VSCode 中配置 Hexo 集成 PlantUML 插件</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-07-08 13:33:40" itemprop="dateCreated datePublished" datetime="2021-07-08T13:33:40+08:00">2021-07-08</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E5%B0%8F%E5%B7%A5%E5%85%B7/" itemprop="url" rel="index">
-                    <span itemprop="name">小工具</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>866</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>本地使用 VSCode 作为文本编辑器，集成 Hexo 和 PlantUML 在写博客的时候可以插入 UML 图。</p>
-<h2 id="安装插件"><a href="#安装插件" class="headerlink" title="安装插件"></a>安装插件</h2><ol>
-<li>安装插件 <code>npm install hexo-tag-plantuml --save</code>, <a target="_blank" rel="noopener" href="https://github.com/two/hexo-tag-plantuml">插件 git 地址</a></li>
-<li><code>_config.yml</code> 中添加配置</li>
-</ol>
-<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">tag_plantuml:</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">static</span></span><br></pre></td></tr></table></figure>
-
-<p>UML 测试</p>
-<img  src=http://www.plantuml.com/plantuml/svg/SyfFqhLppCbCJbMmKiX8pSd91m00>
-
-<p>提交到 remote repo, 等 hexo deploy 之后可以看到 UML 图</p>
-<h2 id="VSCode-中显示-UML"><a href="#VSCode-中显示-UML" class="headerlink" title="VSCode 中显示 UML"></a>VSCode 中显示 UML</h2><p>上面的方式虽然远端可以显示了，但是本地查看的时候并不方便。VSCode 有提供插件可以在编辑器中显示对应的 UML</p>
-<h3 id="默认官方服务器生成-UML"><a href="#默认官方服务器生成-UML" class="headerlink" title="默认官方服务器生成 UML"></a>默认官方服务器生成 UML</h3><p>打开 VSCode, 在插件列表中搜索 PlantUML 并安装即可，使用 <code>@startuml</code> 和 <code>@enduml</code> 包裹 UML 代码</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">@startuml</span><br><span class="line">Bob-&gt;Alice : hello</span><br><span class="line">@enduml</span><br></pre></td></tr></table></figure>
-
-<p>点开 preview mode 可以看到 UML 成功生成</p>
-<h3 id="使用-local-server-显示-UML"><a href="#使用-local-server-显示-UML" class="headerlink" title="使用 local server 显示 UML"></a>使用 local server 显示 UML</h3><p>默认情况下插件使用官方服务器生成 UML，优点是方便，缺点是要联网，可能生存有延时。我们可以配置 local server 提供这个服务。已经有现成的 docker 镜像了，配置简单</p>
-<ol>
-<li>启动 container: <code>docker run -d -p 8080:8080 plantuml/plantuml-server:jetty</code> 或者 <code>docker run -d -p 8080:8080 plantuml/plantuml-server:tomcat</code> 效果一样，只是用了不同类型的服务器实现</li>
-<li>我本地有其他服务占用了 8080, 修改端口映射 <code>-p 7999:8080</code></li>
-<li>访问 <code>http://localhost:7999</code> 查看服务是否启动</li>
-<li>修改 VSCode 中 PlantUML 插件配置</li>
-</ol>
-<ul>
-<li>cmd+shift+p 搜索 open user setting</li>
-<li>关键子搜索 plantuml</li>
-<li>Plantuml:render 设置下选择 local</li>
-<li>Plantuml:server 输入本地 server 地址 <code>http://localhost:7999</code></li>
-</ul>
-<p>截图如下</p>
-<p><img src="plantuml_setting.png" alt="uml plugin setting"></p>
-<p>点击 preview 之前的 UML 正常显示，设置完成</p>
-<ul>
-<li><a target="_blank" rel="noopener" href="https://github.com/plantuml/plantuml-server">PlantUML docker 版 git 地址</a></li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/07/05/Tomcat-setup-debug-environment/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/07/05/Tomcat-setup-debug-environment/" class="post-title-link" itemprop="url">Tomcat setup debug environment</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-07-05 18:54:11" itemprop="dateCreated datePublished" datetime="2021-07-05T18:54:11+08:00">2021-07-05</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/Tomcat/" itemprop="url" rel="index">
-                    <span itemprop="name">Tomcat</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.1k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>本来像原滋原味的 setup tomcat4/5 的环境的，但是找了一圈没现成资源，还是拿了别人已经搞过的 Tomcat 8 过来，先搞起来再说，有必要再找 4/5 版本的代码。</p>
-<ol>
-<li>访问<a target="_blank" rel="noopener" href="https://tomcat.apache.org/download-80.cgi">官网</a>, 选择 Source Code Distributions 下的 zip 或者 tar.gz，下载。瞄了一眼 README 貌似两者的区别是 zip 是 CRLF 换行而 tar 是 LF 换行。应该对应 windows 和 Linux 系统。</li>
-<li>下载后得到一个 apache-tomcat-8.5.68-src.tar.gz 压缩包，解压它</li>
-<li>在解压后目录中新建 catalina-home 文件夹，并将源码中的 conf, webapps 文件夹拷贝进去。webapps 下的 example 文件夹删掉，不然后面启动会抛异常</li>
-<li>在 catalina-home 下新建四个文件夹：lib, temp, work, logs</li>
-<li>在源文件目录下新建 pom.xml 文件并添加依赖</li>
-<li>删除源文件中的 test 目录避免一些不必要的错误</li>
-<li>打开 Idea, 导入项目，run/debug 处配置启动参数如下</li>
-<li>修改 ContextConfig 文件，在 <code>webConfig();</code> 后添加 <code>context.addServletContainerInitializer(new JasperInitializer(), null);</code> 不然访问页面会抛 <code>org.apache.jasper.JasperException: java.lang.NullPointerException</code> 的异常</li>
-<li>点击 Idea 上的 run 测试启动，成功</li>
-</ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- 启动参数 --&gt;</span><br><span class="line">main class: org.apache.catalina.startup.Bootstrap</span><br><span class="line">vm options: </span><br><span class="line">-Dcatalina.home&#x3D;&quot;&#x2F;Users&#x2F;i306454&#x2F;IdeaProjects&#x2F;apache-tomcat-8.5.68-src&#x2F;catalina-home&quot;</span><br><span class="line">-Duser.language&#x3D;en</span><br><span class="line">-Duser.region&#x3D;US</span><br><span class="line">-Dfile.encoding&#x3D;UTF-8</span><br></pre></td></tr></table></figure>
-
-<p>PS: Idea 2021.1.3 版本的 vm options 需要点击 Modify Options 自己添加，默认不显示</p>
-<p><img src="application.png" alt="application"></p>
-<p>最终，项目的目录结构如下</p>
-<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">└── apache-tomcat-8.5.68-src</span><br><span class="line">    ├── catalina-home</span><br><span class="line">    │   ├── conf</span><br><span class="line">    │   ├── lib</span><br><span class="line">    │   ├── logs</span><br><span class="line">    │   ├── temp</span><br><span class="line">    │   ├── webapps</span><br><span class="line">    │   └── work</span><br><span class="line">    └── pom.xml</span><br></pre></td></tr></table></figure>
-
-<p>PS: <a target="_blank" rel="noopener" href="https://archive.apache.org/dist/tomcat/tomcat-5/">Tomcat 5 源码地址</a></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/07/05/HTW-intro-and-ex01/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/07/05/HTW-intro-and-ex01/" class="post-title-link" itemprop="url">How tomcat works 之 intro + ex01</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-07-05 12:51:24" itemprop="dateCreated datePublished" datetime="2021-07-05T12:51:24+08:00">2021-07-05</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/Tomcat/" itemprop="url" rel="index">
-                    <span itemprop="name">Tomcat</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>5.2k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>5 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="Introduce"><a href="#Introduce" class="headerlink" title="Introduce"></a>Introduce</h2><p>Basically there are three things that a servlet container does to service a request for a servlet:</p>
-<ul>
-<li>创建 request 对象并塞入后续要用到的信息，比如 parameters，cookies 等。request 是 javax.servlet(.http).ServletRequest 的一个实现</li>
-<li>创建一个 response 对象返回给 web client. response 是 javax.servlet(.http).ServletResponse 的一个实现</li>
-<li>调用 service 方法，service 中接受 request 的参数，处理结果塞入 response 中</li>
-</ul>
-<h3 id="Catalina-Block-Diagram"><a href="#Catalina-Block-Diagram" class="headerlink" title="Catalina Block Diagram"></a>Catalina Block Diagram</h3><p>Catalina 很复杂，但是他的设计很优雅，采用模块化的思想。主要可以分为两部分 Connector 和 Container，关系如下</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">@startuml</span><br><span class="line">Connector &quot;*&quot;*-&quot;1&quot; Container</span><br><span class="line">@enduml</span><br></pre></td></tr></table></figure>
-
-<p>connector 主要作用是构建 request/response 并传递给 container 处理，这里只是简化的模型。container 除了处理 request 还有很多东西需要做，比如加载 servlet，更新 session 等。</p>
-<h2 id="A-Simple-Web-Server"><a href="#A-Simple-Web-Server" class="headerlink" title="A Simple Web Server"></a>A Simple Web Server</h2><blockquote>
-<p><strong>Chapter1</strong> starts this book by presenting a simple HTTP server.<br>To build a working HTTP server, you need to know the internal workings of two classes in the java.net package: Socket and ServerSocket.<br>There is sufficient background information in this chapter about these two classes for you to understand how the accompanying application works.</p>
-</blockquote>
-<p>第一个练习的目标，创建一个简单的 web server. 服务启动后，浏览器输入地址，server 返回请求的静态资源.</p>
-<p>逻辑层面上来说模型可以像下面这样展示，但是代码层面上却不行。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">@startuml</span><br><span class="line"></span><br><span class="line">(Client) -&gt; (Web Server) : request</span><br><span class="line">(Web Server) -&gt; (Client) : response</span><br><span class="line"></span><br><span class="line">@enduml</span><br></pre></td></tr></table></figure>
-
-<img  src=http://www.plantuml.com/plantuml/svg/qt3EoKpDAz5KqBLJq0XFJL88JYqgIotILB1IA4ejB4qjBk524GOfWsa1AIakoCyhJWK0>
-
-<p>如果按照上面的图示，难道 client 是直接 new 一个 request 和 web server 进行交互吗？难道 web server 会 new 一个 response 发送给 client 吗? 非也。模型化成下面的样子应该更合适</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">@startuml</span><br><span class="line">left to right direction</span><br><span class="line">skinparam packageStyle rectangle</span><br><span class="line"></span><br><span class="line">(Client)</span><br><span class="line">rectangle &quot;Web Server&quot; &#123;</span><br><span class="line">    cloud &quot;service&quot; &#123;</span><br><span class="line">        (req)</span><br><span class="line">        (resp)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    (Client) &lt;--&gt; service : socket</span><br><span class="line">&#125;</span><br><span class="line">@enduml</span><br></pre></td></tr></table></figure>
-
-<img  src=http://www.plantuml.com/plantuml/svg/JOmn3i8m40JxUyNALLBa0mZHy8GKrCOvp2d6DlQ1X53-JW84iSrgPwK9V59eGX5_LWnIsAcaI7MKc6sn5sJhHkkvrqTWBBUDFZ1Him_2KLlwCPW37z5pkNCnU1Bck91k0qoTeJXUwPAcyBNzNpL_vaJlMltOTjqENm4sgCcDh3Iz0000>
-
-<p>Client 和 Web Server 之间通过 socket 进行交互。在 server 内部，会将 socket 分化为 input 和 output 两个 IO 流，分别对应读取 Client 发送的数据和发送给 Client 相应</p>
-<p>项目目录设置如下</p>
-<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">how-tomcat-works</span><br><span class="line">├── ex01</span><br><span class="line">│   ├── pom.xml</span><br><span class="line">│   └── src</span><br><span class="line">│       └── ex01</span><br><span class="line">│           ├── HttpServer.java</span><br><span class="line">│           ├── Request.java</span><br><span class="line">│           └── Response.java</span><br><span class="line">├── pom.xml</span><br><span class="line">└── webroot</span><br><span class="line">    ├── images</span><br><span class="line">    │   └── logo.gif</span><br><span class="line">    └── index.html</span><br></pre></td></tr></table></figure>
-
-<p>HttpServer 表示服务器类，内部实现主要依赖于 ServerSocket 这个 java.net 包下的类，他在绑定本地端口并死循环等待 Client 端的 socket 访问</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HttpServer</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 指定静态资源目录</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String WEB_ROOT = System.getProperty(<span class="string">&quot;user.dir&quot;</span>) + File.separator + <span class="string">&quot;webroot&quot;</span>;</span><br><span class="line">    <span class="comment">// shutdown command</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String SHUTDOWN_COMMAND = <span class="string">&quot;/SHUTDOWN&quot;</span>;</span><br><span class="line">    <span class="comment">// the shutdown command received</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">boolean</span> shutdown = <span class="keyword">false</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        HttpServer server = <span class="keyword">new</span> HttpServer();</span><br><span class="line">        server.await();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">await</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        ServerSocket serverSocket = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">int</span> port = <span class="number">8080</span>;</span><br><span class="line">        <span class="comment">// 绑定端口和地址</span></span><br><span class="line">        serverSocket = <span class="keyword">new</span> ServerSocket(port, <span class="number">1</span>, InetAddress.getByName(<span class="string">&quot;127.0.0.1&quot;</span>));</span><br><span class="line">        <span class="comment">// 死循环等待 request</span></span><br><span class="line">        <span class="keyword">while</span> (!shutdown) &#123;</span><br><span class="line">            Socket socket = <span class="keyword">null</span>;</span><br><span class="line">            InputStream input = <span class="keyword">null</span>;</span><br><span class="line">            OutputStream output = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 拿到 socket</span></span><br><span class="line">            socket = serverSocket.accept();</span><br><span class="line">            <span class="comment">// 分化 socket</span></span><br><span class="line">            input = socket.getInputStream();</span><br><span class="line">            output = socket.getOutputStream();</span><br><span class="line">            <span class="comment">// create Request object and parse</span></span><br><span class="line">            Request request = <span class="keyword">new</span> Request(input);</span><br><span class="line">            request.parse();</span><br><span class="line"></span><br><span class="line">            <span class="comment">// create Response object</span></span><br><span class="line">            Response response = <span class="keyword">new</span> Response(output);</span><br><span class="line">            response.setRequest(request);</span><br><span class="line">            response.sendStaticResource();</span><br><span class="line"></span><br><span class="line">            <span class="comment">// Close the socket</span></span><br><span class="line">            socket.close();</span><br><span class="line">            <span class="comment">// check if the previous URI is a shutdown command</span></span><br><span class="line">            shutdown = request.getUri().equals(SHUTDOWN_COMMAND);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>Request 类的主要职责是拿到 socket 的输入流，解析并提取 Client 发送过来的信息，这个例子中主要是提取请求的资源路径</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Request</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> InputStream input;</span><br><span class="line">    <span class="keyword">private</span> String uri;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Request</span><span class="params">(InputStream input)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.input = input;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">parse</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// Read a set of characters from the socket</span></span><br><span class="line">        StringBuilder request = <span class="keyword">new</span> StringBuilder(<span class="number">2048</span>);</span><br><span class="line">        <span class="keyword">int</span> i;</span><br><span class="line">        <span class="keyword">byte</span>[] buffer = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">2048</span>];</span><br><span class="line">        i = input.read(buffer);</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; i; j++) &#123;</span><br><span class="line">            request.append((<span class="keyword">char</span>) buffer[j]);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 打印请求信息</span></span><br><span class="line">        System.out.print(request);</span><br><span class="line">        uri = parseUri(request.toString());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 解析请求，拿到请求的路径</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> String <span class="title">parseUri</span><span class="params">(String requestString)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> index1, index2;</span><br><span class="line">        index1 = requestString.indexOf(<span class="string">&#x27; &#x27;</span>);</span><br><span class="line">        <span class="keyword">if</span> (index1 != -<span class="number">1</span>) &#123;</span><br><span class="line">            index2 = requestString.indexOf(<span class="string">&#x27; &#x27;</span>, index1 + <span class="number">1</span>);</span><br><span class="line">            <span class="keyword">if</span> (index2 &gt; index1)</span><br><span class="line">                <span class="keyword">return</span> requestString.substring(index1 + <span class="number">1</span>, index2);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getUri</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> uri;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>Response 负责向 Client 返回信息</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Response</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> BUFFER_SIZE = <span class="number">1024</span>;</span><br><span class="line">    Request request;</span><br><span class="line">    OutputStream output;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Response</span><span class="params">(OutputStream output)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.output = output;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setRequest</span><span class="params">(Request request)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.request = request;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sendStaticResource</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        <span class="keyword">byte</span>[] bytes = <span class="keyword">new</span> <span class="keyword">byte</span>[BUFFER_SIZE];</span><br><span class="line">        FileInputStream fis = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            File file = <span class="keyword">new</span> File(HttpServer.WEB_ROOT, request.getUri());</span><br><span class="line">            <span class="keyword">if</span> (file.exists()) &#123;</span><br><span class="line">                <span class="comment">// 书上这段是没有的，当时 browser 比较老，不检测格式，现在浏览器不加这个页面会不能显示，curl 测试倒是不受影响</span></span><br><span class="line">                String header = <span class="string">&quot;HTTP/1.1 200 OK\r\n&quot;</span> +</span><br><span class="line">                        <span class="string">&quot;Content-Type: text/html\r\n&quot;</span> +</span><br><span class="line">                        <span class="string">&quot;\r\n&quot;</span>;</span><br><span class="line">                output.write(header.getBytes());</span><br><span class="line"></span><br><span class="line">                fis = <span class="keyword">new</span> FileInputStream(file);</span><br><span class="line">                <span class="keyword">int</span> ch = fis.read(bytes, <span class="number">0</span>, BUFFER_SIZE);</span><br><span class="line">                <span class="keyword">while</span> (ch != -<span class="number">1</span>) &#123;</span><br><span class="line">                    output.write(bytes, <span class="number">0</span>, ch);</span><br><span class="line">                    ch = fis.read(bytes, <span class="number">0</span>, BUFFER_SIZE);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="comment">// file not found</span></span><br><span class="line">                String errorMessage = <span class="string">&quot;HTTP/1.1 404 File Not Found\r\n&quot;</span></span><br><span class="line">                        + <span class="string">&quot;Content-Type: text/html\r\n&quot;</span></span><br><span class="line">                        + <span class="string">&quot;Content-Length: 23\r\n&quot;</span> + <span class="string">&quot;\r\n&quot;</span></span><br><span class="line">                        + <span class="string">&quot;&lt;h1&gt;File Not Found&lt;/h1&gt;&quot;</span>;</span><br><span class="line">                output.write(errorMessage.getBytes());</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="comment">// thrown if cannot instantiate a File object</span></span><br><span class="line">            System.out.println(e.toString());</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (fis != <span class="keyword">null</span>) &#123;</span><br><span class="line">                fis.close();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>结合计网的知识坐下分层的整理，这里当然是属于 Application 层，HTTP 规范是在处理 socket 的时候体现的. 那这里来说就是写 reponse 的时候，需要特殊指定 HTTP 版本，header 等信息，他都是服务器端指定的。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1585,7 +1611,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">171</span>
+          <span class="site-state-item-count">175</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1632,12 +1658,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">869k</span>
+    <span title="站点总字数">880k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">13:10</span>
+    <span title="站点阅读时长">13:20</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>

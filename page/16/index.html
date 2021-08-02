@@ -206,6 +206,438 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/03/08/%E6%A0%91%E8%8E%93%E6%B4%BE%E6%90%AD%E5%BB%BA%20FastDFS%20%E6%9C%8D%E5%8A%A1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2020/03/08/%E6%A0%91%E8%8E%93%E6%B4%BE%E6%90%AD%E5%BB%BA%20FastDFS%20%E6%9C%8D%E5%8A%A1/" class="post-title-link" itemprop="url">树莓派搭建 FastDFS 服务</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-03-08 17:28:09" itemprop="dateCreated datePublished" datetime="2020-03-08T17:28:09+08:00">2020-03-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E9%85%8D%E7%BD%AE/" itemprop="url" rel="index">
+                    <span itemprop="name">配置</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>树莓派搭建 FastDFS 服务记录</p>
+<p>小结写在最前面：此方案可行，稍微有点坑，但是踩踩还是可以过的</p>
+<h2 id="小知识"><a href="#小知识" class="headerlink" title="小知识"></a>小知识</h2><p>FastDFS 分布式文件存储系统，阿里系程序员<strong>余庆</strong>开发完成</p>
+<p>FastDFS 只负责存储，不提供web支持，所以一般要搭配 nginx 使用</p>
+<p>工作模式： client -&gt; (tracker server + storage server), tracker 信息负责管理， storage 负责存储</p>
+<p>树莓派的默认账号： pi | raspberry</p>
+<p>可以通过终端输入: ssh pi@host 链接</p>
+<h2 id="搭建步骤"><a href="#搭建步骤" class="headerlink" title="搭建步骤"></a>搭建步骤</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/happyfish100/fastdfs/wiki">官方文档</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=6Y2NihvPijQ">视频教程，不过要翻墙</a></li>
+</ul>
+<p>依赖关系：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── FastDFS-nginx-module</span><br><span class="line">├── fastdfs(tracker + storage)</span><br><span class="line">│   ├── GCC</span><br><span class="line">│   ├── libevent</span><br><span class="line">│   └── perl</span><br><span class="line">├── libfastcommon</span><br><span class="line">└── nginx</span><br><span class="line">    ├── pcre-devel</span><br><span class="line">    └── zlib-devel</span><br></pre></td></tr></table></figure>
+
+<h3 id="一些坑"><a href="#一些坑" class="headerlink" title="一些坑"></a>一些坑</h3><p>一些包的名字在 RedHat 和 Debain 下的名字不一样</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">apt-get install git gcc make automake autoconf libtool pcre pcre-devel zlib zlib-devel openssl-devel wget vim</span><br><span class="line"></span><br><span class="line">E: Unable to locate package gcc-c++</span><br><span class="line">E: Unable to locate package pcre</span><br><span class="line">E: Unable to locate package pcre-devel</span><br><span class="line">E: Unable to locate package zlib</span><br><span class="line">E: Unable to locate package zlib-devel</span><br><span class="line">E: Unable to locate package openssl-devel</span><br><span class="line"></span><br><span class="line">gcc-c++ 可以用 g++ 代替，不过好像 gcc 安装之后自动就装好了</span><br><span class="line"></span><br><span class="line">pcre，pcre-devel 用 libpcre3 libpcre3-dev 代替</span><br><span class="line"></span><br><span class="line">zlib： zlib1g</span><br><span class="line">openssl-devel: libssl-dev</span><br></pre></td></tr></table></figure>
+
+<p>按照教程走，输入 ./make.sh &amp;&amp; ./make.sh install 还是报错，说 permission denied. 试试 <code>sudo -i</code></p>
+<blockquote>
+<p>启动 nginx:</p>
+</blockquote>
+<ol>
+<li>cd 到 root@raspberrypi:/usr/local/nginx/sbin# 路径下运行 ./nginx</li>
+<li>如果是重启就 ./nginx -s reload</li>
+</ol>
+<blockquote>
+<p>wget 下载文件并重命名:</p>
+</blockquote>
+<p>wget -c ‘url’ -O ‘rename’</p>
+<blockquote>
+<p>查看已经上传的图片  </p>
+</blockquote>
+<p>根据 storage 配置找到路径，各种 cd 进去可以看到你已经上传的文件，我本地测试的时候是在这里 <code>/home/dfs/data/00/00</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">➜  00 ls -al</span><br><span class="line">total 1072</span><br><span class="line">drwxr-xr-x   2 root root    4096 Mar 14 15:10 .</span><br><span class="line">drwxr-xr-x 258 root root    4096 Mar  8 11:38 ..</span><br><span class="line">-rw-r--r--   1 root root 1024694 Mar  8 11:44 wKgBal5k2qGAQv4CAA-itrfn0m4.tar.gz</span><br><span class="line">-rw-r--r--   1 root root   20002 Mar  8 12:52 wKgBal5k6pmAa4jlAABOIgA5mas34.jpeg</span><br><span class="line">-rw-r--r--   1 root root   20002 Mar  8 15:41 wKgBal5lEiyAfaT6AABOIgA5mas88.jpeg</span><br><span class="line">-rw-r--r--   1 root root   20002 Mar 14 15:10 wKgBal5s8_eAYY_fAABOIgA5mas81.jpeg</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>测试图片访问可以在 nginx 启动之后访问 host:8888/group1/M00/00/00/wKgBal5s8_eAYY_fAABOIgA5mas81.jpeg 这样的路径查看</p>
+</blockquote>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/01/23/Python-code-snip-with-high-frequency/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2020/01/23/Python-code-snip-with-high-frequency/" class="post-title-link" itemprop="url">Python 中常用的代码段</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-01-23 14:11:18" itemprop="dateCreated datePublished" datetime="2020-01-23T14:11:18+08:00">2020-01-23</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/python/" itemprop="url" rel="index">
+                    <span itemprop="name">python</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>记录一些我经常查找的 python 方法作为备忘</p>
+<h2 id="Generate-random-int-list-or-just-a-requirement-of-loop-N-times"><a href="#Generate-random-int-list-or-just-a-requirement-of-loop-N-times" class="headerlink" title="Generate random int list, or just a requirement of loop N times"></a>Generate random int list, or just a requirement of loop N times</h2><p>it’s a common requirement and some guys achieve this goal by using Numpy lib, but it’s too heavy. you can do in this way:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> random</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> _ <span class="keyword">in</span> range(<span class="number">10</span>)</span><br><span class="line">  print(random.randint(<span class="number">0</span>, <span class="number">100</span>))</span><br><span class="line">  </span><br><span class="line"><span class="comment"># the _ is from 0 - 9</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="Get-index-and-val-at-the-same-time"><a href="#Get-index-and-val-at-the-same-time" class="headerlink" title="Get index and val at the same time"></a>Get index and val at the same time</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">a = [<span class="string">&#x27;a&#x27;</span>,<span class="string">&#x27;b&#x27;</span>,<span class="string">&#x27;c&#x27;</span>,<span class="string">&#x27;d&#x27;</span>]</span><br><span class="line"><span class="keyword">for</span> idx, val <span class="keyword">in</span> enumerate(a):</span><br><span class="line">   print(<span class="string">f&#x27;idx = <span class="subst">&#123;idx&#125;</span>, val = <span class="subst">&#123;val&#125;</span>&#x27;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># Output:</span></span><br><span class="line"><span class="comment"># idx = 0, val = a</span></span><br><span class="line"><span class="comment"># idx = 1, val = b</span></span><br><span class="line"><span class="comment"># idx = 2, val = c</span></span><br><span class="line"><span class="comment"># idx = 3, val = d</span></span><br></pre></td></tr></table></figure>
+
+<p>if you want to specify the start index, you can add a second parameter to enumerate func</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment"># in this case, idx would start from 3</span></span><br><span class="line">a = [<span class="string">&#x27;a&#x27;</span>,<span class="string">&#x27;b&#x27;</span>,<span class="string">&#x27;c&#x27;</span>,<span class="string">&#x27;d&#x27;</span>]</span><br><span class="line"><span class="keyword">for</span> idx, val <span class="keyword">in</span> enumerate(a, <span class="number">3</span>):</span><br><span class="line">  print(<span class="string">f&#x27;idx = <span class="subst">&#123;idx&#125;</span>, val = <span class="subst">&#123;val&#125;</span>&#x27;</span>)</span><br><span class="line">  </span><br><span class="line"><span class="comment"># Output:</span></span><br><span class="line"><span class="comment"># idx = 3, val = a</span></span><br><span class="line"><span class="comment"># idx = 4, val = b</span></span><br><span class="line"><span class="comment"># idx = 5, val = c</span></span><br><span class="line"><span class="comment"># idx = 6, val = d</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="Ipython-交互界面重新引入修改后的包"><a href="#Ipython-交互界面重新引入修改后的包" class="headerlink" title="Ipython 交互界面重新引入修改后的包"></a>Ipython 交互界面重新引入修改后的包</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> importlib</span><br><span class="line">importlib.reload(some_module)</span><br></pre></td></tr></table></figure>
+
+<h2 id="for-loop-one-line-mode"><a href="#for-loop-one-line-mode" class="headerlink" title="for loop one line mode"></a>for loop one line mode</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">user_ids = [record[<span class="string">&#x27;login&#x27;</span>] <span class="keyword">for</span> record <span class="keyword">in</span> resp]</span><br><span class="line"></span><br><span class="line"><span class="comment"># if you need if condition</span></span><br><span class="line">list = [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>,<span class="number">6</span>]</span><br><span class="line">filter = [str(sub + <span class="string">&quot;tt&quot;</span>) <span class="keyword">for</span> sub <span class="keyword">in</span> list <span class="keyword">if</span> sub &gt;= <span class="number">3</span>]</span><br></pre></td></tr></table></figure>
+
+<h2 id="repr-Vs-str"><a href="#repr-Vs-str" class="headerlink" title="repr Vs str"></a><strong>repr</strong> Vs <strong>str</strong></h2><ul>
+<li>只重写 <strong>str</strong> 只定制在 print() 时的输出</li>
+<li>只重写 <strong>repr</strong> print() 和 调用都输出定制内容</li>
+<li>重写 <strong>str</strong> + <strong>repr</strong> print() 输出 str 定制内容，调用输出 repr 内容</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">N1</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, data</span>):</span></span><br><span class="line">        self.data = data</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__str__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="keyword">return</span> <span class="string">&#x27;N1: data=%s&#x27;</span> % self.data</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">N2</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, data</span>):</span></span><br><span class="line">        self.data = data</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__repr__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="keyword">return</span> <span class="string">&#x27;N2: data=%s&#x27;</span> % self.data</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">N3</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, data</span>):</span></span><br><span class="line">        self.data = data</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__repr__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="keyword">return</span> <span class="string">&#x27;N3 repr: data=%s&#x27;</span> % self.data</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__str__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="keyword">return</span> <span class="string">&#x27;N3 str: data=%s&#x27;</span> % self.data</span><br><span class="line"></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;output</span></span><br><span class="line"><span class="string">n1 = N1(1)</span></span><br><span class="line"><span class="string"># In [30]: n1</span></span><br><span class="line"><span class="string"># Out[30]: &lt;BinaryTree.N1 at 0x10853fd30&gt;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">print(n1)</span></span><br><span class="line"><span class="string"># N1: data=1</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">n2 = N2(2)</span></span><br><span class="line"><span class="string"># In [33]: n2</span></span><br><span class="line"><span class="string"># Out[33]: N2: data=2</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">print(n2)</span></span><br><span class="line"><span class="string"># N2: data=2</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">n3 = N3(3)</span></span><br><span class="line"><span class="string"># Out[36]: N3 repr: data=3</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">print(n3)</span></span><br><span class="line"><span class="string"># N3 str: data=3</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="How-to-print-in-string-formant"><a href="#How-to-print-in-string-formant" class="headerlink" title="How to print in string formant"></a>How to print in string formant</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&#x27;&#123;&#123; Test-&#123;&#125; &#125;&#125;&#x27;</span>.format(<span class="string">&#x27;output&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># output: &#123; Test-output &#125;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="遍历子目录"><a href="#遍历子目录" class="headerlink" title="遍历子目录"></a>遍历子目录</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> root, dirs, files <span class="keyword">in</span> os.walk(<span class="string">&#x27;.&#x27;</span>):</span><br><span class="line">    <span class="keyword">for</span> sub <span class="keyword">in</span> files:</span><br><span class="line">        print(<span class="string">&#x27;name: %s&#x27;</span> %(os.path.join(root, sub)))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 或者也可以使用 glob</span></span><br><span class="line"><span class="keyword">import</span> glob</span><br><span class="line"></span><br><span class="line">glob.glob(<span class="string">&#x27;./**/*.png&#x27;</span>, recursive=<span class="literal">True</span>)</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/01/23/Python-keyword-of-import/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2020/01/23/Python-keyword-of-import/" class="post-title-link" itemprop="url">Python 中的 import 关键字</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-01-23 13:45:22" itemprop="dateCreated datePublished" datetime="2020-01-23T13:45:22+08:00">2020-01-23</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/python/" itemprop="url" rel="index">
+                    <span itemprop="name">python</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>683</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>看 you-get 源码时卡在了 import package 这个点，特此记录一下搜索资料的结果</p>
+<h2 id="Import-Of-Python"><a href="#Import-Of-Python" class="headerlink" title="Import Of Python"></a>Import Of Python</h2><p>你在看 python 代码的时候经常会在文件头部发现一串代码，格式类似 <code>import xxx</code> 或者 <code>from xxx import xxx</code>。功能都是一样的，引入代码重复利用。分两种，一种是引入 module，另一种是映入 package。</p>
+<ul>
+<li>module 简单理解就是组织好的 python 文件</li>
+<li>package 即使用文件夹形式组织 python 文件，在 package 的更目录下会有一个 <code>__init__.py</code> 文件作为 package 的入口</li>
+</ul>
+<h2 id="相对引用"><a href="#相对引用" class="headerlink" title="相对引用"></a>相对引用</h2><p>clone 了 rich 的源码通过 <code>python ./styled.py</code> 运行时报错</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">(rich-2qeSub0j-py3.7)  i306454@C02TW719HTD5  ~/gitStore/rich/rich   master  python ./styled.py</span><br><span class="line">Traceback (most recent call last):</span><br><span class="line">  File <span class="string">&quot;./styled.py&quot;</span>, line 3, <span class="keyword">in</span> &lt;module&gt;</span><br><span class="line">    from .measure import Measurement</span><br><span class="line">ImportError: attempted relative import with no known parent package</span><br></pre></td></tr></table></figure>
+
+<p>这是因为对应的文件中采用了相对引用就是类似 <code>from .style import StyleType</code> 的语法，我们可以通过在上一级目录下输入 <code>python -m rich.styled</code> 运行。注意命令没有 <code>.py</code> 后缀</p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/yan-lei/p/7828871.html">cnlogs - Python学习者</a></li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/01/08/Lang%20%E5%8C%85%E7%B1%BB%E7%AE%80%E4%BB%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2020/01/08/Lang%20%E5%8C%85%E7%B1%BB%E7%AE%80%E4%BB%8B/" class="post-title-link" itemprop="url">lang 包类简介</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-01-08 15:25:37" itemprop="dateCreated datePublished" datetime="2020-01-08T15:25:37+08:00">2020-01-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>用人话解释我用过的 Class 类中的方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* 食用方法：classA.isAssignableFrom(classB)</span></span><br><span class="line"><span class="comment">* 表达的意思：classB 是不是 classA 的子类/接口 或 本身</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">native</span> <span class="keyword">boolean</span> <span class="title">isAssignableFrom</span><span class="params">(Class&lt;?&gt; cls)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Samples, all tests passed.</span></span><br><span class="line"><span class="keyword">import</span> org.testng.Assert;</span><br><span class="line"><span class="keyword">import</span> org.testng.annotations.Test;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestIsAssignableFrom</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test_isAssignableFrom</span> <span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="comment">// 对自己使用，返回 true</span></span><br><span class="line">        Assert.assertTrue(ClassA.class.isAssignableFrom(ClassA.class));</span><br><span class="line">        <span class="comment">// 父类对子类使用，返回 true</span></span><br><span class="line">        Assert.assertTrue(ClassA.class.isAssignableFrom(ClassB.class));</span><br><span class="line">        <span class="comment">// 子类对父类使用，返回 false</span></span><br><span class="line">        Assert.assertFalse(ClassB.class.isAssignableFrom(ClassA.class));</span><br><span class="line">        <span class="comment">// 父接口对自接口使用，返回 true</span></span><br><span class="line">        Assert.assertTrue(InterfaceC.class.isAssignableFrom(InterfaceD.class));</span><br><span class="line">        <span class="comment">// 子接口对父接口使用，返回 false</span></span><br><span class="line">        Assert.assertFalse(InterfaceD.class.isAssignableFrom(InterfaceC.class));</span><br><span class="line">        <span class="comment">// 接口对实现了自己的类使用，返回 true</span></span><br><span class="line">        Assert.assertTrue(InterfaceC.class.isAssignableFrom(ClassB.class));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ClassA</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ClassB</span> <span class="keyword">extends</span> <span class="title">ClassA</span> <span class="keyword">implements</span> <span class="title">InterfaceC</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">InterfaceC</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">InterfaceD</span> <span class="keyword">extends</span> <span class="title">InterfaceC</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/01/06/NoClassDefFoundError%20%E8%AE%B0%E5%BD%95/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +669,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -338,7 +770,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -439,7 +871,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -600,7 +1032,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -704,7 +1136,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -835,7 +1267,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -922,415 +1354,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2019/12/07/%E5%8E%9F%E7%A0%81%EF%BC%8C%E5%8F%8D%E7%A0%81%E5%92%8C%E8%A1%A5%E7%A0%81/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2019/12/07/%E5%8E%9F%E7%A0%81%EF%BC%8C%E5%8F%8D%E7%A0%81%E5%92%8C%E8%A1%A5%E7%A0%81/" class="post-title-link" itemprop="url">原码，反码和补码</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2019-12-07 22:52:24" itemprop="dateCreated datePublished" datetime="2019-12-07T22:52:24+08:00">2019-12-07</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E7%A7%91%E6%99%AE/" itemprop="url" rel="index">
-                    <span itemprop="name">科普</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>633</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>本篇简要介绍一下计算机存储中原码，反码，补码的一些基本知识，给出一些我自己的概括，不严谨，想了解更多参考我给的链接</p>
-<h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>二进制数表示带符号值时，最高位位符号位，0表示正数，1表示负数，以四位二进制数来说明</p>
-<p>原码：人能直接读出来的数，比如 1 二进制表示为 0001，-1 二进制 1001<br>反码：正数反码等于原码，负数反码符号为不变，其他各位取反 -1 反码 1110<br>补码：正数补码等于原码，负数补码等于反码 +1， -1 补码 1111</p>
-<p>这样设计的原因是为了简化计算机计算，计算机这个东西，他虽然快，但是论复杂逻辑思考，真的弱得一匹 ┑(￣Д ￣)┍</p>
-<h2 id="尝试复述一下设计原理"><a href="#尝试复述一下设计原理" class="headerlink" title="尝试复述一下设计原理"></a>尝试复述一下设计原理</h2><p>人的思路：1 - 1 = 1 + (-1) = 0，但是这个套路机器不懂啊，从它开来 1 + (-1) = 0001 + 1001 = -2。 为了弥补这个 gap, 人们就搞出了反码这个东西，这样机器计算的时候 1 + (-1) = 0001 + 1110 = 1111[反] = 1000[原] = -0。计算结果为题解决了，但随之带来了新的问题，出现了 0 和 -0 两个重复的数。所以人们又做了一次改进，搞出了补码这个东西，从此机器码中 1 + (-1) = 0001[补] + 1111[补] = 1,0000 = 0000, 因为是四位计算，最高位溢出不计算了，完美解决问题 ↖(^ω^)↗</p>
-<p>原来多出来 -0 用来表示四位最大的负数 -64。这个数是没有原码和反码的。</p>
-<h2 id="注意点"><a href="#注意点" class="headerlink" title="注意点"></a>注意点</h2><ul>
-<li>反码和取反是两个东西</li>
-<li>取反和非很像，但是有区别，取反是0/1计算，非是逻辑运算</li>
-<li>最大的那个负数没有原码和反码</li>
-</ul>
-<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/zhangziqiu/archive/2011/03/30/ComputerCode.html">CSDN-原码, 反码, 补码 详解</a></li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2019/12/04/%E6%95%B0%E5%AD%97%E8%BF%9B%E5%88%B6%E8%BD%AC%E5%8C%96/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2019/12/04/%E6%95%B0%E5%AD%97%E8%BF%9B%E5%88%B6%E8%BD%AC%E5%8C%96/" class="post-title-link" itemprop="url">数字进制转化</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2019-12-04 13:45:07" itemprop="dateCreated datePublished" datetime="2019-12-04T13:45:07+08:00">2019-12-04</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
-                    <span itemprop="name">编程</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.3k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>罗列常用语言中的数字转化方法</p>
-<h2 id="Python"><a href="#Python" class="headerlink" title="Python"></a>Python</h2><p>Python 中已经集成了很多用来做这个事情的内部方法，都不需要引入额外的包，很方便。主要集中在 str.format() 和其他一些内置函数比如 int(), hex () 等</p>
-<p>str.format 转化格式如下</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">format_spec     ::=  [[fill]align][sign][<span class="comment">#][0][width][grouping_option][.precision][type]</span></span><br><span class="line">fill            ::=  &lt;any character&gt;</span><br><span class="line">align           ::=  <span class="string">&quot;&lt;&quot;</span> | <span class="string">&quot;&gt;&quot;</span> | <span class="string">&quot;=&quot;</span> | <span class="string">&quot;^&quot;</span></span><br><span class="line">sign            ::=  <span class="string">&quot;+&quot;</span> | <span class="string">&quot;-&quot;</span> | <span class="string">&quot; &quot;</span></span><br><span class="line">width           ::=  digit+</span><br><span class="line">grouping_option ::=  <span class="string">&quot;_&quot;</span> | <span class="string">&quot;,&quot;</span></span><br><span class="line">precision       ::=  digit+</span><br><span class="line"><span class="built_in">type</span>            ::=  <span class="string">&quot;b&quot;</span> | <span class="string">&quot;c&quot;</span> | <span class="string">&quot;d&quot;</span> | <span class="string">&quot;e&quot;</span> | <span class="string">&quot;E&quot;</span> | <span class="string">&quot;f&quot;</span> | <span class="string">&quot;F&quot;</span> | <span class="string">&quot;g&quot;</span> | <span class="string">&quot;G&quot;</span> | <span class="string">&quot;n&quot;</span> | <span class="string">&quot;o&quot;</span> | <span class="string">&quot;s&quot;</span> | <span class="string">&quot;x&quot;</span> | <span class="string">&quot;X&quot;</span> | <span class="string">&quot;%&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>一些例子</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 十进制 8 转化成二进制，8位宽，左对齐，空位补 -, format 里面的只能是十进制的数</span></span><br><span class="line"><span class="string">&#x27;&#123;:-&lt;8b&#125;&#x27;</span>.format(<span class="number">8</span>)</span><br><span class="line"><span class="comment"># &#x27;1000----&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 0xff 转化成二进制，可以先把十六进制转成十进制，再转成二进制, 0x 可以省略</span></span><br><span class="line"><span class="string">&#x27;&#123;:b&#125;&#x27;</span>.format(int(<span class="string">&#x27;0xff&#x27;</span>, <span class="number">16</span>))</span><br><span class="line"><span class="comment"># &#x27;11111111&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># bin 函数也可以用来做二进制转化，基数是10</span></span><br><span class="line">bin(<span class="number">8</span>)</span><br><span class="line"><span class="comment"># &#x27;0b1000&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># str.format 加上 # 可以变成和 bin 一样的效果</span></span><br><span class="line"><span class="string">&#x27;&#123;:#b&#125;&#x27;</span>.format(int(<span class="string">&#x27;0xff&#x27;</span>, <span class="number">16</span>))</span><br><span class="line"><span class="comment"># &#x27;0b11111111&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 内置函数 format 也可以实现和 str.format 一样的功能</span></span><br><span class="line">format(<span class="number">255</span>, <span class="string">&#x27;#b&#x27;</span>)</span><br><span class="line"><span class="comment"># &#x27;0b11111111&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 再介绍一种 format 的简写形式</span></span><br><span class="line">f&#x27;&#123;255:#b&#125;&#x27;</span><br><span class="line"><span class="comment"># &#x27;0b11111111&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://docs.python.org/3/library/string.html#grammar-token-precision">Python 官方文档</a></li>
-<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/1425493/convert-hex-to-binary/7373476">StackOverflow, convert hexo to binary</a></li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2019/12/02/Win10%20%E5%AE%89%E8%A3%85%20WSL%20%E5%B9%B6%E9%9B%86%E6%88%90%20VSCode/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2019/12/02/Win10%20%E5%AE%89%E8%A3%85%20WSL%20%E5%B9%B6%E9%9B%86%E6%88%90%20VSCode/" class="post-title-link" itemprop="url">Win10 安装 WSL 并集成 VSCode</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2019-12-02 22:42:33" itemprop="dateCreated datePublished" datetime="2019-12-02T22:42:33+08:00">2019-12-02</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E9%85%8D%E7%BD%AE/" itemprop="url" rel="index">
-                    <span itemprop="name">配置</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>476</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>在 Win10 下用 VSCode + WSL 开发，体验还是不错的，一开始看了下官方文档，好长，好复杂。但是实际操作下来，其实很简单，赶紧搞起来，甚香( •̀ ω •́ )✧</p>
-<h2 id="安装步骤"><a href="#安装步骤" class="headerlink" title="安装步骤"></a>安装步骤</h2><p>首次使用 WSL 需要做一下系统设置</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">win快捷搜索-&gt; 启用或关闭Windows功能-&gt; 勾选 适用于Linux的Windows子系统</span><br></pre></td></tr></table></figure>
-
-<p><img src="enable_wsl.png" alt="开启子系统选项"></p>
-<p>到微软商城，搜所 wsl, 可以看到可用的 linux 版本，比如 kail, Ubuntu 等, 点击安装</p>
-<p><img src="win_wsl_search.png" alt="搜索界面"></p>
-<p>安装完毕后使用敲击 win 键卡开快捷搜索，输入 wsl 回车，快速打开，第一次打开时需要配置一下子系统用户名密码信息</p>
-<p>安装 VSCode + Remote-WSL 插件</p>
-<p><img src="remote_wsl_plugin.png" alt="VSCode插件"></p>
-<p>启动 WSL 子系统，默认会到 <code>jack@DESKTOP-9TGTFK1:/mnt/c/Windows/system32$</code> 路径下，选一个你喜欢的路径，我这里新建了目录 vscode_dir 用来测试, 然后输入 <code>code .</code> 第一次输入时 WSL 会安装一些包，然后打开 VSCode。到这里基本就安装完了</p>
-<p><img src="wsl_vscode_lib.png" alt="WSL安装VSCode包"></p>
-<p>新打开的 remote VSCode 界面，注意左下角，如果显示的时下载的 Linux 版本就表明链接成功了</p>
-<p><img src="vscode_connection.png" alt="VSCode-WSL连接"></p>
-<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://code.visualstudio.com/docs/remote/wsl">官方文档</a></li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2019/12/02/Linux-update-software-sources/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2019/12/02/Linux-update-software-sources/" class="post-title-link" itemprop="url">Linux 换源</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2019-12-02 22:27:18" itemprop="dateCreated datePublished" datetime="2019-12-02T22:27:18+08:00">2019-12-02</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/linux/" itemprop="url" rel="index">
-                    <span itemprop="name">linux</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>383</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>Linux 配置国内源加速，以 Ubuntu 为例子</p>
-<h2 id="Steps"><a href="#Steps" class="headerlink" title="Steps"></a>Steps</h2><p>运行 command</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 替换 sources.list 中的源信息</span></span><br><span class="line">sudo sed -i <span class="string">&#x27;s/archive.ubuntu.com/mirrors.ustc.edu.cn/g&#x27;</span> /etc/apt/sources.list</span><br><span class="line"></span><br><span class="line"><span class="comment"># 更新索引</span></span><br><span class="line">sudo apt-get update</span><br></pre></td></tr></table></figure>
-
-<p>如果配置不生效，查看 sources.list 文件中的源信息，可能不是 <code>archive.ubuntu.com</code> 所以更新失败，比如我的 WSL环境中，原始的源就 <code>security.ubuntu.com</code> 需要把上面的命令改为, 使之生效</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo sed -i <span class="string">&#x27;s/security.ubuntu.com/mirrors.ustc.edu.cn/g&#x27;</span> /etc/apt/sources.list</span><br></pre></td></tr></table></figure>
-
-<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://mirrors.ustc.edu.cn/help/ubuntu.html">Ubuntu 源使用帮助</a></li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1381,7 +1404,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">171</span>
+          <span class="site-state-item-count">175</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1428,12 +1451,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">869k</span>
+    <span title="站点总字数">880k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">13:10</span>
+    <span title="站点阅读时长">13:20</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>

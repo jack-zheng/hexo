@@ -206,6 +206,473 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/04/20/Algorithm-bubble-sort/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/04/20/Algorithm-bubble-sort/" class="post-title-link" itemprop="url">冒泡排序</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-04-20 13:05:19" itemprop="dateCreated datePublished" datetime="2021-04-20T13:05:19+08:00">2021-04-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E7%AE%97%E6%B3%95/" itemprop="url" rel="index">
+                    <span itemprop="name">算法</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/42586566">示例带图</a></li>
+</ul>
+<p>算法描述</p>
+<ol>
+<li>遍历数组，比较相邻的两个元素的大小，如果前一个比后一个大就交换位置，如此循环，最后一个位置即最大值</li>
+<li>重复上述过程，对前 n-1 个元素排序</li>
+<li>重复直到所有元素都完成排序</li>
+</ol>
+<p>操作没问题，但是你难道不觉得，这个比较中间过程中的交换过程很浪费资源吗？为了省去中间的交换过程，我们有了选择排序。</p>
+<p>时间复杂度：O(n<sup>2</sup>)</p>
+<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 1. 遍历数组，比较相邻的两个元素的大小，如果前一个比后一个大就交换位置，如此循环，最后一个位置即最大值</span></span><br><span class="line"><span class="comment"> * 2. 重复上述过程，对前 n-1 个元素排序</span></span><br><span class="line"><span class="comment"> * 3. 重复直到所有元素都完成排序</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BubbleSortDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] sample = <span class="keyword">new</span> Random().ints(<span class="number">0</span>, <span class="number">100</span>).limit(<span class="number">10</span>).toArray();</span><br><span class="line">        System.out.println(<span class="string">&quot;Origin: &quot;</span> + Arrays.toString(sample));</span><br><span class="line">        bubbleSort(sample);</span><br><span class="line">        System.out.println(<span class="string">&quot;After:  &quot;</span> + Arrays.toString(sample));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">bubbleSort</span><span class="params">(<span class="keyword">int</span>[] sample)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = sample.length - <span class="number">1</span>; i &gt; <span class="number">0</span>; i--) &#123; <span class="comment">// 这里使用 i=length-1 的表达方式，第二层直接 j &lt; i, 书写起来比较好看</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; i; j++) &#123;</span><br><span class="line">                <span class="keyword">if</span> (sample[j] &gt; sample[j + <span class="number">1</span>]) &#123;</span><br><span class="line">                    swap(sample, j, j + <span class="number">1</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">swap</span><span class="params">(<span class="keyword">int</span>[] arr, <span class="keyword">int</span> pos1, <span class="keyword">int</span> pos2)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> tmp = arr[pos1];</span><br><span class="line">        arr[pos1] = arr[pos2];</span><br><span class="line">        arr[pos2] = tmp;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// Origin: [62, 39, 37, 64, 84, 27, 68, 90, 55, 63]</span></span><br><span class="line"><span class="comment">// After:  [27, 37, 39, 55, 62, 63, 64, 68, 84, 90]</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/04/20/Algorithm-insertion-sort/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/04/20/Algorithm-insertion-sort/" class="post-title-link" itemprop="url">插入排序</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-04-20 10:57:12" itemprop="dateCreated datePublished" datetime="2021-04-20T10:57:12+08:00">2021-04-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E7%AE%97%E6%B3%95/" itemprop="url" rel="index">
+                    <span itemprop="name">算法</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <ul>
+<li>参考<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/122293204">动图</a></li>
+</ul>
+<p>插入排序是一个很基础的排序方法，基本解法思路为：</p>
+<p>将待排序序列第一个元素看做一个有序序列，把第二个元素到最后一个元素当成是未排序序列。从头到尾依次扫描未排序序列，将扫描到的每个元素插入有序序列的适当位置。（如果待插入的元素与有序序列中的某个元素相等，则将待插入元素插入到相等元素的后面。）</p>
+<p>时间复杂度：O(n<sup>2</sup>)</p>
+<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 1. 第一次计算，拿二号元素和一号元素比较，如果二号小于一号，交换位置。计算后前两个元素为规则元素</span></span><br><span class="line"><span class="comment"> * 2. 第二次计算，拿三号元素依次和二号，一号做比较，如果三号小于其中某个元素，交换位置</span></span><br><span class="line"><span class="comment"> * 3. 重复以上规则对剩余元素进行排序</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">InsertionSortDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] sample = <span class="keyword">new</span> Random().ints(<span class="number">0</span>, <span class="number">100</span>).limit(<span class="number">10</span>).toArray();</span><br><span class="line">        System.out.println(<span class="string">&quot;Origin: &quot;</span> + Arrays.toString(sample));</span><br><span class="line"></span><br><span class="line">        insertionSort(sample);</span><br><span class="line">        System.out.println(<span class="string">&quot;After:  &quot;</span> + Arrays.toString(sample));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">insertionSort</span><span class="params">(<span class="keyword">int</span>[] sample)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; sample.length; i++) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> j = i; j &gt; <span class="number">0</span>; j--) &#123;</span><br><span class="line">                <span class="keyword">if</span> (sample[j] &lt; sample[j-<span class="number">1</span>]) &#123;</span><br><span class="line">                    swap(sample, j, j-<span class="number">1</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">swap</span><span class="params">(<span class="keyword">int</span>[] sample, <span class="keyword">int</span> pos1, <span class="keyword">int</span> pos2)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> tmp = sample[pos1];</span><br><span class="line">        sample[pos1] = sample[pos2];</span><br><span class="line">        sample[pos2] = tmp;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// Origin: [54, 66, 34, 28, 0, 10, 6, 61, 42, 97]</span></span><br><span class="line"><span class="comment">// After:  [0, 6, 10, 28, 34, 42, 54, 61, 66, 97]</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/04/19/Design-pattern-composite/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/04/19/Design-pattern-composite/" class="post-title-link" itemprop="url">组合模式</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-04-19 19:00:00" itemprop="dateCreated datePublished" datetime="2021-04-19T19:00:00+08:00">2021-04-19</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index">
+                    <span itemprop="name">设计模式</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>13k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>12 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p><strong>The Composite Pattern</strong> allows you to compose objects into tree structures to represent part-whole hierarchies. Composite lets clients treat individual objects and compositions of objects uniformly.<br>组合模式让我们可以将数据组合成树状结构。他可以让我们以统一的模式对待单个节点或整个组合体</p>
+</blockquote>
+<h2 id="缘起"><a href="#缘起" class="headerlink" title="缘起"></a>缘起</h2><p>书接上一个 Iterator 章节，现在 DinerMenu 业务扩展了，我们想要在 DinerMenu 的基础上再增加一个子目录来打印一个点心子菜单。现在已有的代码结构并不能完成我们的需求，我们将使用 组合模式 重构我们的代码。</p>
+<p>更具上面这个需求我们可以将需要展示的结构抽象为如下结构</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">                                                     +------------+                                                                                  </span><br><span class="line">                                                     | All Menus  |                                                                                  </span><br><span class="line">                                                     +------------+                                                                                  </span><br><span class="line">                                                        ^                                                                                            </span><br><span class="line">                     -----------------------------------|-------------------------------                                                             </span><br><span class="line">                    |                                   |                              |                                                             </span><br><span class="line">                    |                                   |                              |                                                             </span><br><span class="line">           +--------------------+            +------------+                     +------------+                                                       </span><br><span class="line">           | Pancake House Menu |            | Diner Menu |                     | Cafe Menu  |                                                       </span><br><span class="line">           +--------------------+            +------------+                     +------------+                                                       </span><br><span class="line">                    ^                           ^                                  ^                                                                 </span><br><span class="line">     ---------------|----------                 |-------------                     |-----------                                                      </span><br><span class="line">    |               |         |                 |            |                     |          |                                                      </span><br><span class="line">    |               |         |                 |            |                     |          |                                                      </span><br><span class="line">+----------+  +----------+             +----------+   +-------------+    +----------+    +----------+                                                </span><br><span class="line">| MenuItem |  | MenuItem |   ...       | MenuItem |   |Dessert Menu |    | MenuItem |    | MenuItem |                                                </span><br><span class="line">+----------+  +----------+             +----------+   +-------------+    +----------+    +----------+                                                </span><br><span class="line">                                                                ^                                                                                    </span><br><span class="line">                                                  ------------- |--------------                                                                      </span><br><span class="line">                                                 |              |             |                                                                      </span><br><span class="line">                                                 |              |             |                                                                      </span><br><span class="line">                                            +----------+    +----------+      |                                                                      </span><br><span class="line">                                            | MenuItem |    | MenuItem |     ...                                                                     </span><br><span class="line">                                            +----------+    +----------+                                                                             </span><br></pre></td></tr></table></figure>
+
+<p>我们要实现用统一的接口访问 Menu 和 MenuItem，所以不难想到，我们需要在这两个概念外面包装一个统一的对外接口。</p>
+<p>代码实现如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 我们抽象一个组合节点和叶子结点公用的超集节点，叫做 MenuComponent, 他包含了这两种节点都要用到的方法，虽然这样做会有点冗余</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MenuComponent</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">add</span><span class="params">(MenuComponent menuComponent)</span> </span>&#123;<span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException();&#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">remove</span><span class="params">(MenuComponent menuComponent)</span> </span>&#123;<span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException();&#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> MenuComponent <span class="title">getChild</span><span class="params">(<span class="keyword">int</span> i)</span> </span>&#123;<span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException();&#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;<span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException();&#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getDescription</span><span class="params">()</span> </span>&#123;<span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException();&#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">getPrice</span><span class="params">()</span> </span>&#123;<span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException();&#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isVegetarian</span><span class="params">()</span> </span>&#123;<span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException();&#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">print</span><span class="params">()</span> </span>&#123;<span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException();&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 叶子结点实现，只需要重写叶子结点支持的方法</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MenuItem</span> <span class="keyword">extends</span> <span class="title">MenuComponent</span> </span>&#123;</span><br><span class="line">    String name;</span><br><span class="line">    String description;</span><br><span class="line">    <span class="keyword">boolean</span> vegetarian;</span><br><span class="line">    <span class="keyword">double</span> price;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MenuItem</span><span class="params">(String name, String description, <span class="keyword">boolean</span> vegetarian, <span class="keyword">double</span> price)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">        <span class="keyword">this</span>.description = description;</span><br><span class="line">        <span class="keyword">this</span>.vegetarian = vegetarian;</span><br><span class="line">        <span class="keyword">this</span>.price = price;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getDescription</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> description;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">getPrice</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> price;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isVegetarian</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> vegetarian;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">print</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.print(<span class="string">&quot;  &quot;</span> + getName());</span><br><span class="line">        <span class="keyword">if</span> (isVegetarian()) &#123;</span><br><span class="line">            System.out.print(<span class="string">&quot; (v)&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(<span class="string">&quot;, &quot;</span> + getPrice());</span><br><span class="line">        System.out.println(<span class="string">&quot;-- &quot;</span> + getDescription());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 组合节点的实现</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Menu</span> <span class="keyword">extends</span> <span class="title">MenuComponent</span> </span>&#123;</span><br><span class="line">    ArrayList menuComponents = <span class="keyword">new</span> ArrayList();</span><br><span class="line">    String name;</span><br><span class="line">    String description;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Menu</span><span class="params">(String name, String description)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">        <span class="keyword">this</span>.description = description;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">add</span><span class="params">(MenuComponent menuComponent)</span> </span>&#123;</span><br><span class="line">        menuComponents.add(menuComponent);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">remove</span><span class="params">(MenuComponent menuComponent)</span> </span>&#123;</span><br><span class="line">        menuComponents.remove(menuComponent);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> MenuComponent <span class="title">getChild</span><span class="params">(<span class="keyword">int</span> i)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (MenuComponent) menuComponents.get(i);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getDescription</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> description;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">print</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.print(<span class="string">&quot;\n&quot;</span> + getName());</span><br><span class="line">        System.out.println(<span class="string">&quot;, &quot;</span> + getDesc());</span><br><span class="line">        System.out.print(<span class="string">&quot;---------------------\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 打印完自己的信息后，还需要循环答应子节点信息</span></span><br><span class="line">        Iterator iterator = menuComponents.iterator();</span><br><span class="line">        <span class="keyword">while</span> (iterator.hasNext()) &#123;</span><br><span class="line">            MenuComponent menuComponent = (MenuComponent) iterator.next();</span><br><span class="line">            menuComponent.print();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 测试的客户端</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CompositeClient</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        MenuComponent pancakeHouseMenu = <span class="keyword">new</span> Menu(<span class="string">&quot;PANCAKE HOUSE MENU&quot;</span>, <span class="string">&quot;Breakfast&quot;</span>);</span><br><span class="line">        MenuComponent dinerMenu = <span class="keyword">new</span> Menu(<span class="string">&quot;DINER MENU&quot;</span>, <span class="string">&quot;Lunch&quot;</span>);</span><br><span class="line">        MenuComponent cafeMenu = <span class="keyword">new</span> Menu(<span class="string">&quot;CAFE MENU&quot;</span>, <span class="string">&quot;Dinner&quot;</span>);</span><br><span class="line">        MenuComponent dessertMenu = <span class="keyword">new</span> Menu(<span class="string">&quot;DESSERT MENU&quot;</span>, <span class="string">&quot;Dessert of course !&quot;</span>);</span><br><span class="line"></span><br><span class="line">        MenuComponent allMenus = <span class="keyword">new</span> Menu(<span class="string">&quot;ALL MENUS&quot;</span>, <span class="string">&quot;All menus combined&quot;</span>);</span><br><span class="line">        allMenus.add(pancakeHouseMenu);</span><br><span class="line">        allMenus.add(dinerMenu);</span><br><span class="line">        allMenus.add(cafeMenu);</span><br><span class="line"></span><br><span class="line">        pancakeHouseMenu.add(<span class="keyword">new</span> MenuItem(<span class="string">&quot;K &amp; B’s Pancake Breakfast&quot;</span>, <span class="string">&quot;Pancakes with scrambled eggs, and toast&quot;</span>, <span class="keyword">true</span>, <span class="number">2.99</span>));</span><br><span class="line">        pancakeHouseMenu.add(<span class="keyword">new</span> MenuItem(<span class="string">&quot;Regular Pancake Breakfast&quot;</span>, <span class="string">&quot;Pancakes with fried eggs, sausage&quot;</span>, <span class="keyword">false</span>, <span class="number">2.99</span>));</span><br><span class="line">        pancakeHouseMenu.add(<span class="keyword">new</span> MenuItem(<span class="string">&quot;Blueberry Pancakes&quot;</span>, <span class="string">&quot;Pancakes made with fresh blueberries&quot;</span>, <span class="keyword">true</span>, <span class="number">3.49</span>));</span><br><span class="line">        pancakeHouseMenu.add(<span class="keyword">new</span> MenuItem(<span class="string">&quot;Waffles&quot;</span>, <span class="string">&quot;Waffles, with your choice of blueberries or strawberries&quot;</span>, <span class="keyword">true</span>, <span class="number">3.59</span>));</span><br><span class="line"></span><br><span class="line">        dinerMenu.add(<span class="keyword">new</span> MenuItem(<span class="string">&quot;Pasta&quot;</span>, <span class="string">&quot;Spaghetti with Marinara Sauce, and a slice of sourdough bread&quot;</span>, <span class="keyword">true</span>, <span class="number">3.89</span>));</span><br><span class="line">        dinerMenu.add(<span class="keyword">new</span> MenuItem(<span class="string">&quot;Vegetarian BLT&quot;</span>, <span class="string">&quot; (Fakin’)Bacon with lettuce &amp; tomato on whole wheat&quot;</span>, <span class="keyword">true</span>, <span class="number">2.99</span>));</span><br><span class="line">        dinerMenu.add(<span class="keyword">new</span> MenuItem(<span class="string">&quot;BLT&quot;</span>, <span class="string">&quot;Bacon with lettuce &amp; tomato on whole wheat&quot;</span>, <span class="keyword">false</span>, <span class="number">2.99</span>));</span><br><span class="line">        dinerMenu.add(<span class="keyword">new</span> MenuItem(<span class="string">&quot;Soup of the day&quot;</span>, <span class="string">&quot;Soup of the day, with a side of potato salad&quot;</span>, <span class="keyword">false</span>, <span class="number">3.29</span>));</span><br><span class="line"></span><br><span class="line">        dinerMenu.add(dessertMenu);</span><br><span class="line">        dessertMenu.add(<span class="keyword">new</span> MenuItem(<span class="string">&quot;Apple Pie&quot;</span>, <span class="string">&quot;Apple pie with a flakey crust, topped with vanilla icecream&quot;</span>, <span class="keyword">true</span>, <span class="number">1.59</span>));</span><br><span class="line"></span><br><span class="line">        cafeMenu.add(<span class="keyword">new</span> MenuItem(<span class="string">&quot;Veggie Burger and Air Fries&quot;</span>, <span class="string">&quot;Veggie burger on a whole wheat bun, lettuce, tomato, and fries&quot;</span>, <span class="keyword">true</span>, <span class="number">3.99</span>));</span><br><span class="line">        cafeMenu.add(<span class="keyword">new</span> MenuItem(<span class="string">&quot;Soup of the day&quot;</span>, <span class="string">&quot;A cup of the soup of the day, with a side salad&quot;</span>, <span class="keyword">false</span>, <span class="number">3.69</span>));</span><br><span class="line">        cafeMenu.add(<span class="keyword">new</span> MenuItem(<span class="string">&quot;Burrito&quot;</span>, <span class="string">&quot;A large burrito, with whole pinto beans, salsa, guacamole&quot;</span>, <span class="keyword">true</span>, <span class="number">4.29</span>));</span><br><span class="line">        allMenus.print();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// ALL MENUS, All menus combined</span></span><br><span class="line"><span class="comment">// ---------------------</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// PANCAKE HOUSE MENU, Breakfast</span></span><br><span class="line"><span class="comment">// ---------------------</span></span><br><span class="line"><span class="comment">//   K &amp; B’s Pancake Breakfast, desc:&#x27;Pancakes with scrambled eggs, and toast&#x27; (v) , price:2.99</span></span><br><span class="line"><span class="comment">//   Regular Pancake Breakfast, desc:&#x27;Pancakes with fried eggs, sausage&#x27; , price:2.99</span></span><br><span class="line"><span class="comment">//   Blueberry Pancakes, desc:&#x27;Pancakes made with fresh blueberries&#x27; (v) , price:3.49</span></span><br><span class="line"><span class="comment">//   Waffles, desc:&#x27;Waffles, with your choice of blueberries or strawberries&#x27; (v) , price:3.59</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// DINER MENU, Lunch</span></span><br><span class="line"><span class="comment">// ---------------------</span></span><br><span class="line"><span class="comment">//   Pasta, desc:&#x27;Spaghetti with Marinara Sauce, and a slice of sourdough bread&#x27; (v) , price:3.89</span></span><br><span class="line"><span class="comment">//   Vegetarian BLT, desc:&#x27; (Fakin’)Bacon with lettuce &amp; tomato on whole wheat&#x27; (v) , price:2.99</span></span><br><span class="line"><span class="comment">//   BLT, desc:&#x27;Bacon with lettuce &amp; tomato on whole wheat&#x27; , price:2.99</span></span><br><span class="line"><span class="comment">//   Soup of the day, desc:&#x27;Soup of the day, with a side of potato salad&#x27; , price:3.29</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// DESSERT MENU, Dessert of course !</span></span><br><span class="line"><span class="comment">// ---------------------</span></span><br><span class="line"><span class="comment">//   Apple Pie, desc:&#x27;Apple pie with a flakey crust, topped with vanilla icecream&#x27; (v) , price:1.59</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// CAFE MENU, Dinner</span></span><br><span class="line"><span class="comment">// ---------------------</span></span><br><span class="line"><span class="comment">//   Veggie Burger and Air Fries, desc:&#x27;Veggie burger on a whole wheat bun, lettuce, tomato, and fries&#x27; (v) , price:3.99</span></span><br><span class="line"><span class="comment">//   Soup of the day, desc:&#x27;A cup of the soup of the day, with a side salad&#x27; , price:3.69</span></span><br><span class="line"><span class="comment">//   Burrito, desc:&#x27;A large burrito, with whole pinto beans, salsa, guacamole&#x27; (v) , price:4.29</span></span><br></pre></td></tr></table></figure>
+
+<p>上面这种 print 用了内部 Iterator 的方法，简单了很多， 那么如何实现一个外部的 Iterator 呢</p>
+<p>我们先为基类添加 createIterator 方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MenuComponent</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">add</span><span class="params">(MenuComponent menuComponent)</span> </span>&#123;<span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException();&#125;</span><br><span class="line">    <span class="comment">// dup...</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Iterator <span class="title">createIterator</span><span class="params">()</span> </span>&#123;<span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException();&#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后声明一个 Composite 的 Iterator 的具体实现类, 并让 Composite 实现类返回它</p>
+<p>CompositeIterator 说明：</p>
+<p>这个 Iterator 说实话不是很容易看懂。我们最好结合下面的 printVegetarianMenu() 方法的使用情况一起来看。由下面的方法调用，我们可以反推出这个 Iterator 实现类的作用。</p>
+<p>每次调用 hasNext() 时，CompositeIterator 会返回一个 MenuCompoment 类型的对象。有可能是 Menu, 也有可能是 MenuItem。</p>
+<p>而且就算返回的是 Menu, 他之后还是会把这个 Menu 的 MenuItem 在下一次返回。由此我们可以推测出，在 next() 反 Menu 之后，还有一个隐式的将 Menu 子节点 push 到 stack 中的动作。</p>
+<p>PS: 这段代码的关键点是，stack 中存储的是 Iterator 对象。当这个对象里面没有值的时候，需要做 pop 操作弹出 it, 这里有点绕</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CompositeIterator</span> <span class="keyword">implements</span> <span class="title">Iterator</span>&lt;<span class="title">MenuComponent</span>&gt; </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Stack&lt;Iterator&lt;MenuComponent&gt;&gt; stack = <span class="keyword">new</span> Stack&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">CompositeIterator</span><span class="params">(Iterator&lt;MenuComponent&gt; it)</span> </span>&#123;</span><br><span class="line">        stack.push(it);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">hasNext</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(stack.empty()) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            Iterator&lt;MenuComponent&gt; it = stack.peek();</span><br><span class="line">            <span class="keyword">if</span> (it.hasNext()) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                stack.pop();</span><br><span class="line">                <span class="keyword">return</span> hasNext();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> MenuComponent <span class="title">next</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (hasNext()) &#123;</span><br><span class="line">            Iterator&lt;MenuComponent&gt; it = stack.peek();</span><br><span class="line">            MenuComponent component = it.next();</span><br><span class="line">            <span class="keyword">if</span> (component <span class="keyword">instanceof</span> Menu) &#123;</span><br><span class="line">                stack.push(component.createIterator());</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> component;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Menu</span> <span class="keyword">extends</span> <span class="title">MenuComponent</span> </span>&#123;</span><br><span class="line">    <span class="comment">// dup...</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Iterator&lt;MenuComponent&gt; <span class="title">createIterator</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> CompositeIterator(nodes.iterator());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>由于叶子节点是不需要迭代的，我们返回一个空的 iterator， 每次调用 hasNext() 都返回 false</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">NullIterator</span> <span class="keyword">implements</span> <span class="title">Iterator</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">hasNext</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">next</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MenuItem</span> <span class="keyword">extends</span> <span class="title">MenuComponent</span> </span>&#123;</span><br><span class="line">    <span class="comment">// dup...</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Iterator <span class="title">createIterator</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> NullIterator();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>测试代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        MenuComponent pancakeHouseMenu = <span class="keyword">new</span> Menu(<span class="string">&quot;PANCAKE HOUSE MENU&quot;</span>, <span class="string">&quot;Breakfast&quot;</span>);</span><br><span class="line">        MenuComponent dinerMenu = <span class="keyword">new</span> Menu(<span class="string">&quot;DINER MENU&quot;</span>, <span class="string">&quot;Lunch&quot;</span>);</span><br><span class="line">        MenuComponent cafeMenu = <span class="keyword">new</span> Menu(<span class="string">&quot;CAFE MENU&quot;</span>, <span class="string">&quot;Dinner&quot;</span>);</span><br><span class="line">        MenuComponent dessertMenu = <span class="keyword">new</span> Menu(<span class="string">&quot;DESSERT MENU&quot;</span>, <span class="string">&quot;Dessert of course !&quot;</span>);</span><br><span class="line"></span><br><span class="line">        MenuComponent allMenus = <span class="keyword">new</span> Menu(<span class="string">&quot;ALL MENUS&quot;</span>, <span class="string">&quot;All menus combined&quot;</span>);</span><br><span class="line">        allMenus.add(pancakeHouseMenu);</span><br><span class="line">        allMenus.add(dinerMenu);</span><br><span class="line">        allMenus.add(cafeMenu);</span><br><span class="line"></span><br><span class="line">        pancakeHouseMenu.add(<span class="keyword">new</span> MenuItem(<span class="string">&quot;K &amp; B’s Pancake Breakfast&quot;</span>, <span class="string">&quot;Pancakes with scrambled eggs, and toast&quot;</span>, <span class="keyword">true</span>, <span class="number">2.99</span>));</span><br><span class="line">        pancakeHouseMenu.add(<span class="keyword">new</span> MenuItem(<span class="string">&quot;Regular Pancake Breakfast&quot;</span>, <span class="string">&quot;Pancakes with fried eggs, sausage&quot;</span>, <span class="keyword">false</span>, <span class="number">2.99</span>));</span><br><span class="line">        pancakeHouseMenu.add(<span class="keyword">new</span> MenuItem(<span class="string">&quot;Blueberry Pancakes&quot;</span>, <span class="string">&quot;Pancakes made with fresh blueberries&quot;</span>, <span class="keyword">true</span>, <span class="number">3.49</span>));</span><br><span class="line">        pancakeHouseMenu.add(<span class="keyword">new</span> MenuItem(<span class="string">&quot;Waffles&quot;</span>, <span class="string">&quot;Waffles, with your choice of blueberries or strawberries&quot;</span>, <span class="keyword">true</span>, <span class="number">3.59</span>));</span><br><span class="line"></span><br><span class="line">        dinerMenu.add(<span class="keyword">new</span> MenuItem(<span class="string">&quot;Pasta&quot;</span>, <span class="string">&quot;Spaghetti with Marinara Sauce, and a slice of sourdough bread&quot;</span>, <span class="keyword">true</span>, <span class="number">3.89</span>));</span><br><span class="line">        dinerMenu.add(<span class="keyword">new</span> MenuItem(<span class="string">&quot;Vegetarian BLT&quot;</span>, <span class="string">&quot; (Fakin’)Bacon with lettuce &amp; tomato on whole wheat&quot;</span>, <span class="keyword">true</span>, <span class="number">2.99</span>));</span><br><span class="line">        dinerMenu.add(<span class="keyword">new</span> MenuItem(<span class="string">&quot;BLT&quot;</span>, <span class="string">&quot;Bacon with lettuce &amp; tomato on whole wheat&quot;</span>, <span class="keyword">false</span>, <span class="number">2.99</span>));</span><br><span class="line">        dinerMenu.add(<span class="keyword">new</span> MenuItem(<span class="string">&quot;Soup of the day&quot;</span>, <span class="string">&quot;Soup of the day, with a side of potato salad&quot;</span>, <span class="keyword">false</span>, <span class="number">3.29</span>));</span><br><span class="line"></span><br><span class="line">        dinerMenu.add(dessertMenu);</span><br><span class="line">        dessertMenu.add(<span class="keyword">new</span> MenuItem(<span class="string">&quot;Apple Pie&quot;</span>, <span class="string">&quot;Apple pie with a flakey crust, topped with vanilla icecream&quot;</span>, <span class="keyword">true</span>, <span class="number">1.59</span>));</span><br><span class="line"></span><br><span class="line">        cafeMenu.add(<span class="keyword">new</span> MenuItem(<span class="string">&quot;Veggie Burger and Air Fries&quot;</span>, <span class="string">&quot;Veggie burger on a whole wheat bun, lettuce, tomato, and fries&quot;</span>, <span class="keyword">true</span>, <span class="number">3.99</span>));</span><br><span class="line">        cafeMenu.add(<span class="keyword">new</span> MenuItem(<span class="string">&quot;Soup of the day&quot;</span>, <span class="string">&quot;A cup of the soup of the day, with a side salad&quot;</span>, <span class="keyword">false</span>, <span class="number">3.69</span>));</span><br><span class="line">        cafeMenu.add(<span class="keyword">new</span> MenuItem(<span class="string">&quot;Burrito&quot;</span>, <span class="string">&quot;A large burrito, with whole pinto beans, salsa, guacamole&quot;</span>, <span class="keyword">true</span>, <span class="number">4.29</span>));</span><br><span class="line"></span><br><span class="line">        Iterator&lt;MenuComponent&gt; it = allMenus.createIterator();</span><br><span class="line">        printVegetarianMenu(it);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">printVegetarianMenu</span><span class="params">(Iterator&lt;MenuComponent&gt; it)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Vegetarian Menu\n----------&quot;</span>);</span><br><span class="line">        <span class="keyword">while</span> (it.hasNext()) &#123;</span><br><span class="line">            MenuComponent menuComponent = it.next();</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="keyword">if</span> (menuComponent.isVegetarian()) &#123;</span><br><span class="line">                    menuComponent.print();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">catch</span> (UnsupportedOperationException ignored) &#123;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// Vegetarian Menu</span></span><br><span class="line"><span class="comment">// ----------</span></span><br><span class="line"><span class="comment">//   K &amp; B’s Pancake Breakfast, desc:&#x27;Pancakes with scrambled eggs, and toast&#x27; (v) , price:2.99</span></span><br><span class="line"><span class="comment">//   Blueberry Pancakes, desc:&#x27;Pancakes made with fresh blueberries&#x27; (v) , price:3.49</span></span><br><span class="line"><span class="comment">//   Waffles, desc:&#x27;Waffles, with your choice of blueberries or strawberries&#x27; (v) , price:3.59</span></span><br><span class="line"><span class="comment">//   Pasta, desc:&#x27;Spaghetti with Marinara Sauce, and a slice of sourdough bread&#x27; (v) , price:3.89</span></span><br><span class="line"><span class="comment">//   Vegetarian BLT, desc:&#x27; (Fakin’)Bacon with lettuce &amp; tomato on whole wheat&#x27; (v) , price:2.99</span></span><br><span class="line"><span class="comment">//   Apple Pie, desc:&#x27;Apple pie with a flakey crust, topped with vanilla icecream&#x27; (v) , price:1.59</span></span><br><span class="line"><span class="comment">//   Apple Pie, desc:&#x27;Apple pie with a flakey crust, topped with vanilla icecream&#x27; (v) , price:1.59</span></span><br><span class="line"><span class="comment">//   Veggie Burger and Air Fries, desc:&#x27;Veggie burger on a whole wheat bun, lettuce, tomato, and fries&#x27; (v) , price:3.99</span></span><br><span class="line"><span class="comment">//   Burrito, desc:&#x27;A large burrito, with whole pinto beans, salsa, guacamole&#x27; (v) , price:4.29</span></span><br></pre></td></tr></table></figure>
+
+<p>上面用的是外部 Iterator 的方式，需要自己控制当前节点位置，所以实现上比内部的那种要复杂很多。</p>
+<h2 id="UML"><a href="#UML" class="headerlink" title="UML"></a>UML</h2><p>图示说明：</p>
+<ul>
+<li>client 到 Component 为 实线 + 普通箭头，表示含有</li>
+<li>leaf, composite 到 Component 为 实线 + 空心箭头，表示实现接口</li>
+<li>Composite 到 Component 为 实线 + 普通箭头，表示 1 对 n 的对应关系</li>
+</ul>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">                           +----------------+                                                                                                       </span><br><span class="line">+---------+                |   Component    | 1..n                                                                                                  </span><br><span class="line">| Client  |--------------&gt; |----------------|&lt;--------                                                                                              </span><br><span class="line">+---------+                | + operation()  |        |                                                                                              </span><br><span class="line">                           | + add(child)   |        |                                                                                              </span><br><span class="line">                           | + remve(child) |        |                                                                                              </span><br><span class="line">                           | + getChild()   |        |                                                                                              </span><br><span class="line">                           +----------------+        |                                                                                              </span><br><span class="line">                                    ^                |                                                                                              </span><br><span class="line">             ---------------------- |                |                                                                                              </span><br><span class="line">            |                       |                |                                                                                              </span><br><span class="line">            |                       |                |                                                                                              </span><br><span class="line">    +---------------+       +----------------+       |                                                                                              </span><br><span class="line">    |   Leaf        |       |   Composite    |       |                                                                                              </span><br><span class="line">    |---------------|       |----------------|&lt;&gt;-----|                                                                                              </span><br><span class="line">    | +operation()  |       | + operation()  |                                                                                                      </span><br><span class="line">    +---------------+       | + add(child)   |                                                                                                      </span><br><span class="line">                            | + remve(child) |                                                                                                      </span><br><span class="line">                            | + getChild()   |                                                                                                      </span><br><span class="line">                            +----------------+                                                                                                                                                               </span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/04/16/Design-pattern-iterator/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/04/16/Design-pattern-iterator/" class="post-title-link" itemprop="url">迭代器模式</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-04-16 17:39:36" itemprop="dateCreated datePublished" datetime="2021-04-16T17:39:36+08:00">2021-04-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index">
+                    <span itemprop="name">设计模式</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>11k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>10 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p><strong>The Iterator Pattern</strong> provides a way to access the elements of an aggregate object sequentially without exposing its underlying representation.<br>迭代器模式可以让我们在不需要知道一个集合的具体实现的情况下，依次访问集合中的各个元素</p>
+</blockquote>
+<p>it also places the task of traveral(遍历) on the iterator object, not on the aggregate, which simplifies the aggregate interface and implementation, and places the responsibility where it should be.</p>
+<blockquote>
+<p><strong>Design Principle:</strong> A class should have only one reason to change</p>
+</blockquote>
+<h2 id="UML"><a href="#UML" class="headerlink" title="UML"></a>UML</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">@startuml</span><br><span class="line">skinparam linetype ortho</span><br><span class="line"></span><br><span class="line">Interface Aggregate &#123;</span><br><span class="line">    +Iterator createIterator()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Interface Iterator &#123;</span><br><span class="line">    +Object next()</span><br><span class="line">    +boolean hasNext()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class ConcreateAgg implements Aggregate &#123;</span><br><span class="line">    +Iterator createIterator()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class ConcreateIter implements Iterator &#123;</span><br><span class="line">    +Object next()</span><br><span class="line">    +boolean hasNext()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class Client</span><br><span class="line"></span><br><span class="line">Aggregate -&gt; Client</span><br><span class="line">Client -&gt; Iterator</span><br><span class="line">ConcreateAgg -&gt; ConcreateIter</span><br><span class="line">@enduml</span><br></pre></td></tr></table></figure>
+
+<img  src=http://www.plantuml.com/plantuml/svg/fOzB3i8m34JN-1HUWYgkW42ike4pk95f0_bKZYk147SdKLKex13PH7cU6K-sIKbqy0xInOQUX3mw6rXlFMCKxI907PJbH8PnrxR2BIdZ7HPLdJ5f53J2cKtFvGeUSzDBLZp7vin6CV1LimxpgPeO7LF0Zj9XnDbk7AM4-nZ6xBmOhUyTUmwQVkdn5LI6ywH_oZcR8m3UPTQR2OvN0TC2-FXBKSuhFG40>
+
+<p>ASCII 版本图示:</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">+------------------+                              +--------------------+                                                                             </span><br><span class="line">|  &lt;&lt;interface&gt;&gt;   |         +-----------+        |   &lt;&lt;interface&gt;&gt;    |                                                                             </span><br><span class="line">|    Aggregate     |&lt;--------|  Client   |------&gt; |      Iterator      |                                                                             </span><br><span class="line">|------------------|         |           |        |--------------------|                                                                             </span><br><span class="line">| createIterator() |         +-----------+        | hasNext()          |                                                                             </span><br><span class="line">|                  |                              | next()             |                                                                             </span><br><span class="line">+------------------+                              | remove()           |                                                                             </span><br><span class="line">        ^                                         +--------------------+                                                                             </span><br><span class="line">        |                                                     ^                                                                                      </span><br><span class="line">        |                                                     |                                                                                      </span><br><span class="line">        |                                                     |                                                                                      </span><br><span class="line">        |                                                     |                                                                                      </span><br><span class="line">+--------------------+                            +--------------------+                                                                             </span><br><span class="line">| ConcreateAggregate |---------------------------&gt;| ConcreateIterator  |                                                                             </span><br><span class="line">|--------------------|                            |--------------------|                                                                             </span><br><span class="line">| createIterator()   |                            | hasNext()          |                                                                             </span><br><span class="line">|                    |                            | next()             |                                                                             </span><br><span class="line">+--------------------+                            | remove()           |                                                                             </span><br><span class="line">                                                  +--------------------+                                                                             </span><br></pre></td></tr></table></figure>
+
+<h2 id="缘起"><a href="#缘起" class="headerlink" title="缘起"></a>缘起</h2><p>现在你是餐饮部的大老板了，上周你刚收购了两家餐厅，现在你要整合他们的业务，将他们的菜单合并以统一的用户体验，所幸，他们的底层菜品条目是一致的</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MenuItem</span> </span>&#123;</span><br><span class="line">    String name;</span><br><span class="line">    String description;</span><br><span class="line">    <span class="keyword">boolean</span> vegetarian;</span><br><span class="line">    <span class="keyword">double</span> price;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MenuItem</span><span class="params">(String name, String description, <span class="keyword">boolean</span> vegetarian, <span class="keyword">double</span> price)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">        <span class="keyword">this</span>.description = description;</span><br><span class="line">        <span class="keyword">this</span>.vegetarian = vegetarian;</span><br><span class="line">        <span class="keyword">this</span>.price = price;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// getter and setter</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> name + <span class="string">&quot;, desc:&#x27;&quot;</span> + description + <span class="string">&#x27;\&#x27;&#x27;</span> +  <span class="string">&quot;, vegetarian:&quot;</span> + vegetarian + <span class="string">&quot;, price:&quot;</span> + price;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>两家店铺的菜单实现代码如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 煎饼电，通过 List 来存储菜单</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PancakeHouseMenu</span> </span>&#123;</span><br><span class="line">    ArrayList&lt;MenuItem&gt; menuItems;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">PancakeHouseMenu</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        menuItems = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        addItem(<span class="string">&quot;K &amp; B’s Pancake Breakfast&quot;</span>, <span class="string">&quot;Pancakes with scrambled eggs, and toast&quot;</span>, <span class="keyword">true</span>, <span class="number">2.99</span>);</span><br><span class="line">        addItem(<span class="string">&quot;Regular Pancake Breakfast&quot;</span>, <span class="string">&quot;Pancakes with fried eggs, sausage&quot;</span>, <span class="keyword">false</span>, <span class="number">2.99</span>);</span><br><span class="line">        addItem(<span class="string">&quot;Blueberry Pancakes&quot;</span>, <span class="string">&quot;Pancakes made with fresh blueberries&quot;</span>, <span class="keyword">true</span>, <span class="number">3.49</span>);</span><br><span class="line">        addItem(<span class="string">&quot;Waffles&quot;</span>, <span class="string">&quot;Waffles, with your choice of blueberries or strawberries&quot;</span>, <span class="keyword">true</span>, <span class="number">3.59</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addItem</span><span class="params">(String name, String description, <span class="keyword">boolean</span> vegetarian, <span class="keyword">double</span> price)</span> </span>&#123;</span><br><span class="line">        MenuItem menuItem = <span class="keyword">new</span> MenuItem(name, description, vegetarian, price);</span><br><span class="line">        menuItems.add(menuItem);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> ArrayList&lt;MenuItem&gt; <span class="title">getMenuItems</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> menuItems;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 小吃店，通过 Array 存储菜单</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DinerMenu</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">int</span> MAX_ITEMS = <span class="number">6</span>;</span><br><span class="line">    <span class="keyword">int</span> numberOfItems = <span class="number">0</span>;</span><br><span class="line">    MenuItem[] menuItems;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DinerMenu</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        menuItems = <span class="keyword">new</span> MenuItem[MAX_ITEMS];</span><br><span class="line">        addItem(<span class="string">&quot;Vegetarian BLT&quot;</span>, <span class="string">&quot; (Fakin’)Bacon with lettuce &amp; tomato on whole wheat&quot;</span>, <span class="keyword">true</span>, <span class="number">2.99</span>);</span><br><span class="line">        addItem(<span class="string">&quot;BLT&quot;</span>, <span class="string">&quot;Bacon with lettuce &amp; tomato on whole wheat&quot;</span>, <span class="keyword">false</span>, <span class="number">2.99</span>);</span><br><span class="line">        addItem(<span class="string">&quot;Soup of the day&quot;</span>, <span class="string">&quot;Soup of the day, with a side of potato salad&quot;</span>, <span class="keyword">false</span>, <span class="number">3.29</span>);</span><br><span class="line">        addItem(<span class="string">&quot;Hotdog&quot;</span>, <span class="string">&quot;A hot dog, with saurkraut, relish, onions, topped with cheese&quot;</span>, <span class="keyword">false</span>, <span class="number">3.05</span>);</span><br><span class="line">        addItem(<span class="string">&quot;Steamed Veggies and Brown Rice&quot;</span>, <span class="string">&quot;Steamed vegetables over brown rice&quot;</span>, <span class="keyword">false</span>, <span class="number">3.99</span>);</span><br><span class="line">        addItem(<span class="string">&quot;Pasta&quot;</span>, <span class="string">&quot;Spaghetti with Marinara Sauce, and a slice of sourdough bread&quot;</span>, <span class="keyword">false</span>, <span class="number">3.89</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addItem</span><span class="params">(String name, String description, <span class="keyword">boolean</span> vegetarian, <span class="keyword">double</span> price)</span> </span>&#123;</span><br><span class="line">        MenuItem menuItem = <span class="keyword">new</span> MenuItem(name, description, vegetarian, price);</span><br><span class="line">        <span class="keyword">if</span> (numberOfItems &gt;= MAX_ITEMS) &#123;</span><br><span class="line">            System.err.println(<span class="string">&quot;Sorry, menu is full !Can’t add item to menu&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            menuItems[numberOfItems] = menuItem;</span><br><span class="line">            numberOfItems = numberOfItems + <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> MenuItem[] getMenuItems() &#123;</span><br><span class="line">        <span class="keyword">return</span> menuItems;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在没有做重构的情况下，每当你想要打印所有的菜单，你就得用两个循环，分别 loop 一下这两家店的菜单, 并且更糟糕的是，下次你再收购店面，你就必须再改一次这部分代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LoopMenu</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        MenuItem[] dinerMenu = <span class="keyword">new</span> DinerMenu().getMenuItems();</span><br><span class="line">        <span class="keyword">for</span> (MenuItem menu : dinerMenu) &#123;</span><br><span class="line">            System.out.println(menu);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        List&lt;MenuItem&gt; menuItemList = <span class="keyword">new</span> PancakeHouseMenu().getMenuItems();</span><br><span class="line">        <span class="keyword">for</span> (MenuItem menuItem : menuItemList) &#123;</span><br><span class="line">            System.out.println(menuItem);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>为了解决这个问题，我们新建一个 Iterator 接口来解决这个问题</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Iterator</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">hasNext</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="function">Object <span class="title">next</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>为小吃店新建一个 Iterator 实现并在小吃点的菜单中添加返回 Iterator 的方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DinerMenuIterator</span> <span class="keyword">implements</span> <span class="title">Iterator</span> </span>&#123;</span><br><span class="line">    MenuItem[] items;</span><br><span class="line">    <span class="keyword">int</span> position = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DinerMenuIterator</span><span class="params">(MenuItem[] items)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.items = items;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">hasNext</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// position 这里不用做 +1 处理，拿长度为 1 的 arr 做例子。初始化后，调用 hasNext()，0 &lt; 1 &amp;&amp; obj != null 返回 true</span></span><br><span class="line">        <span class="keyword">return</span> position &lt; items.length &amp;&amp; items[position] != <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">next</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        MenuItem item = items[position];</span><br><span class="line">        position++;</span><br><span class="line">        <span class="keyword">return</span> item;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DinerMenu</span> </span>&#123;</span><br><span class="line">    <span class="comment">// duplicated before</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Iterator <span class="title">createIterator</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> DinerMenuIterator(menuItems);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对煎饼摊做同样的操作</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PancakeHouseMenuIterator</span> <span class="keyword">implements</span> <span class="title">Iterator</span> </span>&#123;</span><br><span class="line">    List&lt;MenuItem&gt; menuItemList;</span><br><span class="line">    <span class="keyword">int</span> position = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">PancakeHouseMenuIterator</span><span class="params">(List&lt;MenuItem&gt; menuItemList)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.menuItemList = menuItemList;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">hasNext</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> position &lt; menuItemList.size();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">next</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        MenuItem item = menuItemList.get(position);</span><br><span class="line">        position++;</span><br><span class="line">        <span class="keyword">return</span> item;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PancakeHouseMenu</span> </span>&#123;</span><br><span class="line">    <span class="comment">// duplicated before</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Iterator <span class="title">createIterator</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> PancakeHouseMenuIterator(menuItems);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>客户端的代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">IteratorClient</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Iterator it1 = <span class="keyword">new</span> PancakeHouseMenu().createIterator();</span><br><span class="line">        Iterator it2 = <span class="keyword">new</span> DinerMenu().createIterator();</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;MENU\n----\nBREAKFAST&quot;</span>);</span><br><span class="line">        printMenu(it1);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;\nLUNCH&quot;</span>);</span><br><span class="line">        printMenu(it2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">printMenu</span><span class="params">(Iterator it)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">while</span> (it.hasNext()) &#123;</span><br><span class="line">            System.out.println(it.next());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// MENU</span></span><br><span class="line"><span class="comment">// ----</span></span><br><span class="line"><span class="comment">// BREAKFAST</span></span><br><span class="line"><span class="comment">// K &amp; B’s Pancake Breakfast, 2.99 -- Pancakes with scrambled eggs, and toast</span></span><br><span class="line"><span class="comment">// Regular Pancake Breakfast, 2.99 -- Pancakes with fried eggs, sausage</span></span><br><span class="line"><span class="comment">// Blueberry Pancakes, 3.49 -- Pancakes made with fresh blueberries</span></span><br><span class="line"><span class="comment">// Waffles, 3.59 -- Waffles, with your choice of blueberries or strawberries</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// LUNCH</span></span><br><span class="line"><span class="comment">// Vegetarian BLT, 2.99 --  (Fakin’)Bacon with lettuce &amp; tomato on whole wheat</span></span><br><span class="line"><span class="comment">// BLT, 2.99 -- Bacon with lettuce &amp; tomato on whole wheat</span></span><br><span class="line"><span class="comment">// Soup of the day, 3.29 -- Soup of the day, with a side of potato salad</span></span><br><span class="line"><span class="comment">// Hotdog, 3.05 -- A hot dog, with saurkraut, relish, onions, topped with cheese</span></span><br><span class="line"><span class="comment">// Steamed Veggies and Brown Rice, 3.99 -- Steamed vegetables over brown rice</span></span><br><span class="line"><span class="comment">// Pasta, 3.89 -- Spaghetti with Marinara Sauce, and a slice of sourdough bread</span></span><br></pre></td></tr></table></figure>
+
+<p>其实 Java util 包下有自己的 Iterator 实现，集合类是这个设计模式的重度使用者，下面我们用官方实现替换我们自己的实现。</p>
+<p>代码会更简单，除了在各 class 文件中引入的引用外，PancakeHouseMenuIterator 可以删除， 在 PancakeHouseMenu 的 createIterator() 直接返回 List.iterator() 即可。</p>
+<p>为了让实现更精简，我们还可以抽象出一个 Menu 类作为基类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Menu</span> </span>&#123;</span><br><span class="line">    <span class="function">Iterator&lt;MenuItem&gt; <span class="title">createIterator</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后两个 Menu 实体类实现这个接口</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DinerMenu</span> <span class="keyword">implements</span> <span class="title">Menu</span> </span>&#123;</span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PancakeHouseMenu</span> <span class="keyword">implements</span> <span class="title">Menu</span></span>&#123;</span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>客户端中通过 Menu 基类访问</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">IteratorClient</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Menu menu1 = <span class="keyword">new</span> PancakeHouseMenu();</span><br><span class="line">        Menu menu2 = <span class="keyword">new</span> DinerMenu();</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;MENU\n----\nBREAKFAST&quot;</span>);</span><br><span class="line">        printMenu(menu1);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;\nLUNCH&quot;</span>);</span><br><span class="line">        printMenu(menu2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">printMenu</span><span class="params">(Menu menu)</span> </span>&#123;</span><br><span class="line">        Iterator&lt;MenuItem&gt; it = menu.createIterator();</span><br><span class="line">        <span class="keyword">while</span> (it.hasNext()) &#123;</span><br><span class="line">            System.out.println(it.next());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样最大的好处是，客户端只和接口做交互，不需要关心具体实现，这就是传说中的 面向接口编程</p>
+<p>时隔半个月，你又收购了一家咖啡店，是时候测试一下你的策略是否好使了。咖啡店菜单如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CafeMenu</span> </span>&#123;</span><br><span class="line">    Hashtable menuItems = <span class="keyword">new</span> Hashtable();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">CafeMenu</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        addItem(<span class="string">&quot;Veggie Burger and Air Fries&quot;</span>, <span class="string">&quot;Veggie burger on a whole wheat bun, lettuce, tomato, and fries&quot;</span>, <span class="keyword">true</span>, <span class="number">3.99</span>);</span><br><span class="line">        addItem(<span class="string">&quot;Soup of the day&quot;</span>, <span class="string">&quot;A cup of the soup of the day, with a side salad&quot;</span>, <span class="keyword">false</span>, <span class="number">3.69</span>);</span><br><span class="line">        addItem(<span class="string">&quot;Burrito&quot;</span>, <span class="string">&quot;A large burrito, with whole pinto beans, salsa, guacamole&quot;</span>, <span class="keyword">true</span>, <span class="number">4.29</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addItem</span><span class="params">(String name, String description, <span class="keyword">boolean</span> vegetarian, <span class="keyword">double</span> price)</span> </span>&#123;</span><br><span class="line">        MenuItem menuItem = <span class="keyword">new</span> MenuItem(name, description, vegetarian, price);</span><br><span class="line">        menuItems.put(menuItem.getName(), menuItem);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Hashtable <span class="title">getItems</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> menuItems;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们按照之前的重构方案，让他实现 Menu 接口并提对应的方法实现</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CafeMenu</span> <span class="keyword">implements</span> <span class="title">Menu</span></span>&#123;</span><br><span class="line">    Hashtable&lt;String, MenuItem&gt; menuItems = <span class="keyword">new</span> Hashtable&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">CafeMenu</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        addItem(<span class="string">&quot;Veggie Burger and Air Fries&quot;</span>, <span class="string">&quot;Veggie burger on a whole wheat bun, lettuce, tomato, and fries&quot;</span>, <span class="keyword">true</span>, <span class="number">3.99</span>);</span><br><span class="line">        addItem(<span class="string">&quot;Soup of the day&quot;</span>, <span class="string">&quot;A cup of the soup of the day, with a side salad&quot;</span>, <span class="keyword">false</span>, <span class="number">3.69</span>);</span><br><span class="line">        addItem(<span class="string">&quot;Burrito&quot;</span>, <span class="string">&quot;A large burrito, with whole pinto beans, salsa, guacamole&quot;</span>, <span class="keyword">true</span>, <span class="number">4.29</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addItem</span><span class="params">(String name, String description, <span class="keyword">boolean</span> vegetarian, <span class="keyword">double</span> price)</span> </span>&#123;</span><br><span class="line">        MenuItem menuItem = <span class="keyword">new</span> MenuItem(name, description, vegetarian, price);</span><br><span class="line">        menuItems.put(menuItem.getName(), menuItem);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Hashtable&lt;String, MenuItem&gt; <span class="title">getItems</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> menuItems;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Iterator&lt;MenuItem&gt; <span class="title">createIterator</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> menuItems.values().iterator();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后在 IteratorClient 中添加对应的调用</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">IteratorClient</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Menu menu1 = <span class="keyword">new</span> PancakeHouseMenu();</span><br><span class="line">        Menu menu2 = <span class="keyword">new</span> DinerMenu();</span><br><span class="line">        Menu menu3 = <span class="keyword">new</span> CafeMenu();</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;MENU\n----\nBREAKFAST&quot;</span>);</span><br><span class="line">        printMenu(menu1);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;\nLUNCH&quot;</span>);</span><br><span class="line">        printMenu(menu2);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;\n DRINK&quot;</span>);</span><br><span class="line">        printMenu(menu3);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">printMenu</span><span class="params">(Menu menu)</span> </span>&#123;</span><br><span class="line">        Iterator&lt;MenuItem&gt; it = menu.createIterator();</span><br><span class="line">        <span class="keyword">while</span> (it.hasNext()) &#123;</span><br><span class="line">            System.out.println(it.next());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// MENU</span></span><br><span class="line"><span class="comment">// ----</span></span><br><span class="line"><span class="comment">// BREAKFAST</span></span><br><span class="line"><span class="comment">// K &amp; B’s Pancake Breakfast, 2.99 -- Pancakes with scrambled eggs, and toast</span></span><br><span class="line"><span class="comment">// Regular Pancake Breakfast, 2.99 -- Pancakes with fried eggs, sausage</span></span><br><span class="line"><span class="comment">// Blueberry Pancakes, 3.49 -- Pancakes made with fresh blueberries</span></span><br><span class="line"><span class="comment">// Waffles, 3.59 -- Waffles, with your choice of blueberries or strawberries</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// LUNCH</span></span><br><span class="line"><span class="comment">// Vegetarian BLT, 2.99 --  (Fakin’)Bacon with lettuce &amp; tomato on whole wheat</span></span><br><span class="line"><span class="comment">// BLT, 2.99 -- Bacon with lettuce &amp; tomato on whole wheat</span></span><br><span class="line"><span class="comment">// Soup of the day, 3.29 -- Soup of the day, with a side of potato salad</span></span><br><span class="line"><span class="comment">// Hotdog, 3.05 -- A hot dog, with saurkraut, relish, onions, topped with cheese</span></span><br><span class="line"><span class="comment">// Steamed Veggies and Brown Rice, 3.99 -- Steamed vegetables over brown rice</span></span><br><span class="line"><span class="comment">// Pasta, 3.89 -- Spaghetti with Marinara Sauce, and a slice of sourdough bread</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//  DRINK</span></span><br><span class="line"><span class="comment">// Soup of the day, 3.69 -- A cup of the soup of the day, with a side salad</span></span><br><span class="line"><span class="comment">// Burrito, 4.29 -- A large burrito, with whole pinto beans, salsa, guacamole</span></span><br></pre></td></tr></table></figure>
+
+<p>一切和预期的一样 ╮(￣▽￣””)╭</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/04/15/Docker-quick-start/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +704,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -642,7 +1109,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -764,7 +1231,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -907,7 +1374,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1045,7 +1512,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1165,7 +1632,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
+                <time title="修改时间：2021-08-02 20:17:17" itemprop="dateModified" datetime="2021-08-02T20:17:17+08:00">2021-08-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1267,445 +1734,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/03/26/Interview-concurrency/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/03/26/Interview-concurrency/" class="post-title-link" itemprop="url">Java 面试之多线程</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-03-26 16:23:12" itemprop="dateCreated datePublished" datetime="2021-03-26T16:23:12+08:00">2021-03-26</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E9%9D%A2%E8%AF%95%E9%A2%98/" itemprop="url" rel="index">
-                    <span itemprop="name">面试题</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>5.9k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>5 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>备忘一下多线程相关的面试题</p>
-<h2 id="Java-如何开启线程，怎么保证线程安全"><a href="#Java-如何开启线程，怎么保证线程安全" class="headerlink" title="Java 如何开启线程，怎么保证线程安全"></a>Java 如何开启线程，怎么保证线程安全</h2><p>进程是操作系统分配<strong>资源</strong>的最小系统，线程是系统进行分配<strong>任务</strong>的最小单元，线程隶属于进程。</p>
-<p>如何开启：</p>
-<ol>
-<li>继承 Thread, 重写 run 方法</li>
-<li>实现 Runable 接口，实现 run 方法</li>
-<li>实现 Callable 接口，实现 call 方法。通过 FeatureTask 创建一个线程，获取线程执行返回结果</li>
-<li>通过线程池开启线程</li>
-</ol>
-<p>3，4 有对应的只是储备可以延伸一下，不然就别提了, 这两个都是在 concurrent 包下的，等学习那个包的时候再看</p>
-<p>为什么要有以上两种方式：Java 采用单继承，多实现的设计模式</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// extends class 实现</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ThreadDemo</span> <span class="keyword">extends</span> <span class="title">Thread</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">1000</span>; i++) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;ThreadDemo print count: &quot;</span> + i)</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ThreadDemo threadDemo1 = <span class="keyword">new</span> ThreadDemo();</span><br><span class="line">        ThreadDemo threadDemo2 = <span class="keyword">new</span> ThreadDemo();</span><br><span class="line">        ThreadDemo threadDemo3 = <span class="keyword">new</span> ThreadDemo();</span><br><span class="line">        threadDemo1.start();</span><br><span class="line">        threadDemo2.start();</span><br><span class="line">        threadDemo3.start();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 也可以用 lambda 简写, 但是 lambda 的形式是不能复用的，一次性产品</span></span><br><span class="line"><span class="keyword">new</span> Thread(() -&gt; System.out.println(<span class="string">&quot;ThreadDemo print count: &quot;</span> + i)).start();</span><br><span class="line"></span><br><span class="line"><span class="comment">// implement class 实现</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RunnableDemo</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">1000</span>; i++) &#123;</span><br><span class="line">            System.out.println(Thread.currentThread().getName() + <span class="string">&quot; - RunnableDemo count: &quot;</span> + i);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        RunnableDemo runnableDemo = <span class="keyword">new</span> RunnableDemo();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">new</span> Thread(runnableDemo, <span class="string">&quot;1&quot;</span>).start();</span><br><span class="line">        <span class="keyword">new</span> Thread(runnableDemo, <span class="string">&quot;2&quot;</span>).start();</span><br><span class="line">        <span class="keyword">new</span> Thread(runnableDemo, <span class="string">&quot;3&quot;</span>).start();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>怎么保证线程安全：加锁</p>
-<ol>
-<li>JVM 锁， Synchronized</li>
-<li>JDK 锁， Lock</li>
-</ol>
-<h2 id="Volatile-和-Synchronized-有什么区别？-Volatile-能不能保证线程安全？-DCL-Double-Check-Lock-单例为什么要加-Volatile"><a href="#Volatile-和-Synchronized-有什么区别？-Volatile-能不能保证线程安全？-DCL-Double-Check-Lock-单例为什么要加-Volatile" class="headerlink" title="Volatile 和 Synchronized 有什么区别？ Volatile 能不能保证线程安全？ DCL(Double Check Lock) 单例为什么要加 Volatile?"></a>Volatile 和 Synchronized 有什么区别？ Volatile 能不能保证线程安全？ DCL(Double Check Lock) 单例为什么要加 Volatile?</h2><p>Syncronized 用于加锁。Volatile 只保持变量的线程可见性，通常用于一个线程写，多个线程读取的情况</p>
-<p>Volatile 不能保证线程安全，只保证可见行，不保证原子性</p>
-<p>示例：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">VolatileDemo</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="comment">/**volatile**/</span> <span class="keyword">boolean</span> flag = <span class="keyword">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">            <span class="keyword">while</span> (flag) &#123;</span><br><span class="line">            &#125;</span><br><span class="line">            System.out.println(<span class="string">&quot;-------- End Thread --------&quot;</span>);</span><br><span class="line">        &#125;).start();</span><br><span class="line"></span><br><span class="line">        Thread.sleep(<span class="number">100</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;-------- Set flag to false --------&quot;</span>);</span><br><span class="line">        flag = <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 当注释掉 volatile 时，终端只输出 set flag 提示并挂起</span></span><br><span class="line"><span class="comment">// -------- Set flag to false --------</span></span><br><span class="line"><span class="comment">// 当使用 volatile 时，程序正常结束</span></span><br><span class="line"><span class="comment">// -------- Set flag to false --------</span></span><br><span class="line"><span class="comment">// -------- End Thread --------</span></span><br></pre></td></tr></table></figure>
-
-<p>TODO: 补一张主/从内存 copy 图</p>
-<p>DCL(Double Check Lock) 单例为什么要加 Volatile：防止指令重排，防止高并发下指令重拍导致的线程安全问题。</p>
-<p>DCL 示例：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* 懒汉式 DCL, 懒加载, 只在要用到的时候实例化</span></span><br><span class="line"><span class="comment">**/</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SingleDemo</span> </span>&#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">    * 一定要加 volatile 不然并不安全, 第一次写的时候还错了。 https://www.jianshu.com/p/246e8f72dc9a 解释的挺清楚,</span></span><br><span class="line"><span class="comment">    * 简而言之，不加的话会有指令重排的可能。</span></span><br><span class="line"><span class="comment">    * singleDemo = new SingleDemo(); 为代码层面可以分为三步，分配空间，构建实例，实例赋值。重排之后实例赋值可能要比构建实例先执行，</span></span><br><span class="line"><span class="comment">    * 那么其他线程在判断 null == singleDemo 时就会判断为 true, 但是后续对该实例地址上对象操作时可能由于实例还没有构建完成而出现异常</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="keyword">static</span> SingleDemo singleDemo; </span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">SingleDemo</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> SingleDemo <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> == singleDemo) &#123;</span><br><span class="line">            <span class="keyword">synchronized</span> (SingleDemo.class) &#123;</span><br><span class="line">                <span class="keyword">if</span> (<span class="keyword">null</span> == singleDemo) &#123;</span><br><span class="line">                    singleDemo = <span class="keyword">new</span> SingleDemo();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> singleDemo;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* 饿汉式 DCL, 类加载即实例化</span></span><br><span class="line"><span class="comment">**/</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Single single = <span class="keyword">new</span> Single();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 私有化构造函数</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Singleton</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Single <span class="title">getSingle</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> single;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>TODO: 补图</p>
-<h2 id="Java-线程锁机制是什么怎么样的？偏向锁，轻量级锁，重量级锁有什么区别，锁机制如何升级"><a href="#Java-线程锁机制是什么怎么样的？偏向锁，轻量级锁，重量级锁有什么区别，锁机制如何升级" class="headerlink" title="Java 线程锁机制是什么怎么样的？偏向锁，轻量级锁，重量级锁有什么区别，锁机制如何升级"></a>Java 线程锁机制是什么怎么样的？偏向锁，轻量级锁，重量级锁有什么区别，锁机制如何升级</h2><p>和视频给的结果不一样，视频中，只有 markword 不一样，体现出这个标志位表示了锁状态，表示很清楚问什么，难道是平台问题，回去后用 Windows 试一下</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- https://mvnrepository.com/artifact/org.openjdk.jol/jol-core --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.openjdk.jol<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>jol-core<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>0.14<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- 可以打印出 Java 对象在内存中的分布情况 --&gt;</span></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.openjdk.jol.info.ClassLayout;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JolDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Object o = <span class="keyword">new</span> Object();</span><br><span class="line">        System.out.println(ClassLayout.parseInstance(o).toPrintable());</span><br><span class="line"></span><br><span class="line">        <span class="keyword">synchronized</span> (o) &#123;</span><br><span class="line">            System.out.println(ClassLayout.parseInstance(o).toPrintable());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// java.lang.Object object internals:</span></span><br><span class="line"><span class="comment">//  OFFSET  SIZE   TYPE DESCRIPTION                               VALUE</span></span><br><span class="line"><span class="comment">//       0     4        (object header)                           01 00 00 00 (00000001 00000000 00000000 00000000) (1)</span></span><br><span class="line"><span class="comment">//       4     4        (object header)                           00 00 00 00 (00000000 00000000 00000000 00000000) (0)</span></span><br><span class="line"><span class="comment">//       8     4        (object header)                           e5 01 00 f8 (11100101 00000001 00000000 11111000) (-134217243)</span></span><br><span class="line"><span class="comment">//      12     4        (loss due to the next object alignment)</span></span><br><span class="line"><span class="comment">// Instance size: 16 bytes</span></span><br><span class="line"><span class="comment">// Space losses: 0 bytes internal + 4 bytes external = 4 bytes total</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// java.lang.Object object internals:</span></span><br><span class="line"><span class="comment">//  OFFSET  SIZE   TYPE DESCRIPTION                               VALUE</span></span><br><span class="line"><span class="comment">//       0     4        (object header)                           d0 a9 41 0d (11010000 10101001 01000001 00001101) (222407120)</span></span><br><span class="line"><span class="comment">//       4     4        (object header)                           00 70 00 00 (00000000 01110000 00000000 00000000) (28672)</span></span><br><span class="line"><span class="comment">//       8     4        (object header)                           e5 01 00 f8 (11100101 00000001 00000000 11111000) (-134217243)</span></span><br><span class="line"><span class="comment">//      12     4        (loss due to the next object alignment)</span></span><br><span class="line"><span class="comment">// Instance size: 16 bytes</span></span><br><span class="line"><span class="comment">// Space losses: 0 bytes internal + 4 bytes external = 4 bytes total</span></span><br></pre></td></tr></table></figure>
-
-<p>Java 的锁就是在对象的 Markword 中记录的一种状态，无锁，偏向锁，轻量级锁，重量级锁 对应标志位的不同状态</p>
-<p>Java 的锁机制就是根据资源竞争的激烈程度不断进行锁升级的过程</p>
-<p>TODO：补图</p>
-<p>JVM 锁优化：休眠 5s 之后对象自带偏向锁</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JolDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        Object o = <span class="keyword">new</span> Object();</span><br><span class="line">        System.out.println(ClassLayout.parseInstance(o).toPrintable());</span><br><span class="line"></span><br><span class="line">        <span class="comment">// -XX:UseBiasedLocking 是否打开偏向所，默认关闭</span></span><br><span class="line">        <span class="comment">// -XX:BiasedLockingStartupDelay 默认开启</span></span><br><span class="line">        Thread.sleep(<span class="number">5000</span>);</span><br><span class="line">        Object o2 = <span class="keyword">new</span> Object();</span><br><span class="line">        System.out.println(ClassLayout.parseInstance(o2).toPrintable());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// java.lang.Object object internals:</span></span><br><span class="line"><span class="comment">//  OFFSET  SIZE   TYPE DESCRIPTION                               VALUE</span></span><br><span class="line"><span class="comment">//       0     4        (object header)                           01 00 00 00 (00000001 00000000 00000000 00000000) (1)</span></span><br><span class="line"><span class="comment">//       4     4        (object header)                           00 00 00 00 (00000000 00000000 00000000 00000000) (0)</span></span><br><span class="line"><span class="comment">//       8     4        (object header)                           e5 01 00 f8 (11100101 00000001 00000000 11111000) (-134217243)</span></span><br><span class="line"><span class="comment">//      12     4        (loss due to the next object alignment)</span></span><br><span class="line"><span class="comment">// Instance size: 16 bytes</span></span><br><span class="line"><span class="comment">// Space losses: 0 bytes internal + 4 bytes external = 4 bytes total</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// java.lang.Object object internals:</span></span><br><span class="line"><span class="comment">//  OFFSET  SIZE   TYPE DESCRIPTION                               VALUE</span></span><br><span class="line"><span class="comment">//       0     4        (object header)                           05 00 00 00 (00000101 00000000 00000000 00000000) (5)</span></span><br><span class="line"><span class="comment">//       4     4        (object header)                           00 00 00 00 (00000000 00000000 00000000 00000000) (0)</span></span><br><span class="line"><span class="comment">//       8     4        (object header)                           e5 01 00 f8 (11100101 00000001 00000000 11111000) (-134217243)</span></span><br><span class="line"><span class="comment">//      12     4        (loss due to the next object alignment)</span></span><br><span class="line"><span class="comment">// Instance size: 16 bytes</span></span><br><span class="line"><span class="comment">// Space losses: 0 bytes internal + 4 bytes external = 4 bytes total</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="谈谈对-AQS-的理解"><a href="#谈谈对-AQS-的理解" class="headerlink" title="谈谈对 AQS 的理解"></a>谈谈对 AQS 的理解</h2><h2 id="有-ABC-三个线程，如何保证三个线程同时执行，如何在并发情况下保证三个线程一次执行，如何保证三个线程有序交错进行"><a href="#有-ABC-三个线程，如何保证三个线程同时执行，如何在并发情况下保证三个线程一次执行，如何保证三个线程有序交错进行" class="headerlink" title="有 ABC 三个线程，如何保证三个线程同时执行，如何在并发情况下保证三个线程一次执行，如何保证三个线程有序交错进行"></a>有 ABC 三个线程，如何保证三个线程同时执行，如何在并发情况下保证三个线程一次执行，如何保证三个线程有序交错进行</h2><h2 id="如何对一个字符串快速进行排序（多线程快排）"><a href="#如何对一个字符串快速进行排序（多线程快排）" class="headerlink" title="如何对一个字符串快速进行排序（多线程快排）"></a>如何对一个字符串快速进行排序（多线程快排）</h2>
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/03/19/Java-variable-assignment/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/03/19/Java-variable-assignment/" class="post-title-link" itemprop="url">变量赋值，跌进了坑中</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-03-19 21:24:05" itemprop="dateCreated datePublished" datetime="2021-03-19T21:24:05+08:00">2021-03-19</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/java/" itemprop="url" rel="index">
-                    <span itemprop="name">java</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.7k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>2 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>今天在修一个 feature 的时候，掉进了一个很初级的坑中而不自觉，debug 了好久才发现的，汗颜</p>
-<h2 id="问题简化"><a href="#问题简化" class="headerlink" title="问题简化"></a>问题简化</h2><p>求解</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Map&lt;String , Integer&gt; map;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Map&lt;String, Integer&gt; <span class="title">getMap</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> map;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestScope</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Person person = <span class="keyword">new</span> Person();</span><br><span class="line"></span><br><span class="line">        Map&lt;String, Integer&gt; tmp = person.getMap();</span><br><span class="line">        System.out.println(tmp); <span class="comment">// null</span></span><br><span class="line">        System.out.println(person.getMap()); <span class="comment">// null</span></span><br><span class="line"></span><br><span class="line">        tmp = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">        tmp.put(<span class="string">&quot;jack&quot;</span>, <span class="number">31</span>);</span><br><span class="line"></span><br><span class="line">        System.out.println(tmp); <span class="comment">// &#123;jack=31&#125;</span></span><br><span class="line">        System.out.println(person.getMap()); <span class="comment">// null</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>debug 的时候还一直纳闷，怎么 person 引用没有被赋值。。。作为对比看下面的例子应该就很清楚了</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Map&lt;String , Integer&gt; map = <span class="keyword">new</span> HashMap&lt;&gt;(); <span class="comment">// 带初始化引用类型的</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Map&lt;String, Integer&gt; <span class="title">getMap</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> map;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestScope</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Person person = <span class="keyword">new</span> Person();</span><br><span class="line"></span><br><span class="line">        Map&lt;String, Integer&gt; tmp = person.getMap();</span><br><span class="line">        System.out.println(tmp); <span class="comment">// &#123;&#125;</span></span><br><span class="line">        System.out.println(person.getMap()); <span class="comment">// &#123;&#125;</span></span><br><span class="line"></span><br><span class="line">        tmp.put(<span class="string">&quot;jack&quot;</span>, <span class="number">31</span>);</span><br><span class="line"></span><br><span class="line">        System.out.println(tmp); <span class="comment">// &#123;jack=31&#125;</span></span><br><span class="line">        System.out.println(person.getMap()); <span class="comment">// &#123;jack=31&#125;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>在特殊化一下</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestScope</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Person person = <span class="keyword">new</span> Person();</span><br><span class="line"></span><br><span class="line">        Map&lt;String, Integer&gt; tmp = person.getMap();</span><br><span class="line">        System.out.println(tmp); <span class="comment">// &#123;&#125;</span></span><br><span class="line">        System.out.println(person.getMap()); <span class="comment">// &#123;&#125;</span></span><br><span class="line"></span><br><span class="line">        tmp.put(<span class="string">&quot;jack&quot;</span>, <span class="number">31</span>);</span><br><span class="line">        tmp = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">        tmp.put(<span class="string">&quot;jerry&quot;</span>, <span class="number">21</span>);</span><br><span class="line"></span><br><span class="line">        System.out.println(tmp); <span class="comment">// &#123;jack=21&#125;</span></span><br><span class="line">        System.out.println(person.getMap()); <span class="comment">// &#123;jack=31&#125;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>总结一下就是，改变引用类型的值没什么问题，但是如果一开始是 null 的话它就不会随着一起改了</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/03/18/Algorithm-reverse-list/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/03/18/Algorithm-reverse-list/" class="post-title-link" itemprop="url">链表反转</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-03-18 19:21:42" itemprop="dateCreated datePublished" datetime="2021-03-18T19:21:42+08:00">2021-03-18</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E7%AE%97%E6%B3%95/" itemprop="url" rel="index">
-                    <span itemprop="name">算法</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>3.1k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>3 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>反转一个单链表。</p>
-<p>示例:</p>
-<p>输入: 1-&gt;2-&gt;3-&gt;4-&gt;5-&gt;NULL<br>输出: 5-&gt;4-&gt;3-&gt;2-&gt;1-&gt;NULL<br>进阶: 你可以迭代或递归地反转链表。你能否用两种方法解决这道题？</p>
-<h2 id="思路整理"><a href="#思路整理" class="headerlink" title="思路整理"></a>思路整理</h2><p>先想象一下最简单的模型，怎么将第一个元素反转？</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ListNode</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> val;</span><br><span class="line">    ListNode next;</span><br><span class="line"></span><br><span class="line">    ListNode(<span class="keyword">int</span> val) &#123;</span><br><span class="line">        <span class="keyword">this</span>.val = val;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ListNode(<span class="keyword">int</span> val, ListNode next) &#123;</span><br><span class="line">        <span class="keyword">this</span>.val = val;</span><br><span class="line">        <span class="keyword">this</span>.next = next;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> iterVal(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> String <span class="title">iterVal</span><span class="params">(ListNode node)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (Objects.isNull(node)) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="string">&quot;null&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> node.val + <span class="string">&quot; -&gt; &quot;</span> + iterVal(node.next);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>我们可以声明一个空节点，然后把原始节点的第一个节点的 next 引用指向这个空节点就是我们想要的效果了</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ReverseList</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ListNode head = <span class="keyword">new</span> ListNode(<span class="number">1</span>, <span class="keyword">new</span> ListNode(<span class="number">2</span>, <span class="keyword">new</span> ListNode(<span class="number">3</span>, <span class="keyword">new</span> ListNode(<span class="number">4</span>, <span class="keyword">new</span> ListNode(<span class="number">5</span>, <span class="keyword">null</span>)))));</span><br><span class="line"></span><br><span class="line">        ListNode empty = <span class="keyword">null</span>;</span><br><span class="line">        head.next = empty;</span><br><span class="line">        System.out.println(head);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 1 -&gt; null</span></span><br></pre></td></tr></table></figure>
-
-<p>为了遍历后续的节点，我们需要在 head.next = empty 之前用另一变量来持有这个 next 引用 <code>ListNode holder1 = head.next;</code>。处理第二个节点的时候，我们其实重复了之前的操作，将它单独拆下来，然后拼接到 head 前面即可。按照这个思路，我可以直接联想使用 while 循环处理这个问题</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ReverseList</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ListNode head = <span class="keyword">new</span> ListNode(<span class="number">1</span>, <span class="keyword">new</span> ListNode(<span class="number">2</span>, <span class="keyword">new</span> ListNode(<span class="number">3</span>, <span class="keyword">new</span> ListNode(<span class="number">4</span>, <span class="keyword">new</span> ListNode(<span class="number">5</span>, <span class="keyword">null</span>)))));</span><br><span class="line">        System.out.println(head);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        ListNode result = <span class="keyword">null</span>;</span><br><span class="line">        ListNode holder;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span>(head != <span class="keyword">null</span>) &#123;</span><br><span class="line">            holder = head.next;</span><br><span class="line">            head.next = result;</span><br><span class="line">            result = head;</span><br><span class="line">            head = holder;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        System.out.println(result);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 1 -&gt; 2 -&gt; 3 -&gt; 4 -&gt; 5 -&gt; null</span></span><br><span class="line"><span class="comment">// 5 -&gt; 4 -&gt; 3 -&gt; 2 -&gt; 1 -&gt; null</span></span><br></pre></td></tr></table></figure>
-
-<p>把上面的实现精简一下就是迭代法了 (●°u°●)​ 」</p>
-<h2 id="迭代法"><a href="#迭代法" class="headerlink" title="迭代法"></a>迭代法</h2><p>想象的模型比较重要，我们准备两个空节点，一个用来拼接解析出来的节点，作为返回值，另一个用来持有后续节点，用来循环。</p>
-<p>他这边有一个很奇特的点，就是平时我们在做链表操作的时候很多情况是<strong>持有一个最后的节点</strong>通过调用 node1.next = node2 的方式，在尾部拼接。但是这里的解体思路恰恰是相反的的，拿到一个新节点，通过 givenNode.next = node1 这种方式在头部拼接。第一次做的时候这个弯弯很难绕</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * input:  1-&gt;2-&gt;3-&gt;4-&gt;5-&gt;NULL</span></span><br><span class="line"><span class="comment"> * output: 5-&gt;4-&gt;3-&gt;2-&gt;1-&gt;NULL</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ReverseListSample</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ListNode fir = <span class="keyword">new</span> ListNode(<span class="number">1</span>, <span class="keyword">new</span> ListNode(<span class="number">2</span>, <span class="keyword">new</span> ListNode(<span class="number">3</span>, <span class="keyword">new</span> ListNode(<span class="number">4</span>, <span class="keyword">new</span> ListNode(<span class="number">5</span>)))));</span><br><span class="line">        System.out.println(fir.toString());</span><br><span class="line"></span><br><span class="line">        ListNode ret = reverseList(fir);</span><br><span class="line">        System.out.println(ret.toString());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ListNode <span class="title">reverseList</span><span class="params">(ListNode head)</span> </span>&#123;</span><br><span class="line">        ListNode next;</span><br><span class="line">        ListNode pre = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">while</span> (Objects.nonNull(head)) &#123;</span><br><span class="line">            next = head.next;</span><br><span class="line">            head.next = pre;</span><br><span class="line">            pre = head;</span><br><span class="line">            head = next;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> pre;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 1 -&gt; 2 -&gt; 3 -&gt; 4 -&gt; 5 -&gt; null</span></span><br><span class="line"><span class="comment">// 5 -&gt; 4 -&gt; 3 -&gt; 2 -&gt; 1 -&gt; null</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="递归法"><a href="#递归法" class="headerlink" title="递归法"></a>递归法</h2><p>核心思想和前面的一致，具体到做表现形式上，我自己想出来的解法需要额外传入一个参数作为结果，有点累赘</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ListNode <span class="title">reverseList</span><span class="params">(ListNode head, ListNode result)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (Objects.isNull(head))</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line"></span><br><span class="line">    ListNode holder = head.next;</span><br><span class="line">    head.next = result;</span><br><span class="line">    <span class="comment">// 思路还是很清晰的， 先把传入的节点分离出来， 然后在作为 result 的节点前面一次添加分离出来的节点。当所有的节点都处理过后，返回</span></span><br><span class="line">    <span class="keyword">return</span> reverseList(holder, head);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>搜索了一下单参数的解法</p>
-<p>我们可以用 分治 的观点来看这个问题会更简单。终止条件为判空。否则，我们再次调用递归方法，拿到逆序结果。它骚就骚在一般我们的递归都是直接返回的，而它则是还要做一些操作。</p>
-<p>但是值得注意的是，返回的结果是不能参与操作的，不然引用就会发生变化。必须通过现成的变量操作，不然循环就会被打破了。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ListNode <span class="title">reverseList</span><span class="params">(ListNode current)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (current == <span class="keyword">null</span> || current.next == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">return</span> current;</span><br><span class="line"></span><br><span class="line">    ListNode next = current.next; <span class="comment">// 拿到后续节点</span></span><br><span class="line">    </span><br><span class="line">    ListNode ret = reverseList(next); <span class="comment">// 拿到计算结果</span></span><br><span class="line">    current.next = <span class="keyword">null</span>; <span class="comment">// 打断当前节点, 防止闭环</span></span><br><span class="line">    next.next = current; <span class="comment">// 习惯性的写成 ret.next = current, 这样会打破迭代规律</span></span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/03/17/Testlink-api-with-python/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/03/17/Testlink-api-with-python/" class="post-title-link" itemprop="url">Python 调用 Testlink API</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-03-17 16:43:05" itemprop="dateCreated datePublished" datetime="2021-03-17T16:43:05+08:00">2021-03-17</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-27 20:20:48" itemprop="dateModified" datetime="2021-07-27T20:20:48+08:00">2021-07-27</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/Third-Part/" itemprop="url" rel="index">
-                    <span itemprop="name">Third Part</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.1k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>备忘一下 Testlink API 调用实现。Testlink 是有实现自己的 API 接口的，你可以通过它来操作 project， test plan 等对象。</p>
-<h2 id="API-示例"><a href="#API-示例" class="headerlink" title="API 示例"></a>API 示例</h2><p>安装 pip lib: <code>pip install TestLink-API-Python-client</code>， project repo: <a target="_blank" rel="noopener" href="https://github.com/lczub/TestLink-API-Python-client">Github, Testlink clint - Python</a></p>
-<p>登陆 Testlink -&gt; My Settings -&gt; My personal access key 拿到 API 授权的 key, 尝试链接</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> testlink</span><br><span class="line">url = <span class="string">&quot;https://&lt;hostname&gt;/lib/api/xmlrpc/v1/xmlrpc.php&quot;</span></span><br><span class="line"><span class="comment">#  for this key, you can get forom Testlink -&gt; click My Settings → my personal access key field</span></span><br><span class="line">key = <span class="string">&quot;api_auth_key&quot;</span> <span class="comment"># test link personal key</span></span><br><span class="line">tlk = testlink.TestLinkHelper(url, key).connect(testlink.TestlinkAPIClient)</span><br><span class="line">print(tlk.tlk.countProjects())</span><br><span class="line"><span class="comment"># 39</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># get project info</span></span><br><span class="line">projects = tlk.getTestProjects()</span><br><span class="line"><span class="keyword">for</span> sub <span class="keyword">in</span> projects:</span><br><span class="line">    print(<span class="string">&quot;id: %s, prefix: %s, name: %s&quot;</span> % (sub[<span class="string">&#x27;id&#x27;</span>], sub[<span class="string">&#x27;prefix&#x27;</span>], sub[<span class="string">&#x27;name&#x27;</span>]))</span><br><span class="line"><span class="comment"># id: 5182, prefix: PLT#, name: Platform Foundations and Integrations</span></span><br></pre></td></tr></table></figure>
-
-<p>其他的 API 都和差不多类似的，通过使用 Ipython + tab 基本都可以找到</p>
-<h2 id="注意点"><a href="#注意点" class="headerlink" title="注意点"></a>注意点</h2><p>python 提供的接口中有一个很有意思：<code>tlk.whatArgs(&#39;getTestProjects&#39;)</code> 他可以给出对应 API 的调用方式，参数列表的信息，很有用</p>
-<p>client 项目的 <a target="_blank" rel="noopener" href="https://github.com/lczub/TestLink-API-Python-client/blob/master/example/">example</a> 路径下，有几个示例，写的很清楚，基本上把所有支持的命令都写了，值得参考</p>
-<p>PS：记得查看 Testlink 版本，就我自己的情况，公司内部用的还是 13 年的版本(1.9.7) 而最新的都已经是 1.9.20 了，好多 API 都不支持，可以 blame 以下 example，查看对应的例子是什么时候加进去的，看你想要的功能是否支持</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1756,7 +1784,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">171</span>
+          <span class="site-state-item-count">175</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1803,12 +1831,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">869k</span>
+    <span title="站点总字数">880k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">13:10</span>
+    <span title="站点阅读时长">13:20</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
