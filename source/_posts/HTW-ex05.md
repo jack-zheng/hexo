@@ -296,4 +296,69 @@ cookie:loginMethodCookieKey=PWD; bizxThemeId=2wyfwkupsp; fontstyle=null; _pk_id.
 ------------------------------------
 ```
 
+## The Context Application
 
+当服务器需要处理多个 servlet 时，就需要用到 context 和 mapper 了。mapper 帮助父容器选择子 container 处理 request。
+
+PS: mapper 只在 Tomcat4 中使用，到 Tomcat5 就使用其他技术了。
+
+一个 container 可以使用多个 mapper 支持多种 protocols. 这个例子中只处理一种。比如一个 container 可以配置一个 mapper 处理 http 请求，配置另一个 mapper 处理 https.
+
+```java
+public interface Mapper {
+    public Container getContainer();
+    public void setContainer(Container container);
+    public String getProtocol();
+    public void setProtocol(String protocol);
+    public Container map(Request request, boolean update);
+}
+```
+
+{ plantuml }
+interface Container
+interface Loader
+interface Mapper
+
+Mapper "*"-*"1" Container
+Container "1"-"1" Loader
+
+Mapper <|.. SimpleContextMapper
+Loader <|.. SimpleLoader
+
+interface Context
+interface Wrapper
+interface Pipeline
+interface Valve
+
+Context -[hidden] Wrapper
+Wrapper -[hidden] Pipeline
+Pipeline -[hidden] Valve
+
+Pipeline "1" *- Valve
+
+Container <|-- Context
+Container <|-- Wrapper
+
+
+Context <|.. SimpleContext
+Wrapper <|.. SimpleWrapper
+
+Pipeline <|.. SimplePipeline
+Pipeline <|.. SimpleContext
+Pipeline <|.. SimpleWrapper
+
+SimpleContext -[hidden] SimpleWrapper
+
+Valve <|.. SimpleContextValve
+Valve <|.. SimpleWrapperValve
+Valve <|.. ClientIPLoggerValve
+Valve <|.. HeaderLoggerValve
+
+SimpleContext "1" o-- "*" SimpleWrapper: "contains"
+{ endplantuml }
+
+过程：
+
+1. SimpleContext 调用 pipeline 的 invoke 方法
+2. pipeline 的 invoke 方先调用额外 valves 再调用 basic valve
+3. basic valve 的 invoke 方法会调用 map 方法找到子 wrapper，如果存在则调用其 invoke 方法
