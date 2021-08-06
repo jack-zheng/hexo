@@ -1,5 +1,5 @@
 ---
-title: How tomcat works 之 intro + ex01
+title: Ex01 创建一个简易的 Server
 date: 2021-07-05 12:51:24
 categories:
 - Tomcat
@@ -19,11 +19,10 @@ Basically there are three things that a servlet container does to service a requ
 
 Catalina 很复杂，但是他的设计很优雅，采用模块化的思想。主要可以分为两部分 Connector 和 Container，关系如下
 
-```plantuml
+{% plantuml %}
 @startuml
 Connector "*"*-"1" Container
-@enduml
-```
+{% endplantuml %}
 
 connector 主要作用是构建 request/response 并传递给 container 处理，这里只是简化的模型。container 除了处理 request 还有很多东西需要做，比如加载 servlet，更新 session 等。
 
@@ -38,38 +37,15 @@ connector 主要作用是构建 request/response 并传递给 container 处理�
 
 逻辑层面上来说模型可以像下面这样展示，但是代码层面上却不行。
 
-```plantuml
-@startuml
-
-(Client) -> (Web Server) : request
-(Web Server) -> (Client) : response
-
-@enduml
-```
-
 {% plantuml %}
-(Client) -> (Web Server) : request
-(Web Server) -> (Client) : response
+node Client
+node Server
+
+Client -> Server : "request"
+Server -> Client : "resp"
 {% endplantuml %}
 
-如果按照上面的图示，难道 client 是直接 new 一个 request 和 web server 进行交互吗？难道 web server 会 new 一个 response 发送给 client 吗? 非也。模型化成下面的样子应该更合适
-
-```plantuml
-@startuml
-left to right direction
-skinparam packageStyle rectangle
-
-(Client)
-rectangle "Web Server" {
-    cloud "service" {
-        (req)
-        (resp)
-    }
-
-    (Client) <--> service : socket
-}
-@enduml
-```
+按照上面的图示，难道 client 是直接 new 一个 request 和 web server 进行交互吗？难道 web server 会 new 一个 response 发送给 client 吗? 非也。模型化成下面的样子应该更合适
 
 {% plantuml %}
 left to right direction

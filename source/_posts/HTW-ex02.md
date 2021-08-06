@@ -1,6 +1,7 @@
 ---
-title: HTW ex02
+title: Ex02 创建一个简易的 Servlet Container
 date: 2021-07-09 19:35:15
+categories:
 - Tomcat
 tags:
 - How Tomcat Works
