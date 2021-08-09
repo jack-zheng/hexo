@@ -22,56 +22,14 @@ servlet container 会为 servlet 做如下事情
 
 ## 练习01
 
-ex02 的 app01 并不是完整功能的 server，没有实现 init 和 destroy 的 servlet 的功能，它主要 focus 在如下的功能点上
+ex02 的第一个 demo 并不是完整功能的 server，没有实现 init 和 destroy 的功能，它主要关注以下几个方面
 
 * 等待请求
 * 构建 ServletRequest 和 ServletResponse 对象
-* 如果求请求的是静态资源，调用 StaticResourceProcessor 相关方法
-* 如果请求 servlet， 加载对应的 servlet 并调用 service 方法
+* 如果请求静态资源，调用 StaticResourceProcessor 相关方法
+* 如果请求 servlet， 加载 servlet 并调用 service 方法
 
-```plantuml
-@startuml
-skinparam linetype polyline
-
-interface javax.servlet.ServletRequest
-interface javax.servlet.ServletResponse
-javax.servlet.ServletRequest <|.. Request
-javax.servlet.ServletResponse <|.. Response
-
-HttpServlet1 "1"--> ServletProcessor1
-HttpServlet1 "1"--> StaticResourceProcessor
-
-HttpServlet1 "instantiate"..> Request
-HttpServlet1 "instantiate"..> Response
-
-ServletProcessor1 "uses"..> Request
-ServletProcessor1 "uses"..> Response
-
-StaticResourceProcessor "uses"..> Request
-StaticResourceProcessor "uses"..> Response
-@enduml
-```
-
-{% plantuml %}
-skinparam linetype polyline
-
-interface javax.servlet.ServletRequest
-interface javax.servlet.ServletResponse
-javax.servlet.ServletRequest <|.. Request
-javax.servlet.ServletResponse <|.. Response
-
-HttpServlet1 "1"--> ServletProcessor1
-HttpServlet1 "1"--> StaticResourceProcessor
-
-HttpServlet1 "instantiate"..> Request
-HttpServlet1 "instantiate"..> Response
-
-ServletProcessor1 "uses"..> Request
-ServletProcessor1 "uses"..> Response
-
-StaticResourceProcessor "uses"..> Request
-StaticResourceProcessor "uses"..> Response
-{% endplantuml %}
+![Figure 2.1](F2.1.png)
 
 主要类介绍
 
@@ -235,21 +193,9 @@ Welcome to BrainySoftware.
 
 ## 练习 02
 
-这个练习感觉上没做什么东西，按他的意思应该是不希望别人在外部能访问到 request 和 response，就修改了他们的访问修饰符，然后新建了两个 Facade 类包装他们两个。逻辑都是一样的。但是我看了别人现成的代码，好像 request 和 reponse 还是 public  的啊，难道我理解有问题？！
+这一节练习主要解决的问题是，如果恶意强转的问题。上面的例子中，在 ServletProcessor1 中，我们直接将 request/response 对象作为参数传入 service 方法中，如果使用方知道我们对应的实现，就可以做对象强转并调用 public 方法，比如调用解析静态资源的 sendStaticResource() 方法，这是不安全的，所以我们通过 Facade 的模式，将 request/response 作为内部私有变量持有并调用，以达到隐藏实现的目的。
 
 Facade 和 request/response 的关系
-
-```plantuml
-@startuml
-interface javax.servlet.ServletRequest
-javax.servlet.ServletRequest <|.. Request
-javax.servlet.ServletRequest <|.. RequestFacade
-
-interface javax.servlet.ServletResponse
-javax.servlet.ServletResponse <|.. Response
-javax.servlet.ServletResponse <|.. ResponseFacade
-@enduml
-```
 
 {% plantuml %}
 interface javax.servlet.ServletRequest
@@ -297,9 +243,9 @@ maven 网站上 copy 时，scope 是 provided 需要改成 compile
 * test，只在测试时使用，用于编译和运行测试代码。不会随项目发布。 
 * system，类似provided，需要显式提供包含依赖的jar，Maven不会在Repository中查找它。
 
-> 照超的 PrimitiveServlet 访问异常
+> PrimitiveServlet 访问异常
 
-idea 超过来的会带包名的，所以会出问题。从成功项目 copy 过来的不带，所以能 work
+idea 抄过来的会带包名的，所以会出问题。从成功项目 copy 过来的不带，所以能 work
 
 > Servlet 中的内容 browser 访问出问题
 
