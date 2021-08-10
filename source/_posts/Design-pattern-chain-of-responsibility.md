@@ -1,5 +1,5 @@
 ---
-title: Design-pattern-chain-of-responsibility
+title: 责任链模式
 date: 2021-07-23 13:47:46
 categories:
 - 设计模式 

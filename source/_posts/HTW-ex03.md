@@ -8,7 +8,7 @@ tags:
 ---
 
 > **Chapter3** presents a simplified version of Tomcat 4's default connector.
-> The application built in this chapter serves as a learning tool to understand the connector discussed in **Chapter4**
+> The application built in this chapter serves as a learning tool to understand the connector discussed in Chapter4
 
 PS: 这个 project 有点老了，其中用到的 Catalina 包比较老, 找了半天
 
@@ -28,9 +28,39 @@ PS: 这个 project 有点老了，其中用到的 Catalina 包比较老, 找了�
 
 完成上述功能后，这个就是简化版的 Tomcat4 的 connector 了。Tomcat 的默认 connector 在 Tomcat4 时被 deprecated 了，不过还是有参考价值的。
 
+
+## StringManager
+
 开篇先介绍了一个用于做类似国际化的类 org.apache.catalina.util.StringManager. 原理很简单，就是这个类通过单例模式生成唯一对象，加载预先定义好的 properties，通过 getString 方法拿到对应语言的翻译。
 
-相比之前的 project，这张开始，代码开始分包
+StringManager 底层使用两个 Java 基础类做实现，一个是 ResourceBundle 另一个是 MessageFormat. ResourceBundle 可以通过 properties 加载多语言支持，MessageFormat 则用于格式化打印信息。
+
+为了节省资源，StringManager 内部通过 Hashtable 存储多语言，并通过单例模式创建这个 field
+
+```java
+private static Hashtable managers = new Hashtable();
+
+/**
+    * Get the StringManager for a particular package. If a manager for
+    * a package already exists, it will be reused, else a new
+    * StringManager will be created and returned.
+    *
+    * @param packageName
+    */
+
+public synchronized static StringManager getManager(String packageName) {
+    StringManager mgr = (StringManager)managers.get(packageName);
+    if (mgr == null) {
+        mgr = new StringManager(packageName);
+        managers.put(packageName, mgr);
+    }
+    return mgr;
+}
+```
+
+每一个 package 下的 LocalStrings 都有一个对象。
+
+相比之前的 project，这章开始，代码开始分包
 
 ```txt
 .
@@ -70,26 +100,6 @@ connector 下的类可以分为五类
 
 类关系图
 
-```plantuml
-@startuml
-HttpConnector "1"-"1" HttpProcessor
-
-HttpProcessor "uses".up.> StringManager
-HttpProcessor "uses".up.> SocketInputStream
-
-HttpProcessor "uses".up.> HttpHeader
-HttpProcessor "uses".up.> HttpRequestLine
-
-HttpProcessor "1"*.down."1" ServletProcessor
-HttpProcessor "1"*.down."1" StaticResourceProcessor
-
-ServletProcessor "uses".down.> HttpRequest
-ServletProcessor "uses".down.> HttpResponse
-StaticResourceProcessor "uses".down.> HttpRequest
-StaticResourceProcessor "uses".down.> HttpResponse
-@enduml
-```
-
 {% plantuml %}
 HttpConnector "1"-"1" HttpProcessor
 
@@ -110,29 +120,13 @@ StaticResourceProcessor "uses".down.> HttpResponse
 
 和 ex02 比，这里将 HttpServer 拆成了 HttpConnector 和 HttpProcessor 两个类。HttpConnector 等待 request， HttpProcessor 负责 request/response 的生成和处理。
 
-为了提高 connector 的效率，设计的时候将 request 中的 parse 的行为经可能的延后了(比如有些 servlet 根本不需要 request 中的参数，这样 parse 就显得很多余，白白浪费了时间)。
+为了提高 connector 的效率，设计的时候将 request 中的 parse 的行为尽可能的延后了(比如有些 servlet 根本不需要 request 中的参数，这样 parse 就显得很多余，白白浪费了时间)。
 
 TODO：connector 中的 SocketInputStream 有很方便的处理 request line 的方法，明天有机会可以测试一波
 
 HttpProcessor 新建 request 并填充信息，比如 header 之类的，具体到 url 参数的解析，则由 request 类自己负责。
 
 HttpRequest 的继承关系图如下
-
-```plantuml
-@startuml
-skinparam linetype ortho
-interface javax.servlet.http.HttpServletRequest
-
-HttpRequestFacade .up.|> javax.servlet.http.HttpServletRequest
-HttpRequest .up.|> javax.servlet.http.HttpServletRequest
-
-
-interface javax.servlet.ServletInputStream
-RequestStream .up.|> javax.servlet.ServletInputStream
-
-RequestStream "1"-*"1" HttpRequest
-@enduml
-```
 
 {% plantuml %}
 skinparam linetype ortho
@@ -148,7 +142,7 @@ RequestStream .up.|> javax.servlet.ServletInputStream
 RequestStream "1"-*"1" HttpRequest
 {% endplantuml %}
 
-servlet/JSP 程序中通过 JsessionId 指代 sessio。 解析 request 相关的内容时，需要解析 cookie 中的这个值，如果客户端没有 enable cookie 还需要将它 append 到 URL 中
+servlet/JSP 程序中通过 JsessionId 指代 session。 解析 request 相关的内容时，需要解析 cookie 中的这个值，如果客户端没有 enable cookie 还需要将它 append 到 URL 中
 
 关于本章中用到的 HttpHeader 你暂时只需要知道如下几点就行
 
@@ -191,8 +185,7 @@ HttpResponse "uses"-r-> ResponseWriter
 
 代表的是 request 的第一行的内容，示例如下 `GET /servlet/ModernServlet?userName=tarzan&password=pwd HTTP/1.1` 不过它的实现比较有意思，它为这一样中的各个部分声明了一个存储的 char 数组，并标识了结束地址 `char[] method, int methodEnd`
 
-```plantuml
-@startuml
+{% plantuml %}
 Class HttpRequestLine {
     +char[] method;
     +int methodEnd;
@@ -204,8 +197,7 @@ Class HttpRequestLine {
     +HttpRequestLine();
     +HttpRequestLine(method, methodEnd, uri, uriEnd, protocol, protocolEnd);
 }
-@enduml
-```
+{% endplantuml %}
 
 SocketInputStream 是处理 HttpRequestLine 的类，主要涉及的方法 
 
@@ -242,8 +234,7 @@ HttpProcessor 的主体方法是 process， 只做了几件事
 * 解析 headers
 * 根据 uri 调用对应的 processor
 
-```plantuml
-@startuml
+{% plantuml %}
 (*) --> "init request, response"
 --> "parse request line"
 --> "parse headers"
@@ -255,13 +246,11 @@ else
     --> "invoke process()"
 endif
 --> (*)
-@endurl
-```
+{% endplantuml %}
 
 parseReauest 过程如下
 
-```plantuml
-@startuml
+{% plantuml %}
 (*) --> "populate to HttpRequestLine obj"
 if "requestLine contains '?'" then
     --> [true] "request.setQueryString() + init uri"
@@ -278,8 +267,7 @@ else
 endif
 --> "normalize uri"
 --> (*)
-@enduml
-```
+{% endplantuml %}
 
 normalize 即处理一些特殊字符，比如 `..` 是上一级目录
 
