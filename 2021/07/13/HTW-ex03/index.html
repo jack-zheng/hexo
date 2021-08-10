@@ -59,7 +59,7 @@
 <meta property="og:description" content="Chapter3 presents a simplified version of Tomcat 4’s default connector.The application built in this chapter serves as a learning tool to understand the connector discussed in Chapter4  PS: 这个 projec">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-07-13T09:23:41.000Z">
-<meta property="article:modified_time" content="2021-08-09T11:38:17.325Z">
+<meta property="article:modified_time" content="2021-08-10T11:40:14.105Z">
 <meta property="article:author" content="Jack Zheng">
 <meta property="article:tag" content="How Tomcat Works">
 <meta name="twitter:card" content="summary">
@@ -239,7 +239,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-09 19:38:17" itemprop="dateModified" datetime="2021-08-09T19:38:17+08:00">2021-08-09</time>
+                <time title="修改时间：2021-08-10 19:40:14" itemprop="dateModified" datetime="2021-08-10T19:40:14+08:00">2021-08-10</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -266,14 +266,14 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>6.6k</span>
+              <span>5.2k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>6 分钟</span>
+              <span>5 分钟</span>
             </span>
 
         </div>
@@ -286,7 +286,7 @@
 
       
         <blockquote>
-<p><strong>Chapter3</strong> presents a simplified version of Tomcat 4’s default connector.<br>The application built in this chapter serves as a learning tool to understand the connector discussed in <strong>Chapter4</strong></p>
+<p><strong>Chapter3</strong> presents a simplified version of Tomcat 4’s default connector.<br>The application built in this chapter serves as a learning tool to understand the connector discussed in Chapter4</p>
 </blockquote>
 <p>PS: 这个 project 有点老了，其中用到的 Catalina 包比较老, 找了半天</p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>tomcat<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>catalina<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>4.0.4<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
@@ -298,8 +298,13 @@
 <li>enhance response’s getWriter</li>
 </ul>
 <p>完成上述功能后，这个就是简化版的 Tomcat4 的 connector 了。Tomcat 的默认 connector 在 Tomcat4 时被 deprecated 了，不过还是有参考价值的。</p>
-<p>开篇先介绍了一个用于做类似国际化的类 org.apache.catalina.util.StringManager. 原理很简单，就是这个类通过单例模式生成唯一对象，加载预先定义好的 properties，通过 getString 方法拿到对应语言的翻译。</p>
-<p>相比之前的 project，这张开始，代码开始分包</p>
+<h2 id="StringManager"><a href="#StringManager" class="headerlink" title="StringManager"></a>StringManager</h2><p>开篇先介绍了一个用于做类似国际化的类 org.apache.catalina.util.StringManager. 原理很简单，就是这个类通过单例模式生成唯一对象，加载预先定义好的 properties，通过 getString 方法拿到对应语言的翻译。</p>
+<p>StringManager 底层使用两个 Java 基础类做实现，一个是 ResourceBundle 另一个是 MessageFormat. ResourceBundle 可以通过 properties 加载多语言支持，MessageFormat 则用于格式化打印信息。</p>
+<p>为了节省资源，StringManager 内部通过 Hashtable 存储多语言，并通过单例模式创建这个 field</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> Hashtable managers = <span class="keyword">new</span> Hashtable();</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">    * Get the StringManager for a particular package. If a manager for</span></span><br><span class="line"><span class="comment">    * a package already exists, it will be reused, else a new</span></span><br><span class="line"><span class="comment">    * StringManager will be created and returned.</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@param</span> packageName</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">static</span> StringManager <span class="title">getManager</span><span class="params">(String packageName)</span> </span>&#123;</span><br><span class="line">    StringManager mgr = (StringManager)managers.get(packageName);</span><br><span class="line">    <span class="keyword">if</span> (mgr == <span class="keyword">null</span>) &#123;</span><br><span class="line">        mgr = <span class="keyword">new</span> StringManager(packageName);</span><br><span class="line">        managers.put(packageName, mgr);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> mgr;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>每一个 package 下的 LocalStrings 都有一个对象。</p>
+<p>相比之前的 project，这章开始，代码开始分包</p>
 <figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── ServletProcessor.java</span><br><span class="line">├── StaticResourceProcessor.java</span><br><span class="line">├── connector</span><br><span class="line">│   ├── RequestStream.java</span><br><span class="line">│   ├── ResponseStream.java</span><br><span class="line">│   ├── ResponseWriter.java</span><br><span class="line">│   └── http</span><br><span class="line">│       ├── Constants.java</span><br><span class="line">│       ├── HttpConnector.java</span><br><span class="line">│       ├── HttpHeader.java</span><br><span class="line">│       ├── HttpProcessor.java</span><br><span class="line">│       ├── HttpRequest.java</span><br><span class="line">│       ├── HttpRequestFacade.java</span><br><span class="line">│       ├── HttpRequestLine.java            拆出来一个单独的类代表 request 的第一行，包括请求类型，URI，协议等信息</span><br><span class="line">│       ├── HttpResponse.java</span><br><span class="line">│       ├── HttpResponseFacade.java</span><br><span class="line">│       ├── LocalStrings.properties</span><br><span class="line">│       ├── LocalStrings_es.properties</span><br><span class="line">│       ├── LocalStrings_ja.properties</span><br><span class="line">│       └── SocketInputStream.java</span><br><span class="line">└── startup</span><br><span class="line">    └── Bootstrap.java                      启动类，实例化 HttpConnector 并调用 start() 方法</span><br></pre></td></tr></table></figure>
 
 <p>Bootstrap.java 为启动类，内容很简单，就是 new 一个 connector 然后执行 start 方法，让 connector 常驻。</p>
@@ -312,20 +317,16 @@
 <li>Constant 常量类</li>
 </ul>
 <p>类关系图</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">@startuml</span><br><span class="line">HttpConnector &quot;1&quot;-&quot;1&quot; HttpProcessor</span><br><span class="line"></span><br><span class="line">HttpProcessor &quot;uses&quot;.up.&gt; StringManager</span><br><span class="line">HttpProcessor &quot;uses&quot;.up.&gt; SocketInputStream</span><br><span class="line"></span><br><span class="line">HttpProcessor &quot;uses&quot;.up.&gt; HttpHeader</span><br><span class="line">HttpProcessor &quot;uses&quot;.up.&gt; HttpRequestLine</span><br><span class="line"></span><br><span class="line">HttpProcessor &quot;1&quot;*.down.&quot;1&quot; ServletProcessor</span><br><span class="line">HttpProcessor &quot;1&quot;*.down.&quot;1&quot; StaticResourceProcessor</span><br><span class="line"></span><br><span class="line">ServletProcessor &quot;uses&quot;.down.&gt; HttpRequest</span><br><span class="line">ServletProcessor &quot;uses&quot;.down.&gt; HttpResponse</span><br><span class="line">StaticResourceProcessor &quot;uses&quot;.down.&gt; HttpRequest</span><br><span class="line">StaticResourceProcessor &quot;uses&quot;.down.&gt; HttpResponse</span><br><span class="line">@enduml</span><br></pre></td></tr></table></figure>
-
 <img  src=http://www.plantuml.com/plantuml/svg/bP1D2i9038NtFKMPfU10B-36JGK5iISOfezIr6ISPFJwjefe5GTTP97alIy_jMfOCX6ySYnDPUP3bFLGtKRs4E5O59EqD4aWngPW5sMZiQTkuyXrY3aT-prqHI7fO84xvg1ZfuPhiyIniyCfGNJT4pvubPdPbYzantiQnFC1-ZmfArQdlTz1E4MFbpUyKnxxt9oJZNwJIc0I55_cvUX_EEv3hW00>
 
 <p>和 ex02 比，这里将 HttpServer 拆成了 HttpConnector 和 HttpProcessor 两个类。HttpConnector 等待 request， HttpProcessor 负责 request/response 的生成和处理。</p>
-<p>为了提高 connector 的效率，设计的时候将 request 中的 parse 的行为经可能的延后了(比如有些 servlet 根本不需要 request 中的参数，这样 parse 就显得很多余，白白浪费了时间)。</p>
+<p>为了提高 connector 的效率，设计的时候将 request 中的 parse 的行为尽可能的延后了(比如有些 servlet 根本不需要 request 中的参数，这样 parse 就显得很多余，白白浪费了时间)。</p>
 <p>TODO：connector 中的 SocketInputStream 有很方便的处理 request line 的方法，明天有机会可以测试一波</p>
 <p>HttpProcessor 新建 request 并填充信息，比如 header 之类的，具体到 url 参数的解析，则由 request 类自己负责。</p>
 <p>HttpRequest 的继承关系图如下</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">@startuml</span><br><span class="line">skinparam linetype ortho</span><br><span class="line">interface javax.servlet.http.HttpServletRequest</span><br><span class="line"></span><br><span class="line">HttpRequestFacade .up.|&gt; javax.servlet.http.HttpServletRequest</span><br><span class="line">HttpRequest .up.|&gt; javax.servlet.http.HttpServletRequest</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">interface javax.servlet.ServletInputStream</span><br><span class="line">RequestStream .up.|&gt; javax.servlet.ServletInputStream</span><br><span class="line"></span><br><span class="line">RequestStream &quot;1&quot;-*&quot;1&quot; HttpRequest</span><br><span class="line">@enduml</span><br></pre></td></tr></table></figure>
-
 <img  src=http://www.plantuml.com/plantuml/svg/AyxEp2j8B4hCLSZ9p4ijgIn8LSWlAid8vyhCAqajIajCJbN8IYnBhD0hJYqgoqajqSieAIdGym0ImH21eDJ2qjJY4Yuka1YKuvQOd9YIgg1NMg1NOqUaVYJjf6damkbKg4BFl8BIak2IejJ4N2we9WWFkprOTA5fKp9KqjK24Wf8RWO0>
 
-<p>servlet/JSP 程序中通过 JsessionId 指代 sessio。 解析 request 相关的内容时，需要解析 cookie 中的这个值，如果客户端没有 enable cookie 还需要将它 append 到 URL 中</p>
+<p>servlet/JSP 程序中通过 JsessionId 指代 session。 解析 request 相关的内容时，需要解析 cookie 中的这个值，如果客户端没有 enable cookie 还需要将它 append 到 URL 中</p>
 <p>关于本章中用到的 HttpHeader 你暂时只需要知道如下几点就行</p>
 <ul>
 <li>可以使用无参数构造器创建实例</li>
@@ -338,7 +339,7 @@
 <p>通过设置 PrintWriter 的 auto flush 功能，之前打印的 behavior 才修复了，不然只会打印第一句话。为了了解这里说的东西，你需要查一下 Writer 相关的知识点。</p>
 <h2 id="深入了解各个类的细节"><a href="#深入了解各个类的细节" class="headerlink" title="深入了解各个类的细节"></a>深入了解各个类的细节</h2><h3 id="HttpConnector"><a href="#HttpConnector" class="headerlink" title="HttpConnector"></a>HttpConnector</h3><p>服务器的主体部分，负责指定 ip 和 port 并 stand by. 每当有 request 过来就新建一个 HttpProcessor 对象处理对应的 socket。 </p>
 <h3 id="HttpRequestLine"><a href="#HttpRequestLine" class="headerlink" title="HttpRequestLine"></a>HttpRequestLine</h3><p>代表的是 request 的第一行的内容，示例如下 <code>GET /servlet/ModernServlet?userName=tarzan&amp;password=pwd HTTP/1.1</code> 不过它的实现比较有意思，它为这一样中的各个部分声明了一个存储的 char 数组，并标识了结束地址 <code>char[] method, int methodEnd</code></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">@startuml</span><br><span class="line">Class HttpRequestLine &#123;</span><br><span class="line">    +char[] method;</span><br><span class="line">    +int methodEnd;</span><br><span class="line">    +char[] uri;</span><br><span class="line">    +int uriEnd;</span><br><span class="line">    +char[] protocol;</span><br><span class="line">    +int protocolEnd;</span><br><span class="line"></span><br><span class="line">    +HttpRequestLine();</span><br><span class="line">    +HttpRequestLine(method, methodEnd, uri, uriEnd, protocol, protocolEnd);</span><br><span class="line">&#125;</span><br><span class="line">@enduml</span><br></pre></td></tr></table></figure>
+<img  src=http://www.plantuml.com/plantuml/svg/Syv9B2vMy2WfAGXABInDBIxnoSnBLQZcKW02xUICnABeM8NSr9AC_1HhY5XcNWbKm3KF9WPLLrgKYQG8oCDGKL2KNvAVd9-3f0mc15OB4KPpZOQcDNPnY3Dq4CxH0Lcg0xLP1swq3h8bGCDg0G00>
 
 <p>SocketInputStream 是处理 HttpRequestLine 的类，主要涉及的方法 </p>
 <ul>
@@ -357,10 +358,10 @@
 <li>解析 headers</li>
 <li>根据 uri 调用对应的 processor</li>
 </ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">@startuml</span><br><span class="line">(*) --&gt; &quot;init request, response&quot;</span><br><span class="line">--&gt; &quot;parse request line&quot;</span><br><span class="line">--&gt; &quot;parse headers&quot;</span><br><span class="line">if &quot;uri contains &#39;&#x2F;servlet&#x2F;&#39;&quot; then</span><br><span class="line">    --&gt; &quot;init ServletProcessor&quot;</span><br><span class="line">    --&gt; &quot;invoke process()&quot;</span><br><span class="line">else</span><br><span class="line">    --&gt; &quot;init StaticProessor&quot;</span><br><span class="line">    --&gt; &quot;invoke process()&quot;</span><br><span class="line">endif</span><br><span class="line">--&gt; (*)</span><br><span class="line">@endurl</span><br></pre></td></tr></table></figure>
+<img  src=http://www.plantuml.com/plantuml/svg/ZSvB2eD0383X_PmYPECe5M_GCnHwWa4ZXafccaJFhoYbZrMp2dpy9B6feMslW2pieFHSoFooBrQo664ui2GrUYdCBDymKHf83GEFW8ioz5ayiHXKdP6kCtbN8VX44c2Vzy7xgJVDFPbbnKzVyuEWd1Hh33GR_VQUdFiz_wEMWSVZwzZK6m00>
 
 <p>parseReauest 过程如下</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">@startuml</span><br><span class="line">(*) --&gt; &quot;populate to HttpRequestLine obj&quot;</span><br><span class="line">if &quot;requestLine contains &#39;?&#39;&quot; then</span><br><span class="line">    --&gt; [true] &quot;request.setQueryString() + init uri&quot;</span><br><span class="line">    --&gt; &quot;absolute uri check&quot;</span><br><span class="line">else</span><br><span class="line">    --&gt; &quot;init uri&quot;</span><br><span class="line">endif</span><br><span class="line">--&gt; &quot;absolute uri check&quot;</span><br><span class="line">if &quot;uri contains jsession&quot; then</span><br><span class="line">    --&gt; [true] &quot;parse + reqeust.setReqeustedSessionId() + set flag&quot;</span><br><span class="line">    --&gt; &quot;normalize uri&quot;</span><br><span class="line">else</span><br><span class="line">--&gt; &quot;set flag&quot;</span><br><span class="line">endif</span><br><span class="line">--&gt; &quot;normalize uri&quot;</span><br><span class="line">--&gt; (*)</span><br><span class="line">@enduml</span><br></pre></td></tr></table></figure>
+<img  src=http://www.plantuml.com/plantuml/svg/TSwnZi8m30RWlKzXPQ45mIDmAqYt02DY2AqBve9JOcU0foTjWLOdaIcn_p_wyca1y_aIJEERwAmYg8ULQhF5MqJHNs84VxoOZ6emOJGiFQib5fZyJ0pe6Jc3TDhFzXeY7ZxnXQ1k8eRxJWFnAIzW1iIa40EPJydOetWNao2DeJnZ-MSoT893OYWXLrHdNskjjNk-ZHT14VBy1ThO89XK2Oon1s_xArQxlhckEdVQGEtiQUHc7wxMqGDVj9RSBORiYFiltSxoQV44>
 
 <p>normalize 即处理一些特殊字符，比如 <code>..</code> 是上一级目录</p>
 <p>parseHeaders 的过程和 parseRequest 雷同，while 循环逐行解析并向 request 中设置值。不过 ex03 中只处理了 cookie, content-length 和 content-type 几种类型的 header</p>
@@ -452,7 +453,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3%E5%90%84%E4%B8%AA%E7%B1%BB%E7%9A%84%E7%BB%86%E8%8A%82"><span class="nav-number">1.</span> <span class="nav-text">深入了解各个类的细节</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#HttpConnector"><span class="nav-number">1.1.</span> <span class="nav-text">HttpConnector</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HttpRequestLine"><span class="nav-number">1.2.</span> <span class="nav-text">HttpRequestLine</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HttpProcessor"><span class="nav-number">1.3.</span> <span class="nav-text">HttpProcessor</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HttpResponse"><span class="nav-number">1.4.</span> <span class="nav-text">HttpResponse</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AE%E9%A2%98"><span class="nav-number">2.</span> <span class="nav-text">问题</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#StringManager"><span class="nav-number">1.</span> <span class="nav-text">StringManager</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3%E5%90%84%E4%B8%AA%E7%B1%BB%E7%9A%84%E7%BB%86%E8%8A%82"><span class="nav-number">2.</span> <span class="nav-text">深入了解各个类的细节</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#HttpConnector"><span class="nav-number">2.1.</span> <span class="nav-text">HttpConnector</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HttpRequestLine"><span class="nav-number">2.2.</span> <span class="nav-text">HttpRequestLine</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HttpProcessor"><span class="nav-number">2.3.</span> <span class="nav-text">HttpProcessor</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HttpResponse"><span class="nav-number">2.4.</span> <span class="nav-text">HttpResponse</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AE%E9%A2%98"><span class="nav-number">3.</span> <span class="nav-text">问题</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -468,7 +469,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">176</span>
+          <span class="site-state-item-count">177</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -515,12 +516,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">886k</span>
+    <span title="站点总字数">885k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">13:26</span>
+    <span title="站点阅读时长">13:24</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>

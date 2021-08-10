@@ -662,13 +662,10 @@
       </tags>
   </entry>
   <entry>
-    <title>适配器模式和外观模式</title>
-    <url>/hexo/2021/04/09/Design-pattern-adapter-and-facade/</url>
+    <title>适配器模式</title>
+    <url>/hexo/2021/04/09/Design-pattern-adapter/</url>
     <content><![CDATA[<blockquote>
 <p><strong>The Adapter Pattern</strong> converts the interface of a class into another interface the clients expect.  Adapter lets classes work together that couldn’t otherwise because of incompatible interfaces.<br>适配器模式将一种接口类型转化为另一种，他用来解决类中的类型适配问题</p>
-</blockquote>
-<blockquote>
-<p><strong>The Facade Pattern</strong> provides a unified interface to a set of interfaces in a subsytem.  Facade defines a higher-level interface that makes the subsystem easier to use.<br>提供一套更 high-level 的接口简化子系统调用</p>
 </blockquote>
 <h2 id="引子"><a href="#引子" class="headerlink" title="引子"></a>引子</h2><p>举例一个现实生活中的案例：插头转换器。比如我们的手机是两脚插头，但是家里只有三脚插座，那怎么整？答案是找一个插口转化器，把两脚的转成三脚的即可。adapter 模式的工作方式和这种解决方案完全一致。</p>
 <figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">+--------------------+     +-------+     +-------------+                                                                                              </span><br><span class="line">| Your existing      |     |Adaptor|     | Vendor      |                                                                                              </span><br><span class="line">| system             |     |       |     | Class       |                                                                                              </span><br><span class="line">|                    |---&gt; |       |----&gt;|             |                                                                                              </span><br><span class="line">|                    |     |       |     |             |                                                                                              </span><br><span class="line">|                    |     |       |     |             |                                                                                              </span><br><span class="line">+--------------------+     +-------+     +-------------+                                                                                              </span><br></pre></td></tr></table></figure>
@@ -684,40 +681,6 @@
 <h2 id="项目中可能用到-Adapter-的地方"><a href="#项目中可能用到-Adapter-的地方" class="headerlink" title="项目中可能用到 Adapter 的地方"></a>项目中可能用到 Adapter 的地方</h2><p>比如老代码中，很多地方会用到 Enumeration 类，但是在 JDK 1.2 时就推出了 Iterator 接口代替他。如果新的代码都时采用的 Iterator 做迭代，那么怎么兼容老的 Enumeration 呢。</p>
 <p>可以新建一个 adapter 类，实现 iterator 接口，持有 enumeration 实现。在 client 中通过这个 adaptor 访问 enumeration。</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AdapterToEnum</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Vector&lt;String&gt; strings = <span class="keyword">new</span> Vector&lt;&gt;();</span><br><span class="line">        strings.add(<span class="string">&quot;a&quot;</span>);</span><br><span class="line">        strings.add(<span class="string">&quot;b&quot;</span>);</span><br><span class="line">        strings.add(<span class="string">&quot;c&quot;</span>);</span><br><span class="line">        strings.add(<span class="string">&quot;d&quot;</span>);</span><br><span class="line"></span><br><span class="line">        Enumeration&lt;String&gt; enumeration = strings.elements();</span><br><span class="line"></span><br><span class="line">        IteratorAdapter adapter = <span class="keyword">new</span> IteratorAdapter(enumeration);</span><br><span class="line">        <span class="keyword">while</span> (adapter.hasNext()) &#123;</span><br><span class="line">            System.out.println(adapter.next());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// PS: 书中视角 EnumerationAdapter, 但是我觉得不是应该叫 迭代器适配器 才合适吗？应该是我和作者对数据流向的理解相反，但是对这里的使用没有造成影响</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">IteratorAdapter</span> <span class="keyword">implements</span> <span class="title">Iterator</span>&lt;<span class="title">String</span>&gt; </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Enumeration&lt;String&gt; enumeration;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">IteratorAdapter</span><span class="params">(Enumeration&lt;String&gt; enumeration)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.enumeration = enumeration;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">hasNext</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> enumeration.hasMoreElements();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">next</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> enumeration.nextElement();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="Facade-外观-Pattern"><a href="#Facade-外观-Pattern" class="headerlink" title="Facade(外观) Pattern"></a>Facade(外观) Pattern</h2><p>假设我们要组一套家庭影院，我们有好多设备，比如投影仪，音响，爆米花机，DVD 等。我们每次想要看一场电影需要做如下事情</p>
-<ol>
-<li>开启 爆米花 机</li>
-<li>开始爆米花</li>
-<li>开启影响</li>
-<li>设置音量</li>
-<li>开启投影仪</li>
-<li>摄制亮度</li>
-<li>开启 DVD</li>
-<li>塞入光盘</li>
-<li>…</li>
-</ol>
-<p>而且等我们看完了，我们还需要逐个将上面的设备关掉，一套下来，可能以后再也不看电影了。</p>
-<p>Facade 模式就是用来解决这种问题的。</p>
-<blockquote>
-<p>A facade not only simplifies an interface, it decouples a client from a subsystem of components.<br>Facades and adapters may wrap multiple classes, but a facade’s intent is to simplify, while an adapter’s is to convert the interface to something different.<br>外观模式不仅仅是简化接口，同时他还将子系统和客户端解耦了<br>Facade 和 Adapter 都会在类外面包一层，但是 Facade 是为了简化，而 Adapter 是为了转换</p>
-</blockquote>
-<p>为了简化代码，我们一拿 DVD 和投影仪举例</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Player 类表示 DVD 机的开/关/放电影功能</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DvdPlayer</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">startPlayer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Start DVD Player...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">endPlayer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;End DVD Player...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">playMovie</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Show movie: &quot;</span> + name + <span class="string">&quot; ...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 表示屏幕功能</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Screen</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">downScreen</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Down screen...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">upScreen</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Up screen...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 家庭影院简化版</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HomeTheaterFacade</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Screen screen;</span><br><span class="line">    <span class="keyword">private</span> DvdPlayer player;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">HomeTheaterFacade</span><span class="params">(Screen screen, DvdPlayer player)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.screen = screen;</span><br><span class="line">        <span class="keyword">this</span>.player = player;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">startMovie</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        screen.downScreen();</span><br><span class="line">        player.startPlayer();</span><br><span class="line">        player.playMovie(name);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">endMovie</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        screen.upScreen();</span><br><span class="line">        player.endPlayer();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 客户端播放和结束放映</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        HomeTheaterFacade facade = <span class="keyword">new</span> HomeTheaterFacade(<span class="keyword">new</span> Screen(), <span class="keyword">new</span> DvdPlayer());</span><br><span class="line">        facade.startMovie(<span class="string">&quot;&lt;&lt;NeZha&gt;&gt;&quot;</span>);</span><br><span class="line">        facade.endMovie();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Down screen...</span></span><br><span class="line"><span class="comment">// Start DVD Player...</span></span><br><span class="line"><span class="comment">// Show movie: &lt;&lt;NeZha&gt;&gt; ...</span></span><br><span class="line"><span class="comment">// Up screen...</span></span><br><span class="line"><span class="comment">// End DVD Player...</span></span><br></pre></td></tr></table></figure>
-
-<p>其实说是 Facade 模式，但是我这里平时经常会用到，只不过我一般把这种类型的东西叫做 Util 或者 Action 类。封装一些经常使用的方法，感觉效果上还是很相似的。</p>
-<h2 id="The-Principle-of-Least-Knowledge"><a href="#The-Principle-of-Least-Knowledge" class="headerlink" title="The Principle of Least Knowledge"></a>The Principle of Least Knowledge</h2><p>这个规则是说，我们在写代码的时候要尽量减少涉及到多种返回值类型的链式调用。</p>
-<blockquote>
-<p>Principle of Least Knowledge - talk only to your immediate friends.</p>
-</blockquote>
-<p>在你的代码中，你只能调用下列对象的方法：</p>
-<ul>
-<li>对象本身</li>
-<li>通过方法参数传入的对象</li>
-<li>任何在本类中创建的对象</li>
-<li>任何本对象的 field</li>
-</ul>
-<p>这样做可以减少两个对象之间的 dependencies 但是同时也有一个弊端，你需要写跟多的代码，项目会变得更大，还可能会性能下降。</p>
 ]]></content>
       <categories>
         <category>设计模式</category>
@@ -784,7 +747,7 @@
       </tags>
   </entry>
   <entry>
-    <title>Design-pattern-chain-of-responsibility</title>
+    <title>责任链模式</title>
     <url>/hexo/2021/07/23/Design-pattern-chain-of-responsibility/</url>
     <content><![CDATA[<blockquote>
 <p>避免请求发送者和接受者的耦合，让多个对象都有可能接受请求，将这些对象连成一条链，并且沿着这条链传递请求，知道有对象处理它为止</p>
@@ -896,6 +859,53 @@
 <p>FilterInputStream 对应了 Decorator, 是修饰器的基类，持有了 inputStream 的引用，而 BufferedInputStream 则为装饰器的具体实现，起到包装 Component 的作用。</p>
 <p>BufferedInputStream 使用示例如下：</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">IoDecoratorDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ClassLoader classloader = Thread.currentThread().getContextClassLoader();</span><br><span class="line">        InputStream is = classloader.getResourceAsStream(<span class="string">&quot;c1_2.xml&quot;</span>);</span><br><span class="line">        <span class="keyword">try</span> (BufferedInputStream bis = <span class="keyword">new</span> BufferedInputStream(is)) &#123;</span><br><span class="line">            <span class="keyword">byte</span> data;</span><br><span class="line">            <span class="keyword">while</span> ((data = (<span class="keyword">byte</span>) bis.read()) != -<span class="number">1</span>) &#123;</span><br><span class="line">                System.out.print((<span class="keyword">char</span>) data);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            System.out.println(<span class="string">&quot;Finish read...&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>设计模式</category>
+      </categories>
+      <tags>
+        <tag>Design Pattern</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>外观模式</title>
+    <url>/hexo/2021/08/10/Design-pattern-facade-md/</url>
+    <content><![CDATA[<blockquote>
+<p><strong>The Facade Pattern</strong> provides a unified interface to a set of interfaces in a subsytem.  Facade defines a higher-level interface that makes the subsystem easier to use.<br>提供一套更 high-level 的接口简化子系统调用</p>
+</blockquote>
+<h2 id="Facade-外观-Pattern"><a href="#Facade-外观-Pattern" class="headerlink" title="Facade(外观) Pattern"></a>Facade(外观) Pattern</h2><p>假设我们要组一套家庭影院，我们有好多设备，比如投影仪，音响，爆米花机，DVD 等。我们每次想要看一场电影需要做如下事情</p>
+<ol>
+<li>开启 爆米花 机</li>
+<li>开始爆米花</li>
+<li>开启影响</li>
+<li>设置音量</li>
+<li>开启投影仪</li>
+<li>摄制亮度</li>
+<li>开启 DVD</li>
+<li>塞入光盘</li>
+<li>…</li>
+</ol>
+<p>而且等我们看完了，我们还需要逐个将上面的设备关掉，一套下来，可能以后再也不看电影了。</p>
+<p>Facade 模式就是用来解决这种问题的。</p>
+<blockquote>
+<p>A facade not only simplifies an interface, it decouples a client from a subsystem of components.<br>Facades and adapters may wrap multiple classes, but a facade’s intent is to simplify, while an adapter’s is to convert the interface to something different.<br>外观模式不仅仅是简化接口，同时他还将子系统和客户端解耦了<br>Facade 和 Adapter 都会在类外面包一层，但是 Facade 是为了简化，而 Adapter 是为了转换</p>
+</blockquote>
+<p>为了简化代码，我们一拿 DVD 和投影仪举例</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Player 类表示 DVD 机的开/关/放电影功能</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DvdPlayer</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">startPlayer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Start DVD Player...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">endPlayer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;End DVD Player...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">playMovie</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Show movie: &quot;</span> + name + <span class="string">&quot; ...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 表示屏幕功能</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Screen</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">downScreen</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Down screen...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">upScreen</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Up screen...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 家庭影院简化版</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HomeTheaterFacade</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Screen screen;</span><br><span class="line">    <span class="keyword">private</span> DvdPlayer player;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">HomeTheaterFacade</span><span class="params">(Screen screen, DvdPlayer player)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.screen = screen;</span><br><span class="line">        <span class="keyword">this</span>.player = player;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">startMovie</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        screen.downScreen();</span><br><span class="line">        player.startPlayer();</span><br><span class="line">        player.playMovie(name);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">endMovie</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        screen.upScreen();</span><br><span class="line">        player.endPlayer();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 客户端播放和结束放映</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        HomeTheaterFacade facade = <span class="keyword">new</span> HomeTheaterFacade(<span class="keyword">new</span> Screen(), <span class="keyword">new</span> DvdPlayer());</span><br><span class="line">        facade.startMovie(<span class="string">&quot;&lt;&lt;NeZha&gt;&gt;&quot;</span>);</span><br><span class="line">        facade.endMovie();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Down screen...</span></span><br><span class="line"><span class="comment">// Start DVD Player...</span></span><br><span class="line"><span class="comment">// Show movie: &lt;&lt;NeZha&gt;&gt; ...</span></span><br><span class="line"><span class="comment">// Up screen...</span></span><br><span class="line"><span class="comment">// End DVD Player...</span></span><br></pre></td></tr></table></figure>
+
+<p>其实说是 Facade 模式，但是我这里平时经常会用到，只不过我一般把这种类型的东西叫做 Util 或者 Action 类。封装一些经常使用的方法，感觉效果上还是很相似的。</p>
+<h2 id="The-Principle-of-Least-Knowledge"><a href="#The-Principle-of-Least-Knowledge" class="headerlink" title="The Principle of Least Knowledge"></a>The Principle of Least Knowledge</h2><p>这个规则是说，我们在写代码的时候要尽量减少涉及到多种返回值类型的链式调用。</p>
+<blockquote>
+<p>Principle of Least Knowledge - talk only to your immediate friends.</p>
+</blockquote>
+<p>在你的代码中，你只能调用下列对象的方法：</p>
+<ul>
+<li>对象本身</li>
+<li>通过方法参数传入的对象</li>
+<li>任何在本类中创建的对象</li>
+<li>任何本对象的 field</li>
+</ul>
+<p>这样做可以减少两个对象之间的 dependencies 但是同时也有一个弊端，你需要写跟多的代码，项目会变得更大，还可能会性能下降。</p>
+]]></content>
       <categories>
         <category>设计模式</category>
       </categories>
@@ -2215,7 +2225,7 @@
     <title>HTW ex03</title>
     <url>/hexo/2021/07/13/HTW-ex03/</url>
     <content><![CDATA[<blockquote>
-<p><strong>Chapter3</strong> presents a simplified version of Tomcat 4’s default connector.<br>The application built in this chapter serves as a learning tool to understand the connector discussed in <strong>Chapter4</strong></p>
+<p><strong>Chapter3</strong> presents a simplified version of Tomcat 4’s default connector.<br>The application built in this chapter serves as a learning tool to understand the connector discussed in Chapter4</p>
 </blockquote>
 <p>PS: 这个 project 有点老了，其中用到的 Catalina 包比较老, 找了半天</p>
 <figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>tomcat<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>catalina<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>4.0.4<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
@@ -2227,8 +2237,13 @@
 <li>enhance response’s getWriter</li>
 </ul>
 <p>完成上述功能后，这个就是简化版的 Tomcat4 的 connector 了。Tomcat 的默认 connector 在 Tomcat4 时被 deprecated 了，不过还是有参考价值的。</p>
-<p>开篇先介绍了一个用于做类似国际化的类 org.apache.catalina.util.StringManager. 原理很简单，就是这个类通过单例模式生成唯一对象，加载预先定义好的 properties，通过 getString 方法拿到对应语言的翻译。</p>
-<p>相比之前的 project，这张开始，代码开始分包</p>
+<h2 id="StringManager"><a href="#StringManager" class="headerlink" title="StringManager"></a>StringManager</h2><p>开篇先介绍了一个用于做类似国际化的类 org.apache.catalina.util.StringManager. 原理很简单，就是这个类通过单例模式生成唯一对象，加载预先定义好的 properties，通过 getString 方法拿到对应语言的翻译。</p>
+<p>StringManager 底层使用两个 Java 基础类做实现，一个是 ResourceBundle 另一个是 MessageFormat. ResourceBundle 可以通过 properties 加载多语言支持，MessageFormat 则用于格式化打印信息。</p>
+<p>为了节省资源，StringManager 内部通过 Hashtable 存储多语言，并通过单例模式创建这个 field</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> Hashtable managers = <span class="keyword">new</span> Hashtable();</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">    * Get the StringManager for a particular package. If a manager for</span></span><br><span class="line"><span class="comment">    * a package already exists, it will be reused, else a new</span></span><br><span class="line"><span class="comment">    * StringManager will be created and returned.</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@param</span> packageName</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">static</span> StringManager <span class="title">getManager</span><span class="params">(String packageName)</span> </span>&#123;</span><br><span class="line">    StringManager mgr = (StringManager)managers.get(packageName);</span><br><span class="line">    <span class="keyword">if</span> (mgr == <span class="keyword">null</span>) &#123;</span><br><span class="line">        mgr = <span class="keyword">new</span> StringManager(packageName);</span><br><span class="line">        managers.put(packageName, mgr);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> mgr;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>每一个 package 下的 LocalStrings 都有一个对象。</p>
+<p>相比之前的 project，这章开始，代码开始分包</p>
 <figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">.</span><br><span class="line">├── ServletProcessor.java</span><br><span class="line">├── StaticResourceProcessor.java</span><br><span class="line">├── connector</span><br><span class="line">│   ├── RequestStream.java</span><br><span class="line">│   ├── ResponseStream.java</span><br><span class="line">│   ├── ResponseWriter.java</span><br><span class="line">│   └── http</span><br><span class="line">│       ├── Constants.java</span><br><span class="line">│       ├── HttpConnector.java</span><br><span class="line">│       ├── HttpHeader.java</span><br><span class="line">│       ├── HttpProcessor.java</span><br><span class="line">│       ├── HttpRequest.java</span><br><span class="line">│       ├── HttpRequestFacade.java</span><br><span class="line">│       ├── HttpRequestLine.java            拆出来一个单独的类代表 request 的第一行，包括请求类型，URI，协议等信息</span><br><span class="line">│       ├── HttpResponse.java</span><br><span class="line">│       ├── HttpResponseFacade.java</span><br><span class="line">│       ├── LocalStrings.properties</span><br><span class="line">│       ├── LocalStrings_es.properties</span><br><span class="line">│       ├── LocalStrings_ja.properties</span><br><span class="line">│       └── SocketInputStream.java</span><br><span class="line">└── startup</span><br><span class="line">    └── Bootstrap.java                      启动类，实例化 HttpConnector 并调用 start() 方法</span><br></pre></td></tr></table></figure>
 
 <p>Bootstrap.java 为启动类，内容很简单，就是 new 一个 connector 然后执行 start 方法，让 connector 常驻。</p>
@@ -2241,20 +2256,16 @@
 <li>Constant 常量类</li>
 </ul>
 <p>类关系图</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@startuml</span><br><span class="line">HttpConnector &quot;1&quot;-&quot;1&quot; HttpProcessor</span><br><span class="line"></span><br><span class="line">HttpProcessor &quot;uses&quot;.up.&gt; StringManager</span><br><span class="line">HttpProcessor &quot;uses&quot;.up.&gt; SocketInputStream</span><br><span class="line"></span><br><span class="line">HttpProcessor &quot;uses&quot;.up.&gt; HttpHeader</span><br><span class="line">HttpProcessor &quot;uses&quot;.up.&gt; HttpRequestLine</span><br><span class="line"></span><br><span class="line">HttpProcessor &quot;1&quot;*.down.&quot;1&quot; ServletProcessor</span><br><span class="line">HttpProcessor &quot;1&quot;*.down.&quot;1&quot; StaticResourceProcessor</span><br><span class="line"></span><br><span class="line">ServletProcessor &quot;uses&quot;.down.&gt; HttpRequest</span><br><span class="line">ServletProcessor &quot;uses&quot;.down.&gt; HttpResponse</span><br><span class="line">StaticResourceProcessor &quot;uses&quot;.down.&gt; HttpRequest</span><br><span class="line">StaticResourceProcessor &quot;uses&quot;.down.&gt; HttpResponse</span><br><span class="line">@enduml</span><br></pre></td></tr></table></figure>
-
 <img  src=http://www.plantuml.com/plantuml/svg/bP1D2i9038NtFKMPfU10B-36JGK5iISOfezIr6ISPFJwjefe5GTTP97alIy_jMfOCX6ySYnDPUP3bFLGtKRs4E5O59EqD4aWngPW5sMZiQTkuyXrY3aT-prqHI7fO84xvg1ZfuPhiyIniyCfGNJT4pvubPdPbYzantiQnFC1-ZmfArQdlTz1E4MFbpUyKnxxt9oJZNwJIc0I55_cvUX_EEv3hW00>
 
 <p>和 ex02 比，这里将 HttpServer 拆成了 HttpConnector 和 HttpProcessor 两个类。HttpConnector 等待 request， HttpProcessor 负责 request/response 的生成和处理。</p>
-<p>为了提高 connector 的效率，设计的时候将 request 中的 parse 的行为经可能的延后了(比如有些 servlet 根本不需要 request 中的参数，这样 parse 就显得很多余，白白浪费了时间)。</p>
+<p>为了提高 connector 的效率，设计的时候将 request 中的 parse 的行为尽可能的延后了(比如有些 servlet 根本不需要 request 中的参数，这样 parse 就显得很多余，白白浪费了时间)。</p>
 <p>TODO：connector 中的 SocketInputStream 有很方便的处理 request line 的方法，明天有机会可以测试一波</p>
 <p>HttpProcessor 新建 request 并填充信息，比如 header 之类的，具体到 url 参数的解析，则由 request 类自己负责。</p>
 <p>HttpRequest 的继承关系图如下</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@startuml</span><br><span class="line">skinparam linetype ortho</span><br><span class="line">interface javax.servlet.http.HttpServletRequest</span><br><span class="line"></span><br><span class="line">HttpRequestFacade .up.|&gt; javax.servlet.http.HttpServletRequest</span><br><span class="line">HttpRequest .up.|&gt; javax.servlet.http.HttpServletRequest</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">interface javax.servlet.ServletInputStream</span><br><span class="line">RequestStream .up.|&gt; javax.servlet.ServletInputStream</span><br><span class="line"></span><br><span class="line">RequestStream &quot;1&quot;-*&quot;1&quot; HttpRequest</span><br><span class="line">@enduml</span><br></pre></td></tr></table></figure>
-
 <img  src=http://www.plantuml.com/plantuml/svg/AyxEp2j8B4hCLSZ9p4ijgIn8LSWlAid8vyhCAqajIajCJbN8IYnBhD0hJYqgoqajqSieAIdGym0ImH21eDJ2qjJY4Yuka1YKuvQOd9YIgg1NMg1NOqUaVYJjf6damkbKg4BFl8BIak2IejJ4N2we9WWFkprOTA5fKp9KqjK24Wf8RWO0>
 
-<p>servlet/JSP 程序中通过 JsessionId 指代 sessio。 解析 request 相关的内容时，需要解析 cookie 中的这个值，如果客户端没有 enable cookie 还需要将它 append 到 URL 中</p>
+<p>servlet/JSP 程序中通过 JsessionId 指代 session。 解析 request 相关的内容时，需要解析 cookie 中的这个值，如果客户端没有 enable cookie 还需要将它 append 到 URL 中</p>
 <p>关于本章中用到的 HttpHeader 你暂时只需要知道如下几点就行</p>
 <ul>
 <li>可以使用无参数构造器创建实例</li>
@@ -2267,7 +2278,7 @@
 <p>通过设置 PrintWriter 的 auto flush 功能，之前打印的 behavior 才修复了，不然只会打印第一句话。为了了解这里说的东西，你需要查一下 Writer 相关的知识点。</p>
 <h2 id="深入了解各个类的细节"><a href="#深入了解各个类的细节" class="headerlink" title="深入了解各个类的细节"></a>深入了解各个类的细节</h2><h3 id="HttpConnector"><a href="#HttpConnector" class="headerlink" title="HttpConnector"></a>HttpConnector</h3><p>服务器的主体部分，负责指定 ip 和 port 并 stand by. 每当有 request 过来就新建一个 HttpProcessor 对象处理对应的 socket。 </p>
 <h3 id="HttpRequestLine"><a href="#HttpRequestLine" class="headerlink" title="HttpRequestLine"></a>HttpRequestLine</h3><p>代表的是 request 的第一行的内容，示例如下 <code>GET /servlet/ModernServlet?userName=tarzan&amp;password=pwd HTTP/1.1</code> 不过它的实现比较有意思，它为这一样中的各个部分声明了一个存储的 char 数组，并标识了结束地址 <code>char[] method, int methodEnd</code></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@startuml</span><br><span class="line">Class HttpRequestLine &#123;</span><br><span class="line">    +char[] method;</span><br><span class="line">    +int methodEnd;</span><br><span class="line">    +char[] uri;</span><br><span class="line">    +int uriEnd;</span><br><span class="line">    +char[] protocol;</span><br><span class="line">    +int protocolEnd;</span><br><span class="line"></span><br><span class="line">    +HttpRequestLine();</span><br><span class="line">    +HttpRequestLine(method, methodEnd, uri, uriEnd, protocol, protocolEnd);</span><br><span class="line">&#125;</span><br><span class="line">@enduml</span><br></pre></td></tr></table></figure>
+<img  src=http://www.plantuml.com/plantuml/svg/Syv9B2vMy2WfAGXABInDBIxnoSnBLQZcKW02xUICnABeM8NSr9AC_1HhY5XcNWbKm3KF9WPLLrgKYQG8oCDGKL2KNvAVd9-3f0mc15OB4KPpZOQcDNPnY3Dq4CxH0Lcg0xLP1swq3h8bGCDg0G00>
 
 <p>SocketInputStream 是处理 HttpRequestLine 的类，主要涉及的方法 </p>
 <ul>
@@ -2286,10 +2297,10 @@
 <li>解析 headers</li>
 <li>根据 uri 调用对应的 processor</li>
 </ul>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@startuml</span><br><span class="line">(*) --&gt; &quot;init request, response&quot;</span><br><span class="line">--&gt; &quot;parse request line&quot;</span><br><span class="line">--&gt; &quot;parse headers&quot;</span><br><span class="line">if &quot;uri contains &#39;&#x2F;servlet&#x2F;&#39;&quot; then</span><br><span class="line">    --&gt; &quot;init ServletProcessor&quot;</span><br><span class="line">    --&gt; &quot;invoke process()&quot;</span><br><span class="line">else</span><br><span class="line">    --&gt; &quot;init StaticProessor&quot;</span><br><span class="line">    --&gt; &quot;invoke process()&quot;</span><br><span class="line">endif</span><br><span class="line">--&gt; (*)</span><br><span class="line">@endurl</span><br></pre></td></tr></table></figure>
+<img  src=http://www.plantuml.com/plantuml/svg/ZSvB2eD0383X_PmYPECe5M_GCnHwWa4ZXafccaJFhoYbZrMp2dpy9B6feMslW2pieFHSoFooBrQo664ui2GrUYdCBDymKHf83GEFW8ioz5ayiHXKdP6kCtbN8VX44c2Vzy7xgJVDFPbbnKzVyuEWd1Hh33GR_VQUdFiz_wEMWSVZwzZK6m00>
 
 <p>parseReauest 过程如下</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@startuml</span><br><span class="line">(*) --&gt; &quot;populate to HttpRequestLine obj&quot;</span><br><span class="line">if &quot;requestLine contains &#39;?&#39;&quot; then</span><br><span class="line">    --&gt; [true] &quot;request.setQueryString() + init uri&quot;</span><br><span class="line">    --&gt; &quot;absolute uri check&quot;</span><br><span class="line">else</span><br><span class="line">    --&gt; &quot;init uri&quot;</span><br><span class="line">endif</span><br><span class="line">--&gt; &quot;absolute uri check&quot;</span><br><span class="line">if &quot;uri contains jsession&quot; then</span><br><span class="line">    --&gt; [true] &quot;parse + reqeust.setReqeustedSessionId() + set flag&quot;</span><br><span class="line">    --&gt; &quot;normalize uri&quot;</span><br><span class="line">else</span><br><span class="line">--&gt; &quot;set flag&quot;</span><br><span class="line">endif</span><br><span class="line">--&gt; &quot;normalize uri&quot;</span><br><span class="line">--&gt; (*)</span><br><span class="line">@enduml</span><br></pre></td></tr></table></figure>
+<img  src=http://www.plantuml.com/plantuml/svg/TSwnZi8m30RWlKzXPQ45mIDmAqYt02DY2AqBve9JOcU0foTjWLOdaIcn_p_wyca1y_aIJEERwAmYg8ULQhF5MqJHNs84VxoOZ6emOJGiFQib5fZyJ0pe6Jc3TDhFzXeY7ZxnXQ1k8eRxJWFnAIzW1iIa40EPJydOetWNao2DeJnZ-MSoT893OYWXLrHdNskjjNk-ZHT14VBy1ThO89XK2Oon1s_xArQxlhckEdVQGEtiQUHc7wxMqGDVj9RSBORiYFiltSxoQV44>
 
 <p>normalize 即处理一些特殊字符，比如 <code>..</code> 是上一级目录</p>
 <p>parseHeaders 的过程和 parseRequest 雷同，while 循环逐行解析并向 request 中设置值。不过 ex03 中只处理了 cookie, content-length 和 content-type 几种类型的 header</p>
