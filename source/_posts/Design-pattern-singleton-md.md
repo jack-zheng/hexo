@@ -1,5 +1,5 @@
 ---
-title: Design-pattern-singleton.md
+title: 单例模式
 date: 2021-08-11 13:31:03
 categories:
 - 设计模式 

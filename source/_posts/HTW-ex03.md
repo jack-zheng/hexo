@@ -1,5 +1,5 @@
 ---
-title: HTW ex03
+title: Ex03 Connector
 date: 2021-07-13 17:23:41
 categories:
 - Tomcat
@@ -90,13 +90,13 @@ PS: 它这里用的是饿汉式的声明，类加载的时候就创建了对象�
     └── Bootstrap.java                      启动类，实例化 HttpConnector 并调用 start() 方法
 ```
 
-Bootstrap.java 为启动类，内容很简单，就是 new 一个 connector 然后执行 start 方法，让 connector 常驻。
+Bootstrap.java 为启动类，内容很简单，就是 new 一个 connector, 然后执行 start 方法，让 connector 常驻。
 
 connector 下的类可以分为五类
 
-* connect 即该类的辅助类(HttpConnector + HttpProcessor)
+* connect 及该类的辅助类(HttpConnector + HttpProcessor)
 * 代表 Http Request 的类(HttpRequest)及其辅助类
-* 代表 Http Response 的(HttpResponse)及其辅助类
+* 代表 Http Response 的类(HttpResponse)及其辅助类
 * Facade 类(HttpRequestFacade + HttpResponseFacade)
 * Constant 常量类
 
@@ -162,42 +162,23 @@ RequestStream "1"-*"1" HttpRequest
 
 #### Reading the Socket's input Stream
 
-我们从 Tomcat4 中 copy 了 SocketInputStream 的实现，他负责解析从 socket 中获取的 input steam。
+SocketInputStream 的实现是直接从 Tomcat 4 的实现中 copy 过来的，他负责解析从 socket 中获取的 inputStream。
 
 #### Parsing the Request Line
+
+processor 中处理 socket 的过程如下
 
 {% plantuml %}
 (*) --> "init request, response"
 --> "parse request line"
 --> "parse headers"
 if "uri contains '/servlet/'" then
-    --> "init ServletProcessor"
+    --> [Yes] "init ServletProcessor"
     --> "invoke process()"
 else
-    --> "init StaticProessor"
+    --> [No] "init StaticProessor"
     --> "invoke process()"
 endif
---> (*)
-{% endplantuml %}
-
-parseRequest 过程如下
-
-{% plantuml %}
-(*) --> "populate to HttpRequestLine obj"
-if "requestLine contains '?'" then
-    --> [true] "request.setQueryString() + init uri"
-    --> "absolute uri check"
-else
-    --> "init uri"
-endif
---> "absolute uri check"
-if "uri contains jsession" then
-    --> [true] "parse + reqeust.setReqeustedSessionId() + set flag"
-    --> "normalize uri"
-else
---> "set flag"
-endif
---> "normalize uri"
 --> (*)
 {% endplantuml %}
 
@@ -294,7 +275,28 @@ private void parseRequest(SocketInputStream input, OutputStream output) throws I
 }
 ```
 
-它的实现比较有意思，它为这一样中的各个部分声明了一个存储的 char 数组，并标识了结束地址 `char[] method, int methodEnd`
+UML 图示如下
+
+{% plantuml %}
+(*) --> "populate to HttpRequestLine obj"
+if "requestLine contains '?'" then
+    --> [true] "request.setQueryString() + init uri"
+    --> "absolute uri check"
+else
+    --> "init uri"
+endif
+--> "absolute uri check"
+if "uri contains jsession" then
+    --> [true] "parse + reqeust.setReqeustedSessionId() + set flag"
+    --> "normalize uri"
+else
+--> "set flag"
+endif
+--> "normalize uri"
+--> (*)
+{% endplantuml %}
+
+Request line 的类实现为 HttpRequestLine, 它的实现比较有意思，它为这一样中的各个部分声明了一个存储的 char 数组，并标识了结束地址 `char[] method, int methodEnd`
 
 {% plantuml %}
 Class HttpRequestLine {
@@ -310,7 +312,7 @@ Class HttpRequestLine {
 }
 {% endplantuml %}
 
-SocketInputStream 是处理 HttpRequestLine 的类，主要涉及的方法 
+我们通过处理 SocketInputStream 可以得到 request line 的信息用以填充 HttpRequestLine，主要涉及的方法 
 
 * readRequestLine(HttpRequestLine) 填充 line 对象的方法入口
 * fill() 使用 buffer 的方式读取输入流中的内容，这个过程中会初始化 pos 和 count 的值。pos 表示当前位置，count 表示流中内容长度
@@ -336,7 +338,6 @@ public int read()
 可以看到最后的处理方式是返回 `buf[n] & 0xff` 0xff 即 0000 0000 0000 1111 做与操作可以将前面的值置位
 
 readRequestLine 中用了三个 while 循环通过判断空格和行结束符将首行的信息提取出来。很雷同的还有一个叫 readHeader() 的方法处理解析 request 中的 headers.
-
 
 #### Parsing Headers
 
