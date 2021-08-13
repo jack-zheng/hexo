@@ -53,13 +53,13 @@
 
   <meta name="description" content="Chapter3 presents a simplified version of Tomcat 4’s default connector.The application built in this chapter serves as a learning tool to understand the connector discussed in Chapter4  PS: 这个 projec">
 <meta property="og:type" content="article">
-<meta property="og:title" content="HTW ex03">
+<meta property="og:title" content="Ex03 Connector">
 <meta property="og:url" content="https://jack-zheng.github.io/hexo/2021/07/13/HTW-ex03/index.html">
 <meta property="og:site_name" content="Jackpot">
 <meta property="og:description" content="Chapter3 presents a simplified version of Tomcat 4’s default connector.The application built in this chapter serves as a learning tool to understand the connector discussed in Chapter4  PS: 这个 projec">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-07-13T09:23:41.000Z">
-<meta property="article:modified_time" content="2021-08-12T03:28:35.047Z">
+<meta property="article:modified_time" content="2021-08-13T12:15:11.516Z">
 <meta property="article:author" content="Jack Zheng">
 <meta property="article:tag" content="How Tomcat Works">
 <meta name="twitter:card" content="summary">
@@ -78,7 +78,7 @@
   };
 </script>
 
-  <title>HTW ex03 | Jackpot</title>
+  <title>Ex03 Connector | Jackpot</title>
   
 
 
@@ -222,7 +222,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          HTW ex03
+          Ex03 Connector
         </h1>
 
         <div class="post-meta">
@@ -239,7 +239,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-12 11:28:35" itemprop="dateModified" datetime="2021-08-12T11:28:35+08:00">2021-08-12</time>
+                <time title="修改时间：2021-08-13 20:15:11" itemprop="dateModified" datetime="2021-08-13T20:15:11+08:00">2021-08-13</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -307,12 +307,12 @@
 <h2 id="The-Application"><a href="#The-Application" class="headerlink" title="The Application"></a>The Application</h2><p>相比之前的 project，这章开始，代码开始分包</p>
 <figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── ServletProcessor.java</span><br><span class="line">├── StaticResourceProcessor.java</span><br><span class="line">├── connector</span><br><span class="line">│   ├── RequestStream.java</span><br><span class="line">│   ├── ResponseStream.java</span><br><span class="line">│   ├── ResponseWriter.java</span><br><span class="line">│   └── http</span><br><span class="line">│       ├── Constants.java</span><br><span class="line">│       ├── HttpConnector.java</span><br><span class="line">│       ├── HttpHeader.java</span><br><span class="line">│       ├── HttpProcessor.java</span><br><span class="line">│       ├── HttpRequest.java</span><br><span class="line">│       ├── HttpRequestFacade.java</span><br><span class="line">│       ├── HttpRequestLine.java            拆出来一个单独的类代表 request 的第一行，包括请求类型，URI，协议等信息</span><br><span class="line">│       ├── HttpResponse.java</span><br><span class="line">│       ├── HttpResponseFacade.java</span><br><span class="line">│       ├── LocalStrings.properties</span><br><span class="line">│       ├── LocalStrings_es.properties</span><br><span class="line">│       ├── LocalStrings_ja.properties</span><br><span class="line">│       └── SocketInputStream.java</span><br><span class="line">└── startup</span><br><span class="line">    └── Bootstrap.java                      启动类，实例化 HttpConnector 并调用 start() 方法</span><br></pre></td></tr></table></figure>
 
-<p>Bootstrap.java 为启动类，内容很简单，就是 new 一个 connector 然后执行 start 方法，让 connector 常驻。</p>
+<p>Bootstrap.java 为启动类，内容很简单，就是 new 一个 connector, 然后执行 start 方法，让 connector 常驻。</p>
 <p>connector 下的类可以分为五类</p>
 <ul>
-<li>connect 即该类的辅助类(HttpConnector + HttpProcessor)</li>
+<li>connect 及该类的辅助类(HttpConnector + HttpProcessor)</li>
 <li>代表 Http Request 的类(HttpRequest)及其辅助类</li>
-<li>代表 Http Response 的(HttpResponse)及其辅助类</li>
+<li>代表 Http Response 的类(HttpResponse)及其辅助类</li>
 <li>Facade 类(HttpRequestFacade + HttpResponseFacade)</li>
 <li>Constant 常量类</li>
 </ul>
@@ -338,11 +338,9 @@
 <img  src=http://www.plantuml.com/plantuml/svg/AyxEp2j8B4hCLSZ9p4ijgIn8LSWlAid8vyhCAqajIajCJbN8IYnBhD0hJYqgoqajqSieAIdGym0ImH21eDJ2qjJY4Yuka1YKuvQOd9YIgg1NMg1NOqUaVYJjf6damkbKg4BFl8BIak2IejJ4N2we9WWFkprOTA5fKp9KqjK24Wf8RWO0>
 
 <p>本章的 HttpRequest 实现的很多方法都留空了，下一章会有具体实现。但是 header，cookies 等主要属性的提取已经实现了。由于 HttpRequst 的解析比较复杂，下面会分几个小节介绍</p>
-<h4 id="Reading-the-Socket’s-input-Stream"><a href="#Reading-the-Socket’s-input-Stream" class="headerlink" title="Reading the Socket’s input Stream"></a>Reading the Socket’s input Stream</h4><p>我们从 Tomcat4 中 copy 了 SocketInputStream 的实现，他负责解析从 socket 中获取的 input steam。</p>
-<h4 id="Parsing-the-Request-Line"><a href="#Parsing-the-Request-Line" class="headerlink" title="Parsing the Request Line"></a>Parsing the Request Line</h4><img  src=http://www.plantuml.com/plantuml/svg/ZSvB2eD0383X_PmYPECe5M_GCnHwWa4ZXafccaJFhoYbZrMp2dpy9B6feMslW2pieFHSoFooBrQo664ui2GrUYdCBDymKHf83GEFW8ioz5ayiHXKdP6kCtbN8VX44c2Vzy7xgJVDFPbbnKzVyuEWd1Hh33GR_VQUdFiz_wEMWSVZwzZK6m00>
-
-<p>parseRequest 过程如下</p>
-<img  src=http://www.plantuml.com/plantuml/svg/TSwnZi8m30RWlKzXPQ45mIDmAqYt02DY2AqBve9JOcU0foTjWLOdaIcn_p_wyca1y_aIJEERwAmYg8ULQhF5MqJHNs84VxoOZ6emOJGiFQib5fZyJ0pe6Jc3TDhFzXeY7ZxnXQ1k8eRxJWFnAIzW1iIa40EPJydOetWNao2DeJnZ-MSoT893OYWXLrHdNskjjNk-ZHT14VBy1ThO89XK2Oon1s_xArQxlhckEdVQGEtiQUHc7wxMqGDVj9RSBORiYFiltSxoQV44>
+<h4 id="Reading-the-Socket’s-input-Stream"><a href="#Reading-the-Socket’s-input-Stream" class="headerlink" title="Reading the Socket’s input Stream"></a>Reading the Socket’s input Stream</h4><p>SocketInputStream 的实现是直接从 Tomcat 4 的实现中 copy 过来的，他负责解析从 socket 中获取的 inputStream。</p>
+<h4 id="Parsing-the-Request-Line"><a href="#Parsing-the-Request-Line" class="headerlink" title="Parsing the Request Line"></a>Parsing the Request Line</h4><p>processor 中处理 socket 的过程如下</p>
+<img  src=http://www.plantuml.com/plantuml/svg/ZOzD2i9034RtSugGJN-mz0OUGGHNKbmCRKg39LCdQS_ls6h5dLa5tfSNlhmieAgEW2ni4EanazeXBJe5KKAtmib7fG-5aUKN3EGxYegEUy0vChH1pBCePBLIN4QoEaEmWSH1cjTfSoMzlTzUjimvXfPKGyGzbVWIxWJJXl827OrANyifx1Bpncro_A6GZlkrG5uMJm00>
 
 <p>request line 就是 inputStream 中的第一行内容，下面是示例</p>
 <blockquote>
@@ -359,10 +357,13 @@
 <p>HttpProcessor 的 process 方法会将上面提到的对象重 inputStream 中提取出来并塞到对应的对象中</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">parseRequest</span><span class="params">(SocketInputStream input, OutputStream output)</span> <span class="keyword">throws</span> IOException, ServletException </span>&#123;</span><br><span class="line">    <span class="comment">// Parse the incoming request line</span></span><br><span class="line">    input.readRequestLine(requestLine);</span><br><span class="line">    String method = <span class="keyword">new</span> String(requestLine.method, <span class="number">0</span>, requestLine.methodEnd);</span><br><span class="line">    String uri = <span class="keyword">null</span>;</span><br><span class="line">    String protocol = <span class="keyword">new</span> String(requestLine.protocol, <span class="number">0</span>,</span><br><span class="line">            requestLine.protocolEnd);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Validate the incoming request line</span></span><br><span class="line">    <span class="keyword">if</span> (method.length() &lt; <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> ServletException(<span class="string">&quot;Missing HTTP request method&quot;</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (requestLine.uriEnd &lt; <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> ServletException(<span class="string">&quot;Missing HTTP request URI&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// Parse any query parameters out of the request URI</span></span><br><span class="line">    <span class="keyword">int</span> question = requestLine.indexOf(<span class="string">&quot;?&quot;</span>);</span><br><span class="line">    <span class="keyword">if</span> (question &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">        request.setQueryString(<span class="keyword">new</span> String(requestLine.uri, question + <span class="number">1</span>,</span><br><span class="line">                requestLine.uriEnd - question - <span class="number">1</span>));</span><br><span class="line">        uri = <span class="keyword">new</span> String(requestLine.uri, <span class="number">0</span>, question);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        request.setQueryString(<span class="keyword">null</span>);</span><br><span class="line">        uri = <span class="keyword">new</span> String(requestLine.uri, <span class="number">0</span>, requestLine.uriEnd);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Checking for an absolute URI (with the HTTP protocol)</span></span><br><span class="line">    <span class="keyword">if</span> (!uri.startsWith(<span class="string">&quot;/&quot;</span>)) &#123;</span><br><span class="line">        <span class="keyword">int</span> pos = uri.indexOf(<span class="string">&quot;://&quot;</span>);</span><br><span class="line">        <span class="comment">// Parsing out protocol and host name</span></span><br><span class="line">        <span class="keyword">if</span> (pos != -<span class="number">1</span>) &#123;</span><br><span class="line">            pos = uri.indexOf(<span class="string">&#x27;/&#x27;</span>, pos + <span class="number">3</span>);</span><br><span class="line">            <span class="keyword">if</span> (pos == -<span class="number">1</span>) &#123;</span><br><span class="line">                uri = <span class="string">&quot;&quot;</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                uri = uri.substring(pos);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Parse any requested session ID out of the request URI</span></span><br><span class="line">    String match = <span class="string">&quot;;jsessionid=&quot;</span>;</span><br><span class="line">    <span class="keyword">int</span> semicolon = uri.indexOf(match);</span><br><span class="line">    <span class="keyword">if</span> (semicolon &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">        String rest = uri.substring(semicolon + match.length());</span><br><span class="line">        <span class="keyword">int</span> semicolon2 = rest.indexOf(<span class="string">&#x27;;&#x27;</span>);</span><br><span class="line">        <span class="keyword">if</span> (semicolon2 &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            request.setRequestedSessionId(rest.substring(<span class="number">0</span>, semicolon2));</span><br><span class="line">            rest = rest.substring(semicolon2);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            request.setRequestedSessionId(rest);</span><br><span class="line">            rest = <span class="string">&quot;&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        request.setRequestedSessionURL(<span class="keyword">true</span>);</span><br><span class="line">        uri = uri.substring(<span class="number">0</span>, semicolon) + rest;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        request.setRequestedSessionId(<span class="keyword">null</span>);</span><br><span class="line">        request.setRequestedSessionURL(<span class="keyword">false</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Normalize URI (using String operations at the moment)</span></span><br><span class="line">    String normalizedUri = normalize(uri);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Set the corresponding request properties</span></span><br><span class="line">    ((HttpRequest) request).setMethod(method);</span><br><span class="line">    request.setProtocol(protocol);</span><br><span class="line">    <span class="keyword">if</span> (normalizedUri != <span class="keyword">null</span>) &#123;</span><br><span class="line">        ((HttpRequest) request).setRequestURI(normalizedUri);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        ((HttpRequest) request).setRequestURI(uri);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (normalizedUri == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> ServletException(<span class="string">&quot;Invalid URI: &quot;</span> + uri + <span class="string">&quot;&#x27;&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>它的实现比较有意思，它为这一样中的各个部分声明了一个存储的 char 数组，并标识了结束地址 <code>char[] method, int methodEnd</code></p>
+<p>UML 图示如下</p>
+<img  src=http://www.plantuml.com/plantuml/svg/TSwnZi8m30RWlKzXPQ45mIDmAqYt02DY2AqBve9JOcU0foTjWLOdaIcn_p_wyca1y_aIJEERwAmYg8ULQhF5MqJHNs84VxoOZ6emOJGiFQib5fZyJ0pe6Jc3TDhFzXeY7ZxnXQ1k8eRxJWFnAIzW1iIa40EPJydOetWNao2DeJnZ-MSoT893OYWXLrHdNskjjNk-ZHT14VBy1ThO89XK2Oon1s_xArQxlhckEdVQGEtiQUHc7wxMqGDVj9RSBORiYFiltSxoQV44>
+
+<p>Request line 的类实现为 HttpRequestLine, 它的实现比较有意思，它为这一样中的各个部分声明了一个存储的 char 数组，并标识了结束地址 <code>char[] method, int methodEnd</code></p>
 <img  src=http://www.plantuml.com/plantuml/svg/Syv9B2vMy2WfAGXABInDBIxnoSnBLQZcKW02xUICnABeM8NSr9AC_1HhY5XcNWbKm3KF9WPLLrgKYQG8oCDGKL2KNvAVd9-3f0mc15OB4KPpZOQcDNPnY3Dq4CxH0Lcg0xLP1swq3h8bGCDg0G00>
 
-<p>SocketInputStream 是处理 HttpRequestLine 的类，主要涉及的方法 </p>
+<p>我们通过处理 SocketInputStream 可以得到 request line 的信息用以填充 HttpRequestLine，主要涉及的方法 </p>
 <ul>
 <li>readRequestLine(HttpRequestLine) 填充 line 对象的方法入口</li>
 <li>fill() 使用 buffer 的方式读取输入流中的内容，这个过程中会初始化 pos 和 count 的值。pos 表示当前位置，count 表示流中内容长度</li>
@@ -414,7 +415,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="https://jack-zheng.github.io/hexo/2021/07/13/HTW-ex03/" title="HTW ex03">https://jack-zheng.github.io/hexo/2021/07/13/HTW-ex03/</a>
+    <a href="https://jack-zheng.github.io/hexo/2021/07/13/HTW-ex03/" title="Ex03 Connector">https://jack-zheng.github.io/hexo/2021/07/13/HTW-ex03/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/null" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -440,8 +441,8 @@
             <span class="post-nav-divider"></span>
 
             <div class="post-nav-prev post-nav-item">
-                <a href="/hexo/2021/07/20/HTW-ex04/" rel="prev" title="HTW ex04">
-                  HTW ex04 <i class="fa fa-chevron-right"></i>
+                <a href="/hexo/2021/07/20/HTW-ex04/" rel="prev" title="Ex04 Tomcat 自带的 connector 实现解析">
+                  Ex04 Tomcat 自带的 connector 实现解析 <i class="fa fa-chevron-right"></i>
                 </a>
             </div>
           </div>
@@ -545,12 +546,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">895k</span>
+    <span title="站点总字数">899k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">13:33</span>
+    <span title="站点阅读时长">13:37</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
