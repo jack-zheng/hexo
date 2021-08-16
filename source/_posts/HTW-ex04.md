@@ -370,18 +370,199 @@ PS: 第二个问题不是很清楚，需要画图来帮助理解
 
 PPS: 再看看创建多个 processor 的那部分代码，有助于理解这里的内容
 
-## Request Objects / Request Objects
+## Request Objects / Response Objects
 
-使用的是 catalina 自己定义的接口
+default connector 的 request 实现采用 org.apache.catalina.Request 接口. 对应的实现基础类是 RequestBase，他的子类是 HttpRequest. 最终实现类是 HttpRequestImpl. 这些类也有格子的 Facade 类。 UML 示例如下
+
+{plantuml}
+interface Request
+interface ServletRequest
+
+interface HttpRequest
+Request <|-- HttpRequest
+Request <|.. RequestBase
+
+ServletRequest <|.. RequestBase
+ServletRequest <|.. HttpServletRequest
+ServletRequest <|.. RequestFacade
+
+HttpRequest <|.. HttpRequestBase
+RequestBase <|-- HttpRequestBase
+HttpServletRequest <|.. HttpRequestBase
+
+HttpServletRequest <|.. HttpRequestFacade
+RequestFacade <|.. HttpRequestFacade
+
+HttpRequestBase <|-- HttpRequestImpl
+
+RequestBase "1"*-"1" RequestStream
+ServletInputStream <|.. RequestStream
+{endplantuml}
+
+response 的关系图和 request 基本一致
 
 ## Process Requests
 
-预先设置了一些 flag, 如 ok，finishResponse，stopped， keepAlive 等控制解析流程。主要就做了几件事
+这节主要介绍 HttpProcessor 的 process 方法，它主要做了下面几件事
 
 * parseConnection - 获取地址并塞到 request 中
 * parseRequest - 同上节
 * parseHeader - 解析 header 并塞到 request 中
 * recycle response + request - 复用对象，相比于上一节完善了很多
+
+process 定义了一些 flag，比如 ok 表示处理过程中没有出现异常，finishResponse 表示 finishResponse 方法要被调用。
+
+```java
+boolean ok = true;
+boolean finishResponse = true;
+```
+
+* keepAlive - 持久链接
+* stopped - HttpProcess instance has been stopped by connector
+* http11 - request 是从支持 http11 的 client 发出来的
+
+在 Tomcat 的 default connector 实现中，用户和 HttpProcessor 是隔离的，但是用户可以通过设置 connector 的 buffer size 间接设置 processor 的 buffer size.
+
+```java
+SocketInputStream input = null;
+OutputStream output = null;
+
+// Construct and initialize the objects we will need
+try {
+    input = new SocketInputStream(socket.getInputStream(), connector.getBufferSize());
+} catch (Exception e) {
+    log("process.create", e);
+    ok = false;
+}
+```
+
+接下来是一个 while 循环读取 inputStream 中的数据
+
+```java
+keepAlive = true;
+while (!stopped && ok && keepAlive) {...}
+```
+
+解析过程中，一开始设置 finishResponse 的值，并做一些 request 和 response 的初始化
+
+```java
+finishResponse = true;
+
+try {
+    request.setStream(input);
+    request.setResponse(response);
+    output = socket.getOutputStream();
+    response.setStream(output);
+    response.setRequest(request);
+    ((HttpServletResponse) response.getResponse()).setHeader
+        ("Server", SERVER_INFO);
+} catch (Exception e) {
+    log("process.create", e);
+    ok = false;
+}
+```
+
+之后开始 parse connection，request 和 headers
+
+```java
+// Parse the incoming request
+try {
+    if (ok) {
+        parseConnection(socket);
+        parseRequest(input, output);
+        if (!request.getRequest().getProtocol()
+            .startsWith("HTTP/0"))
+            parseHeaders(input);
+```
+
+parseConnection 可以获取 protocol 信息，这个值可能是 0.9， 1.0 或者 1.1. 如果是 1.0 则 keepAlive 会设置成 false。如果 request 头中包含 100-contiue 则会在 parseHeaders 中将 sendAck 设置成 true。
+
+如果是 1.1 的协议，它也会相应 100-continue 并且会检查是否允许 chunking
+
+```java
+if (http11) {
+    // Sending a request acknowledge back to the client if
+    // requested.
+    ackRequest(output);
+    // If the protocol is HTTP/1.1, chunking is allowed.
+    if (connector.isChunkingAllowed())
+        response.setAllowChunking(true);
+}
+```
+
+ackRequest 会检测 sendAck 的值，如果为 true 则返回 `HTTP/1.1 100 Continue /r/n/r/n`.  parse 过程中如果有异常，则 ok 和 finishResponse 会被置位。parse 结束后 request 和 response 会传给 container 调用
+
+```java
+// Ask our Container to process this request
+try {
+    ((HttpServletResponse) response).setHeader("Date", FastHttpDateFormat.getCurrentDate());
+    if (ok) {
+        connector.getContainer().invoke(request, response);
+    }
+}
+```
+
+如果此时 finishResponse 还是 true 则调用 requeset/response 的 finishResponse 方法, flush 流
+
+```java
+// Finish up the handling of the request
+if (finishResponse) {
+    response.finishResponse();
+    request.finishRequest();
+    output.flush();
+    ok = false;
+}
+```
+
+最后检查 Connection 的值并置位，回收 request 和 response
+
+```java
+// We have to check if the connection closure has been requested
+// by the application or the response stream (in case of HTTP/1.0
+// and keep-alive).
+if ( "close".equals(response.getHeader("Connection")) ) {
+    keepAlive = false;
+}
+
+// End of request processing
+status = Constants.PROCESSOR_IDLE;
+
+// Recycling the request and the response objects
+request.recycle();
+response.recycle();
+```
+
+然后重复 while 或者结束 socket 通信
+
+```java
+try {
+    shutdownInput(input);
+    socket.close();
+}
+```
+
+### Parsing the Connection
+
+parseConnection 会获取 address 和 port 在 request 中赋值
+
+```java
+private void parseConnection(Socket socket) throws IOException, ServletException {
+    ((HttpRequestImpl) request).setInet(socket.getInetAddress());
+    if (proxyPort != 0)
+        request.setServerPort(proxyPort);
+    else
+        request.setServerPort(serverPort);
+    request.setSocket(socket);
+}
+```
+
+### Parsing the Request
+
+和前一章一样的实现
+
+### Parsing Headers
+
+通过 character arrays 操作而非 String 来提高效率
 
 ## The Simple Container Application
 
