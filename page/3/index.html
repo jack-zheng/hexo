@@ -206,6 +206,723 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/06/17/AWK-c2-the-AWK-language/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/06/17/AWK-c2-the-AWK-language/" class="post-title-link" itemprop="url">第二章 the AWK language</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-06-17 19:45:18" itemprop="dateCreated datePublished" datetime="2021-06-17T19:45:18+08:00">2021-06-17</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-08-20 19:39:41" itemprop="dateModified" datetime="2021-08-20T19:39:41+08:00">2021-08-20</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/AWK/" itemprop="url" rel="index">
+                    <span itemprop="name">AWK</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>11k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>10 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>最简单的 awk 程序是由一系列 pattern-action 组成的</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">pattern &#123; action &#125;</span><br><span class="line">pattern &#123; action &#125;</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>有时 pattern 会省略，有时 action 会省略。当 awk 检测程序段没有语法错误后，他会一句一句的执行。pattern 没有写即表示匹配每一行。</p>
+<p>本章第一节会介绍 pattern， 后面会介绍表达式，赋值等，剩余部分则是介绍函数等信息。</p>
+<p>这里的准备文件是有讲究的，直接用 vscode 准备会出问题，最好在终端使用 echo + \t 的方式手动打一遍</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">cat countries                  </span><br><span class="line">USSR    8649    275     Asia</span><br><span class="line">Canada  3852    25      North America</span><br><span class="line">China   3705    1032    Asia</span><br><span class="line">USA     3615    237     North America</span><br><span class="line">Brazil  286     134     South America</span><br><span class="line">India   1267    746     Asia</span><br><span class="line">Mexico  762     78      North America</span><br><span class="line">France  211     55      Europe</span><br><span class="line">Japan   144     120     Asia</span><br><span class="line">Germany 96      61      Europe</span><br><span class="line">England 94      56      Europe</span><br><span class="line"></span><br><span class="line">sed -n <span class="string">&#x27;l&#x27;</span> countries </span><br><span class="line">USSR\t8649\t275\tAsia$</span><br><span class="line">Canada\t3852\t25\tNorth America$</span><br><span class="line">China\t3705\t1032\tAsia$</span><br><span class="line">USA\t3615\t237\tNorth America$</span><br><span class="line">Brazil\t286\t134\tSouth America$</span><br><span class="line">India\t1267\t746\tAsia$</span><br><span class="line">Mexico\t762\t78\tNorth America$</span><br><span class="line">France\t211\t55\tEurope$</span><br><span class="line">Japan\t144\t120\tAsia$</span><br><span class="line">Germany\t96\t61\tEurope$</span><br><span class="line">England\t94\t56\tEurope$</span><br><span class="line"></span><br><span class="line">bat -A countries </span><br><span class="line">   1   │ USSR├──┤8649├──┤275├──┤Asia␊</span><br><span class="line">   2   │ Canada├──┤3852├──┤25├──┤North·America␊</span><br><span class="line">   3   │ China├──┤3705├──┤1032├──┤Asia␊</span><br><span class="line">   4   │ USA├──┤3615├──┤237├──┤North·America␊</span><br><span class="line">   5   │ Brazil├──┤286├──┤134├──┤South·America␊</span><br><span class="line">   6   │ India├──┤1267├──┤746├──┤Asia␊</span><br><span class="line">   7   │ Mexico├──┤762├──┤78├──┤North·America␊</span><br><span class="line">   8   │ France├──┤211├──┤55├──┤Europe␊</span><br><span class="line">   9   │ Japan├──┤144├──┤120├──┤Asia␊</span><br><span class="line">  10   │ Germany├──┤96├──┤61├──┤Europe␊</span><br><span class="line">  11   │ England├──┤94├──┤56├──┤Europe␊</span><br></pre></td></tr></table></figure>
+
+<h2 id="Patterns"><a href="#Patterns" class="headerlink" title="Patterns"></a>Patterns</h2><p>pattern 控制着 action 的执行，下面介绍六种 pattern 类型</p>
+<ul>
+<li>BEGIN { statements }</li>
+<li>END { statements }</li>
+<li>expression { statements }, 当 expression 为 true， statements 会被执行</li>
+<li>/regular expression/{ statements }</li>
+<li>compound pattern { statements }, pattern 通过 &amp;&amp;, ||, !, () 链接</li>
+<li>pattern1, pattern2 { statements }</li>
+</ul>
+<h3 id="BEGIN-and-END"><a href="#BEGIN-and-END" class="headerlink" title="BEGIN and END"></a>BEGIN and END</h3><p>BEGIN 经常用来改变 field 的分隔符，默认的分隔符通过 FS 这个内置变量控制，默认的值有空格， / 和 tab. 下面的例子中，我们将分隔符改为 tab 并统计所有地区的面积和人口总数</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;</span></span><br><span class="line"><span class="string">BEGIN &#123; </span></span><br><span class="line"><span class="string">    FS = &quot;\t&quot;</span></span><br><span class="line"><span class="string">    printf(&quot;%10s %6s %5s  %s\n\n&quot;, &quot;COUNTRY&quot;, &quot;AREA&quot;, &quot;POP&quot;, &quot;CONTINENT&quot;)</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">&#123;</span></span><br><span class="line"><span class="string">    printf(&quot;%10s %6s %5d  %s\n&quot;, $1, $2, $3, $4)</span></span><br><span class="line"><span class="string">    area = area + $2</span></span><br><span class="line"><span class="string">    pop = pop + $3</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">END &#123; printf(&quot;\n%10s %6d %5d\n&quot;, &quot;TOTAL&quot;, area, pop) &#125;&#x27;</span> countries</span><br><span class="line">   COUNTRY   AREA   POP  CONTINENT</span><br><span class="line"></span><br><span class="line">      USSR   8649   275  Asia</span><br><span class="line">    Canada   3852    25  North America</span><br><span class="line">     China   3705  1032  Asia</span><br><span class="line">       USA   3615   237  North America</span><br><span class="line">    Brazil    286   134  South America</span><br><span class="line">     India   1267   746  Asia</span><br><span class="line">    Mexico    762    78  North America</span><br><span class="line">    France    211    55  Europe</span><br><span class="line">     Japan    144   120  Asia</span><br><span class="line">   Germany     96    61  Europe</span><br><span class="line">   England     94    56  Europe</span><br><span class="line"></span><br><span class="line">     TOTAL  22681  2819</span><br></pre></td></tr></table></figure>
+
+<h3 id="Expressions-as-Patterns"><a href="#Expressions-as-Patterns" class="headerlink" title="Expressions as Patterns"></a>Expressions as Patterns</h3><p>Expressions 是指运算表达式，由 数字，字符串和符号组成。本书中的 string 指的是 0-n 的字符序列。空字串 “” 在 awk 中被称为 null string. 每个 string 中都包含有 null string.</p>
+<p>如果操作符需要一个 string 类型的参数，但是你给了一个 numberic 的参数，则 awk 会将数字类型转为字符类型。同样的，如果操作符需要数字类型，给了字符类型，也会自动做转化。</p>
+<p>常见的比较符号</p>
+<table>
+<thead>
+<tr>
+<th align="left">OPERATOR</th>
+<th align="left">MEANING</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">&lt;</td>
+<td align="left">less than</td>
+</tr>
+<tr>
+<td align="left">&lt;=</td>
+<td align="left">less than or equal to</td>
+</tr>
+<tr>
+<td align="left">==</td>
+<td align="left">equal to</td>
+</tr>
+<tr>
+<td align="left">!=</td>
+<td align="left">not equal to</td>
+</tr>
+<tr>
+<td align="left">&gt;=</td>
+<td align="left">greater than or equal to</td>
+</tr>
+<tr>
+<td align="left">&gt;</td>
+<td align="left">greater than</td>
+</tr>
+<tr>
+<td align="left">~</td>
+<td align="left">matched by</td>
+</tr>
+<tr>
+<td align="left">!~</td>
+<td align="left">not matched by</td>
+</tr>
+</tbody></table>
+<p>举例：</p>
+<ul>
+<li>NF&gt;10: 选择 field 大于 10 的行</li>
+<li>NF: 直接数字, match when it’s numberic value is nonzero</li>
+<li>string, match when value of expression is nonnull</li>
+<li>num operator num, 做计算</li>
+<li>num operator str, 都转化为 string 做计算</li>
+<li>string operator string, 按位比较顺序. “Canada” &lt; “China”</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;$0 &gt;= &quot;M&quot;&#x27;</span> countries                                                     </span><br><span class="line">USSR    8649    275     Asia</span><br><span class="line">USA     3615    237     North America</span><br><span class="line">Mexico  762     78      North America</span><br></pre></td></tr></table></figure>
+
+<h3 id="String-matching-Patterns"><a href="#String-matching-Patterns" class="headerlink" title="String-matching Patterns"></a>String-matching Patterns</h3><p>Awk 支持 regular expressions</p>
+<p>String-Matching Pattern</p>
+<ul>
+<li>/regexpr/: 目标是行内容的一部分</li>
+<li>expression ~ /regexpr/: matches if the string value of expression contains a substring matched by regexpr</li>
+<li>expression !~ /regexpr/: 和上面的相反</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;$4 ~ /Asia/&#x27;</span> countries </span><br><span class="line">USSR    8649    275     Asia</span><br><span class="line">China   3705    1032    Asia</span><br><span class="line">India   1267    746     Asia</span><br><span class="line">Japan   144     120     Asia</span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;$4 !~ /Asia/&#x27;</span> countries</span><br><span class="line">Canada  3852    25      North America</span><br><span class="line">USA     3615    237     North America</span><br><span class="line">Brazil  286     134     South America</span><br><span class="line">Mexico  762     78      North America</span><br><span class="line">France  211     55      Europe</span><br><span class="line">Germany 96      61      Europe</span><br><span class="line">England 94      56      Europe</span><br></pre></td></tr></table></figure>
+
+<p>这部分可以这样理解，基本的 awk 格式是 <code>pattern &#123; action &#125;</code>, 而这部分 match 是 pattern 的扩展。pattern = expression (!~) /regexpr/</p>
+<h3 id="Regular-Expressions"><a href="#Regular-Expressions" class="headerlink" title="Regular Expressions"></a>Regular Expressions</h3><p>这部分自信已经不用笔记了。。。</p>
+<p>只记一个 <code>(Asian|European|North American)</code> 表示单词级别的选择关系</p>
+<p>ESCAPE SEQUENCES</p>
+<table>
+<thead>
+<tr>
+<th align="left">SEQUENCE</th>
+<th align="left">MEANING</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">\b</td>
+<td align="left">backspace</td>
+</tr>
+<tr>
+<td align="left">\f</td>
+<td align="left">formfeed</td>
+</tr>
+<tr>
+<td align="left">\n</td>
+<td align="left">newline (line feed)</td>
+</tr>
+<tr>
+<td align="left">\r</td>
+<td align="left">carriage return</td>
+</tr>
+<tr>
+<td align="left">\t</td>
+<td align="left">tab</td>
+</tr>
+<tr>
+<td align="left">\ddd</td>
+<td align="left">octal value ddd, where ddd is 1-3 digits between 0-7</td>
+</tr>
+<tr>
+<td align="left">\c</td>
+<td align="left">any other character c literally</td>
+</tr>
+</tbody></table>
+<h3 id="Compound-Patterns"><a href="#Compound-Patterns" class="headerlink" title="Compound Patterns"></a>Compound Patterns</h3><p>混合模式，即多个表示式通过逻辑运算符组合</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;$4 == &quot;Asia&quot; &amp;&amp; $3 &gt; 500&#x27;</span> countries</span><br><span class="line">China   3705    1032    Asia</span><br><span class="line">India   1267    746     Asia</span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;$4 == &quot;Asia&quot; || $4 == &quot;Europe&quot;&#x27;</span> countries</span><br><span class="line">USSR    8649    275     Asia</span><br><span class="line">China   3705    1032    Asia</span><br><span class="line">India   1267    746     Asia</span><br><span class="line">France  211     55      Europe</span><br><span class="line">Japan   144     120     Asia</span><br><span class="line">Germany 96      61      Europe</span><br><span class="line">England 94      56      Europe</span><br></pre></td></tr></table></figure>
+
+<p>上面的例子是字符比较，也可以使用正则</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;$4 ~ /^(Asia|Europe)$/&#x27;</span> countries </span><br><span class="line">USSR    8649    275     Asia</span><br><span class="line">China   3705    1032    Asia</span><br><span class="line">India   1267    746     Asia</span><br><span class="line">France  211     55      Europe</span><br><span class="line">Japan   144     120     Asia</span><br><span class="line">Germany 96      61      Europe</span><br><span class="line">England 94      56      Europe</span><br></pre></td></tr></table></figure>
+
+<p>如果其他 field 不包含这两个关键字，还可以用逻辑或筛选</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 等价于 awk &#x27;/Asia|Europe/&#x27; countries</span></span><br><span class="line">awk <span class="string">&#x27;/Asia/||/Europe/&#x27;</span> countries      </span><br><span class="line">USSR    8649    275     Asia</span><br><span class="line">China   3705    1032    Asia</span><br><span class="line">India   1267    746     Asia</span><br><span class="line">France  211     55      Europe</span><br><span class="line">Japan   144     120     Asia</span><br><span class="line">Germany 96      61      Europe</span><br><span class="line">England 94      56      Europe</span><br></pre></td></tr></table></figure>
+
+<p>优先级：! &gt; &amp;&amp; &gt; ||</p>
+<p>同优先级(|| + &amp;&amp;)的操作 从左到右 的顺序计算</p>
+<h3 id="Range-Patterns"><a href="#Range-Patterns" class="headerlink" title="Range Patterns"></a>Range Patterns</h3><p>即两个 pattern 用逗号间隔, <code>pat1， pat2</code> 表示取匹配的 1 行或 n 行内容. 如下面的例子，选取 Canada 出现到 USA 之间的所有行</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;/Canada/, /USA/&#x27;</span> countries </span><br><span class="line">Canada  3852    25      North America</span><br><span class="line">China   3705    1032    Asia</span><br><span class="line">USA     3615    237     North America</span><br></pre></td></tr></table></figure>
+
+<p>如果后一个 pattern 没有匹配的内容，则匹配到末尾</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;/Europe/, /Africa/&#x27;</span> countries</span><br><span class="line">France  211     55      Europe</span><br><span class="line">Japan   144     120     Asia</span><br><span class="line">Germany 96      61      Europe</span><br><span class="line">England 94      56      Europe</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>FNR: the number of the line just read from current input file</li>
+<li>FILENAME: the filename itself</li>
+</ul>
+<p>打印第一行到第五行</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;FNR == 1, FNR == 5 &#123; print FILENAME &quot;:&quot; $0 &#125;&#x27;</span> countries </span><br><span class="line">countries:USSR  8649    275     Asia</span><br><span class="line">countries:Canada        3852    25      North America</span><br><span class="line">countries:China 3705    1032    Asia</span><br><span class="line">countries:USA   3615    237     North America</span><br><span class="line">countries:Brazil        286     134     South America</span><br></pre></td></tr></table></figure>
+
+<p>同样的效果还可以写成</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;FNR &lt;= 5 &#123; print FILENAME &quot;: &quot; $0 &#125;&#x27;</span> countries         </span><br><span class="line">countries: USSR 8649    275     Asia</span><br><span class="line">countries: Canada       3852    25      North America</span><br><span class="line">countries: China        3705    1032    Asia</span><br><span class="line">countries: USA  3615    237     North America</span><br><span class="line">countries: Brazil       286     134     South America</span><br></pre></td></tr></table></figure>
+
+<h3 id="Summary-of-Patterns"><a href="#Summary-of-Patterns" class="headerlink" title="Summary of Patterns"></a>Summary of Patterns</h3><p>总结 pattern 支持的格式</p>
+<table>
+<thead>
+<tr>
+<th align="left">PATTERN</th>
+<th align="left">EXAMPLE</th>
+<th align="left">MATCHES</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">BEGIN</td>
+<td align="left">BEGIN</td>
+<td align="left">before any input has been read</td>
+</tr>
+<tr>
+<td align="left">END</td>
+<td align="left">END</td>
+<td align="left">after all input has been read</td>
+</tr>
+<tr>
+<td align="left">expression</td>
+<td align="left">$3 &lt; 100</td>
+<td align="left">third field less than 100</td>
+</tr>
+<tr>
+<td align="left">string-matching</td>
+<td align="left">/Asia/</td>
+<td align="left">lines that contain Asia</td>
+</tr>
+<tr>
+<td align="left">compound</td>
+<td align="left">$3 &lt; 100 &amp;&amp; $4 == “Asia”</td>
+<td align="left">thrid fields less than 100 + fourth field is Asia</td>
+</tr>
+<tr>
+<td align="left">range</td>
+<td align="left">NR==10, NR==20</td>
+<td align="left">tenth to twentieth lines of input inclusive</td>
+</tr>
+</tbody></table>
+<h2 id="Actions"><a href="#Actions" class="headerlink" title="Actions"></a>Actions</h2><p>在 pattern-action 的格式中，pattern 决定了是否执行 action。action 可以很简单，比如打印；也可以很复杂，比如多语句操作或者包含控制流什么的。下面章节会介绍自定义函数和输入，输出的一些语法。</p>
+<p>actions 中可以包含下列语法</p>
+<ul>
+<li>包含常量，变量，赋值函数调用的 expressions</li>
+<li>print</li>
+<li>printf</li>
+<li>if 语句</li>
+<li>if - else</li>
+<li>while</li>
+<li>for (expression; expression; expression) statement</li>
+<li>for (variable in array) statement</li>
+<li>do statement while (expression)</li>
+<li>break</li>
+<li>continue</li>
+<li>next</li>
+<li>exit</li>
+<li>exit expression</li>
+<li>{ statement }</li>
+</ul>
+<h3 id="Expressions"><a href="#Expressions" class="headerlink" title="Expressions"></a>Expressions</h3><p>expression 是最简单的语句，expression 之间可以通过 operators 连接，有五种 operators</p>
+<ul>
+<li>arthmetic</li>
+<li>comparison</li>
+<li>logical</li>
+<li>conditional</li>
+<li>assignment</li>
+</ul>
+<h4 id="Constants"><a href="#Constants" class="headerlink" title="Constants"></a>Constants</h4><p>两种常数类型：string and numberic</p>
+<p>string = 双引号 + 字符 + 双引号，字符包括转义字符</p>
+<p>numberic 都是由浮点类型的值表示的，可以有不同的形态，但是内存中都是浮点表示，比如 1e6, 1.00E6 等形式</p>
+<h4 id="Variables"><a href="#Variables" class="headerlink" title="Variables"></a>Variables</h4><ul>
+<li>user-defined</li>
+<li>built-in</li>
+<li>fields</li>
+</ul>
+<p>由于变量的类型是没有声明的，所以 awk 会根据上下文推断变量类型，必要时它会做 string 和 numberic 之间的转换。</p>
+<p>还没有初始化的时候 string 默认是 “” (the null string), numberic 默认是 0</p>
+<h4 id="Built-in-Variables"><a href="#Built-in-Variables" class="headerlink" title="Built-in Variables"></a>Built-in Variables</h4><p>下面是一些自带的变量，FILENAME 在每次读文件时都会自动赋值。FNR，NF 和 NR 在每次读入一行时重置。</p>
+<table>
+<thead>
+<tr>
+<th align="left">VARIABLE</th>
+<th align="left">MEANING</th>
+<th align="left">DEFAULT</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">ARGC</td>
+<td align="left">number of command line arguments</td>
+<td align="left">-</td>
+</tr>
+<tr>
+<td align="left">ARGV</td>
+<td align="left">array of command line arguments</td>
+<td align="left">-</td>
+</tr>
+<tr>
+<td align="left">FILENAME</td>
+<td align="left">name of current input file</td>
+<td align="left">-</td>
+</tr>
+<tr>
+<td align="left">FNR</td>
+<td align="left">record number in current file</td>
+<td align="left">-</td>
+</tr>
+<tr>
+<td align="left">FS</td>
+<td align="left">controls the input field separator</td>
+<td align="left">“ “</td>
+</tr>
+<tr>
+<td align="left">NF</td>
+<td align="left">number of fields in current record</td>
+<td align="left">-</td>
+</tr>
+<tr>
+<td align="left">NR</td>
+<td align="left">number of records read so far</td>
+<td align="left">-</td>
+</tr>
+<tr>
+<td align="left">OFMT</td>
+<td align="left">output format for numbers</td>
+<td align="left">“%.6g”</td>
+</tr>
+<tr>
+<td align="left">OFS</td>
+<td align="left">output field separator</td>
+<td align="left">“ “</td>
+</tr>
+<tr>
+<td align="left">ORS</td>
+<td align="left">output record separator</td>
+<td align="left">“\n”</td>
+</tr>
+<tr>
+<td align="left">RLENGTH</td>
+<td align="left">length of string matched by match function</td>
+<td align="left">-</td>
+</tr>
+<tr>
+<td align="left">RS</td>
+<td align="left">controls the input recrod separator</td>
+<td align="left">“\n”</td>
+</tr>
+<tr>
+<td align="left">RSTART</td>
+<td align="left">start of string matched by match function</td>
+<td align="left">-</td>
+</tr>
+<tr>
+<td align="left">SUBSEP</td>
+<td align="left">subscript separator</td>
+<td align="left">“\034”</td>
+</tr>
+</tbody></table>
+<h4 id="Field-Variables"><a href="#Field-Variables" class="headerlink" title="Field Variables"></a>Field Variables</h4><p>表示当前行的 field 参数，从 $1 - $NF, $0 表示整行。运行一些例子找找感觉</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 第二个 field 值缩小 1000 倍并打印</span></span><br><span class="line">awk <span class="string">&#x27;&#123; $2 = $2 / 1000; print &#125;&#x27;</span> countries </span><br><span class="line"></span><br><span class="line">USSR 8.649 275 Asia</span><br><span class="line">Canada 3.852 25 North America</span><br><span class="line">China 3.705 1032 Asia</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>将 North America 和 South America 替换为简写</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;BEGIN &#123; FS = OFS = &quot;\t&quot; &#125;</span></span><br><span class="line"><span class="string">$4 == &quot;North America&quot; &#123; $4 = &quot;NA&quot; &#125;</span></span><br><span class="line"><span class="string">$4 == &quot;South America&quot; &#123; $4 = &quot;SA&quot; &#125; </span></span><br><span class="line"><span class="string">&#123;print&#125;</span></span><br><span class="line"><span class="string">&#x27;</span> countries</span><br><span class="line">USSR    8649    275     Asia</span><br><span class="line">Canada  3852    25      NA</span><br><span class="line">China   3705    1032    Asia</span><br><span class="line">USA     3615    237     NA</span><br><span class="line">Brazil  286     134     SA</span><br><span class="line">India   1267    746     Asia</span><br><span class="line">Mexico  762     78      NA</span><br><span class="line">France  211     55      Europe</span><br><span class="line">Japan   144     120     Asia</span><br><span class="line">Germany 96      61      Europe</span><br><span class="line">England 94      56      Europe</span><br></pre></td></tr></table></figure>
+
+<p>PS: 这里之前我倒是没有意识到，上面的做法其实就是多种情况替换的案例了</p>
+<p>还有一些比较神奇的使用方式，比如 $(NF - 1) 可以取得倒数第二个 field。如果 field 不存在，默认值为 null string, 比如 $(NF + 1), 一个新的 field 可以通过赋值得到，比如下面的例子是在原有的数据后面添加第五列元素</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;BEGIN &#123; FS = OFS = &quot;\t&quot; &#125;; &#123; $5 = 1000 * $3 / $2; print &#125;&#x27;</span> countries </span><br><span class="line">USSR    8649    275     Asia    31.7956</span><br><span class="line">Canada  3852    25      North America   6.49013</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<h4 id="Arthmetic-Operators"><a href="#Arthmetic-Operators" class="headerlink" title="Arthmetic Operators"></a>Arthmetic Operators</h4><p>awk 提供常规计算 +, -, *, %, ^.</p>
+<h4 id="Comparison-Operators"><a href="#Comparison-Operators" class="headerlink" title="Comparison Operators"></a>Comparison Operators</h4><p>支持常见的比较操作：&lt;, &lt;=, ==, !=, &gt;=, &gt;。还有匹配符号 ～ 和 ！～。比较的结果为 1(true)/0(false) 二选一。</p>
+<h4 id="Logical-Operators"><a href="#Logical-Operators" class="headerlink" title="Logical Operators"></a>Logical Operators</h4><p>逻辑运算符有：&amp;&amp;, ||, !</p>
+<h4 id="Condition-Expressions"><a href="#Condition-Expressions" class="headerlink" title="Condition Expressions"></a>Condition Expressions</h4><p>expr1 ? expr2 : expr3 效果和 Java 中的一致. 下面的例子会打印 $1 的倒数，如果 $1 为 0 则打印提示信息</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123; print ($1 !=0 ? 1/$1 : &quot;$1 is zero, line &quot; NR) &#125;&#x27;</span> </span><br></pre></td></tr></table></figure>
+
+<h4 id="Assignment-Operators"><a href="#Assignment-Operators" class="headerlink" title="Assignment Operators"></a>Assignment Operators</h4><p>var = expr, 下面的例子计算所有亚洲国家的人口和</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;$4 == &quot;Asia&quot; &#123; pop = pop + $3; n = n + 1&#125;</span></span><br><span class="line"><span class="string">END &#123; print &quot;Total population of the &quot;, n, &quot;Asian countries is&quot;, pop, &quot;million&quot;&#125;&#x27;</span> countries </span><br><span class="line">Total population of the  4 Asian countries is 2173 million</span><br></pre></td></tr></table></figure>
+
+<p>统计人口最多的国家</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;$3 &gt; maxpop &#123;maxpop = $3; country = $1&#125;</span></span><br><span class="line"><span class="string">END &#123; print &quot;country with largest population:&quot;, country, maxpop &#125;&#x27;</span> countries</span><br><span class="line">country with largest population: China 1032</span><br></pre></td></tr></table></figure>
+
+<h4 id="Increment-and-Decrement-Oerators"><a href="#Increment-and-Decrement-Oerators" class="headerlink" title="Increment and Decrement Oerators"></a>Increment and Decrement Oerators</h4><p>n = n + 1 通常简写为 ++n 或者 n++, 区别是，如果有赋值，则 n++ 会将原始值赋给变量再自增，++n 则先自增再赋值</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;BEGIN &#123; n=1; i=n++ &#125;; END &#123; print i &#125;&#x27;</span> countries</span><br><span class="line">1</span><br><span class="line">awk <span class="string">&#x27;BEGIN &#123; n=1; i=++n &#125;; END &#123; print i &#125;&#x27;</span> countries</span><br><span class="line">2</span><br></pre></td></tr></table></figure>
+
+<h4 id="Built-In-Arithmetic-Functions"><a href="#Built-In-Arithmetic-Functions" class="headerlink" title="Built-In Arithmetic Functions"></a>Built-In Arithmetic Functions</h4><table>
+<thead>
+<tr>
+<th align="left">FUNCTION</th>
+<th align="left">VALUE RETURNED</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">atan2(y, x)</td>
+<td align="left">arctangent of y/x in the range -pi to pi</td>
+</tr>
+<tr>
+<td align="left">cos(x)</td>
+<td align="left">cosine of x, with x in radians</td>
+</tr>
+<tr>
+<td align="left">exp(x)</td>
+<td align="left">exponential function of x, e<sup>x</sup></td>
+</tr>
+<tr>
+<td align="left">int(x)</td>
+<td align="left">integer part of x; truncated towards 0 when x &gt; 0</td>
+</tr>
+<tr>
+<td align="left">log(x)</td>
+<td align="left">natural (base e) logarithm of x</td>
+</tr>
+<tr>
+<td align="left">rand()</td>
+<td align="left">random number r, where 0 &lt;= r &lt; 1</td>
+</tr>
+<tr>
+<td align="left">sin(x)</td>
+<td align="left">sine of x, with x in radians</td>
+</tr>
+<tr>
+<td align="left">sqrt(x)</td>
+<td align="left">square root of x</td>
+</tr>
+<tr>
+<td align="left">srand(x)</td>
+<td align="left">x is new seed for rand ()</td>
+</tr>
+</tbody></table>
+<h4 id="String-Operators"><a href="#String-Operators" class="headerlink" title="String Operators"></a>String Operators</h4><p>awk 只支持一种字符串操作 - 拼接。拼接不需要任何的连接符, 比如下面的例子是在每行前面打印行号 + 冒号的前缀</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123; print NR &quot;:&quot; $0 &#125;&#x27;</span> countries                  </span><br><span class="line">1:USSR  8649    275     Asia</span><br><span class="line">2:Canada        3852    25      North America</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<h4 id="Strings-as-Regular-Expressions"><a href="#Strings-as-Regular-Expressions" class="headerlink" title="Strings as Regular Expressions"></a>Strings as Regular Expressions</h4><p><code>awk &#39;BEGIN &#123; digits = &quot;^[0-9]+$&quot; &#125;; $2 ~ digits&#39; countries</code>, 表达式可以动态拼装，所以下面的例子也是合法的</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">BEGIN &#123;</span><br><span class="line">  sign = <span class="string">&quot;[+-]?&quot;</span></span><br><span class="line">  decimal= <span class="string">&quot;[0-9]+[.]?[0-9]*&quot;</span></span><br><span class="line">  fraction= <span class="string">&quot;[.][0-9]+&quot;</span></span><br><span class="line">  exponent= <span class="string">&quot;([eEl&quot;</span> sign <span class="string">&quot;[0-9]+)?&quot;</span></span><br><span class="line">  number= <span class="string">&quot;^&quot;</span> sign <span class="string">&quot;(&quot;</span> decimal <span class="string">&quot;|&quot;</span> fraction <span class="string">&quot;)&quot;</span> exponent <span class="string">&quot;$&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">$0</span> .. number</span><br></pre></td></tr></table></figure>
+
+<h4 id="Built-In-String-Functions"><a href="#Built-In-String-Functions" class="headerlink" title="Built-In String Functions"></a>Built-In String Functions</h4><table>
+<thead>
+<tr>
+<th align="left">Function</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">gsub(r,s)</td>
+<td align="left">substitute s for r globally in $0, return number of substitutions made</td>
+</tr>
+<tr>
+<td align="left">gsub(r ,s ,t)</td>
+<td align="left">substitutes for r globally in string t, return number of substitutions made</td>
+</tr>
+<tr>
+<td align="left">index(s ,t)</td>
+<td align="left">return first position of string t in s, or 0 if t is not present</td>
+</tr>
+<tr>
+<td align="left">length(s)</td>
+<td align="left">return number of characters in s</td>
+</tr>
+<tr>
+<td align="left">match(s ,r)</td>
+<td align="left">test whether s contains a substring matched by r,return index or 0; sets RSTART and RLENGTH</td>
+</tr>
+<tr>
+<td align="left">split(s ,a)</td>
+<td align="left">split s into array a on FS, return number of fields</td>
+</tr>
+<tr>
+<td align="left">split(s ,a ,fs)</td>
+<td align="left">splits into array a on field separator fs, return number of fields</td>
+</tr>
+<tr>
+<td align="left">sprintf(fmt, expr -list )</td>
+<td align="left">return expr -list formatted according to format string fmt</td>
+</tr>
+<tr>
+<td align="left">sub(r ,s)</td>
+<td align="left">substitutes for the leftmost longest substring of $0 matched by r, return number of substitutions made</td>
+</tr>
+<tr>
+<td align="left">sub(r ,s ,t)</td>
+<td align="left">substitute s for the leftmost longest substring of t matched by r, return number of substitutions made</td>
+</tr>
+<tr>
+<td align="left">substr (s ,p)</td>
+<td align="left">return suffix of s starting at position p</td>
+</tr>
+<tr>
+<td align="left">substr (s ,p ,n)</td>
+<td align="left">return substring of s of length n starting at position p</td>
+</tr>
+</tbody></table>
+<p>p42</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/06/16/AWK-c1-an-AWK-tutorial/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/06/16/AWK-c1-an-AWK-tutorial/" class="post-title-link" itemprop="url">第一章 an AWK tutorial</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-06-16 19:08:44" itemprop="dateCreated datePublished" datetime="2021-06-16T19:08:44+08:00">2021-06-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-08-20 19:39:41" itemprop="dateModified" datetime="2021-08-20T19:39:41+08:00">2021-08-20</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/AWK/" itemprop="url" rel="index">
+                    <span itemprop="name">AWK</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>6.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>6 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="Getting-Started"><a href="#Getting-Started" class="headerlink" title="Getting Started"></a>Getting Started</h2><p>通过例子快速入门, 在如下结构化的数据中</p>
+<ul>
+<li>计算工作时长 &gt; 0 的总薪资</li>
+<li>显示时常 = 0 的用户</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">cat emp.data</span><br><span class="line"><span class="comment">#name, pay rate per hour, work time(hour)</span></span><br><span class="line">Beth   4.00 0</span><br><span class="line">Dan    3.75 0</span><br><span class="line">Kathy  4.00 10</span><br><span class="line">Mark   5.00 20</span><br><span class="line">Mary   5.50 22</span><br><span class="line">Susie  4.25 18</span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;$3 == 0 &#123;print $1&#125;&#x27;</span> emp.data</span><br><span class="line">Beth</span><br><span class="line">Dan</span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;$3 &gt; 0 &#123;print $1, $2 * $3&#125;&#x27;</span> emp.data </span><br><span class="line">Kathy 40</span><br><span class="line">Mark 100</span><br><span class="line">Mary 121</span><br><span class="line">Susie 76.5</span><br></pre></td></tr></table></figure>
+
+<h3 id="The-Structure-of-an-AWK-Program"><a href="#The-Structure-of-an-AWK-Program" class="headerlink" title="The Structure of an AWK Program"></a>The Structure of an AWK Program</h3><p>格式 <code>pattern &#123; action &#125;</code>, pattern 如果结果为 true 则执行 action 中定义的行为。然后执行下一行，一直到文本结束。</p>
+<h3 id="Running-an-AWK-Program"><a href="#Running-an-AWK-Program" class="headerlink" title="Running an AWK Program"></a>Running an AWK Program</h3><p><code>awk &#39;program&#39; input files</code>, 多文件 <code>awk &#39;program&#39; input file1 file2</code>, 不接文件，则从标准输入拿内容</p>
+<p>可以将程序部分写到文件中 <code>awk -f progfile optional_list_of_input_files</code></p>
+<h2 id="Simple-Output"><a href="#Simple-Output" class="headerlink" title="Simple Output"></a>Simple Output</h2><p><strong>Print Event Line</strong> 没有写 pattern 表示每行都输出，<code>&#123; print &#125;</code> 和 <code>&#123; print $0 &#125;</code> 等价，都是打印全部</p>
+<p><strong>Print Certain Fields</strong> <code>&#123; print $1, $3 &#125;</code></p>
+<p><strong>NF, the Number of Fields</strong> 内置变量 NF 表示最后一个 field 的 number, 下面的例子答应 field 数量 + 名字 + 最后一个 field</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123;print NF, $1, $NF&#125;&#x27;</span> emp.data</span><br><span class="line">3 Beth 0</span><br><span class="line">3 Dan 0</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p><strong>Computing and Printing</strong> field 可以直接用于计算 <code>&#123; print $1, $2 * $3 &#125;</code></p>
+<p><strong>Printing Line Numbers</strong> NR 代表行号, number of row(record?)</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123;print NR, $0&#125;&#x27;</span> emp.data</span><br><span class="line">1 Beth 4.00 0</span><br><span class="line">2 Dan 3.75 0</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p><strong>Putting Text in the Output</strong> 输出内容中加入自己的文本</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123;print &quot;total pay for&quot;, $1, &quot;is&quot;, $2 * $3&#125;&#x27;</span> emp.data</span><br><span class="line">total pay <span class="keyword">for</span> Beth is 0</span><br><span class="line">total pay <span class="keyword">for</span> Dan is 0</span><br><span class="line">total pay <span class="keyword">for</span> Kathy is 40</span><br><span class="line">total pay <span class="keyword">for</span> Mark is 100</span><br><span class="line">total pay <span class="keyword">for</span> Mary is 121</span><br><span class="line">total pay <span class="keyword">for</span> Susie is 76.5</span><br></pre></td></tr></table></figure>
+
+<h2 id="Fancier-Output"><a href="#Fancier-Output" class="headerlink" title="Fancier Output"></a>Fancier Output</h2><p>print 只是简单的打印内容，如果想要输出更丰富，使用 printf</p>
+<p><strong>Lining Up Fields</strong> printf 格式 <code>printf(format, value1, value2..., valuen)</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123;printf(&quot;total pay for %s is %.2f\n&quot;, $1, $2 * $3)&#125;&#x27;</span> emp.data</span><br><span class="line">total pay <span class="keyword">for</span> Beth is 0.00</span><br><span class="line">total pay <span class="keyword">for</span> Dan is 0.00</span><br><span class="line">total pay <span class="keyword">for</span> Kathy is 40.00</span><br><span class="line">total pay <span class="keyword">for</span> Mark is 100.00</span><br><span class="line">total pay <span class="keyword">for</span> Mary is 121.00</span><br><span class="line">total pay <span class="keyword">for</span> Susie is 76.50</span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;&#123;printf(&quot;%-8s $%6.2f\n&quot;, $1, $2 * $3)&#125;&#x27;</span> emp.data</span><br><span class="line">Beth     $  0.00</span><br><span class="line">Dan      $  0.00</span><br><span class="line">Kathy    $ 40.00</span><br><span class="line">Mark     <span class="variable">$100</span>.00</span><br><span class="line">Mary     <span class="variable">$121</span>.00</span><br><span class="line">Susie    $ 76.50</span><br></pre></td></tr></table></figure>
+
+<p><strong>Sorting the Output</strong> 结合 pipe 进行排序</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123;printf(&quot;%6.2f %s\n&quot;, $2 * $3, $0)&#125;&#x27;</span> emp.data | sort</span><br><span class="line">  0.00 Beth 4.00 0</span><br><span class="line">  0.00 Dan 3.75 0</span><br><span class="line"> 40.00 Kathy 4.00 10</span><br><span class="line"> 76.50 Susie 4.25 18</span><br><span class="line">100.00 Mark 5.00 20</span><br><span class="line">121.00 Mary 5.50 22</span><br></pre></td></tr></table></figure>
+
+<h2 id="Selection"><a href="#Selection" class="headerlink" title="Selection"></a>Selection</h2><p>Awk 的 pattern 可用于筛选数据</p>
+<p><strong>Selection by Comparison</strong> 通过比较筛选</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 时薪大于5</span></span><br><span class="line">awk <span class="string">&#x27;$2 &gt;= 5&#x27;</span> emp.data</span><br><span class="line">Mark 5.00 20</span><br><span class="line">Mary 5.50 22</span><br></pre></td></tr></table></figure>
+
+<p><strong>Selection by Computation</strong> 结合计算筛选</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;$2 * $3 &gt;= 50 &#123; printf(&quot;$%.2f for %s\n&quot;, $2 * $3, $1)&#125;&#x27;</span> emp.data</span><br><span class="line"><span class="variable">$100</span>.00 <span class="keyword">for</span> Mark</span><br><span class="line"><span class="variable">$121</span>.00 <span class="keyword">for</span> Mary</span><br><span class="line"><span class="variable">$76</span>.50 <span class="keyword">for</span> Susie</span><br></pre></td></tr></table></figure>
+
+<p><strong>Selection by Text Content</strong> 文本匹配选择, == 精确匹配，/match/ 包含</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;$1 == &quot;Susie&quot;&#x27;</span> emp.data</span><br><span class="line">Susie  4.25 18</span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;/Susie/&#x27;</span> emp.data</span><br><span class="line">Susie  4.25 18</span><br></pre></td></tr></table></figure>
+
+<p><strong>Combinations of Patterns</strong> 使用 ||, &amp;&amp; 做逻辑操作</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;$2 &gt;= 4 || $3 &gt;= 20&#x27;</span> emp.data</span><br><span class="line">Beth   4.00 0</span><br><span class="line">Kathy  4.00 10</span><br><span class="line">Mark   5.00 20</span><br><span class="line">Mary   5.50 22</span><br><span class="line">Susie  4.25 18</span><br></pre></td></tr></table></figure>
+
+<p>如果不加逻辑操作符号，则符合条件的语句会重复输出</p>
+<p>‘$2 &gt;= 4 || $3 &gt;= 20’ 等价于 !($2 &lt; 4 &amp;&amp; $3 &lt; 20)</p>
+<p><strong>Data Validation</strong> Awk 是一款很优秀的数据校验工具</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 打印 field 不等于 3 的行</span></span><br><span class="line">awk <span class="string">&#x27;NF != 3 &#123;print $0, &quot;number of fields is not equal to 3&quot;&#125;&#x27;</span> emp.data</span><br><span class="line"><span class="comment"># 打印时薪小于 3.35 的行</span></span><br><span class="line">awk <span class="string">&#x27;$2 &lt; 3.35 &#123; print $0, &quot;rate is below minimum wage&quot; &#125;&#x27;</span> emp.data</span><br></pre></td></tr></table></figure>
+
+<p><strong>BEGIN and END</strong> 类似 before/after class 的操作</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;BEGIN &#123; print &quot;NAME   RATE    HOURS&quot;; print &quot;&quot;&#125; &#123; print &#125;&#x27;</span> emp.data </span><br><span class="line">NAME   RATE    HOURS</span><br><span class="line"></span><br><span class="line">Beth   4.00 0</span><br><span class="line">Dan    3.75 0</span><br><span class="line">Kathy  4.00 10</span><br><span class="line">Mark   5.00 20</span><br><span class="line">Mary   5.50 22</span><br><span class="line">Susie  4.25 18</span><br></pre></td></tr></table></figure>
+
+<h2 id="Computing-with-AWK"><a href="#Computing-with-AWK" class="headerlink" title="Computing with AWK"></a>Computing with AWK</h2><p><code>pattern &#123; action &#125;</code> 中的 action 是一系列用换行或冒号分割的语句。这节介绍一些字符，数字操作，一些内置变量和自定义变量。自定义变量不需要声明。</p>
+<p><strong>Counting</strong> 统计时长大于 15 的用户</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27; $3 &gt; 15 &#123; emp++; &#125; END&#123; print emp, &quot;employees worked more than 15 hours&quot; &#125;&#x27;</span> emp.data </span><br><span class="line">3 employees worked more than 15 hours</span><br></pre></td></tr></table></figure>
+
+<p><strong>Computing Sums and Averages</strong> 计算总值和平均值</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;END &#123; print NR, &quot;employees&quot; &#125;&#x27;</span> emp.data                                              </span><br><span class="line">6 employees</span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;&#123; pay = pay + $2 * $3 &#125;</span></span><br><span class="line"><span class="string">END &#123;</span></span><br><span class="line"><span class="string">print NR, &quot;employees&quot;</span></span><br><span class="line"><span class="string">print &quot;total pay is&quot;, pay</span></span><br><span class="line"><span class="string">print &quot;average pay is&quot;, pay/NR</span></span><br><span class="line"><span class="string">&#125;&#x27;</span> emp.data</span><br><span class="line">6 employees</span><br><span class="line">total pay is 337.5</span><br><span class="line">average pay is 56.25</span><br></pre></td></tr></table></figure>
+
+<p><strong>Handling Text</strong> Awk 有处理文字的能力， awk 中的变量可以持有数字和字符串，下面的例子显示报酬最多的用户</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;                       </span></span><br><span class="line"><span class="string">$2 &gt; maxrate &#123; maxrate = $2; maxemp = $1 &#125;</span></span><br><span class="line"><span class="string">END &#123; print &quot;highest hourly rate:&quot;, maxrate, &quot;for&quot;, maxemp &#125;</span></span><br><span class="line"><span class="string">&#x27;</span> emp.data </span><br><span class="line">highest hourly rate: 5.50 <span class="keyword">for</span> Mary</span><br></pre></td></tr></table></figure>
+
+<p>可以看出来，默认的变量初始值为 0</p>
+<p><strong>String Concatenation</strong> 字符拼接</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123; names = names $1 &quot;  &quot; &#125;</span></span><br><span class="line"><span class="string">END &#123; print names &#125;&#x27;</span> emp.data </span><br><span class="line">Beth  Dan  Kathy  Mark  Mary  Susie </span><br></pre></td></tr></table></figure>
+
+<p>names 变量的初始值为 null</p>
+<p><strong>Printing the Last Input Line</strong> 打印最后一行</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123; last = $0 &#125; END &#123; print last &#125;&#x27;</span> emp.data </span><br><span class="line">Susie  4.25 18</span><br></pre></td></tr></table></figure>
+
+<p><strong>Built-in Functions</strong> awk 提供了很多内置函数，比如 length 计算字符串长度</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123; print $1, length($1) &#125;&#x27;</span> emp.data </span><br><span class="line">Beth 4</span><br><span class="line">Dan 3</span><br><span class="line">Kathy 5</span><br><span class="line">Mark 4</span><br><span class="line">Mary 4</span><br><span class="line">Susie 5</span><br></pre></td></tr></table></figure>
+
+<p><strong>Counting Lines, Words and Characters</strong> 通过使用 length，NF, NR 统计行基本信息，为了便于计算，我们将每一个 field 都当作 String 对待</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123;                                 </span></span><br><span class="line"><span class="string">    nc = nc + length($0) + 1</span></span><br><span class="line"><span class="string">    nw = nw + NF     </span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">END &#123; print NR, &quot;lines,&quot;, nw, &quot;words,&quot;, nc, &quot;characters&quot;&#125;&#x27;</span> emp.data </span><br><span class="line">6 lines, 18 words, 88 characters</span><br></pre></td></tr></table></figure>
+
+<p><code>nc = nc + length($0) + 1</code> 1 代表换行符</p>
+<h2 id="Control-Flow-Statemnets"><a href="#Control-Flow-Statemnets" class="headerlink" title="Control-Flow Statemnets"></a>Control-Flow Statemnets</h2><p>awk 中的流程控制和 C 语言中基本一直，这些控制语句只能用在 action 中</p>
+<h3 id="If-Else-Statement"><a href="#If-Else-Statement" class="headerlink" title="If-Else Statement"></a>If-Else Statement</h3><p>统计时薪大于 6 的所有人的总收入及平均收入, 通过 if-else 控制打印的 loop</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;    </span></span><br><span class="line"><span class="string">$2 &gt; 6 &#123; n = n+1; pay = pay+$2*$3 &#125;</span></span><br><span class="line"><span class="string">END &#123;</span></span><br><span class="line"><span class="string">  if (n &gt; 0)</span></span><br><span class="line"><span class="string">    print n, &quot;employees, total pay is&quot;, pay, &quot;average pay is&quot;, pay/n</span></span><br><span class="line"><span class="string">  else     </span></span><br><span class="line"><span class="string">    print &quot;no employees are paid more than $6/hour&quot;</span></span><br><span class="line"><span class="string">&#125;&#x27;</span> emp.data </span><br><span class="line">no employees are paid more than <span class="variable">$6</span>/hour</span><br></pre></td></tr></table></figure>
+
+<h3 id="While-Statement"><a href="#While-Statement" class="headerlink" title="While Statement"></a>While Statement</h3><p>while = condition + body. 下面实现一个计算存款的功能，表达式可以概括为 value = amount (1 + rate)<sup>years</sup></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">cat interest1 </span><br><span class="line"><span class="comment"># interest1 - compute compound interest</span></span><br><span class="line"><span class="comment">#   input: amount rate years</span></span><br><span class="line"><span class="comment">#   output: compounded value at the end of each year</span></span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">    i = 1</span><br><span class="line">    <span class="keyword">while</span> (i &lt;= <span class="variable">$3</span>) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;\t%.2f\n&quot;</span>, <span class="variable">$1</span> * (1 + <span class="variable">$2</span>) ^ i)</span><br><span class="line">        i = i + 1</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">awk -f interest1</span><br><span class="line">1000 .06 5</span><br><span class="line">        1060.00</span><br><span class="line">        1123.60</span><br><span class="line">        1191.02</span><br><span class="line">        1262.48</span><br><span class="line">        1338.23</span><br></pre></td></tr></table></figure>
+
+<h3 id="For-Statement"><a href="#For-Statement" class="headerlink" title="For Statement"></a>For Statement</h3><p>同样的计算，用 for 实现</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">cat interest2  </span><br><span class="line"><span class="comment"># interest2 - compute compound interest</span></span><br><span class="line"><span class="comment">#   input: amount rate years</span></span><br><span class="line"><span class="comment">#   output: compounded value at the end of each year</span></span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">for</span> (i=1; i&lt;=<span class="variable">$3</span>; i++)</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;\t%.2f\n&quot;</span>, <span class="variable">$1</span> * (1+<span class="variable">$2</span>) ^ i)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">awk -f interest2</span><br><span class="line">1000 .06 5</span><br><span class="line">        1060.00</span><br><span class="line">        1123.60</span><br><span class="line">        1191.02</span><br><span class="line">        1262.48</span><br><span class="line">        1338.23</span><br></pre></td></tr></table></figure>
+
+<h2 id="Arrays"><a href="#Arrays" class="headerlink" title="Arrays"></a>Arrays</h2><p>awk 支持数组。下面的实验中，我们在 action 中将行信息存到数组中，在 END 中通过 while 倒序输出</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;           </span></span><br><span class="line"><span class="string">&#123; line[NR] = $0 &#125;</span></span><br><span class="line"><span class="string">END &#123;</span></span><br><span class="line"><span class="string">  i = NR  </span></span><br><span class="line"><span class="string">  while (i&gt;0) &#123;                                </span></span><br><span class="line"><span class="string">    print line[i]                            </span></span><br><span class="line"><span class="string">    i = i-1 </span></span><br><span class="line"><span class="string">  &#125;</span></span><br><span class="line"><span class="string">&#125;&#x27;</span> emp.data </span><br><span class="line">Susie  4.25 18</span><br><span class="line">Mary   5.50 22</span><br><span class="line">Mark   5.00 20</span><br><span class="line">Kathy  4.00 10</span><br><span class="line">Dan    3.75 0</span><br><span class="line">Beth   4.00 0</span><br></pre></td></tr></table></figure>
+
+<h2 id="A-Handful-of-Useful-“One-liners”"><a href="#A-Handful-of-Useful-“One-liners”" class="headerlink" title="A Handful of Useful “One-liners”"></a>A Handful of Useful “One-liners”</h2><p>摘录一些简短但是令人印象深刻的 awk 脚本</p>
+<ul>
+<li>print the total number of input lines <code>awk &#39;END &#123; print NR &#125;&#39; emp.data</code></li>
+<li>打印第三行 <code>awk &#39;NR == 3&#39; emp.data</code></li>
+<li>打印每行最后一个 field <code>awk &#39;&#123; print $NF &#125;&#39; emp.data</code></li>
+<li>打印最后一行的最后一个 field <code>awk &#39;&#123; field = $NF &#125; END &#123; print field &#125;&#39; emp.data</code></li>
+<li>打印 field 数量大于 4 的行 <code>awk &#39;NF &gt; 4&#39; emp.data</code></li>
+<li>打印最后一个 field 大于 4 的行 <code>awk &#39;$NF &gt; 4&#39; emp.data</code></li>
+<li>用行号代替第一个 field <code>awk &#39;&#123; $1 = NR; print &#125;&#39; emp.data</code></li>
+<li>抹去第二个 field <code>awk &#39;&#123; $2=&quot;&quot;; print &#125;&#39; emp.data</code></li>
+<li>倒序打印每一行 <code>awk &#39;&#123;for(i=NF; i&gt;0;i--) printf(&quot;%s&quot;, $i); printf(&quot;\n&quot;)&#125;&#39; emp.data</code></li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/06/14/Java-web-practice/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +954,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-16 14:10:47" itemprop="dateModified" datetime="2021-08-16T14:10:47+08:00">2021-08-16</time>
+                <time title="修改时间：2021-08-20 19:39:41" itemprop="dateModified" datetime="2021-08-20T19:39:41+08:00">2021-08-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -706,7 +1423,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-16 14:10:47" itemprop="dateModified" datetime="2021-08-16T14:10:47+08:00">2021-08-16</time>
+                <time title="修改时间：2021-08-20 19:39:41" itemprop="dateModified" datetime="2021-08-20T19:39:41+08:00">2021-08-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1984,7 +2701,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-16 14:10:47" itemprop="dateModified" datetime="2021-08-16T14:10:47+08:00">2021-08-16</time>
+                <time title="修改时间：2021-08-20 19:39:41" itemprop="dateModified" datetime="2021-08-20T19:39:41+08:00">2021-08-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -3131,7 +3848,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-16 14:10:47" itemprop="dateModified" datetime="2021-08-16T14:10:47+08:00">2021-08-16</time>
+                <time title="修改时间：2021-08-20 19:39:41" itemprop="dateModified" datetime="2021-08-20T19:39:41+08:00">2021-08-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -4604,7 +5321,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-16 14:10:47" itemprop="dateModified" datetime="2021-08-16T14:10:47+08:00">2021-08-16</time>
+                <time title="修改时间：2021-08-20 19:39:41" itemprop="dateModified" datetime="2021-08-20T19:39:41+08:00">2021-08-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -4697,7 +5414,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-16 14:10:47" itemprop="dateModified" datetime="2021-08-16T14:10:47+08:00">2021-08-16</time>
+                <time title="修改时间：2021-08-20 19:39:41" itemprop="dateModified" datetime="2021-08-20T19:39:41+08:00">2021-08-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -4793,7 +5510,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-16 14:10:47" itemprop="dateModified" datetime="2021-08-16T14:10:47+08:00">2021-08-16</time>
+                <time title="修改时间：2021-08-20 19:39:41" itemprop="dateModified" datetime="2021-08-20T19:39:41+08:00">2021-08-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -4996,7 +5713,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-16 14:10:47" itemprop="dateModified" datetime="2021-08-16T14:10:47+08:00">2021-08-16</time>
+                <time title="修改时间：2021-08-20 19:39:41" itemprop="dateModified" datetime="2021-08-20T19:39:41+08:00">2021-08-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -5037,228 +5754,6 @@
       
           <p>Java util 包中自带了 base 64 的编码/解码方法，示例如下</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.Base64;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Base64Test</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        String origin = <span class="string">&quot;HelloWorld&quot;</span>;</span><br><span class="line">        String encodeRet = Base64.getEncoder().encodeToString(origin.getBytes());</span><br><span class="line">        System.out.println(<span class="string">&quot;Encode result: &quot;</span> + encodeRet);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;Decode result: &quot;</span> + <span class="keyword">new</span> String(Base64.getDecoder().decode(encodeRet)));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Encode result: SGVsbG9Xb3JsZA==</span></span><br><span class="line"><span class="comment">// Decode result: HelloWorld</span></span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/05/17/Shell-customized-command/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/05/17/Shell-customized-command/" class="post-title-link" itemprop="url">定制 Shell 脚本</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-05-17 12:24:54" itemprop="dateCreated datePublished" datetime="2021-05-17T12:24:54+08:00">2021-05-17</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-16 14:10:47" itemprop="dateModified" datetime="2021-08-16T14:10:47+08:00">2021-08-16</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/Shell/" itemprop="url" rel="index">
-                    <span itemprop="name">Shell</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>2.8k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>3 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="定制-git-pull"><a href="#定制-git-pull" class="headerlink" title="定制 git pull"></a>定制 git pull</h2><p>git pull 算是开发时经常用到的一个命令了，但是更新代码之后，时常会遇到最新版本的代码不 work 的情况。由此，打算对 pull 命令做一个优化，每次 pull 的时候，将当前 repo 的信息写到历史记录中，类似 <code>.zsh_history</code> 的功能。</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> git &#123;</span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;\$@: &quot;</span> <span class="variable">$@</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;\$1: &quot;</span> <span class="variable">$1</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;\$2: &quot;</span> <span class="variable">$2</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="built_in">command</span> git <span class="string">&quot;<span class="variable">$@</span>&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> git &#123;</span><br><span class="line">  <span class="comment"># use wild card match, so use </span></span><br><span class="line">  <span class="keyword">if</span> [[ <span class="string">&quot;<span class="variable">$1</span>&quot;</span> == <span class="string">&quot;pull&quot;</span> &amp;&amp; <span class="string">&quot;<span class="variable">$@</span>&quot;</span> != *<span class="string">&quot;--help&quot;</span>* ]]; <span class="keyword">then</span></span><br><span class="line">    updateinfo=$(<span class="built_in">command</span> git pull | grep Updating)</span><br><span class="line">    <span class="keyword">if</span> [[ -z <span class="variable">$updateinfo</span> ]]; <span class="keyword">then</span></span><br><span class="line">      <span class="built_in">echo</span> <span class="string">&quot;Skip recording pull history...&quot;</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">      <span class="built_in">echo</span> <span class="string">&quot;Recording pull history...&quot;</span></span><br><span class="line">      <span class="comment"># write process date time</span></span><br><span class="line">      <span class="built_in">printf</span> <span class="string">&quot;%s  &quot;</span> <span class="string">&quot;<span class="subst">$(date &#x27;+%Y-%m-%d %H:%M:%S&#x27;)</span>&quot;</span> &gt;&gt; ~/.git_pull.history</span><br><span class="line">      <span class="comment"># write current version for recover</span></span><br><span class="line">      <span class="built_in">printf</span> <span class="string">&quot;%s  &quot;</span> <span class="string">&quot;<span class="variable">$updateinfo</span>&quot;</span>  &gt;&gt; ~/.git_pull.history</span><br><span class="line">      <span class="comment"># write repo name</span></span><br><span class="line">      <span class="built_in">printf</span> <span class="string">&quot;%s\n&quot;</span> <span class="string">&quot;<span class="subst">$(command git config --get remote.origin.url | cut -d &#x27;/&#x27; -f 2)</span>&quot;</span>  &gt;&gt; ~/.git_pull.history</span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    <span class="built_in">command</span> git <span class="string">&quot;<span class="variable">$@</span>&quot;</span>    <span class="comment"># command 用于调用外部命令</span></span><br><span class="line">  <span class="keyword">fi</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>PS: 为了重复测试脚本，可以使用 <code>git reset --hard xxx</code> 回退版本，再次测试 pull</p>
-<ul>
-<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/3538774/is-it-possible-to-override-git-command-by-git-alias">Stackoverflow</a></li>
-</ul>
-<h2 id="过滤文件"><a href="#过滤文件" class="headerlink" title="过滤文件"></a>过滤文件</h2><p>任务描述：</p>
-<p>有一个 git repo 存储了所有的测试文件(java 格式)，已知需要筛选的文件列表，筛选出所有文件中包含 ‘DB’ (忽略大小写)的文件。并列出包含关键字的列，以便人工删选。</p>
-<p>原始文件名列表格式如下：</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">results</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">testcase</span> <span class="attr">external_id</span>=<span class="string">&#x27;PLT#-123456950&#x27;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">result</span>&gt;</span>p<span class="tag">&lt;/<span class="name">result</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">notes</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">testcase</span>&gt;</span></span><br><span class="line">  ...</span><br><span class="line"><span class="tag">&lt;/<span class="name">results</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>使用编辑器的快捷功能将 <code>#-</code> 去掉</p>
-<p>PS: 查询一下 sed, awk 和内置的字符串处理方式</p>
-<p>repo 中文件名格式如下：PLT123457725UTF8ExportTemplateUserRecordWithUTF8UserImportAndShownCorrectEncoding</p>
-<p>使用 find + grep 删选哪些文件包含 db 操作</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">find . -iname &#x27;PLT123457726*.java&#x27; -exec grep -i &quot;dbUtil\|DB&quot; &#123;&#125; \;</span><br><span class="line"><span class="meta">#</span><span class="bash"> <span class="string">&quot;Priorities.P1&quot;</span>, <span class="string">&quot;DBType.Oracle&quot;</span>, <span class="string">&quot;all&quot;</span>, <span class="string">&quot;TestType.Regression&quot;</span>, <span class="string">&quot;systemUltra&quot;</span>, <span class="string">&quot;systemv12&quot;</span>,</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> String ssn = dbUtil.getSingleUserFieldValueByUserIdFromSMUserInfoTable(PLT123457670, SSN);</span></span><br><span class="line"></span><br><span class="line">find . -iname &#x27;PLT123457726*.java&#x27; -exec grep -i &quot;dbUtil\|db&quot; &#123;&#125; \; | grep -v &#x27;DBType&#x27;</span><br><span class="line"><span class="meta">#</span><span class="bash"> String ssn = dbUtil.getSingleUserFieldValueByUserIdFromSMUserInfoTable(PLT123457670, SSN);</span></span><br></pre></td></tr></table></figure>
-
-<p>将文件中的 case name 删选出来 <code>grep -E -o &#39;PLT.*[0-9]+&#39; bulk.xml &gt;&gt; bulk2.xml</code></p>
-<p>遍历每一行，做 query</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">file=&quot;./bulk2.xml&quot;</span><br><span class="line">while IFS= read line</span><br><span class="line"></span><br><span class="line">do</span><br><span class="line">    echo &quot;------------- start -------------&quot;</span><br><span class="line">    # write file name to file</span><br><span class="line">    find . -iname &quot;$line*.java&quot; -exec basename &#123;&#125; \;</span><br><span class="line">    echo &#x27;------------- match start -------------&#x27;</span><br><span class="line">    # write matched line to file</span><br><span class="line">    find . -iname &quot;$line*.java&quot; -exec grep -i &quot;dbUtil\|db&quot; &#123;&#125; \; | grep -v &quot;DBType&quot;</span><br><span class="line">    echo &#x27;------------- match end -------------&#x27;</span><br><span class="line">done &lt;&quot;$file&quot;</span><br></pre></td></tr></table></figure>
-
-<p>PS: 由于技术手段的缺失，很多函数我都不清楚怎么调用，对 shell 还是很不熟悉，需要更多的实践练习</p>
-<h2 id="ZSH-history-实现机制"><a href="#ZSH-history-实现机制" class="headerlink" title="ZSH history 实现机制"></a>ZSH history 实现机制</h2><h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><ul>
-<li>shell 文件里面写 <code>echo -n &#39;,&#39;</code> 会把 <code>-n</code> 也写进去？</li>
-<li>因为每次执行都会扫一遍 repo，所以想能不能建立一个 name-context map 到内存然后扫描</li>
-<li>以上面的 idea 为基础，能不能实时监测 shell 运行时的内存消耗</li>
-<li>read/write to file in shell</li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/05/11/Quick-start-cucumber/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/05/11/Quick-start-cucumber/" class="post-title-link" itemprop="url">Cucumber 弹射起步</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-05-11 15:39:11" itemprop="dateCreated datePublished" datetime="2021-05-11T15:39:11+08:00">2021-05-11</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-16 14:10:47" itemprop="dateModified" datetime="2021-08-16T14:10:47+08:00">2021-08-16</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E5%BC%B9%E5%B0%84%E8%B5%B7%E6%AD%A5/" itemprop="url" rel="index">
-                    <span itemprop="name">弹射起步</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.6k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="Scenario-Outline"><a href="#Scenario-Outline" class="headerlink" title="Scenario Outline"></a>Scenario Outline</h2><p>通过这个关键字，我们可以进行一组数据的测试，共能上类似于 TestNG 的 dataProvider</p>
-<p>Scenario Outline 需要和 Examples 搭配使用，写了前者，IDEA 会给提示的</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Feature: user creation related tests</span><br><span class="line"></span><br><span class="line">  Scenario Outline: Negative scenario, create user should be fail if field miss in body</span><br><span class="line">    When call REST API to create user and field miss &lt;fieldName&gt; in body</span><br><span class="line">    Then user should create failure, err msg contains &lt;fieldInMsg&gt; show in response</span><br><span class="line">    Examples:</span><br><span class="line">      | fieldName           | fieldInMsg           |</span><br><span class="line">      | provisionerId       | Provisioner ID       |</span><br><span class="line">      | provisionerName     | Provisioner name     |</span><br><span class="line">      | provisionerPassword | Provisioner password |</span><br><span class="line">      | provisionerEmail    | Provisioner email    |</span><br></pre></td></tr></table></figure>
-
-<p>对应的 Java 代码</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CreateUserImpl</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@When(&quot;call REST API to create user and field miss &#123;&#125; in body&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">callRESTAPIToCreateProvisionerAndFieldMissFieldNameInBody</span><span class="params">(String fieldName)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;fileName: &quot;</span> + fieldName);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Then(&quot;user should create failure, err msg contains &#123;&#125; show in response&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">provisionerShouldCreateFailureErrMsgContainsFieldInMsgShowInResponse</span><span class="params">(String fieldInMsg)</span> </span>&#123;</span><br><span class="line">        String errMsg = fieldInMsg + <span class="string">&quot;can not be null.&quot;</span>;</span><br><span class="line">        System.out.println(errMsg);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这个 scenario 会运行 4 遍，每一行测试一次</p>
-<h2 id="DataTable"><a href="#DataTable" class="headerlink" title="DataTable"></a>DataTable</h2><p>和上面的概念很类似的还有一个叫 DataTable 的概念，他的作用是在一个 Step 中创建多组数据</p>
-<p>格式上的区别：DataTable 是不需要 table header 的， 而且不需要 Examples 关键字，在 annotation 里面也不需要占位符</p>
-<figure class="highlight feature"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">Scenario</span>: Show my fruits</span><br><span class="line">    <span class="keyword">When</span> I have kinds of fruits</span><br><span class="line">        |<span class="string"> Apple     </span>|</span><br><span class="line">        |<span class="string"> Banana    </span>|</span><br><span class="line">    <span class="keyword">Then</span> show them</span><br></pre></td></tr></table></figure>
-
-<p>java 实现代码</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@When(&quot;I have kinds of fruits&quot;)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">iHaveKindsOfFruits</span><span class="params">(DataTable dataTable)</span> </span>&#123;</span><br><span class="line">    List&lt;String&gt; list = dataTable.asList();</span><br><span class="line">    System.out.println(Arrays.toString(list.toArray()));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Then(&quot;show them&quot;)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">showThem</span><span class="params">()</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
       
     </div>
 
@@ -5323,7 +5818,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">178</span>
+          <span class="site-state-item-count">180</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -5336,7 +5831,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">167</span>
+        <span class="site-state-item-count">168</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -5370,12 +5865,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">903k</span>
+    <span title="站点总字数">928k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">13:41</span>
+    <span title="站点阅读时长">14:04</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>

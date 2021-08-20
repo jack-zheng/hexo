@@ -206,6 +206,458 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/07/20/HTW-ex04/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/07/20/HTW-ex04/" class="post-title-link" itemprop="url">Ex04 Tomcat 自带的 connector 实现解析</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-07-20 10:32:35" itemprop="dateCreated datePublished" datetime="2021-07-20T10:32:35+08:00">2021-07-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-08-20 19:39:41" itemprop="dateModified" datetime="2021-08-20T19:39:41+08:00">2021-08-20</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/Tomcat/" itemprop="url" rel="index">
+                    <span itemprop="name">Tomcat</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>12k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>10 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p><strong>Chapter4</strong> presents Tomcat 4’s default connector.<br>This connector has been deprecated in favor of a faster connector called Coyote. Nevertheless, the default connector is simpler and easier to understand.</p>
+</blockquote>
+<p>Tomcat 的 connector 是一个独立的模块，现存比较知名的实现有 Coyote, mod_jk, mod_jk2 和 mod_webapp. Tomcat 的 connector 实现 需要遵循以下标准</p>
+<ul>
+<li>必须实现 org.apache.catalina.Connector 接口</li>
+<li>创建的 request 必须实现 org.apache.catalina.Request 接口</li>
+<li>创建的 response 必须实现org.apache.catalina.Response 接口</li>
+</ul>
+<p>Tomcat4 默认的 connector 做的事情和第三章的没什么区别，它会一直 stand by 等待 Http request 的到来，然后创建 request 和 response 对象，并调用 org.apache.catalina.Container 实现类的 invoke 方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">invoke</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    org.apache.catalina.Request request,</span></span></span><br><span class="line"><span class="function"><span class="params">    org.apache.catalina.Response response</span></span></span><br><span class="line"><span class="function"><span class="params">    )</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>invoke 方法中，container 会加载 servlet，调用其 service 方法，管理 session，log 等资源</p>
+<p>默认的 tomcat connector 和 ex03 有点不同，它提供了 pool 机制来减小创建对象的开销，同时更多的使用 char arry 代替 string 提高效率。</p>
+<p>PS: 这节里面的多线程操作，值得好好看一看，之前一直都没有机会接触相关的知识点 (●°u°●)​ 」</p>
+<p>默认的 connector 实现了所有 HTTP 1.1 的特性，同时也支持老版本的 HTTP 协议，比如 0.9 和 1.0. 理解 1.1 的协议对后面理解 connector 实现原理很重要。之后我们会介绍 tomcat 自定义的 connector 接口(org.apache.catalina.Connector).</p>
+<h2 id="HTTP-1-1-New-Features"><a href="#HTTP-1-1-New-Features" class="headerlink" title="HTTP 1.1 New Features"></a>HTTP 1.1 New Features</h2><p>下面介绍 HTTP 1.1 的新特性</p>
+<h3 id="Persistent-Connections"><a href="#Persistent-Connections" class="headerlink" title="Persistent Connections"></a>Persistent Connections</h3><p>HTTP 1.1 之前的协议，在请求完成后会关闭链接。但是现在一个网页请求中可能会包含很多资源，比如 images， applets 等。如果这些资源都通过不同的 connection 下载，那么整个过程会很慢。使用 persistent connection 之后，连接将被复用, 减小资源开销。</p>
+<p>persistent connection 是 HTTP 1.1 的默认配置，你也可以通过 <code>connection: keep-alive</code> 属性显示的指定。</p>
+<h3 id="Chunked-Encoding"><a href="#Chunked-Encoding" class="headerlink" title="Chunked Encoding"></a>Chunked Encoding</h3><p>persistent connection 导致的一个结果是，发送方必须在发送 request 或 response 时指定自己发送的内容的长度。但是通常情况下服务器端并不能做到这一点, 服务器发送内容的时候，是准备一点，发送一点，所以很可能发送的时候根本不知道将要发送多少内容。比如 servlet 会在一些数据准备好后就发送，并不会等到所有数据都完备再开始。</p>
+<p>HTTP 1.0 的时候并不需要指定这个长度属性，连接会一直保持直到接收到 -1 这个结束标志符。</p>
+<p>HTTP 1.1 通过 transfer-encoding 这个标志位表示将要发送的流长度。每个 chunk 数据发送完后都会接一个 长度 + CR/LF 的行。如下所示，我们以发送文字 <code>I&#39;m as helpless as a kitten up a tree.</code> 为例</p>
+<p>发送时，这段文字被分成 2 个 chunks，第一个 chunk 长度为 29 第二个 chunk 长度为 9 那么体现在实际的 request 中为如下情况</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1D\r\n</span><br><span class="line">I&#x27;m as helpless as a kitten u</span><br><span class="line">9\r\n</span><br><span class="line">p a tree.</span><br><span class="line">0\r\n</span><br></pre></td></tr></table></figure>
+
+<p>1D 是 16 进制的 29， 表示第一个 chunk 包含 29 个 bytes. 0\r\n 表示通信结束。</p>
+<h3 id="Use-of-the-100-Continue-Status"><a href="#Use-of-the-100-Continue-Status" class="headerlink" title="Use of the 100(Continue) Status"></a>Use of the 100(Continue) Status</h3><p>当客户端发送的 request body 很大时，他会在 header 中包含 100-continue 属性来和服务器端确认是否接收来提高效率，避免资源浪费(传到一半被拒绝)。服务器如果接收这种 request， 则返回 <code>HTTP/1.1 100 Continue</code></p>
+<h2 id="The-Connector-interface"><a href="#The-Connector-interface" class="headerlink" title="The Connector interface"></a>The Connector interface</h2><p>Tomcat connector 必须实现 org.apache.catalina.Connector 接口，这个接口有很多方法，但是最主要方法有四个</p>
+<ul>
+<li>getContainer</li>
+<li>setContainer</li>
+<li>createReqeust</li>
+<li>createResponse</li>
+</ul>
+<img  src=http://www.plantuml.com/plantuml/svg/XP312i8m38RlUuhIex22zx6BbmqKn3r1wU8eQbgRxER3ExUoTSBqKjByN_u_ROqCuQeDY0iyUo3EwgH3tY51baLD54f9YyGQsMe6akBW4C6m2okcfwYnjWWVRNBwOv10tmvPijSoCbUYU2abAcQ_YEk9w3DNqqHZ7_uEISpYAFSoBuSZNM8LC1AvtCanznoS0I8NgVagfgUeLfKZLu5k1wjD9dxZSGZSXXfdRi0r-fuR3g0VFr0E5hkJHjr1U0C0>
+
+<p>重点：Connector 和 Container 是 1 对 1 的关系，Connector 和 Processor 是 1 对多的关系</p>
+<h2 id="The-HttpConnector-Class"><a href="#The-HttpConnector-Class" class="headerlink" title="The HttpConnector Class"></a>The HttpConnector Class</h2><img  src=http://www.plantuml.com/plantuml/svg/yymhIIrAIqnELN3EpyjBJIx9B-BoX8lvPAQb9bScvwGYYGMLvkKb9W65kE0w56ngzFGKF4fA2X26mBLYauIPWKKE0000>
+
+<p>实现 org.apache.catalina.Connector 接口使它能和 Catalina 整合</p>
+<p>实现 java.lang.Runnable 使他能多线程运行</p>
+<p>Lifecycle 接口用于管理每一个 catalina component 的生命周期，具体内容第六章介绍</p>
+<h3 id="Creating-a-Server-Socket"><a href="#Creating-a-Server-Socket" class="headerlink" title="Creating a Server Socket"></a>Creating a Server Socket</h3><p>HttpConnector 的 initialize() 方法会调用 open 方法生成 serverSocket 对象。open 中通过工厂方法拿到 ServerSocket, 参见 ServerSocketFactory 和对应的实现 DefaultServerSocketFactory</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Return the server socket factory used by this Container.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> ServerSocketFactory <span class="title">getFactory</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.factory == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">            <span class="keyword">this</span>.factory = <span class="keyword">new</span> DefaultServerSocketFactory();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> (<span class="keyword">this</span>.factory);</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>lazy model 的方式拿到工厂实例。然后调用 factory.createSocket(port, acceptCount) 创建 socket.</p>
+<h3 id="Maintaining-HttpProcess-Instances"><a href="#Maintaining-HttpProcess-Instances" class="headerlink" title="Maintaining HttpProcess Instances"></a>Maintaining HttpProcess Instances</h3><p>HttpContainer 中声明了一个 java.io.Stack 类型的变量存储 processor 的实例，实现类似 pool 的效果。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> Stack processor = <span class="keyword">new</span> Stack();</span><br></pre></td></tr></table></figure>
+
+<p>HttpConnector 中定义了两个变量(minProcessors/maxProcessors)来控制这个 stack 的大小, 在启动的时候，服务器默认创建 minProcessors 数量的 processor 备用。随着 request 的增加，这个数量也会增加知道等于 maxProcessors。如果 request 再增加，之后的 request 都会被忽略。如果你想要访问数量没有限制，可以设置 maxProcessor 为负数。</p>
+<p>PS: HttpConnector 中通过 curProcessor 这个变量表示当前可用的 processor 数量</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> Stack processors = <span class="keyword">new</span> Stack();</span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"><span class="comment">// Create the specified minimum number of processors</span></span><br><span class="line"><span class="keyword">while</span> (curProcessors &lt; minProcessors) &#123;</span><br><span class="line">    <span class="keyword">if</span> ((maxProcessors &gt; <span class="number">0</span>) &amp;&amp; (curProcessors &gt;= maxProcessors))</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    HttpProcessor processor = newProcessor();</span><br><span class="line">    recycle(processor);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">recycle</span><span class="params">(HttpProcessor processor)</span> </span>&#123;</span><br><span class="line">    processors.push(processor);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>processor 创建完后，通过调用 recycle 方法将 processor 回收到栈中。processor 负责解析 request 内容，他的构造函数的参数中包含 HttpConnector, 在构造的过程中，会调用 connector 中创建 request 和 response 的方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">HttpProcessor</span><span class="params">(HttpConnector connector, <span class="keyword">int</span> id)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">super</span>();</span><br><span class="line">    <span class="keyword">this</span>.connector = connector;</span><br><span class="line">    <span class="keyword">this</span>.debug = connector.getDebug();</span><br><span class="line">    <span class="keyword">this</span>.id = id;</span><br><span class="line">    <span class="keyword">this</span>.proxyName = connector.getProxyName();</span><br><span class="line">    <span class="keyword">this</span>.proxyPort = connector.getProxyPort();</span><br><span class="line">    <span class="keyword">this</span>.request = (HttpRequestImpl) connector.createRequest();</span><br><span class="line">    <span class="keyword">this</span>.response = (HttpResponseImpl) connector.createResponse();</span><br><span class="line">    <span class="keyword">this</span>.serverPort = connector.getPort();</span><br><span class="line">    <span class="keyword">this</span>.threadName = <span class="string">&quot;HttpProcessor[&quot;</span> + connector.getPort() + <span class="string">&quot;][&quot;</span> + id + <span class="string">&quot;]&quot;</span>; </span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Serving-HTTP-Requests"><a href="#Serving-HTTP-Requests" class="headerlink" title="Serving HTTP Requests"></a>Serving HTTP Requests</h3><p>HttpConnector 的主要逻辑都在 run 方法中，该方法通过 while 循环等待发送过来的响应，直到服务器停止。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// Loop until we receive a shutdown command</span></span><br><span class="line">        <span class="keyword">while</span> (!stopped) &#123;</span><br><span class="line">            <span class="comment">// Accept the next incoming connection from the server socket</span></span><br><span class="line">            Socket socket = <span class="keyword">null</span>;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                socket = serverSocket.accept();</span><br><span class="line">                <span class="comment">// ...</span></span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// ...</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<img  src=http://www.plantuml.com/plantuml/svg/PSmn3eD034JHVaynSWL4N24NGIbMZY4hB1kjdVj7fA2X7Fsd6QOHy_m4LMOv4k6yIr9fAuYxr1GStLaYl1Fo8rPElfWdxAlw0bqTDQ9jTdsSS9Z68Xho7wI-uG5M3xahUxVr1m00>
+
+<p>createProcessor 工作流程</p>
+<ol>
+<li>如果 stack 中有，则返回</li>
+<li>如果没有，判断是否达到上限，没有就创建</li>
+<li>达到上限，返回并关闭 socket</li>
+<li>上限为 -1，创建 processor</li>
+</ol>
+<p>processor 执行 assign() 方法后立即返回，后续工作由 processor 在单独的线程中完成</p>
+<h2 id="The-HttpProcessor-Class"><a href="#The-HttpProcessor-Class" class="headerlink" title="The HttpProcessor Class"></a>The HttpProcessor Class</h2><p>HttpProcessor 的功能和前一章中的 processor 是一样的，本章中的实现多了 assign 之后的多线程功能。下面的内容将具体介绍他的实现原理。</p>
+<p>和 HttpConnector 类似 HttpProcessor 也实现了 Runnable 和 Lifecycle 接口</p>
+<img  src=http://www.plantuml.com/plantuml/svg/yymhIIrAIqnELV39J4jDhapEIUNoX8i5bURb9IO1XRZWiWesDNfw2Xub9GK1HVd9gSN5-KLSC6LOv000>
+
+<p>这里主要探究 processor 的 assign 方法是如何使用多线程来支持 tomcat 同时处理多个 request 的功能的</p>
+<blockquote>
+<p>For each HttpProcessor instance the HttpConnector creates, its start method is called, effectively starting the “processor thread” of the HttpProcessor instance.</p>
+</blockquote>
+<p>HttpConnector 的 start() 方法被调用时，processor thread 立马就启动了</p>
+<img  src=http://www.plantuml.com/plantuml/svg/qz3ILD3LjLDGIayjKIZEJyvEBL7Y0WiK5EKdfnONAsJ218fIaokJSr9r50fAInII4fEp5Kho5OfBW0o80WqjJG00>
+
+
+<p>processor 的 run 方法实现如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* The background thread that listens for incoming TCP/IP connections and</span></span><br><span class="line"><span class="comment">* hands them off to an appropriate processor.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Process requests until we receive a shutdown signal</span></span><br><span class="line">    <span class="keyword">while</span> (!stopped) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Wait for the next socket to be assigned</span></span><br><span class="line">        Socket socket = await();</span><br><span class="line">        <span class="keyword">if</span> (socket == <span class="keyword">null</span>)</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Process the request from this socket, omit the try-catch</span></span><br><span class="line">        process(socket);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Finish up this request</span></span><br><span class="line">        connector.recycle(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Tell threadStop() we have shut ourselves down successfully</span></span><br><span class="line">    <span class="keyword">synchronized</span> (threadSync) &#123;</span><br><span class="line">        threadSync.notifyAll();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>recycle 方法实现如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">recycle</span><span class="params">(HttpProcessor processor)</span> </span>&#123;</span><br><span class="line">    processors.push(processor);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当 connector 启动的时候 processor thread 也会一起启动，然后卡在 await 这里一直等待。让 HttpConnector 接受到 request 之后会调用 processor.assign(socket) 方法。</p>
+<p>这里需要注意的是 assig() 方法是在 connector thread 中调用的，而 await() 方法是在 processor thread 中被调用的。这两者是怎么通信的呢？他们是通过 available flag 和 Object 自带的 wait(), notifyAll() 方法控制调度的。</p>
+<p>PS: wait() 方法使得当前线程保持等待一直到另一个线程调用 notify() 或者 notifyAll() 方法</p>
+<p>HttpConnector 中 assign 的实现</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Process an incoming TCP/IP connection on the specified socket.  Any</span></span><br><span class="line"><span class="comment">* exception that occurs during processing must be logged and swallowed.</span></span><br><span class="line"><span class="comment">* &lt;b&gt;NOTE&lt;/b&gt;:  This method is called from our Connector&#x27;s thread.  We</span></span><br><span class="line"><span class="comment">* must assign it to our own thread so that multiple simultaneous</span></span><br><span class="line"><span class="comment">* requests can be handled.</span></span><br><span class="line"><span class="comment">*</span></span><br><span class="line"><span class="comment">* <span class="doctag">@param</span> socket TCP socket to process</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">assign</span><span class="params">(Socket socket)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Wait for the Processor to get the previous Socket</span></span><br><span class="line">    <span class="keyword">while</span> (available) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            wait();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Store the newly available Socket and notify our thread</span></span><br><span class="line">    <span class="keyword">this</span>.socket = socket;</span><br><span class="line">    available = <span class="keyword">true</span>;</span><br><span class="line">    notifyAll();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((debug &gt;= <span class="number">1</span>) &amp;&amp; (socket != <span class="keyword">null</span>))</span><br><span class="line">        log(<span class="string">&quot; An incoming request is being assigned&quot;</span>);</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>HttpConnector 中 await 的实现</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Await a newly assigned Socket from our Connector, or &lt;code&gt;null&lt;/code&gt;</span></span><br><span class="line"><span class="comment">* if we are supposed to shut down.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">synchronized</span> Socket <span class="title">await</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Wait for the Connector to provide a new Socket</span></span><br><span class="line">    <span class="keyword">while</span> (!available) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            wait();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Notify the Connector that we have received this Socket</span></span><br><span class="line">    Socket socket = <span class="keyword">this</span>.socket;</span><br><span class="line">    available = <span class="keyword">false</span>;</span><br><span class="line">    notifyAll();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((debug &gt;= <span class="number">1</span>) &amp;&amp; (socket != <span class="keyword">null</span>))</span><br><span class="line">        log(<span class="string">&quot;  The incoming request has been awaited&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> (socket);</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>TODO: connector thread 和 processor thread 的处理时间线 UML 图示</p>
+<p>两个 thread 交互描述：</p>
+<p>服务器启动时 processor thread 一起启动并 block 在 wait() 方法处死循环等待唤醒。这时如果 connector thread 中接收到一个 request， connector 会从 stack 中取出一个可用的 processor 并调用 assing(socket) 方法。</p>
+<p>assign 方法会判断 available flag, 初始值为 false， 跳过 while, 将 socket 复刻到成员变量，设置 available 为 true, 唤醒所有等待的线程。</p>
+<p>这时 process thread 的 await() 方法从 wait() 中醒过来，跳出 while 循环将 socket 复刻到 local 变量中，并将 available 设置成 false，调用 notifyAll() 唤醒其他线程。</p>
+<blockquote>
+<p>问题：<br>Q：为什么 await 要使用 local variable 类型的 socket 而不是直接返回传入的 socket<br>A: 没有用 local 的 socket 的时候， socket 还是 connector 中的那个 socket，我们用 local 的复刻之后返回，这个  socket 就可以用来处理下一个 request 了。<br>Q: 为什么 await 需要调用 notifyAll() 方法<br>A: 处理了第一个 request 之后，connector thread 如果接受到第二个 request，available 是 true，就会卡住，需要 notifyAll() 唤醒它</p>
+</blockquote>
+<p>PS: 第二个问题不是很清楚，需要画图来帮助理解</p>
+<p>PPS: 再看看创建多个 processor 的那部分代码，有助于理解这里的内容</p>
+<h2 id="Request-Objects-Response-Objects"><a href="#Request-Objects-Response-Objects" class="headerlink" title="Request Objects / Response Objects"></a>Request Objects / Response Objects</h2><p>default connector 的 request 实现采用 org.apache.catalina.Request 接口. 对应的实现基础类是 RequestBase，他的子类是 HttpRequest. 最终实现类是 HttpRequestImpl. 这些类也有格子的 Facade 类。 UML 示例如下</p>
+<img  src=http://www.plantuml.com/plantuml/svg/oymhIIrAIqnELGXABInDBIxXoeIB1ASMbUMabi0aa6GyIaeAOC9GMi6cHbSNXuIU7inqfyJYL2ukL8Cn5M2J1vcCvY0ynhWb9YUc06r2SW_266IhaDWOFW0hmBGNkq74A8Iw2eM7In4NcWKOhlFCBSZXGd6_ag6IbYwGW0L2S4bHQc8kB9WyymfAeK8eGGKH0W00>
+
+<p>response 的关系图和 request 基本一致</p>
+<h2 id="Process-Requests"><a href="#Process-Requests" class="headerlink" title="Process Requests"></a>Process Requests</h2><p>这节主要介绍 HttpProcessor 的 process 方法，它主要做了下面几件事</p>
+<ul>
+<li>parseConnection - 获取地址并塞到 request 中</li>
+<li>parseRequest - 同上节</li>
+<li>parseHeader - 解析 header 并塞到 request 中</li>
+<li>recycle response + request - 复用对象，相比于上一节完善了很多</li>
+</ul>
+<p>process 定义了一些 flag，比如 ok 表示处理过程中没有出现异常，finishResponse 表示 finishResponse 方法要被调用。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">boolean</span> ok = <span class="keyword">true</span>;</span><br><span class="line"><span class="keyword">boolean</span> finishResponse = <span class="keyword">true</span>;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>keepAlive - 持久链接</li>
+<li>stopped - HttpProcess instance has been stopped by connector</li>
+<li>http11 - request 是从支持 http11 的 client 发出来的</li>
+</ul>
+<p>在 Tomcat 的 default connector 实现中，用户和 HttpProcessor 是隔离的，但是用户可以通过设置 connector 的 buffer size 间接设置 processor 的 buffer size.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">SocketInputStream input = <span class="keyword">null</span>;</span><br><span class="line">OutputStream output = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Construct and initialize the objects we will need</span></span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    input = <span class="keyword">new</span> SocketInputStream(socket.getInputStream(), connector.getBufferSize());</span><br><span class="line">&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">    log(<span class="string">&quot;process.create&quot;</span>, e);</span><br><span class="line">    ok = <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>接下来是一个 while 循环读取 inputStream 中的数据</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">keepAlive = <span class="keyword">true</span>;</span><br><span class="line"><span class="keyword">while</span> (!stopped &amp;&amp; ok &amp;&amp; keepAlive) &#123;...&#125;</span><br></pre></td></tr></table></figure>
+
+<p>解析过程中，一开始设置 finishResponse 的值，并做一些 request 和 response 的初始化</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">finishResponse = <span class="keyword">true</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    request.setStream(input);</span><br><span class="line">    request.setResponse(response);</span><br><span class="line">    output = socket.getOutputStream();</span><br><span class="line">    response.setStream(output);</span><br><span class="line">    response.setRequest(request);</span><br><span class="line">    ((HttpServletResponse) response.getResponse()).setHeader</span><br><span class="line">        (<span class="string">&quot;Server&quot;</span>, SERVER_INFO);</span><br><span class="line">&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">    log(<span class="string">&quot;process.create&quot;</span>, e);</span><br><span class="line">    ok = <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>之后开始 parse connection，request 和 headers</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Parse the incoming request</span></span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (ok) &#123;</span><br><span class="line">        parseConnection(socket);</span><br><span class="line">        parseRequest(input, output);</span><br><span class="line">        <span class="keyword">if</span> (!request.getRequest().getProtocol()</span><br><span class="line">            .startsWith(<span class="string">&quot;HTTP/0&quot;</span>))</span><br><span class="line">            parseHeaders(input);</span><br></pre></td></tr></table></figure>
+
+<p>parseConnection 可以获取 protocol 信息，这个值可能是 0.9， 1.0 或者 1.1. 如果是 1.0 则 keepAlive 会设置成 false。如果 request 头中包含 100-contiue 则会在 parseHeaders 中将 sendAck 设置成 true。</p>
+<p>如果是 1.1 的协议，它也会相应 100-continue 并且会检查是否允许 chunking</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (http11) &#123;</span><br><span class="line">    <span class="comment">// Sending a request acknowledge back to the client if</span></span><br><span class="line">    <span class="comment">// requested.</span></span><br><span class="line">    ackRequest(output);</span><br><span class="line">    <span class="comment">// If the protocol is HTTP/1.1, chunking is allowed.</span></span><br><span class="line">    <span class="keyword">if</span> (connector.isChunkingAllowed())</span><br><span class="line">        response.setAllowChunking(<span class="keyword">true</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>ackRequest 会检测 sendAck 的值，如果为 true 则返回 <code>HTTP/1.1 100 Continue /r/n/r/n</code>.  parse 过程中如果有异常，则 ok 和 finishResponse 会被置位。parse 结束后 request 和 response 会传给 container 调用</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Ask our Container to process this request</span></span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    ((HttpServletResponse) response).setHeader(<span class="string">&quot;Date&quot;</span>, FastHttpDateFormat.getCurrentDate());</span><br><span class="line">    <span class="keyword">if</span> (ok) &#123;</span><br><span class="line">        connector.getContainer().invoke(request, response);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果此时 finishResponse 还是 true 则调用 requeset/response 的 finishResponse 方法, flush 流</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Finish up the handling of the request</span></span><br><span class="line"><span class="keyword">if</span> (finishResponse) &#123;</span><br><span class="line">    response.finishResponse();</span><br><span class="line">    request.finishRequest();</span><br><span class="line">    output.flush();</span><br><span class="line">    ok = <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最后检查 Connection 的值并置位，回收 request 和 response</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// We have to check if the connection closure has been requested</span></span><br><span class="line"><span class="comment">// by the application or the response stream (in case of HTTP/1.0</span></span><br><span class="line"><span class="comment">// and keep-alive).</span></span><br><span class="line"><span class="keyword">if</span> ( <span class="string">&quot;close&quot;</span>.equals(response.getHeader(<span class="string">&quot;Connection&quot;</span>)) ) &#123;</span><br><span class="line">    keepAlive = <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// End of request processing</span></span><br><span class="line">status = Constants.PROCESSOR_IDLE;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Recycling the request and the response objects</span></span><br><span class="line">request.recycle();</span><br><span class="line">response.recycle();</span><br></pre></td></tr></table></figure>
+
+<p>然后重复 while 或者结束 socket 通信</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    shutdownInput(input);</span><br><span class="line">    socket.close();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Parsing-the-Connection"><a href="#Parsing-the-Connection" class="headerlink" title="Parsing the Connection"></a>Parsing the Connection</h3><p>parseConnection 会获取 address 和 port 在 request 中赋值</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">parseConnection</span><span class="params">(Socket socket)</span> <span class="keyword">throws</span> IOException, ServletException </span>&#123;</span><br><span class="line">    ((HttpRequestImpl) request).setInet(socket.getInetAddress());</span><br><span class="line">    <span class="keyword">if</span> (proxyPort != <span class="number">0</span>)</span><br><span class="line">        request.setServerPort(proxyPort);</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        request.setServerPort(serverPort);</span><br><span class="line">    request.setSocket(socket);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Parsing-the-Request"><a href="#Parsing-the-Request" class="headerlink" title="Parsing the Request"></a>Parsing the Request</h3><p>和前一章一样的实现</p>
+<h3 id="Parsing-Headers"><a href="#Parsing-Headers" class="headerlink" title="Parsing Headers"></a>Parsing Headers</h3><p>通过 character arrays 操作而非 String 来提高效率</p>
+<h2 id="The-Simple-Container-Application"><a href="#The-Simple-Container-Application" class="headerlink" title="The Simple Container Application"></a>The Simple Container Application</h2><p>这里的 container 是一个简易版本，实现了 catalina 中的 Container 接口以配合 connector 使用。只实现了 invoke 接口，里面的功能是加载 servlet class 并执行</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/07/13/HTW-ex03/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/07/13/HTW-ex03/" class="post-title-link" itemprop="url">Ex03 Connector</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-07-13 17:23:41" itemprop="dateCreated datePublished" datetime="2021-07-13T17:23:41+08:00">2021-07-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-08-20 19:39:41" itemprop="dateModified" datetime="2021-08-20T19:39:41+08:00">2021-08-20</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/Tomcat/" itemprop="url" rel="index">
+                    <span itemprop="name">Tomcat</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>13k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>12 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p><strong>Chapter3</strong> presents a simplified version of Tomcat 4’s default connector.<br>The application built in this chapter serves as a learning tool to understand the connector discussed in Chapter4</p>
+</blockquote>
+<p>PS: 这个 project 有点老了，其中用到的 Catalina 包比较老, 找了半天</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>tomcat<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>catalina<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>4.0.4<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>相比于 ex02 这章节实现的服务器多了如下功能</p>
+<ul>
+<li>connector parse request headers</li>
+<li>servlet can obtain headers, cookies parameter name/values, etc</li>
+<li>enhance response’s getWriter</li>
+</ul>
+<p>完成上述功能后，这个就是简化版的 Tomcat4 的 connector 了。Tomcat 的默认 connector 在 Tomcat4 时被 deprecated 了，不过还是有参考价值的。</p>
+<h2 id="StringManager"><a href="#StringManager" class="headerlink" title="StringManager"></a>StringManager</h2><p>开篇先介绍了一个用于做类似国际化的类 org.apache.catalina.util.StringManager. 原理很简单，就是这个类通过单例模式生成唯一对象，加载预先定义好的 properties，通过 getString 方法拿到对应语言的翻译。</p>
+<p>StringManager 底层使用两个 Java 基础类做实现，一个是 ResourceBundle 另一个是 MessageFormat. ResourceBundle 可以通过 properties 加载多语言支持，MessageFormat 则用于格式化打印信息。</p>
+<p>为了节省资源，StringManager 内部通过 Hashtable 存储多语言，并通过单例模式创建这个 field</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> Hashtable managers = <span class="keyword">new</span> Hashtable();</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">    * Get the StringManager for a particular package. If a manager for</span></span><br><span class="line"><span class="comment">    * a package already exists, it will be reused, else a new</span></span><br><span class="line"><span class="comment">    * StringManager will be created and returned.</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@param</span> packageName</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">static</span> StringManager <span class="title">getManager</span><span class="params">(String packageName)</span> </span>&#123;</span><br><span class="line">    StringManager mgr = (StringManager)managers.get(packageName);</span><br><span class="line">    <span class="keyword">if</span> (mgr == <span class="keyword">null</span>) &#123;</span><br><span class="line">        mgr = <span class="keyword">new</span> StringManager(packageName);</span><br><span class="line">        managers.put(packageName, mgr);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> mgr;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>PS: 它这里用的是饿汉式的声明，类加载的时候就创建了对象，调用 getManager() 的时候通过 synchronized 加锁保证线程安全。每一个 package 下的 LocalStrings 都回创建一个对象存储多语言信息。</p>
+<h2 id="The-Application"><a href="#The-Application" class="headerlink" title="The Application"></a>The Application</h2><p>相比之前的 project，这章开始，代码开始分包</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── ServletProcessor.java</span><br><span class="line">├── StaticResourceProcessor.java</span><br><span class="line">├── connector</span><br><span class="line">│   ├── RequestStream.java</span><br><span class="line">│   ├── ResponseStream.java</span><br><span class="line">│   ├── ResponseWriter.java</span><br><span class="line">│   └── http</span><br><span class="line">│       ├── Constants.java</span><br><span class="line">│       ├── HttpConnector.java</span><br><span class="line">│       ├── HttpHeader.java</span><br><span class="line">│       ├── HttpProcessor.java</span><br><span class="line">│       ├── HttpRequest.java</span><br><span class="line">│       ├── HttpRequestFacade.java</span><br><span class="line">│       ├── HttpRequestLine.java            拆出来一个单独的类代表 request 的第一行，包括请求类型，URI，协议等信息</span><br><span class="line">│       ├── HttpResponse.java</span><br><span class="line">│       ├── HttpResponseFacade.java</span><br><span class="line">│       ├── LocalStrings.properties</span><br><span class="line">│       ├── LocalStrings_es.properties</span><br><span class="line">│       ├── LocalStrings_ja.properties</span><br><span class="line">│       └── SocketInputStream.java</span><br><span class="line">└── startup</span><br><span class="line">    └── Bootstrap.java                      启动类，实例化 HttpConnector 并调用 start() 方法</span><br></pre></td></tr></table></figure>
+
+<p>Bootstrap.java 为启动类，内容很简单，就是 new 一个 connector, 然后执行 start 方法，让 connector 常驻。</p>
+<p>connector 下的类可以分为五类</p>
+<ul>
+<li>connect 及该类的辅助类(HttpConnector + HttpProcessor)</li>
+<li>代表 Http Request 的类(HttpRequest)及其辅助类</li>
+<li>代表 Http Response 的类(HttpResponse)及其辅助类</li>
+<li>Facade 类(HttpRequestFacade + HttpResponseFacade)</li>
+<li>Constant 常量类</li>
+</ul>
+<p>类关系图</p>
+<img  src=http://www.plantuml.com/plantuml/svg/bP1D2i9038NtFKMPfU10B-36JGK5iISOfezIr6ISPFJwjefe5GTTP97alIy_jMfOCX6ySYnDPUP3bFLGtKRs4E5O59EqD4aWngPW5sMZiQTkuyXrY3aT-prqHI7fO84xvg1ZfuPhiyIniyCfGNJT4pvubPdPbYzantiQnFC1-ZmfArQdlTz1E4MFbpUyKnxxt9oJZNwJIc0I55_cvUX_EEv3hW00>
+
+<p>和 ex02 比，这里将 HttpServer 拆成了 HttpConnector 和 HttpProcessor 两个类。HttpConnector 等待 request， HttpProcessor 负责 request/response 的生成和处理。</p>
+<p>为了提高 connector 的效率，设计的时候将 request 中的 parse 的行为尽可能的延后了(比如有些 servlet 根本不需要 request 中的参数，这样 parse 就显得很多余，白白浪费了时间)。</p>
+<h3 id="The-Connector"><a href="#The-Connector" class="headerlink" title="The Connector"></a>The Connector</h3><p>HttpConnector 表示 connector 的实体类，他负责创建 server socket 并等待 Http request 的到来。HttpConnector 实现 runnable 接口，当 start() 被调用时，HttpConnector 被创建并运行。</p>
+<p>connector 运行时回做如下几件事情</p>
+<ul>
+<li>等待 HTTP requests</li>
+<li>为每个 request 创建 HttpProcessor</li>
+<li>调用 processor 的 process 方法</li>
+</ul>
+<p>HttpProcessor 的 process 方法在拿到 socket 后，会做如下事情</p>
+<ul>
+<li>Create an HttpRequest/HttpResponse object</li>
+<li>Parse request first line and headers, populate to HttpRequest object</li>
+<li>Pass HttpRequest, HttpResponse to Processor(servlet process/static processor)</li>
+</ul>
+<h4 id="Create-an-HttpRequest-Object"><a href="#Create-an-HttpRequest-Object" class="headerlink" title="Create an HttpRequest Object"></a>Create an HttpRequest Object</h4><p>HttpRequest 的继承关系图如下</p>
+<img  src=http://www.plantuml.com/plantuml/svg/AyxEp2j8B4hCLSZ9p4ijgIn8LSWlAid8vyhCAqajIajCJbN8IYnBhD0hJYqgoqajqSieAIdGym0ImH21eDJ2qjJY4Yuka1YKuvQOd9YIgg1NMg1NOqUaVYJjf6damkbKg4BFl8BIak2IejJ4N2we9WWFkprOTA5fKp9KqjK24Wf8RWO0>
+
+<p>本章的 HttpRequest 实现的很多方法都留空了，下一章会有具体实现。但是 header，cookies 等主要属性的提取已经实现了。由于 HttpRequst 的解析比较复杂，下面会分几个小节介绍</p>
+<h4 id="Reading-the-Socket’s-input-Stream"><a href="#Reading-the-Socket’s-input-Stream" class="headerlink" title="Reading the Socket’s input Stream"></a>Reading the Socket’s input Stream</h4><p>SocketInputStream 的实现是直接从 Tomcat 4 的实现中 copy 过来的，他负责解析从 socket 中获取的 inputStream。</p>
+<h4 id="Parsing-the-Request-Line"><a href="#Parsing-the-Request-Line" class="headerlink" title="Parsing the Request Line"></a>Parsing the Request Line</h4><p>processor 中处理 socket 的过程如下</p>
+<img  src=http://www.plantuml.com/plantuml/svg/ZOzD2i9034RtSugGJN-mz0OUGGHNKbmCRKg39LCdQS_ls6h5dLa5tfSNlhmieAgEW2ni4EanazeXBJe5KKAtmib7fG-5aUKN3EGxYegEUy0vChH1pBCePBLIN4QoEaEmWSH1cjTfSoMzlTzUjimvXfPKGyGzbVWIxWJJXl827OrANyifx1Bpncro_A6GZlkrG5uMJm00>
+
+<p>request line 就是 inputStream 中的第一行内容，下面是示例</p>
+<blockquote>
+<p>GET /myApp/ModernServlet?userName=tarzan&amp;password=pwd HTTP/1.1</p>
+</blockquote>
+<p>各部分称谓如下</p>
+<ul>
+<li>GET - method</li>
+<li>/myApp/ModernServlet - URI</li>
+<li>userName=tarzan&amp;password=pwd - query string</li>
+<li>parameters - userName/tarzan;password/pwd 成对出现</li>
+</ul>
+<p>servlet/JSP 程序中通过 JsessionId 指代 session。 session 标识符通常通过 cookies 存储，如果客户端没有 enable cookie 还需要将它 append 到 URL 中</p>
+<p>HttpProcessor 的 process 方法会将上面提到的对象重 inputStream 中提取出来并塞到对应的对象中</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">parseRequest</span><span class="params">(SocketInputStream input, OutputStream output)</span> <span class="keyword">throws</span> IOException, ServletException </span>&#123;</span><br><span class="line">    <span class="comment">// Parse the incoming request line</span></span><br><span class="line">    input.readRequestLine(requestLine);</span><br><span class="line">    String method = <span class="keyword">new</span> String(requestLine.method, <span class="number">0</span>, requestLine.methodEnd);</span><br><span class="line">    String uri = <span class="keyword">null</span>;</span><br><span class="line">    String protocol = <span class="keyword">new</span> String(requestLine.protocol, <span class="number">0</span>,</span><br><span class="line">            requestLine.protocolEnd);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Validate the incoming request line</span></span><br><span class="line">    <span class="keyword">if</span> (method.length() &lt; <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> ServletException(<span class="string">&quot;Missing HTTP request method&quot;</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (requestLine.uriEnd &lt; <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> ServletException(<span class="string">&quot;Missing HTTP request URI&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// Parse any query parameters out of the request URI</span></span><br><span class="line">    <span class="keyword">int</span> question = requestLine.indexOf(<span class="string">&quot;?&quot;</span>);</span><br><span class="line">    <span class="keyword">if</span> (question &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">        request.setQueryString(<span class="keyword">new</span> String(requestLine.uri, question + <span class="number">1</span>,</span><br><span class="line">                requestLine.uriEnd - question - <span class="number">1</span>));</span><br><span class="line">        uri = <span class="keyword">new</span> String(requestLine.uri, <span class="number">0</span>, question);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        request.setQueryString(<span class="keyword">null</span>);</span><br><span class="line">        uri = <span class="keyword">new</span> String(requestLine.uri, <span class="number">0</span>, requestLine.uriEnd);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Checking for an absolute URI (with the HTTP protocol)</span></span><br><span class="line">    <span class="keyword">if</span> (!uri.startsWith(<span class="string">&quot;/&quot;</span>)) &#123;</span><br><span class="line">        <span class="keyword">int</span> pos = uri.indexOf(<span class="string">&quot;://&quot;</span>);</span><br><span class="line">        <span class="comment">// Parsing out protocol and host name</span></span><br><span class="line">        <span class="keyword">if</span> (pos != -<span class="number">1</span>) &#123;</span><br><span class="line">            pos = uri.indexOf(<span class="string">&#x27;/&#x27;</span>, pos + <span class="number">3</span>);</span><br><span class="line">            <span class="keyword">if</span> (pos == -<span class="number">1</span>) &#123;</span><br><span class="line">                uri = <span class="string">&quot;&quot;</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                uri = uri.substring(pos);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Parse any requested session ID out of the request URI</span></span><br><span class="line">    String match = <span class="string">&quot;;jsessionid=&quot;</span>;</span><br><span class="line">    <span class="keyword">int</span> semicolon = uri.indexOf(match);</span><br><span class="line">    <span class="keyword">if</span> (semicolon &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">        String rest = uri.substring(semicolon + match.length());</span><br><span class="line">        <span class="keyword">int</span> semicolon2 = rest.indexOf(<span class="string">&#x27;;&#x27;</span>);</span><br><span class="line">        <span class="keyword">if</span> (semicolon2 &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            request.setRequestedSessionId(rest.substring(<span class="number">0</span>, semicolon2));</span><br><span class="line">            rest = rest.substring(semicolon2);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            request.setRequestedSessionId(rest);</span><br><span class="line">            rest = <span class="string">&quot;&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        request.setRequestedSessionURL(<span class="keyword">true</span>);</span><br><span class="line">        uri = uri.substring(<span class="number">0</span>, semicolon) + rest;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        request.setRequestedSessionId(<span class="keyword">null</span>);</span><br><span class="line">        request.setRequestedSessionURL(<span class="keyword">false</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Normalize URI (using String operations at the moment)</span></span><br><span class="line">    String normalizedUri = normalize(uri);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Set the corresponding request properties</span></span><br><span class="line">    ((HttpRequest) request).setMethod(method);</span><br><span class="line">    request.setProtocol(protocol);</span><br><span class="line">    <span class="keyword">if</span> (normalizedUri != <span class="keyword">null</span>) &#123;</span><br><span class="line">        ((HttpRequest) request).setRequestURI(normalizedUri);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        ((HttpRequest) request).setRequestURI(uri);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (normalizedUri == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> ServletException(<span class="string">&quot;Invalid URI: &quot;</span> + uri + <span class="string">&quot;&#x27;&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>UML 图示如下</p>
+<img  src=http://www.plantuml.com/plantuml/svg/TSwnZi8m30RWlKzXPQ45mIDmAqYt02DY2AqBve9JOcU0foTjWLOdaIcn_p_wyca1y_aIJEERwAmYg8ULQhF5MqJHNs84VxoOZ6emOJGiFQib5fZyJ0pe6Jc3TDhFzXeY7ZxnXQ1k8eRxJWFnAIzW1iIa40EPJydOetWNao2DeJnZ-MSoT893OYWXLrHdNskjjNk-ZHT14VBy1ThO89XK2Oon1s_xArQxlhckEdVQGEtiQUHc7wxMqGDVj9RSBORiYFiltSxoQV44>
+
+<p>Request line 的类实现为 HttpRequestLine, 它的实现比较有意思，它为这一样中的各个部分声明了一个存储的 char 数组，并标识了结束地址 <code>char[] method, int methodEnd</code></p>
+<img  src=http://www.plantuml.com/plantuml/svg/Syv9B2vMy2WfAGXABInDBIxnoSnBLQZcKW02xUICnABeM8NSr9AC_1HhY5XcNWbKm3KF9WPLLrgKYQG8oCDGKL2KNvAVd9-3f0mc15OB4KPpZOQcDNPnY3Dq4CxH0Lcg0xLP1swq3h8bGCDg0G00>
+
+<p>我们通过处理 SocketInputStream 可以得到 request line 的信息用以填充 HttpRequestLine，主要涉及的方法 </p>
+<ul>
+<li>readRequestLine(HttpRequestLine) 填充 line 对象的方法入口</li>
+<li>fill() 使用 buffer 的方式读取输入流中的内容，这个过程中会初始化 pos 和 count 的值。pos 表示当前位置，count 表示流中内容长度</li>
+<li>read() 放回 pos 位置上的内容</li>
+</ul>
+<p>SocketInputStream 的 read() 方法有一个很有意思的处理方式</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Read byte.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">read</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (pos &gt;= count) &#123;</span><br><span class="line">        fill();</span><br><span class="line">        <span class="keyword">if</span> (pos &gt;= count)</span><br><span class="line">            <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> buf[pos++] &amp; <span class="number">0xff</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到最后的处理方式是返回 <code>buf[n] &amp; 0xff</code> 0xff 即 0000 0000 0000 1111 做与操作可以将前面的值置位</p>
+<p>readRequestLine 中用了三个 while 循环通过判断空格和行结束符将首行的信息提取出来。很雷同的还有一个叫 readHeader() 的方法处理解析 request 中的 headers.</p>
+<h4 id="Parsing-Headers"><a href="#Parsing-Headers" class="headerlink" title="Parsing Headers"></a>Parsing Headers</h4><p>request 的 header 部分由 HttpHeader 这个类表示。将在第四章介绍具体实现，目前只需要了解一下几点</p>
+<ul>
+<li>可以使用无参数构造器创建实例</li>
+<li>通过调用 readHeader 方法 SocketInputStream 中的 header 部分解析并填充进指定的 HttpHeader 对象</li>
+<li>通过 String name = new String(header.name, 0, header.nameEnd) 拿到 header 的 name, 同理获取 value</li>
+</ul>
+<p>由于一个 request 中可能包含多个 header，所以通过 while 循环解析，解析完后通过 addHeader 塞入 request 中</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">parseHeaders</span><span class="params">(SocketInputStream input)</span> <span class="keyword">throws</span> IOException, ServletException </span>&#123;</span><br><span class="line">    <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">        HttpHeader header = <span class="keyword">new</span> HttpHeader();</span><br><span class="line">        ;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Read the next header</span></span><br><span class="line">        input.readHeader(header);</span><br><span class="line">        <span class="keyword">if</span> (header.nameEnd == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (header.valueEnd == <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> ServletException(</span><br><span class="line">                        sm.getString(<span class="string">&quot;httpProcessor.parseHeaders.colon&quot;</span>));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        String name = <span class="keyword">new</span> String(header.name, <span class="number">0</span>, header.nameEnd);</span><br><span class="line">        String value = <span class="keyword">new</span> String(header.value, <span class="number">0</span>, header.valueEnd);</span><br><span class="line">        request.addHeader(name, value);</span><br><span class="line">        <span class="comment">// do something for some headers, ignore others.</span></span><br><span class="line">        <span class="keyword">if</span> (name.equals(<span class="string">&quot;cookie&quot;</span>)) &#123;</span><br><span class="line">            Cookie cookies[] = RequestUtil.parseCookieHeader(value);</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; cookies.length; i++) &#123;</span><br><span class="line">                <span class="keyword">if</span> (cookies[i].getName().equals(<span class="string">&quot;jsessionid&quot;</span>)) &#123;</span><br><span class="line">                    <span class="comment">// Override anything requested in the URL</span></span><br><span class="line">                    <span class="keyword">if</span> (!request.isRequestedSessionIdFromCookie()) &#123;</span><br><span class="line">                        <span class="comment">// Accept only the first session id cookie</span></span><br><span class="line">                        request.setRequestedSessionId(cookies[i].getValue());</span><br><span class="line">                        request.setRequestedSessionCookie(<span class="keyword">true</span>);</span><br><span class="line">                        request.setRequestedSessionURL(<span class="keyword">false</span>);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">                request.addCookie(cookies[i]);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (name.equals(<span class="string">&quot;content-length&quot;</span>)) &#123;</span><br><span class="line">            <span class="keyword">int</span> n = -<span class="number">1</span>;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                n = Integer.parseInt(value);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> ServletException(</span><br><span class="line">                        sm.getString(<span class="string">&quot;httpProcessor.parseHeaders.contentLength&quot;</span>));</span><br><span class="line">            &#125;</span><br><span class="line">            request.setContentLength(n);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (name.equals(<span class="string">&quot;content-type&quot;</span>)) &#123;</span><br><span class="line">            request.setContentType(value);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="comment">// end while</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="Parsing-Cookies"><a href="#Parsing-Cookies" class="headerlink" title="Parsing Cookies"></a>Parsing Cookies</h4><p>随便访问了一下网页，下面是一个 cookie 的例子</p>
+<p><code>cookie: fontstyle=null; loginMethodCookieKey=PWD; bizxThemeId=lightGrayPlacematBlueAccentNoTexture; route=133abdfd8b5240fdc3330810e535ae4c79433a08; zsessionid=45641c6c-9dff-4d67-8893-b0764636ee1f; JSESSIONID=D8477F13FD4A9257B98731F666694D91.mo-bce0c171c</code></p>
+<p>在前面的 parseHeaders 方法中，处理 cookie 的部分，通过 RequestUtil.parseCookieHeader(value) 解析 cookie</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Parse a cookie header into an array of cookies according to RFC 2109.</span></span><br><span class="line"><span class="comment">*</span></span><br><span class="line"><span class="comment">* <span class="doctag">@param</span> header Value of an HTTP &quot;Cookie&quot; header</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> Cookie[] parseCookieHeader(String header) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((header == <span class="keyword">null</span>) || (header.length() &lt; <span class="number">1</span>))</span><br><span class="line">        <span class="keyword">return</span> (<span class="keyword">new</span> Cookie[<span class="number">0</span>]);</span><br><span class="line"></span><br><span class="line">    ArrayList cookies = <span class="keyword">new</span> ArrayList();</span><br><span class="line">    <span class="keyword">while</span> (header.length() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">int</span> semicolon = header.indexOf(<span class="string">&#x27;;&#x27;</span>);</span><br><span class="line">        <span class="keyword">if</span> (semicolon &lt; <span class="number">0</span>)</span><br><span class="line">            semicolon = header.length();</span><br><span class="line">        <span class="keyword">if</span> (semicolon == <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        String token = header.substring(<span class="number">0</span>, semicolon);</span><br><span class="line">        <span class="keyword">if</span> (semicolon &lt; header.length())</span><br><span class="line">            header = header.substring(semicolon + <span class="number">1</span>);</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            header = <span class="string">&quot;&quot;</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">int</span> equals = token.indexOf(<span class="string">&#x27;=&#x27;</span>);</span><br><span class="line">            <span class="keyword">if</span> (equals &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                String name = token.substring(<span class="number">0</span>, equals).trim();</span><br><span class="line">                String value = token.substring(equals+<span class="number">1</span>).trim();</span><br><span class="line">                cookies.add(<span class="keyword">new</span> Cookie(name, value));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</span><br><span class="line">            ;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> ((Cookie[]) cookies.toArray(<span class="keyword">new</span> Cookie[cookies.size()]));</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="Obtaining-Parameters"><a href="#Obtaining-Parameters" class="headerlink" title="Obtaining Parameters"></a>Obtaining Parameters</h4><p>解析 parameter 的动作放在 HttpRequest 的 parseParameter 方法中。在调用 parameter 相关的方法，比如 getParameterMap, getParameterNames 等时，会先调用 parseParameter 方法解析他，而且只需要解析一次即可，再次调用是，使用之前解析的结果。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Parse the parameters of this request, if it has not already occurred.</span></span><br><span class="line"><span class="comment">* If parameters are present in both the query string and the request</span></span><br><span class="line"><span class="comment">* content, they are merged.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">parseParameters</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (parsed)</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    ParameterMap results = parameters;</span><br><span class="line">    <span class="keyword">if</span> (results == <span class="keyword">null</span>)</span><br><span class="line">        results = <span class="keyword">new</span> ParameterMap();</span><br><span class="line">    results.setLocked(<span class="keyword">false</span>);</span><br><span class="line">    String encoding = getCharacterEncoding();</span><br><span class="line">    <span class="keyword">if</span> (encoding == <span class="keyword">null</span>)</span><br><span class="line">        encoding = <span class="string">&quot;ISO-8859-1&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Parse any parameters specified in the query string</span></span><br><span class="line">    String queryString = getQueryString();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        RequestUtil.parseParameters(results, queryString, encoding);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">catch</span> (UnsupportedEncodingException e) &#123;</span><br><span class="line">        ;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Parse any parameters specified in the input stream</span></span><br><span class="line">    String contentType = getContentType();</span><br><span class="line">    <span class="keyword">if</span> (contentType == <span class="keyword">null</span>)</span><br><span class="line">        contentType = <span class="string">&quot;&quot;</span>;</span><br><span class="line">    <span class="keyword">int</span> semicolon = contentType.indexOf(<span class="string">&#x27;;&#x27;</span>);</span><br><span class="line">    <span class="keyword">if</span> (semicolon &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">        contentType = contentType.substring(<span class="number">0</span>, semicolon).trim();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        contentType = contentType.trim();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (<span class="string">&quot;POST&quot;</span>.equals(getMethod()) &amp;&amp; (getContentLength() &gt; <span class="number">0</span>)</span><br><span class="line">        &amp;&amp; <span class="string">&quot;application/x-www-form-urlencoded&quot;</span>.equals(contentType)) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">int</span> max = getContentLength();</span><br><span class="line">        <span class="keyword">int</span> len = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">byte</span> buf[] = <span class="keyword">new</span> <span class="keyword">byte</span>[getContentLength()];</span><br><span class="line">        ServletInputStream is = getInputStream();</span><br><span class="line">        <span class="keyword">while</span> (len &lt; max) &#123;</span><br><span class="line">            <span class="keyword">int</span> next = is.read(buf, len, max - len);</span><br><span class="line">            <span class="keyword">if</span> (next &lt; <span class="number">0</span> ) &#123;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            len += next;</span><br><span class="line">        &#125;</span><br><span class="line">        is.close();</span><br><span class="line">        <span class="keyword">if</span> (len &lt; max) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">&quot;Content length mismatch&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        RequestUtil.parseParameters(results, buf, encoding);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span> (UnsupportedEncodingException ue) &#123;</span><br><span class="line">        ;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">&quot;Content read fail&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Store the final results</span></span><br><span class="line">    results.setLocked(<span class="keyword">true</span>);</span><br><span class="line">    parsed = <span class="keyword">true</span>;</span><br><span class="line">    parameters = results;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>在 GET 类型的 request 中，所有的 parameter 都是存在 URL 中的，POST 类型的 request，parameter 是存在 body 中的。解析的 parameter 会存在特殊的 Map 中，这个 map 不允许改变存放的 parameter 的值。对应的实现是 org.apache.catalina.util.ParameterMap. 看了一下具体的实现类代码，其实就是一个 HashMap, 最大的特点是他新加了一个 locked 的 boolean 属性，在增删改的时候都会先检查一下这个 flag 如果 flag 为 false 则抛异常。</p>
+<h3 id="Creating-a-HttpResponse-Object"><a href="#Creating-a-HttpResponse-Object" class="headerlink" title="Creating a HttpResponse Object"></a>Creating a HttpResponse Object</h3><p>HttpReponse 类图</p>
+<img  src=http://www.plantuml.com/plantuml/svg/dOyn2y8m48Nt_8hGKSY1ktGKdHGxE1_rfD4s2PThKV37MsaBDYY8onsylEzUNhnQ5v2nqRLr9FT0shDKNgcj4-8pbgGlsE4D8d5Naq0b4c3JZs8G3XI3Tv6-0gDlrqfefH0cR18lM0zxjawER7jTgTyIzUe1e5yFaxB64a_qDwxIv0zV7wY96EiCN59ZxfoggVT0dIspXQbDtk_qvjpNHegPOPCd1vy0>
+
+<p>通过设置 PrintWriter 的 auto flush 功能，之前打印的 behavior 才修复了，不然只会打印第一句话。为了了解这里说的东西，你需要查一下 Writer 相关的知识点。</p>
+<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><blockquote>
+<p>server 启动后访问 URL 抛异常 <code>Exception in thread &quot;Thread-0&quot; java.util.MissingResourceException: Can&#39;t find bundle for base name com.jzheng.connector.http.LocalStrings, locale en_US</code></p>
+</blockquote>
+<p>查看了一下编译后的 target 文件加，其中咩有 properties 文件，怀疑是一些类型的文件编译时没有同步过去，试着在 pom 中添加以前项目中用过的 build 代码，问题解决</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">plugins</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-compiler-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">source</span>&gt;</span>1.8<span class="tag">&lt;/<span class="name">source</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">target</span>&gt;</span>1.8<span class="tag">&lt;/<span class="name">target</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 在 build 的时候将工程中的配置文件也一并 copy 到编译文件中，即 target 文件夹下 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">resources</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">resource</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">directory</span>&gt;</span>src/main/resources<span class="tag">&lt;/<span class="name">directory</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">includes</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">include</span>&gt;</span>**/*.properties<span class="tag">&lt;/<span class="name">include</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">include</span>&gt;</span>**/*.xml<span class="tag">&lt;/<span class="name">include</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">includes</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">resource</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">resource</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">directory</span>&gt;</span>src/main/java<span class="tag">&lt;/<span class="name">directory</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">includes</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">include</span>&gt;</span>**/*.properties<span class="tag">&lt;/<span class="name">include</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">include</span>&gt;</span>**/*.xml<span class="tag">&lt;/<span class="name">include</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">includes</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">filtering</span>&gt;</span>true<span class="tag">&lt;/<span class="name">filtering</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">resource</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">resources</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">build</span>&gt;</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/07/09/HTW-ex02/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +689,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-16 14:10:47" itemprop="dateModified" datetime="2021-08-16T14:10:47+08:00">2021-08-16</time>
+                <time title="修改时间：2021-08-20 19:39:41" itemprop="dateModified" datetime="2021-08-20T19:39:41+08:00">2021-08-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -391,7 +843,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-16 14:10:47" itemprop="dateModified" datetime="2021-08-16T14:10:47+08:00">2021-08-16</time>
+                <time title="修改时间：2021-08-20 19:39:41" itemprop="dateModified" datetime="2021-08-20T19:39:41+08:00">2021-08-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -522,7 +974,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-16 14:10:47" itemprop="dateModified" datetime="2021-08-16T14:10:47+08:00">2021-08-16</time>
+                <time title="修改时间：2021-08-20 19:39:41" itemprop="dateModified" datetime="2021-08-20T19:39:41+08:00">2021-08-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -653,7 +1105,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-16 14:10:47" itemprop="dateModified" datetime="2021-08-16T14:10:47+08:00">2021-08-16</time>
+                <time title="修改时间：2021-08-20 19:39:41" itemprop="dateModified" datetime="2021-08-20T19:39:41+08:00">2021-08-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -760,7 +1212,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-16 14:10:47" itemprop="dateModified" datetime="2021-08-16T14:10:47+08:00">2021-08-16</time>
+                <time title="修改时间：2021-08-20 19:39:41" itemprop="dateModified" datetime="2021-08-20T19:39:41+08:00">2021-08-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -884,7 +1336,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-16 14:10:47" itemprop="dateModified" datetime="2021-08-16T14:10:47+08:00">2021-08-16</time>
+                <time title="修改时间：2021-08-20 19:39:41" itemprop="dateModified" datetime="2021-08-20T19:39:41+08:00">2021-08-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -993,7 +1445,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-16 14:10:47" itemprop="dateModified" datetime="2021-08-16T14:10:47+08:00">2021-08-16</time>
+                <time title="修改时间：2021-08-20 19:39:41" itemprop="dateModified" datetime="2021-08-20T19:39:41+08:00">2021-08-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1116,7 +1568,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-16 14:10:47" itemprop="dateModified" datetime="2021-08-16T14:10:47+08:00">2021-08-16</time>
+                <time title="修改时间：2021-08-20 19:39:41" itemprop="dateModified" datetime="2021-08-20T19:39:41+08:00">2021-08-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1202,723 +1654,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/06/17/AWK-c2-the-AWK-language/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/06/17/AWK-c2-the-AWK-language/" class="post-title-link" itemprop="url">第二章 the AWK language</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-06-17 19:45:18" itemprop="dateCreated datePublished" datetime="2021-06-17T19:45:18+08:00">2021-06-17</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-16 14:10:47" itemprop="dateModified" datetime="2021-08-16T14:10:47+08:00">2021-08-16</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/AWK/" itemprop="url" rel="index">
-                    <span itemprop="name">AWK</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>11k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>10 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>最简单的 awk 程序是由一系列 pattern-action 组成的</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">pattern &#123; action &#125;</span><br><span class="line">pattern &#123; action &#125;</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-
-<p>有时 pattern 会省略，有时 action 会省略。当 awk 检测程序段没有语法错误后，他会一句一句的执行。pattern 没有写即表示匹配每一行。</p>
-<p>本章第一节会介绍 pattern， 后面会介绍表达式，赋值等，剩余部分则是介绍函数等信息。</p>
-<p>这里的准备文件是有讲究的，直接用 vscode 准备会出问题，最好在终端使用 echo + \t 的方式手动打一遍</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">cat countries                  </span><br><span class="line">USSR    8649    275     Asia</span><br><span class="line">Canada  3852    25      North America</span><br><span class="line">China   3705    1032    Asia</span><br><span class="line">USA     3615    237     North America</span><br><span class="line">Brazil  286     134     South America</span><br><span class="line">India   1267    746     Asia</span><br><span class="line">Mexico  762     78      North America</span><br><span class="line">France  211     55      Europe</span><br><span class="line">Japan   144     120     Asia</span><br><span class="line">Germany 96      61      Europe</span><br><span class="line">England 94      56      Europe</span><br><span class="line"></span><br><span class="line">sed -n <span class="string">&#x27;l&#x27;</span> countries </span><br><span class="line">USSR\t8649\t275\tAsia$</span><br><span class="line">Canada\t3852\t25\tNorth America$</span><br><span class="line">China\t3705\t1032\tAsia$</span><br><span class="line">USA\t3615\t237\tNorth America$</span><br><span class="line">Brazil\t286\t134\tSouth America$</span><br><span class="line">India\t1267\t746\tAsia$</span><br><span class="line">Mexico\t762\t78\tNorth America$</span><br><span class="line">France\t211\t55\tEurope$</span><br><span class="line">Japan\t144\t120\tAsia$</span><br><span class="line">Germany\t96\t61\tEurope$</span><br><span class="line">England\t94\t56\tEurope$</span><br><span class="line"></span><br><span class="line">bat -A countries </span><br><span class="line">   1   │ USSR├──┤8649├──┤275├──┤Asia␊</span><br><span class="line">   2   │ Canada├──┤3852├──┤25├──┤North·America␊</span><br><span class="line">   3   │ China├──┤3705├──┤1032├──┤Asia␊</span><br><span class="line">   4   │ USA├──┤3615├──┤237├──┤North·America␊</span><br><span class="line">   5   │ Brazil├──┤286├──┤134├──┤South·America␊</span><br><span class="line">   6   │ India├──┤1267├──┤746├──┤Asia␊</span><br><span class="line">   7   │ Mexico├──┤762├──┤78├──┤North·America␊</span><br><span class="line">   8   │ France├──┤211├──┤55├──┤Europe␊</span><br><span class="line">   9   │ Japan├──┤144├──┤120├──┤Asia␊</span><br><span class="line">  10   │ Germany├──┤96├──┤61├──┤Europe␊</span><br><span class="line">  11   │ England├──┤94├──┤56├──┤Europe␊</span><br></pre></td></tr></table></figure>
-
-<h2 id="Patterns"><a href="#Patterns" class="headerlink" title="Patterns"></a>Patterns</h2><p>pattern 控制着 action 的执行，下面介绍六种 pattern 类型</p>
-<ul>
-<li>BEGIN { statements }</li>
-<li>END { statements }</li>
-<li>expression { statements }, 当 expression 为 true， statements 会被执行</li>
-<li>/regular expression/{ statements }</li>
-<li>compound pattern { statements }, pattern 通过 &amp;&amp;, ||, !, () 链接</li>
-<li>pattern1, pattern2 { statements }</li>
-</ul>
-<h3 id="BEGIN-and-END"><a href="#BEGIN-and-END" class="headerlink" title="BEGIN and END"></a>BEGIN and END</h3><p>BEGIN 经常用来改变 field 的分隔符，默认的分隔符通过 FS 这个内置变量控制，默认的值有空格， / 和 tab. 下面的例子中，我们将分隔符改为 tab 并统计所有地区的面积和人口总数</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;</span></span><br><span class="line"><span class="string">BEGIN &#123; </span></span><br><span class="line"><span class="string">    FS = &quot;\t&quot;</span></span><br><span class="line"><span class="string">    printf(&quot;%10s %6s %5s  %s\n\n&quot;, &quot;COUNTRY&quot;, &quot;AREA&quot;, &quot;POP&quot;, &quot;CONTINENT&quot;)</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">&#123;</span></span><br><span class="line"><span class="string">    printf(&quot;%10s %6s %5d  %s\n&quot;, $1, $2, $3, $4)</span></span><br><span class="line"><span class="string">    area = area + $2</span></span><br><span class="line"><span class="string">    pop = pop + $3</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">END &#123; printf(&quot;\n%10s %6d %5d\n&quot;, &quot;TOTAL&quot;, area, pop) &#125;&#x27;</span> countries</span><br><span class="line">   COUNTRY   AREA   POP  CONTINENT</span><br><span class="line"></span><br><span class="line">      USSR   8649   275  Asia</span><br><span class="line">    Canada   3852    25  North America</span><br><span class="line">     China   3705  1032  Asia</span><br><span class="line">       USA   3615   237  North America</span><br><span class="line">    Brazil    286   134  South America</span><br><span class="line">     India   1267   746  Asia</span><br><span class="line">    Mexico    762    78  North America</span><br><span class="line">    France    211    55  Europe</span><br><span class="line">     Japan    144   120  Asia</span><br><span class="line">   Germany     96    61  Europe</span><br><span class="line">   England     94    56  Europe</span><br><span class="line"></span><br><span class="line">     TOTAL  22681  2819</span><br></pre></td></tr></table></figure>
-
-<h3 id="Expressions-as-Patterns"><a href="#Expressions-as-Patterns" class="headerlink" title="Expressions as Patterns"></a>Expressions as Patterns</h3><p>Expressions 是指运算表达式，由 数字，字符串和符号组成。本书中的 string 指的是 0-n 的字符序列。空字串 “” 在 awk 中被称为 null string. 每个 string 中都包含有 null string.</p>
-<p>如果操作符需要一个 string 类型的参数，但是你给了一个 numberic 的参数，则 awk 会将数字类型转为字符类型。同样的，如果操作符需要数字类型，给了字符类型，也会自动做转化。</p>
-<p>常见的比较符号</p>
-<table>
-<thead>
-<tr>
-<th align="left">OPERATOR</th>
-<th align="left">MEANING</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left">&lt;</td>
-<td align="left">less than</td>
-</tr>
-<tr>
-<td align="left">&lt;=</td>
-<td align="left">less than or equal to</td>
-</tr>
-<tr>
-<td align="left">==</td>
-<td align="left">equal to</td>
-</tr>
-<tr>
-<td align="left">!=</td>
-<td align="left">not equal to</td>
-</tr>
-<tr>
-<td align="left">&gt;=</td>
-<td align="left">greater than or equal to</td>
-</tr>
-<tr>
-<td align="left">&gt;</td>
-<td align="left">greater than</td>
-</tr>
-<tr>
-<td align="left">~</td>
-<td align="left">matched by</td>
-</tr>
-<tr>
-<td align="left">!~</td>
-<td align="left">not matched by</td>
-</tr>
-</tbody></table>
-<p>举例：</p>
-<ul>
-<li>NF&gt;10: 选择 field 大于 10 的行</li>
-<li>NF: 直接数字, match when it’s numberic value is nonzero</li>
-<li>string, match when value of expression is nonnull</li>
-<li>num operator num, 做计算</li>
-<li>num operator str, 都转化为 string 做计算</li>
-<li>string operator string, 按位比较顺序. “Canada” &lt; “China”</li>
-</ul>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;$0 &gt;= &quot;M&quot;&#x27;</span> countries                                                     </span><br><span class="line">USSR    8649    275     Asia</span><br><span class="line">USA     3615    237     North America</span><br><span class="line">Mexico  762     78      North America</span><br></pre></td></tr></table></figure>
-
-<h3 id="String-matching-Patterns"><a href="#String-matching-Patterns" class="headerlink" title="String-matching Patterns"></a>String-matching Patterns</h3><p>Awk 支持 regular expressions</p>
-<p>String-Matching Pattern</p>
-<ul>
-<li>/regexpr/: 目标是行内容的一部分</li>
-<li>expression ~ /regexpr/: matches if the string value of expression contains a substring matched by regexpr</li>
-<li>expression !~ /regexpr/: 和上面的相反</li>
-</ul>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;$4 ~ /Asia/&#x27;</span> countries </span><br><span class="line">USSR    8649    275     Asia</span><br><span class="line">China   3705    1032    Asia</span><br><span class="line">India   1267    746     Asia</span><br><span class="line">Japan   144     120     Asia</span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;$4 !~ /Asia/&#x27;</span> countries</span><br><span class="line">Canada  3852    25      North America</span><br><span class="line">USA     3615    237     North America</span><br><span class="line">Brazil  286     134     South America</span><br><span class="line">Mexico  762     78      North America</span><br><span class="line">France  211     55      Europe</span><br><span class="line">Germany 96      61      Europe</span><br><span class="line">England 94      56      Europe</span><br></pre></td></tr></table></figure>
-
-<p>这部分可以这样理解，基本的 awk 格式是 <code>pattern &#123; action &#125;</code>, 而这部分 match 是 pattern 的扩展。pattern = expression (!~) /regexpr/</p>
-<h3 id="Regular-Expressions"><a href="#Regular-Expressions" class="headerlink" title="Regular Expressions"></a>Regular Expressions</h3><p>这部分自信已经不用笔记了。。。</p>
-<p>只记一个 <code>(Asian|European|North American)</code> 表示单词级别的选择关系</p>
-<p>ESCAPE SEQUENCES</p>
-<table>
-<thead>
-<tr>
-<th align="left">SEQUENCE</th>
-<th align="left">MEANING</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left">\b</td>
-<td align="left">backspace</td>
-</tr>
-<tr>
-<td align="left">\f</td>
-<td align="left">formfeed</td>
-</tr>
-<tr>
-<td align="left">\n</td>
-<td align="left">newline (line feed)</td>
-</tr>
-<tr>
-<td align="left">\r</td>
-<td align="left">carriage return</td>
-</tr>
-<tr>
-<td align="left">\t</td>
-<td align="left">tab</td>
-</tr>
-<tr>
-<td align="left">\ddd</td>
-<td align="left">octal value ddd, where ddd is 1-3 digits between 0-7</td>
-</tr>
-<tr>
-<td align="left">\c</td>
-<td align="left">any other character c literally</td>
-</tr>
-</tbody></table>
-<h3 id="Compound-Patterns"><a href="#Compound-Patterns" class="headerlink" title="Compound Patterns"></a>Compound Patterns</h3><p>混合模式，即多个表示式通过逻辑运算符组合</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;$4 == &quot;Asia&quot; &amp;&amp; $3 &gt; 500&#x27;</span> countries</span><br><span class="line">China   3705    1032    Asia</span><br><span class="line">India   1267    746     Asia</span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;$4 == &quot;Asia&quot; || $4 == &quot;Europe&quot;&#x27;</span> countries</span><br><span class="line">USSR    8649    275     Asia</span><br><span class="line">China   3705    1032    Asia</span><br><span class="line">India   1267    746     Asia</span><br><span class="line">France  211     55      Europe</span><br><span class="line">Japan   144     120     Asia</span><br><span class="line">Germany 96      61      Europe</span><br><span class="line">England 94      56      Europe</span><br></pre></td></tr></table></figure>
-
-<p>上面的例子是字符比较，也可以使用正则</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;$4 ~ /^(Asia|Europe)$/&#x27;</span> countries </span><br><span class="line">USSR    8649    275     Asia</span><br><span class="line">China   3705    1032    Asia</span><br><span class="line">India   1267    746     Asia</span><br><span class="line">France  211     55      Europe</span><br><span class="line">Japan   144     120     Asia</span><br><span class="line">Germany 96      61      Europe</span><br><span class="line">England 94      56      Europe</span><br></pre></td></tr></table></figure>
-
-<p>如果其他 field 不包含这两个关键字，还可以用逻辑或筛选</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 等价于 awk &#x27;/Asia|Europe/&#x27; countries</span></span><br><span class="line">awk <span class="string">&#x27;/Asia/||/Europe/&#x27;</span> countries      </span><br><span class="line">USSR    8649    275     Asia</span><br><span class="line">China   3705    1032    Asia</span><br><span class="line">India   1267    746     Asia</span><br><span class="line">France  211     55      Europe</span><br><span class="line">Japan   144     120     Asia</span><br><span class="line">Germany 96      61      Europe</span><br><span class="line">England 94      56      Europe</span><br></pre></td></tr></table></figure>
-
-<p>优先级：! &gt; &amp;&amp; &gt; ||</p>
-<p>同优先级(|| + &amp;&amp;)的操作 从左到右 的顺序计算</p>
-<h3 id="Range-Patterns"><a href="#Range-Patterns" class="headerlink" title="Range Patterns"></a>Range Patterns</h3><p>即两个 pattern 用逗号间隔, <code>pat1， pat2</code> 表示取匹配的 1 行或 n 行内容. 如下面的例子，选取 Canada 出现到 USA 之间的所有行</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;/Canada/, /USA/&#x27;</span> countries </span><br><span class="line">Canada  3852    25      North America</span><br><span class="line">China   3705    1032    Asia</span><br><span class="line">USA     3615    237     North America</span><br></pre></td></tr></table></figure>
-
-<p>如果后一个 pattern 没有匹配的内容，则匹配到末尾</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;/Europe/, /Africa/&#x27;</span> countries</span><br><span class="line">France  211     55      Europe</span><br><span class="line">Japan   144     120     Asia</span><br><span class="line">Germany 96      61      Europe</span><br><span class="line">England 94      56      Europe</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>FNR: the number of the line just read from current input file</li>
-<li>FILENAME: the filename itself</li>
-</ul>
-<p>打印第一行到第五行</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;FNR == 1, FNR == 5 &#123; print FILENAME &quot;:&quot; $0 &#125;&#x27;</span> countries </span><br><span class="line">countries:USSR  8649    275     Asia</span><br><span class="line">countries:Canada        3852    25      North America</span><br><span class="line">countries:China 3705    1032    Asia</span><br><span class="line">countries:USA   3615    237     North America</span><br><span class="line">countries:Brazil        286     134     South America</span><br></pre></td></tr></table></figure>
-
-<p>同样的效果还可以写成</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;FNR &lt;= 5 &#123; print FILENAME &quot;: &quot; $0 &#125;&#x27;</span> countries         </span><br><span class="line">countries: USSR 8649    275     Asia</span><br><span class="line">countries: Canada       3852    25      North America</span><br><span class="line">countries: China        3705    1032    Asia</span><br><span class="line">countries: USA  3615    237     North America</span><br><span class="line">countries: Brazil       286     134     South America</span><br></pre></td></tr></table></figure>
-
-<h3 id="Summary-of-Patterns"><a href="#Summary-of-Patterns" class="headerlink" title="Summary of Patterns"></a>Summary of Patterns</h3><p>总结 pattern 支持的格式</p>
-<table>
-<thead>
-<tr>
-<th align="left">PATTERN</th>
-<th align="left">EXAMPLE</th>
-<th align="left">MATCHES</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left">BEGIN</td>
-<td align="left">BEGIN</td>
-<td align="left">before any input has been read</td>
-</tr>
-<tr>
-<td align="left">END</td>
-<td align="left">END</td>
-<td align="left">after all input has been read</td>
-</tr>
-<tr>
-<td align="left">expression</td>
-<td align="left">$3 &lt; 100</td>
-<td align="left">third field less than 100</td>
-</tr>
-<tr>
-<td align="left">string-matching</td>
-<td align="left">/Asia/</td>
-<td align="left">lines that contain Asia</td>
-</tr>
-<tr>
-<td align="left">compound</td>
-<td align="left">$3 &lt; 100 &amp;&amp; $4 == “Asia”</td>
-<td align="left">thrid fields less than 100 + fourth field is Asia</td>
-</tr>
-<tr>
-<td align="left">range</td>
-<td align="left">NR==10, NR==20</td>
-<td align="left">tenth to twentieth lines of input inclusive</td>
-</tr>
-</tbody></table>
-<h2 id="Actions"><a href="#Actions" class="headerlink" title="Actions"></a>Actions</h2><p>在 pattern-action 的格式中，pattern 决定了是否执行 action。action 可以很简单，比如打印；也可以很复杂，比如多语句操作或者包含控制流什么的。下面章节会介绍自定义函数和输入，输出的一些语法。</p>
-<p>actions 中可以包含下列语法</p>
-<ul>
-<li>包含常量，变量，赋值函数调用的 expressions</li>
-<li>print</li>
-<li>printf</li>
-<li>if 语句</li>
-<li>if - else</li>
-<li>while</li>
-<li>for (expression; expression; expression) statement</li>
-<li>for (variable in array) statement</li>
-<li>do statement while (expression)</li>
-<li>break</li>
-<li>continue</li>
-<li>next</li>
-<li>exit</li>
-<li>exit expression</li>
-<li>{ statement }</li>
-</ul>
-<h3 id="Expressions"><a href="#Expressions" class="headerlink" title="Expressions"></a>Expressions</h3><p>expression 是最简单的语句，expression 之间可以通过 operators 连接，有五种 operators</p>
-<ul>
-<li>arthmetic</li>
-<li>comparison</li>
-<li>logical</li>
-<li>conditional</li>
-<li>assignment</li>
-</ul>
-<h4 id="Constants"><a href="#Constants" class="headerlink" title="Constants"></a>Constants</h4><p>两种常数类型：string and numberic</p>
-<p>string = 双引号 + 字符 + 双引号，字符包括转义字符</p>
-<p>numberic 都是由浮点类型的值表示的，可以有不同的形态，但是内存中都是浮点表示，比如 1e6, 1.00E6 等形式</p>
-<h4 id="Variables"><a href="#Variables" class="headerlink" title="Variables"></a>Variables</h4><ul>
-<li>user-defined</li>
-<li>built-in</li>
-<li>fields</li>
-</ul>
-<p>由于变量的类型是没有声明的，所以 awk 会根据上下文推断变量类型，必要时它会做 string 和 numberic 之间的转换。</p>
-<p>还没有初始化的时候 string 默认是 “” (the null string), numberic 默认是 0</p>
-<h4 id="Built-in-Variables"><a href="#Built-in-Variables" class="headerlink" title="Built-in Variables"></a>Built-in Variables</h4><p>下面是一些自带的变量，FILENAME 在每次读文件时都会自动赋值。FNR，NF 和 NR 在每次读入一行时重置。</p>
-<table>
-<thead>
-<tr>
-<th align="left">VARIABLE</th>
-<th align="left">MEANING</th>
-<th align="left">DEFAULT</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left">ARGC</td>
-<td align="left">number of command line arguments</td>
-<td align="left">-</td>
-</tr>
-<tr>
-<td align="left">ARGV</td>
-<td align="left">array of command line arguments</td>
-<td align="left">-</td>
-</tr>
-<tr>
-<td align="left">FILENAME</td>
-<td align="left">name of current input file</td>
-<td align="left">-</td>
-</tr>
-<tr>
-<td align="left">FNR</td>
-<td align="left">record number in current file</td>
-<td align="left">-</td>
-</tr>
-<tr>
-<td align="left">FS</td>
-<td align="left">controls the input field separator</td>
-<td align="left">“ “</td>
-</tr>
-<tr>
-<td align="left">NF</td>
-<td align="left">number of fields in current record</td>
-<td align="left">-</td>
-</tr>
-<tr>
-<td align="left">NR</td>
-<td align="left">number of records read so far</td>
-<td align="left">-</td>
-</tr>
-<tr>
-<td align="left">OFMT</td>
-<td align="left">output format for numbers</td>
-<td align="left">“%.6g”</td>
-</tr>
-<tr>
-<td align="left">OFS</td>
-<td align="left">output field separator</td>
-<td align="left">“ “</td>
-</tr>
-<tr>
-<td align="left">ORS</td>
-<td align="left">output record separator</td>
-<td align="left">“\n”</td>
-</tr>
-<tr>
-<td align="left">RLENGTH</td>
-<td align="left">length of string matched by match function</td>
-<td align="left">-</td>
-</tr>
-<tr>
-<td align="left">RS</td>
-<td align="left">controls the input recrod separator</td>
-<td align="left">“\n”</td>
-</tr>
-<tr>
-<td align="left">RSTART</td>
-<td align="left">start of string matched by match function</td>
-<td align="left">-</td>
-</tr>
-<tr>
-<td align="left">SUBSEP</td>
-<td align="left">subscript separator</td>
-<td align="left">“\034”</td>
-</tr>
-</tbody></table>
-<h4 id="Field-Variables"><a href="#Field-Variables" class="headerlink" title="Field Variables"></a>Field Variables</h4><p>表示当前行的 field 参数，从 $1 - $NF, $0 表示整行。运行一些例子找找感觉</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 第二个 field 值缩小 1000 倍并打印</span></span><br><span class="line">awk <span class="string">&#x27;&#123; $2 = $2 / 1000; print &#125;&#x27;</span> countries </span><br><span class="line"></span><br><span class="line">USSR 8.649 275 Asia</span><br><span class="line">Canada 3.852 25 North America</span><br><span class="line">China 3.705 1032 Asia</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-
-<p>将 North America 和 South America 替换为简写</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;BEGIN &#123; FS = OFS = &quot;\t&quot; &#125;</span></span><br><span class="line"><span class="string">$4 == &quot;North America&quot; &#123; $4 = &quot;NA&quot; &#125;</span></span><br><span class="line"><span class="string">$4 == &quot;South America&quot; &#123; $4 = &quot;SA&quot; &#125; </span></span><br><span class="line"><span class="string">&#123;print&#125;</span></span><br><span class="line"><span class="string">&#x27;</span> countries</span><br><span class="line">USSR    8649    275     Asia</span><br><span class="line">Canada  3852    25      NA</span><br><span class="line">China   3705    1032    Asia</span><br><span class="line">USA     3615    237     NA</span><br><span class="line">Brazil  286     134     SA</span><br><span class="line">India   1267    746     Asia</span><br><span class="line">Mexico  762     78      NA</span><br><span class="line">France  211     55      Europe</span><br><span class="line">Japan   144     120     Asia</span><br><span class="line">Germany 96      61      Europe</span><br><span class="line">England 94      56      Europe</span><br></pre></td></tr></table></figure>
-
-<p>PS: 这里之前我倒是没有意识到，上面的做法其实就是多种情况替换的案例了</p>
-<p>还有一些比较神奇的使用方式，比如 $(NF - 1) 可以取得倒数第二个 field。如果 field 不存在，默认值为 null string, 比如 $(NF + 1), 一个新的 field 可以通过赋值得到，比如下面的例子是在原有的数据后面添加第五列元素</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;BEGIN &#123; FS = OFS = &quot;\t&quot; &#125;; &#123; $5 = 1000 * $3 / $2; print &#125;&#x27;</span> countries </span><br><span class="line">USSR    8649    275     Asia    31.7956</span><br><span class="line">Canada  3852    25      North America   6.49013</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-
-<h4 id="Arthmetic-Operators"><a href="#Arthmetic-Operators" class="headerlink" title="Arthmetic Operators"></a>Arthmetic Operators</h4><p>awk 提供常规计算 +, -, *, %, ^.</p>
-<h4 id="Comparison-Operators"><a href="#Comparison-Operators" class="headerlink" title="Comparison Operators"></a>Comparison Operators</h4><p>支持常见的比较操作：&lt;, &lt;=, ==, !=, &gt;=, &gt;。还有匹配符号 ～ 和 ！～。比较的结果为 1(true)/0(false) 二选一。</p>
-<h4 id="Logical-Operators"><a href="#Logical-Operators" class="headerlink" title="Logical Operators"></a>Logical Operators</h4><p>逻辑运算符有：&amp;&amp;, ||, !</p>
-<h4 id="Condition-Expressions"><a href="#Condition-Expressions" class="headerlink" title="Condition Expressions"></a>Condition Expressions</h4><p>expr1 ? expr2 : expr3 效果和 Java 中的一致. 下面的例子会打印 $1 的倒数，如果 $1 为 0 则打印提示信息</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123; print ($1 !=0 ? 1/$1 : &quot;$1 is zero, line &quot; NR) &#125;&#x27;</span> </span><br></pre></td></tr></table></figure>
-
-<h4 id="Assignment-Operators"><a href="#Assignment-Operators" class="headerlink" title="Assignment Operators"></a>Assignment Operators</h4><p>var = expr, 下面的例子计算所有亚洲国家的人口和</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;$4 == &quot;Asia&quot; &#123; pop = pop + $3; n = n + 1&#125;</span></span><br><span class="line"><span class="string">END &#123; print &quot;Total population of the &quot;, n, &quot;Asian countries is&quot;, pop, &quot;million&quot;&#125;&#x27;</span> countries </span><br><span class="line">Total population of the  4 Asian countries is 2173 million</span><br></pre></td></tr></table></figure>
-
-<p>统计人口最多的国家</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;$3 &gt; maxpop &#123;maxpop = $3; country = $1&#125;</span></span><br><span class="line"><span class="string">END &#123; print &quot;country with largest population:&quot;, country, maxpop &#125;&#x27;</span> countries</span><br><span class="line">country with largest population: China 1032</span><br></pre></td></tr></table></figure>
-
-<h4 id="Increment-and-Decrement-Oerators"><a href="#Increment-and-Decrement-Oerators" class="headerlink" title="Increment and Decrement Oerators"></a>Increment and Decrement Oerators</h4><p>n = n + 1 通常简写为 ++n 或者 n++, 区别是，如果有赋值，则 n++ 会将原始值赋给变量再自增，++n 则先自增再赋值</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;BEGIN &#123; n=1; i=n++ &#125;; END &#123; print i &#125;&#x27;</span> countries</span><br><span class="line">1</span><br><span class="line">awk <span class="string">&#x27;BEGIN &#123; n=1; i=++n &#125;; END &#123; print i &#125;&#x27;</span> countries</span><br><span class="line">2</span><br></pre></td></tr></table></figure>
-
-<h4 id="Built-In-Arithmetic-Functions"><a href="#Built-In-Arithmetic-Functions" class="headerlink" title="Built-In Arithmetic Functions"></a>Built-In Arithmetic Functions</h4><table>
-<thead>
-<tr>
-<th align="left">FUNCTION</th>
-<th align="left">VALUE RETURNED</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left">atan2(y, x)</td>
-<td align="left">arctangent of y/x in the range -pi to pi</td>
-</tr>
-<tr>
-<td align="left">cos(x)</td>
-<td align="left">cosine of x, with x in radians</td>
-</tr>
-<tr>
-<td align="left">exp(x)</td>
-<td align="left">exponential function of x, e<sup>x</sup></td>
-</tr>
-<tr>
-<td align="left">int(x)</td>
-<td align="left">integer part of x; truncated towards 0 when x &gt; 0</td>
-</tr>
-<tr>
-<td align="left">log(x)</td>
-<td align="left">natural (base e) logarithm of x</td>
-</tr>
-<tr>
-<td align="left">rand()</td>
-<td align="left">random number r, where 0 &lt;= r &lt; 1</td>
-</tr>
-<tr>
-<td align="left">sin(x)</td>
-<td align="left">sine of x, with x in radians</td>
-</tr>
-<tr>
-<td align="left">sqrt(x)</td>
-<td align="left">square root of x</td>
-</tr>
-<tr>
-<td align="left">srand(x)</td>
-<td align="left">x is new seed for rand ()</td>
-</tr>
-</tbody></table>
-<h4 id="String-Operators"><a href="#String-Operators" class="headerlink" title="String Operators"></a>String Operators</h4><p>awk 只支持一种字符串操作 - 拼接。拼接不需要任何的连接符, 比如下面的例子是在每行前面打印行号 + 冒号的前缀</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123; print NR &quot;:&quot; $0 &#125;&#x27;</span> countries                  </span><br><span class="line">1:USSR  8649    275     Asia</span><br><span class="line">2:Canada        3852    25      North America</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-
-<h4 id="Strings-as-Regular-Expressions"><a href="#Strings-as-Regular-Expressions" class="headerlink" title="Strings as Regular Expressions"></a>Strings as Regular Expressions</h4><p><code>awk &#39;BEGIN &#123; digits = &quot;^[0-9]+$&quot; &#125;; $2 ~ digits&#39; countries</code>, 表达式可以动态拼装，所以下面的例子也是合法的</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">BEGIN &#123;</span><br><span class="line">  sign = <span class="string">&quot;[+-]?&quot;</span></span><br><span class="line">  decimal= <span class="string">&quot;[0-9]+[.]?[0-9]*&quot;</span></span><br><span class="line">  fraction= <span class="string">&quot;[.][0-9]+&quot;</span></span><br><span class="line">  exponent= <span class="string">&quot;([eEl&quot;</span> sign <span class="string">&quot;[0-9]+)?&quot;</span></span><br><span class="line">  number= <span class="string">&quot;^&quot;</span> sign <span class="string">&quot;(&quot;</span> decimal <span class="string">&quot;|&quot;</span> fraction <span class="string">&quot;)&quot;</span> exponent <span class="string">&quot;$&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">$0</span> .. number</span><br></pre></td></tr></table></figure>
-
-<h4 id="Built-In-String-Functions"><a href="#Built-In-String-Functions" class="headerlink" title="Built-In String Functions"></a>Built-In String Functions</h4><table>
-<thead>
-<tr>
-<th align="left">Function</th>
-<th align="left">Description</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left">gsub(r,s)</td>
-<td align="left">substitute s for r globally in $0, return number of substitutions made</td>
-</tr>
-<tr>
-<td align="left">gsub(r ,s ,t)</td>
-<td align="left">substitutes for r globally in string t, return number of substitutions made</td>
-</tr>
-<tr>
-<td align="left">index(s ,t)</td>
-<td align="left">return first position of string t in s, or 0 if t is not present</td>
-</tr>
-<tr>
-<td align="left">length(s)</td>
-<td align="left">return number of characters in s</td>
-</tr>
-<tr>
-<td align="left">match(s ,r)</td>
-<td align="left">test whether s contains a substring matched by r,return index or 0; sets RSTART and RLENGTH</td>
-</tr>
-<tr>
-<td align="left">split(s ,a)</td>
-<td align="left">split s into array a on FS, return number of fields</td>
-</tr>
-<tr>
-<td align="left">split(s ,a ,fs)</td>
-<td align="left">splits into array a on field separator fs, return number of fields</td>
-</tr>
-<tr>
-<td align="left">sprintf(fmt, expr -list )</td>
-<td align="left">return expr -list formatted according to format string fmt</td>
-</tr>
-<tr>
-<td align="left">sub(r ,s)</td>
-<td align="left">substitutes for the leftmost longest substring of $0 matched by r, return number of substitutions made</td>
-</tr>
-<tr>
-<td align="left">sub(r ,s ,t)</td>
-<td align="left">substitute s for the leftmost longest substring of t matched by r, return number of substitutions made</td>
-</tr>
-<tr>
-<td align="left">substr (s ,p)</td>
-<td align="left">return suffix of s starting at position p</td>
-</tr>
-<tr>
-<td align="left">substr (s ,p ,n)</td>
-<td align="left">return substring of s of length n starting at position p</td>
-</tr>
-</tbody></table>
-<p>p42</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/06/16/AWK-c1-an-AWK-tutorial/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/06/16/AWK-c1-an-AWK-tutorial/" class="post-title-link" itemprop="url">第一章 an AWK tutorial</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-06-16 19:08:44" itemprop="dateCreated datePublished" datetime="2021-06-16T19:08:44+08:00">2021-06-16</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-16 14:10:47" itemprop="dateModified" datetime="2021-08-16T14:10:47+08:00">2021-08-16</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/AWK/" itemprop="url" rel="index">
-                    <span itemprop="name">AWK</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>6.5k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>6 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="Getting-Started"><a href="#Getting-Started" class="headerlink" title="Getting Started"></a>Getting Started</h2><p>通过例子快速入门, 在如下结构化的数据中</p>
-<ul>
-<li>计算工作时长 &gt; 0 的总薪资</li>
-<li>显示时常 = 0 的用户</li>
-</ul>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">cat emp.data</span><br><span class="line"><span class="comment">#name, pay rate per hour, work time(hour)</span></span><br><span class="line">Beth   4.00 0</span><br><span class="line">Dan    3.75 0</span><br><span class="line">Kathy  4.00 10</span><br><span class="line">Mark   5.00 20</span><br><span class="line">Mary   5.50 22</span><br><span class="line">Susie  4.25 18</span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;$3 == 0 &#123;print $1&#125;&#x27;</span> emp.data</span><br><span class="line">Beth</span><br><span class="line">Dan</span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;$3 &gt; 0 &#123;print $1, $2 * $3&#125;&#x27;</span> emp.data </span><br><span class="line">Kathy 40</span><br><span class="line">Mark 100</span><br><span class="line">Mary 121</span><br><span class="line">Susie 76.5</span><br></pre></td></tr></table></figure>
-
-<h3 id="The-Structure-of-an-AWK-Program"><a href="#The-Structure-of-an-AWK-Program" class="headerlink" title="The Structure of an AWK Program"></a>The Structure of an AWK Program</h3><p>格式 <code>pattern &#123; action &#125;</code>, pattern 如果结果为 true 则执行 action 中定义的行为。然后执行下一行，一直到文本结束。</p>
-<h3 id="Running-an-AWK-Program"><a href="#Running-an-AWK-Program" class="headerlink" title="Running an AWK Program"></a>Running an AWK Program</h3><p><code>awk &#39;program&#39; input files</code>, 多文件 <code>awk &#39;program&#39; input file1 file2</code>, 不接文件，则从标准输入拿内容</p>
-<p>可以将程序部分写到文件中 <code>awk -f progfile optional_list_of_input_files</code></p>
-<h2 id="Simple-Output"><a href="#Simple-Output" class="headerlink" title="Simple Output"></a>Simple Output</h2><p><strong>Print Event Line</strong> 没有写 pattern 表示每行都输出，<code>&#123; print &#125;</code> 和 <code>&#123; print $0 &#125;</code> 等价，都是打印全部</p>
-<p><strong>Print Certain Fields</strong> <code>&#123; print $1, $3 &#125;</code></p>
-<p><strong>NF, the Number of Fields</strong> 内置变量 NF 表示最后一个 field 的 number, 下面的例子答应 field 数量 + 名字 + 最后一个 field</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123;print NF, $1, $NF&#125;&#x27;</span> emp.data</span><br><span class="line">3 Beth 0</span><br><span class="line">3 Dan 0</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-
-<p><strong>Computing and Printing</strong> field 可以直接用于计算 <code>&#123; print $1, $2 * $3 &#125;</code></p>
-<p><strong>Printing Line Numbers</strong> NR 代表行号, number of row(record?)</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123;print NR, $0&#125;&#x27;</span> emp.data</span><br><span class="line">1 Beth 4.00 0</span><br><span class="line">2 Dan 3.75 0</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-
-<p><strong>Putting Text in the Output</strong> 输出内容中加入自己的文本</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123;print &quot;total pay for&quot;, $1, &quot;is&quot;, $2 * $3&#125;&#x27;</span> emp.data</span><br><span class="line">total pay <span class="keyword">for</span> Beth is 0</span><br><span class="line">total pay <span class="keyword">for</span> Dan is 0</span><br><span class="line">total pay <span class="keyword">for</span> Kathy is 40</span><br><span class="line">total pay <span class="keyword">for</span> Mark is 100</span><br><span class="line">total pay <span class="keyword">for</span> Mary is 121</span><br><span class="line">total pay <span class="keyword">for</span> Susie is 76.5</span><br></pre></td></tr></table></figure>
-
-<h2 id="Fancier-Output"><a href="#Fancier-Output" class="headerlink" title="Fancier Output"></a>Fancier Output</h2><p>print 只是简单的打印内容，如果想要输出更丰富，使用 printf</p>
-<p><strong>Lining Up Fields</strong> printf 格式 <code>printf(format, value1, value2..., valuen)</code></p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123;printf(&quot;total pay for %s is %.2f\n&quot;, $1, $2 * $3)&#125;&#x27;</span> emp.data</span><br><span class="line">total pay <span class="keyword">for</span> Beth is 0.00</span><br><span class="line">total pay <span class="keyword">for</span> Dan is 0.00</span><br><span class="line">total pay <span class="keyword">for</span> Kathy is 40.00</span><br><span class="line">total pay <span class="keyword">for</span> Mark is 100.00</span><br><span class="line">total pay <span class="keyword">for</span> Mary is 121.00</span><br><span class="line">total pay <span class="keyword">for</span> Susie is 76.50</span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;&#123;printf(&quot;%-8s $%6.2f\n&quot;, $1, $2 * $3)&#125;&#x27;</span> emp.data</span><br><span class="line">Beth     $  0.00</span><br><span class="line">Dan      $  0.00</span><br><span class="line">Kathy    $ 40.00</span><br><span class="line">Mark     <span class="variable">$100</span>.00</span><br><span class="line">Mary     <span class="variable">$121</span>.00</span><br><span class="line">Susie    $ 76.50</span><br></pre></td></tr></table></figure>
-
-<p><strong>Sorting the Output</strong> 结合 pipe 进行排序</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123;printf(&quot;%6.2f %s\n&quot;, $2 * $3, $0)&#125;&#x27;</span> emp.data | sort</span><br><span class="line">  0.00 Beth 4.00 0</span><br><span class="line">  0.00 Dan 3.75 0</span><br><span class="line"> 40.00 Kathy 4.00 10</span><br><span class="line"> 76.50 Susie 4.25 18</span><br><span class="line">100.00 Mark 5.00 20</span><br><span class="line">121.00 Mary 5.50 22</span><br></pre></td></tr></table></figure>
-
-<h2 id="Selection"><a href="#Selection" class="headerlink" title="Selection"></a>Selection</h2><p>Awk 的 pattern 可用于筛选数据</p>
-<p><strong>Selection by Comparison</strong> 通过比较筛选</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 时薪大于5</span></span><br><span class="line">awk <span class="string">&#x27;$2 &gt;= 5&#x27;</span> emp.data</span><br><span class="line">Mark 5.00 20</span><br><span class="line">Mary 5.50 22</span><br></pre></td></tr></table></figure>
-
-<p><strong>Selection by Computation</strong> 结合计算筛选</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;$2 * $3 &gt;= 50 &#123; printf(&quot;$%.2f for %s\n&quot;, $2 * $3, $1)&#125;&#x27;</span> emp.data</span><br><span class="line"><span class="variable">$100</span>.00 <span class="keyword">for</span> Mark</span><br><span class="line"><span class="variable">$121</span>.00 <span class="keyword">for</span> Mary</span><br><span class="line"><span class="variable">$76</span>.50 <span class="keyword">for</span> Susie</span><br></pre></td></tr></table></figure>
-
-<p><strong>Selection by Text Content</strong> 文本匹配选择, == 精确匹配，/match/ 包含</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;$1 == &quot;Susie&quot;&#x27;</span> emp.data</span><br><span class="line">Susie  4.25 18</span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;/Susie/&#x27;</span> emp.data</span><br><span class="line">Susie  4.25 18</span><br></pre></td></tr></table></figure>
-
-<p><strong>Combinations of Patterns</strong> 使用 ||, &amp;&amp; 做逻辑操作</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;$2 &gt;= 4 || $3 &gt;= 20&#x27;</span> emp.data</span><br><span class="line">Beth   4.00 0</span><br><span class="line">Kathy  4.00 10</span><br><span class="line">Mark   5.00 20</span><br><span class="line">Mary   5.50 22</span><br><span class="line">Susie  4.25 18</span><br></pre></td></tr></table></figure>
-
-<p>如果不加逻辑操作符号，则符合条件的语句会重复输出</p>
-<p>‘$2 &gt;= 4 || $3 &gt;= 20’ 等价于 !($2 &lt; 4 &amp;&amp; $3 &lt; 20)</p>
-<p><strong>Data Validation</strong> Awk 是一款很优秀的数据校验工具</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 打印 field 不等于 3 的行</span></span><br><span class="line">awk <span class="string">&#x27;NF != 3 &#123;print $0, &quot;number of fields is not equal to 3&quot;&#125;&#x27;</span> emp.data</span><br><span class="line"><span class="comment"># 打印时薪小于 3.35 的行</span></span><br><span class="line">awk <span class="string">&#x27;$2 &lt; 3.35 &#123; print $0, &quot;rate is below minimum wage&quot; &#125;&#x27;</span> emp.data</span><br></pre></td></tr></table></figure>
-
-<p><strong>BEGIN and END</strong> 类似 before/after class 的操作</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;BEGIN &#123; print &quot;NAME   RATE    HOURS&quot;; print &quot;&quot;&#125; &#123; print &#125;&#x27;</span> emp.data </span><br><span class="line">NAME   RATE    HOURS</span><br><span class="line"></span><br><span class="line">Beth   4.00 0</span><br><span class="line">Dan    3.75 0</span><br><span class="line">Kathy  4.00 10</span><br><span class="line">Mark   5.00 20</span><br><span class="line">Mary   5.50 22</span><br><span class="line">Susie  4.25 18</span><br></pre></td></tr></table></figure>
-
-<h2 id="Computing-with-AWK"><a href="#Computing-with-AWK" class="headerlink" title="Computing with AWK"></a>Computing with AWK</h2><p><code>pattern &#123; action &#125;</code> 中的 action 是一系列用换行或冒号分割的语句。这节介绍一些字符，数字操作，一些内置变量和自定义变量。自定义变量不需要声明。</p>
-<p><strong>Counting</strong> 统计时长大于 15 的用户</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27; $3 &gt; 15 &#123; emp++; &#125; END&#123; print emp, &quot;employees worked more than 15 hours&quot; &#125;&#x27;</span> emp.data </span><br><span class="line">3 employees worked more than 15 hours</span><br></pre></td></tr></table></figure>
-
-<p><strong>Computing Sums and Averages</strong> 计算总值和平均值</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;END &#123; print NR, &quot;employees&quot; &#125;&#x27;</span> emp.data                                              </span><br><span class="line">6 employees</span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;&#123; pay = pay + $2 * $3 &#125;</span></span><br><span class="line"><span class="string">END &#123;</span></span><br><span class="line"><span class="string">print NR, &quot;employees&quot;</span></span><br><span class="line"><span class="string">print &quot;total pay is&quot;, pay</span></span><br><span class="line"><span class="string">print &quot;average pay is&quot;, pay/NR</span></span><br><span class="line"><span class="string">&#125;&#x27;</span> emp.data</span><br><span class="line">6 employees</span><br><span class="line">total pay is 337.5</span><br><span class="line">average pay is 56.25</span><br></pre></td></tr></table></figure>
-
-<p><strong>Handling Text</strong> Awk 有处理文字的能力， awk 中的变量可以持有数字和字符串，下面的例子显示报酬最多的用户</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;                       </span></span><br><span class="line"><span class="string">$2 &gt; maxrate &#123; maxrate = $2; maxemp = $1 &#125;</span></span><br><span class="line"><span class="string">END &#123; print &quot;highest hourly rate:&quot;, maxrate, &quot;for&quot;, maxemp &#125;</span></span><br><span class="line"><span class="string">&#x27;</span> emp.data </span><br><span class="line">highest hourly rate: 5.50 <span class="keyword">for</span> Mary</span><br></pre></td></tr></table></figure>
-
-<p>可以看出来，默认的变量初始值为 0</p>
-<p><strong>String Concatenation</strong> 字符拼接</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123; names = names $1 &quot;  &quot; &#125;</span></span><br><span class="line"><span class="string">END &#123; print names &#125;&#x27;</span> emp.data </span><br><span class="line">Beth  Dan  Kathy  Mark  Mary  Susie </span><br></pre></td></tr></table></figure>
-
-<p>names 变量的初始值为 null</p>
-<p><strong>Printing the Last Input Line</strong> 打印最后一行</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123; last = $0 &#125; END &#123; print last &#125;&#x27;</span> emp.data </span><br><span class="line">Susie  4.25 18</span><br></pre></td></tr></table></figure>
-
-<p><strong>Built-in Functions</strong> awk 提供了很多内置函数，比如 length 计算字符串长度</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123; print $1, length($1) &#125;&#x27;</span> emp.data </span><br><span class="line">Beth 4</span><br><span class="line">Dan 3</span><br><span class="line">Kathy 5</span><br><span class="line">Mark 4</span><br><span class="line">Mary 4</span><br><span class="line">Susie 5</span><br></pre></td></tr></table></figure>
-
-<p><strong>Counting Lines, Words and Characters</strong> 通过使用 length，NF, NR 统计行基本信息，为了便于计算，我们将每一个 field 都当作 String 对待</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;&#123;                                 </span></span><br><span class="line"><span class="string">    nc = nc + length($0) + 1</span></span><br><span class="line"><span class="string">    nw = nw + NF     </span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">END &#123; print NR, &quot;lines,&quot;, nw, &quot;words,&quot;, nc, &quot;characters&quot;&#125;&#x27;</span> emp.data </span><br><span class="line">6 lines, 18 words, 88 characters</span><br></pre></td></tr></table></figure>
-
-<p><code>nc = nc + length($0) + 1</code> 1 代表换行符</p>
-<h2 id="Control-Flow-Statemnets"><a href="#Control-Flow-Statemnets" class="headerlink" title="Control-Flow Statemnets"></a>Control-Flow Statemnets</h2><p>awk 中的流程控制和 C 语言中基本一直，这些控制语句只能用在 action 中</p>
-<h3 id="If-Else-Statement"><a href="#If-Else-Statement" class="headerlink" title="If-Else Statement"></a>If-Else Statement</h3><p>统计时薪大于 6 的所有人的总收入及平均收入, 通过 if-else 控制打印的 loop</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;    </span></span><br><span class="line"><span class="string">$2 &gt; 6 &#123; n = n+1; pay = pay+$2*$3 &#125;</span></span><br><span class="line"><span class="string">END &#123;</span></span><br><span class="line"><span class="string">  if (n &gt; 0)</span></span><br><span class="line"><span class="string">    print n, &quot;employees, total pay is&quot;, pay, &quot;average pay is&quot;, pay/n</span></span><br><span class="line"><span class="string">  else     </span></span><br><span class="line"><span class="string">    print &quot;no employees are paid more than $6/hour&quot;</span></span><br><span class="line"><span class="string">&#125;&#x27;</span> emp.data </span><br><span class="line">no employees are paid more than <span class="variable">$6</span>/hour</span><br></pre></td></tr></table></figure>
-
-<h3 id="While-Statement"><a href="#While-Statement" class="headerlink" title="While Statement"></a>While Statement</h3><p>while = condition + body. 下面实现一个计算存款的功能，表达式可以概括为 value = amount (1 + rate)<sup>years</sup></p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">cat interest1 </span><br><span class="line"><span class="comment"># interest1 - compute compound interest</span></span><br><span class="line"><span class="comment">#   input: amount rate years</span></span><br><span class="line"><span class="comment">#   output: compounded value at the end of each year</span></span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">    i = 1</span><br><span class="line">    <span class="keyword">while</span> (i &lt;= <span class="variable">$3</span>) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;\t%.2f\n&quot;</span>, <span class="variable">$1</span> * (1 + <span class="variable">$2</span>) ^ i)</span><br><span class="line">        i = i + 1</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">awk -f interest1</span><br><span class="line">1000 .06 5</span><br><span class="line">        1060.00</span><br><span class="line">        1123.60</span><br><span class="line">        1191.02</span><br><span class="line">        1262.48</span><br><span class="line">        1338.23</span><br></pre></td></tr></table></figure>
-
-<h3 id="For-Statement"><a href="#For-Statement" class="headerlink" title="For Statement"></a>For Statement</h3><p>同样的计算，用 for 实现</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">cat interest2  </span><br><span class="line"><span class="comment"># interest2 - compute compound interest</span></span><br><span class="line"><span class="comment">#   input: amount rate years</span></span><br><span class="line"><span class="comment">#   output: compounded value at the end of each year</span></span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">for</span> (i=1; i&lt;=<span class="variable">$3</span>; i++)</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;\t%.2f\n&quot;</span>, <span class="variable">$1</span> * (1+<span class="variable">$2</span>) ^ i)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">awk -f interest2</span><br><span class="line">1000 .06 5</span><br><span class="line">        1060.00</span><br><span class="line">        1123.60</span><br><span class="line">        1191.02</span><br><span class="line">        1262.48</span><br><span class="line">        1338.23</span><br></pre></td></tr></table></figure>
-
-<h2 id="Arrays"><a href="#Arrays" class="headerlink" title="Arrays"></a>Arrays</h2><p>awk 支持数组。下面的实验中，我们在 action 中将行信息存到数组中，在 END 中通过 while 倒序输出</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">&#x27;           </span></span><br><span class="line"><span class="string">&#123; line[NR] = $0 &#125;</span></span><br><span class="line"><span class="string">END &#123;</span></span><br><span class="line"><span class="string">  i = NR  </span></span><br><span class="line"><span class="string">  while (i&gt;0) &#123;                                </span></span><br><span class="line"><span class="string">    print line[i]                            </span></span><br><span class="line"><span class="string">    i = i-1 </span></span><br><span class="line"><span class="string">  &#125;</span></span><br><span class="line"><span class="string">&#125;&#x27;</span> emp.data </span><br><span class="line">Susie  4.25 18</span><br><span class="line">Mary   5.50 22</span><br><span class="line">Mark   5.00 20</span><br><span class="line">Kathy  4.00 10</span><br><span class="line">Dan    3.75 0</span><br><span class="line">Beth   4.00 0</span><br></pre></td></tr></table></figure>
-
-<h2 id="A-Handful-of-Useful-“One-liners”"><a href="#A-Handful-of-Useful-“One-liners”" class="headerlink" title="A Handful of Useful “One-liners”"></a>A Handful of Useful “One-liners”</h2><p>摘录一些简短但是令人印象深刻的 awk 脚本</p>
-<ul>
-<li>print the total number of input lines <code>awk &#39;END &#123; print NR &#125;&#39; emp.data</code></li>
-<li>打印第三行 <code>awk &#39;NR == 3&#39; emp.data</code></li>
-<li>打印每行最后一个 field <code>awk &#39;&#123; print $NF &#125;&#39; emp.data</code></li>
-<li>打印最后一行的最后一个 field <code>awk &#39;&#123; field = $NF &#125; END &#123; print field &#125;&#39; emp.data</code></li>
-<li>打印 field 数量大于 4 的行 <code>awk &#39;NF &gt; 4&#39; emp.data</code></li>
-<li>打印最后一个 field 大于 4 的行 <code>awk &#39;$NF &gt; 4&#39; emp.data</code></li>
-<li>用行号代替第一个 field <code>awk &#39;&#123; $1 = NR; print &#125;&#39; emp.data</code></li>
-<li>抹去第二个 field <code>awk &#39;&#123; $2=&quot;&quot;; print &#125;&#39; emp.data</code></li>
-<li>倒序打印每一行 <code>awk &#39;&#123;for(i=NF; i&gt;0;i--) printf(&quot;%s&quot;, $i); printf(&quot;\n&quot;)&#125;&#39; emp.data</code></li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1969,7 +1704,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">178</span>
+          <span class="site-state-item-count">180</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1982,7 +1717,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">167</span>
+        <span class="site-state-item-count">168</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -2016,12 +1751,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">903k</span>
+    <span title="站点总字数">928k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">13:41</span>
+    <span title="站点阅读时长">14:04</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
