@@ -10,13 +10,13 @@ tags:
 > **Chapter4** presents Tomcat 4's default connector. 
 > This connector has been deprecated in favor of a faster connector called Coyote. Nevertheless, the default connector is simpler and easier to understand.
 
-Tomcat 的 connector 是一个独立的模块，现存的比较有名的 connector 有 Coyote, mod_jk, mod_jk2 和 mod_webapp. Tomcat 的 connector 实现 需要 follow 一下标准
+Tomcat 的 connector 是一个独立的模块，现存比较知名的实现有 Coyote, mod_jk, mod_jk2 和 mod_webapp. Tomcat 的 connector 实现 需要遵循以下标准
 
 * 必须实现 org.apache.catalina.Connector 接口
 * 创建的 request 必须实现 org.apache.catalina.Request 接口
 * 创建的 response 必须实现org.apache.catalina.Response 接口
 
-Tomcat4 的默认 connector 做的事情和第三章的没什么区别，它会一直 stand by 等待 Http request 的到来，然后创建 request 和 response 对象，并通过调用 org.apache.catalina.Container 实现类的 invoke 方法传送给 container。
+Tomcat4 默认的 connector 做的事情和第三章的没什么区别，它会一直 stand by 等待 Http request 的到来，然后创建 request 和 response 对象，并调用 org.apache.catalina.Container 实现类的 invoke 方法。
 
 ```java
 public void invoke(
@@ -25,13 +25,13 @@ public void invoke(
     );
 ```
 
-invoke 方法中，container 会加载 servlet，调用其 service 方法，管理 session，log 等事情
+invoke 方法中，container 会加载 servlet，调用其 service 方法，管理 session，log 等资源
 
-默认的 tomcat connector 和 ex03 有点不同，它提供了 pool 机制来减小创建对象的开销，同时更多的使用 char arry 代替 string。
+默认的 tomcat connector 和 ex03 有点不同，它提供了 pool 机制来减小创建对象的开销，同时更多的使用 char arry 代替 string 提高效率。
 
 PS: 这节里面的多线程操作，值得好好看一看，之前一直都没有机会接触相关的知识点 (●°u°●)​ 」
 
-默认的 connector 实现了所有 HTTP 1.1 的特性，同时也支持老版本的 HTTP 协议，比如 0.9 和 1.0. 理解 1.1 的协议对下面理解 connector 实现原理很重要。之后我们辉介绍 tomcat 自定义的 connector 接口(org.apache.catalina.Connector).
+默认的 connector 实现了所有 HTTP 1.1 的特性，同时也支持老版本的 HTTP 协议，比如 0.9 和 1.0. 理解 1.1 的协议对后面理解 connector 实现原理很重要。之后我们会介绍 tomcat 自定义的 connector 接口(org.apache.catalina.Connector).
 
 ## HTTP 1.1 New Features
 
@@ -39,7 +39,7 @@ PS: 这节里面的多线程操作，值得好好看一看，之前一直都没�
 
 ### Persistent Connections
 
-HTTP 1.1 之前的协议，在请求完后会关闭链接。但是现在一个网页请求中可能会包含很多资源，比如 images， applets 等。如果这些资源都通过不同的 connection 下载，那么整个过程会很慢。使用 persistent connection 之后，连接将被复用, 减小资源开销。
+HTTP 1.1 之前的协议，在请求完成后会关闭链接。但是现在一个网页请求中可能会包含很多资源，比如 images， applets 等。如果这些资源都通过不同的 connection 下载，那么整个过程会很慢。使用 persistent connection 之后，连接将被复用, 减小资源开销。
 
 persistent connection 是 HTTP 1.1 的默认配置，你也可以通过 `connection: keep-alive` 属性显示的指定。
 
@@ -49,7 +49,7 @@ persistent connection 导致的一个结果是，发送方必须在发送 reques
 
 HTTP 1.0 的时候并不需要指定这个长度属性，连接会一直保持直到接收到 -1 这个结束标志符。
 
-HTTP 1.1 通过 transfer-encoding 这个标志位表示将要发送的流长度。每个 chunk 数据发送前都会先发送一个 16 进制长度 + CR/LF 的标志位。如下所示，我们以发送文字 `I'm as helpless as a kitten up a tree.` 为例
+HTTP 1.1 通过 transfer-encoding 这个标志位表示将要发送的流长度。每个 chunk 数据发送完后都会接一个 长度 + CR/LF 的行。如下所示，我们以发送文字 `I'm as helpless as a kitten up a tree.` 为例
 
 发送时，这段文字被分成 2 个 chunks，第一个 chunk 长度为 29 第二个 chunk 长度为 9 那么体现在实际的 request 中为如下情况
 
@@ -172,11 +172,28 @@ void recycle(HttpProcessor processor) {
 }
 ```
 
- processor 创建完后，通过调用 recycle 方法将 processor 放入栈中。processor 负责负责解析 request 内容，他的构造函数的参数中包含 HttpConnector, 在构造的过程中，会调用 connector 中创建 request 和 response 的方法。
+processor 创建完后，通过调用 recycle 方法将 processor 回收到栈中。processor 负责解析 request 内容，他的构造函数的参数中包含 HttpConnector, 在构造的过程中，会调用 connector 中创建 request 和 response 的方法。
+
+```java
+public HttpProcessor(HttpConnector connector, int id) {
+
+    super();
+    this.connector = connector;
+    this.debug = connector.getDebug();
+    this.id = id;
+    this.proxyName = connector.getProxyName();
+    this.proxyPort = connector.getProxyPort();
+    this.request = (HttpRequestImpl) connector.createRequest();
+    this.response = (HttpResponseImpl) connector.createResponse();
+    this.serverPort = connector.getPort();
+    this.threadName = "HttpProcessor[" + connector.getPort() + "][" + id + "]"; 
+
+}
+```
 
 ### Serving HTTP Requests
 
-HttpConnector 的主要逻辑都在 run 方法中，该方法通过 while 循环等待发送搞来的响应，知道服务器停止。
+HttpConnector 的主要逻辑都在 run 方法中，该方法通过 while 循环等待发送过来的响应，直到服务器停止。
 
 ```java
 public void run() {
@@ -216,7 +233,7 @@ processor 执行 assign() 方法后立即返回，后续工作由 processor 在�
 
 ## The HttpProcessor Class
 
-HttpProcessor 的功能和前一章中的 processor 是一样的，这章中的实现多了 assign 之后的多线程执行的功能。下面的内容将具体介绍他的实现原理。
+HttpProcessor 的功能和前一章中的 processor 是一样的，本章中的实现多了 assign 之后的多线程功能。下面的内容将具体介绍他的实现原理。
 
 和 HttpConnector 类似 HttpProcessor 也实现了 Runnable 和 Lifecycle 接口
 
@@ -354,7 +371,7 @@ TODO: connector thread 和 processor thread 的处理时间线 UML 图示
 
 两个 thread 交互描述：
 
-服务器奇松时 processor thread 一起启动并 block 在 wait() 方法处死循环等待唤醒。这时如果 connector thread 中接收到一个 request， connector 会从 stack 中取出一个可用的 processor 并调用 assing(socket) 方法。
+服务器启动时 processor thread 一起启动并 block 在 wait() 方法处死循环等待唤醒。这时如果 connector thread 中接收到一个 request， connector 会从 stack 中取出一个可用的 processor 并调用 assing(socket) 方法。
 
 assign 方法会判断 available flag, 初始值为 false， 跳过 while, 将 socket 复刻到成员变量，设置 available 为 true, 唤醒所有等待的线程。
 
@@ -374,7 +391,7 @@ PPS: 再看看创建多个 processor 的那部分代码，有助于理解这里�
 
 default connector 的 request 实现采用 org.apache.catalina.Request 接口. 对应的实现基础类是 RequestBase，他的子类是 HttpRequest. 最终实现类是 HttpRequestImpl. 这些类也有格子的 Facade 类。 UML 示例如下
 
-{plantuml}
+{% plantuml %}
 interface Request
 interface ServletRequest
 
@@ -397,7 +414,7 @@ HttpRequestBase <|-- HttpRequestImpl
 
 RequestBase "1"*-"1" RequestStream
 ServletInputStream <|.. RequestStream
-{endplantuml}
+{% endplantuml %}
 
 response 的关系图和 request 基本一致
 
