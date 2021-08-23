@@ -1027,3 +1027,410 @@ public class SettingDefaultHandler {
 }
 // caught java.lang.RuntimeException
 ```
+
+中间中间好几节暂时不用，先放一放
+
+## Sharing resources
+
+并发需要解决的是多个线程操作共用资源的问题
+
+### Improperly accessing resources
+
+举一个多线程使用 int 生成器的例子。我们创建一个生成器的抽象接口,定义了抽象类中的方法。
+
+* next() - 生成 int 结果
+* cancel() - 设置 flag
+* isCancel() - 返回 flag 结果
+
+canceled 这个 flag 还被定义为 volatile 确保其他线程可见
+
+cancel() 为 boolean 赋值语句，是一个原子操作
+
+```java
+public abstract class IntGenerator {
+    private volatile boolean canceled = false;
+    public abstract int next();
+    public void cancel() { canceled = true; }
+    public boolean isCanceled() { return canceled; }
+}
+```
+
+定义 EvenChecker 并发检测奇偶情况.
+
+* run() - 拿到生成的 int 值并判断，如果为奇数则停止线程
+* test() - 重载了两个 test 方法，启动多个线程运行 run 方法
+
+```java
+public class EvenChecker implements Runnable {
+    private IntGenerator generator;
+    private final int id;
+
+    public EvenChecker(IntGenerator g, int ident) {
+        generator = g;
+        id = ident;
+    }
+
+    @Override
+    public void run() {
+        while (!generator.isCanceled()) {
+            int val = generator.next();
+            if (val % 2 != 0) {
+                System.out.println(val + " not event...");
+                generator.cancel();
+            }
+        }
+    }
+
+    public static void test(IntGenerator gp, int count) {
+        System.out.println("Ctrl + c to exit");
+        ExecutorService exec = Executors.newCachedThreadPool();
+        for (int i = 0; i < count; i++) {
+            exec.execute(new EvenChecker(gp, i));
+        }
+        exec.shutdown();
+    }
+
+    public static void test(IntGenerator gp) {
+        test(gp, 10);
+    }
+}
+```
+
+生成器的实现类 EvenGenerator, 声明一个初始值，并通过两个 ++ 运算，达到偶数次递增的目的
+
+```java
+public class EvenGenerator extends IntGenerator {
+    private int currentEvenValue = 0;
+
+    @Override
+    public int next() {
+        ++currentEvenValue;
+        ++currentEvenValue;
+        return currentEvenValue;
+    }
+
+    public static void main(String[] args) {
+        EvenChecker.test(new EvenGenerator());
+    }
+// }
+// Ctrl + c to exit
+// 1515 not event...
+// 1519 not event...
+// 1517 not event...
+```
+
+运行后可以看到，三个线程检测到目标为奇数，停止了 generator。当执行 next() 时，有可能执行了一半，切到另一个线程执行 run() 中的判断了。这时，程序状态就会出错。你还可以在两个 ++ 操作中间通过新加 yield() 方法来加大重现频率。
+
+还有一个需要注意的是 i++ 并不是一个原子操作，可能在执行间就切到另一个线程了。
+
+### Resolving shared resource contention
+
+这里举了一个挺有意思的例子，处理并发就像是 你坐在餐桌上，准备夹一块肉的时候，突然，肉没了(你的线程被暂停，同时其他线程操作了这个资源)
+
+你可以通过加锁防止这种事情的发生，这样保证一个资源同一时间只能由一个 task 访问，其他 task 需要排队等待解锁。
+
+代码层面，Java 通过 synchronized 关键字来实现这一功能。shared resource 同行来说是一片系统内存，以对象的形式表现出来。也可能是一个文件，或者 IO 端口或者一些设备，比如打印机之类的。
+
+你需要将 class 中代表你要 lock 的对象声明为 private，并且所有和这个对象相关的方法前加关键字，示例如下
+
+```java
+synchronized void f() {}
+synchronized void g() {}
+```
+
+当一个方法被调用的时候，其他加了关键字的方法都会被 lock 住，直到前一个方法执行完毕为止。
+
+PS: 将用到的对象声明为 private 是很关键的一步，否则控制并发会失败。
+
+上述对象在 JVM 有一个 field 来记录锁的数量，默认为 0，当 synchronized 方法被调用时，count + 1，当对应的 task 调用这个对象的两一个 synchronized 方法时，再 + 1.
+
+此外还有 class level 的 lock 用来控制 static 方法的同步，保证同一时间只有一个 task 访问这个静态方法。
+
+加锁的原则：This is an important point: Every method that accesses a critical shared resource must be synchronized or it won’t work right.
+
+### Synchronizing the EvenGenerator
+
+根据上一节的描述，我们通过给 next 方法加锁，将之前的 EvenGenerator 改为线程安全版本.
+
+```java
+public class SynchronizedEvenGenerator extends IntGenerator {
+    private int currentEvenValue = 0;
+
+    @Override
+    public synchronized int next() {
+        ++currentEvenValue;
+        Thread.yield();
+        ++currentEvenValue;
+        return currentEvenValue;
+    }
+
+    public static void main(String[] args) {
+        EvenChecker.test(new SynchronizedEvenGenerator());
+    }
+}
+```
+
+### Using explicit Lock objects
+
+Java 5 的 concurrent 包中提供了一个 Lock 类来更精确的控制锁的范围，示例如下
+
+```java
+public class MutexEvenGenerator extends IntGenerator {
+    private int currentEventValue = 0;
+    private Lock lock = new ReentrantLock();
+
+    @Override
+    public int next() {
+        lock.lock();
+        try {
+            ++currentEventValue;
+            Thread.yield();
+            ++currentEventValue;
+            return currentEventValue;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public static void main(String[] args) {
+        EvenChecker.test(new MutexEvenGenerator());
+    }
+}
+```
+
+用上面这种写法，你需要注意， 调用 lock() 方法之后，一定要用 try-finally 的语法，将 unlock 放到 finally 中，并切 try block 里面完成 return 的动作，防止指在外面被改动。
+
+相比于传统的 synchronized 方式，try-finally 代码更多，但是它给你机会再程序出错时做出补救。
+
+通过使用 concurrent 包下的方法，你可以实现 re-try 的机制
+
+下面的例子中定义了两个方法，untimed/timed 功能都是一样的，尝试获取锁，并打印获取的情况。main 中一开始，顺序执行，两个方法可以拿到锁，并在使用完后释放。后面通过匿名类，启动一个新线程，获取锁并不释放，后面再次调用之前的方法，返回获取锁失败。
+
+```java
+public class AttemptLocking {
+    private ReentrantLock lock = new ReentrantLock();
+    public void untimed() {
+        boolean captured = lock.tryLock();
+        try {
+            System.out.println("tryLock(): " + captured);
+        } finally {
+            if(captured)
+                lock.unlock();
+        }
+    }
+
+    public void timed() {
+        boolean captured = false;
+        try {
+            captured = lock.tryLock(2, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        try {
+            System.out.println("tryLock(2, TimeUnit.SECONDS): " + captured);
+        }finally {
+            if (captured)
+                lock.unlock();
+        }
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        final AttemptLocking al = new AttemptLocking();
+        al.untimed();
+        al.timed();
+        new Thread() {
+            {setDaemon(true);}
+
+            @Override
+            public void run() {
+                al.lock.lock();
+                System.out.println("acquired");
+            }
+        }.start();
+        Thread.sleep(1000);
+        al.untimed();
+        al.timed();
+    }
+}
+// tryLock(): true
+// tryLock(2, TimeUnit.SECONDS): true
+// tryLock(): true
+// acquired
+// tryLock(2, TimeUnit.SECONDS): false
+```
+
+### Atomicity and volatility
+
+一个原子操作是指，如果这个操作开始了，那么只有在操作结束后，JVM 才会考虑进行上下文切换。考虑到原子操作这么冷门而且很危险，建议专家级别了再作原子操作代替 synchronized 的优化。
+
+> The Goetz Test: If you can write a hight-perormance JVM for a modern microprocessor, then you are qualified to think about whether you can avoid synchronizing.
+
+鼓励使用官方为你写的工具包(concurrent)，而不是自己造的轮子。
+
+'simple operation' 和 除了 long/double 的 primitive 类型的数据操作都是原子操作。JVM 在处理 long/double 时会分成两个指令处理，但是如果你为这两类数据加上 volatile 修饰之后，可以保证原子性。
+
+在多核处理器系统中，visibility 是比 atomicity 更容易出问题的点。一个 task 进行的一个原子操作，由于改动存放在本地处理器的 cache 中，导致其他 task 不知道这个改动，从而导致不同 task 之间 application 的状态不一致。synchronization 机制可以保证一个 task 的改动在其他 task 上也可以被观察到。
+
+volatile 也可以保证这一点。如果你声明了一个 volatile 变量，一旦写操作执行了，那么所有要读他的地方会立即观察到这个变化，其实是 local cache 的情况也能保证。volatile 会保证 write 的动作立即反应到驻内存中。
+
+atomicity 和 volatility 是两个概念，一个非 volatile 的原子操作并不会被 flush 到主内存中，如果多个 task 对他进行操作，会产生不一致。如果多个 task 都要访问一个 field，那么他就需要声明为 volatile 类型，或者用 synchronization 来管理他。如果用了 synchronizaiton 管理，就不需要用 volatile 修饰了
+
+优先考虑用 synchronization，这个是最安全的解决方案。
+
+Java 中赋值和返回语句是原子操作，自增/减不是。。。Java 反编译自增代码如下
+
+```java
+//: concurrency/Atomicity.java
+// {Exec: javap -c Atomicity}
+public class Atomicity {
+    int i;
+    void f1() { i++; }
+    void f2() { i += 3; } 
+} 
+/* Output: (Sample) 
+... void f1();
+   Code:
+    0:        aload_0    
+    1:        dup    
+    2:        getfield        #2; //Field i:I    
+    5:        iconst_1    
+    6:        iadd    
+    7:        putfield        #2; //Field i:I    
+    10:        return  
+void f2();
+   Code:    
+   0:        aload_0    
+   1:        dup    
+   2:        getfield        #2; //Field i:I    
+   5:        iconst_3    
+   6:        iadd    
+   7:        putfield        #2; //Field i:I    
+   10:        return
+```
+
+可以看到在 get 和 put 指令中间，还会执行一些其他的指令。上下文切换有可能发生在执行这些指令的时候，所以并不是原子行的。
+
+即使是 getValue() 这样的操作，虽然说他是原子操作，但是如果不加 synchronized 也可能会出问题. 下面的程序中，我们实现了一个自增函数 evenIncrement 并用 synchronized 修饰，在 run 中让他一直运行。在 main 中启动这个线程，并打印当前 i 的值。可以看到还是会出问题。问题有两个
+
+* 变量没有用 volatile 修饰
+* getValue 没有用 synchronized 修饰
+
+试了一下，即使 i 用 volatile 修饰了还是会出问题的
+
+没有 synchronized 修饰时，程序允许 getValue 在状态不确定的情况下访问变量，所以会出问题。
+
+```java
+public class AtomicityTest implements Runnable{
+    private int i = 0;
+    public int getValue() { return i; }
+    private synchronized void evenIncrement() { i++; i++; }
+
+    @Override
+    public void run() {
+        while(true)
+            evenIncrement();
+    }
+
+    public static void main(String[] args) {
+        ExecutorService exec = Executors.newCachedThreadPool();
+        AtomicityTest at = new AtomicityTest();
+        exec.execute(at);
+
+        while(true) {
+            int val = at.getValue();
+            if(val %2 !=0) {
+                System.out.println(val);
+                System.exit(0);
+            }
+        }
+    }
+}
+// 423
+```
+
+下面是一个更简单的例子，一个生成器给出一系列的数字
+
+```java
+public class SerialNumberGenerator {
+    private static volatile int serialNumber = 0;
+    public static int nextSerialNumber() {
+        return serialNumber++;  // Not thread-safe
+    }
+}
+```
+
+将变量声明为 volatile 可以告诉编译器不要对它进行优化。读写会被直接反应到内存中，而不是 cache. 而且还能防止指令重排。但是它并不表示这个自增是一个原子操作。
+
+通常来说，如果有多个 task 操作一个 field，并且至少有一个会对他进行写操作，那么你就要讲他声明为 volatile。比如 flag 的操作。
+
+为了测试上面的这个类，我们创建了如下的测试类
+
+CircularSet 是一个容器类，用来存储生成器产生的数据。定义了一个数组，可以指定大小。 add/contains 使用 synchronized 修饰。主线程中，启动 10 个线程生产数据并存到容器中。理论上来说，如果线程安全，容器中不会有重复数据，如果有，则报错，结束进程。
+
+这里一个比较巧妙的设置是，CircularSet 会存储一个下标，如果生产的值超出容量，他会循环利用之前的位置，覆盖之前的值。
+
+可以在 SerialNumberGenerator 的 nextSerialNumber 方法前添加 synchronized 修饰修复这个问题。
+
+```java
+public class SerialNumberChecker {
+    private static final int SIZE = 10;
+    private static CircularSet serials = new CircularSet(1000);
+    private static ExecutorService exec = Executors.newCachedThreadPool();
+
+    static class SerialChecker implements Runnable {
+        @Override
+        public void run() {
+            while(true) {
+                int serial = SerialNumberGenerator.nextSerialNumber();
+                if (serials.contains(serial)) {
+                    System.out.println("Duplicate: " + serial);
+                    System.exit(0);
+                }
+                serials.add(serial);
+            }
+        }
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        for (int i = 0; i < SIZE; i++) {
+            exec.execute(new SerialChecker());
+        }
+
+        if (args.length > 0) {
+            TimeUnit.SECONDS.sleep(new Integer(args[0]));
+            System.out.println("No duplicates detected");
+            System.exit(0);
+        }
+    }
+}
+
+class CircularSet {
+    private int[] array;
+    private int len;
+    private int index = 0;
+    public CircularSet(int size) {
+        array = new int[size];
+        len = size;
+        // Initialize to a value not produced by the SerialNumberChecker
+        for (int i = 0; i < size; i++) {
+            array[i] = -1;
+        }
+    }
+
+    public synchronized void add(int i) {
+        array[index] = i;
+        // Wrap index and write over old elements
+        index = ++index % len;
+    }
+
+    public synchronized boolean contains(int val) {
+        for (int i = 0; i < len; i++) {
+            if (array[i] == val) return true;
+        }
+        return false;
+    }
+}
+// Duplicate: 47
+```
+
+## Cooperation between tasks
