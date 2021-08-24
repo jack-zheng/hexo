@@ -1433,4 +1433,433 @@ class CircularSet {
 // Duplicate: 47
 ```
 
+### Atomic classes
+
+Java 5 引入了原子类，如 AtomicInteger, AtomicLong 和 AtomicReference 等提供原子级别的更新操作。
+
+> boolean compareAndSet(expectedValue, updateValue);
+
+他们做过优化，可以保证机器层面的原子性，一般来说，你可以放心使用。下面我们用他们来重写之前的测试类 AtomicityTest.java. 内部逻辑和之前一样，我们将 volatile 和 synchronized 关键字都去了，同时定义一个 main 函数，在里面使用 Timer 设置程序 5s 之后退出，到程序结束为止一切运行正常。
+
+```java
+public class AtomicIntegerTest implements Runnable {
+    private AtomicInteger i = new AtomicInteger(0);
+
+    public int getValue() {
+        return i.get();
+    }
+
+    private void evenIncrement() {
+        i.addAndGet(2);
+    }
+
+    @Override
+    public void run() {
+        while (true)
+            evenIncrement();
+    }
+
+    public static void main(String[] args) {
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                System.out.println("Aborting");
+                System.exit(0);
+            }
+        }, 5000);
+        ExecutorService exec = Executors.newCachedThreadPool();
+        AtomicIntegerTest ait = new AtomicIntegerTest();
+        exec.execute(ait);
+        while (true) {
+            int val = ait.getValue();
+            if (val % 2 != 0) {
+                System.out.println(val);
+                System.exit(0);
+            }
+        }
+    }
+}
+```
+
+同样的，我们使用 AtomicInteger 重写 EvenGenerator
+
+```java
+public class AtomicEvenGenerator extends IntGenerator {
+    private AtomicInteger currentEvenValue = new AtomicInteger(0);
+
+    @Override
+    public int next() {
+        return currentEvenValue.addAndGet(2);
+    }
+
+    public static void main(String[] args) {
+        EvenChecker.test(new AtomicEvenGenerator());
+    }
+}
+```
+
+虽然 Atomic class 可以解决原子行问题，但是还是强烈推荐使用锁机制。
+
+### Critial sections
+
+我们可以通过 critical sections 的方式，只对一段代码进行保护而不是整个方法
+
+```java
+synchronized(syncObject) {
+    // This code can be accessed
+    // by only one task at a time
+}
+```
+
+这种方式也叫做 synchronized block. 如果此时 syncObject 被其他 task lock 了，那么当前 task 会一直等待，直到 lock 被释放。以下示例对两种 lock 方式进行性能比较
+
+Pair 是我们要操作的对象，线程不安全，这个模型就是内部存两个 int 变量，我们的目标是保证这两个变量想等。还有一个 checkState 方法，如果两个变量值不同，则抛异常。
+
+PairManager 是一个抽象类，里面声明了一个用来存储 pair 的 list, 使用 Collections.synchronizedList() 得到，所以线程安全。 getPair() 也用 synchronized 修饰，线程安全。 store 虽然没有修饰但是只在实现类中调用，调用的时候会加 synchronized 限制。
+
+PairManager1， PairManager2 都是 PairManager 的实现，区别是一个用了 method level 的 lock， 一个用了 block level 的 lock
+
+PairManipulator 代表使用 PairManager 的 task, 我们通过它来启动多线程实现 PM 的 increment 调用
+
+PairChecker 也是一个多线程的 task 它用来检测 PM 的状态并记录检测次数
+
+CriticalSection 相当于 client，将上面说的这些元素整合并调用
+
+```java
+public class CriticalSection {
+    // Test the two different approaches:
+    static void testApproaches(PairManager pman1, PairManager pman2) {
+        ExecutorService exec = Executors.newCachedThreadPool();
+        PairManipulator
+                pm1 = new PairManipulator(pman1),
+                pm2 = new PairManipulator(pman2);
+        PairChecker
+                pcheck1 = new PairChecker(pman1),
+                pcheck2 = new PairChecker(pman2);
+        exec.execute(pm1);
+        exec.execute(pm2);
+        exec.execute(pcheck1);
+        exec.execute(pcheck2);
+        try {
+            TimeUnit.MILLISECONDS.sleep(500);
+        } catch (InterruptedException e) {
+            System.out.println("Sleep interrupted");
+        }
+        System.out.println("pm1: " + pm1 + "\npm2: " + pm2);
+        System.exit(0);
+    }
+
+    public static void main(String[] args) {
+        PairManager
+                pman1 = new PairManager1(),
+                pman2 = new PairManager2();
+        testApproaches(pman1, pman2);
+    }
+}
+
+class Pair {
+    private int x, y;
+
+    public Pair(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    public Pair() {
+        this(0, 0);
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public void incrementX() {
+        x++;
+    }
+
+    public void incrementY() {
+        y++;
+    }
+
+    @Override
+    public String toString() {
+        return "x: " + x + ", y: " + y;
+    }
+
+    public class PairValuesNotEqualException extends RuntimeException {
+        public PairValuesNotEqualException() {
+            super("Pair values not equal: " + Pair.this);
+        }
+    }
+
+    public void checkState() {
+        if (x != y)
+            throw new PairValuesNotEqualException();
+    }
+}
+
+abstract class PairManager {
+    AtomicInteger checkCounter = new AtomicInteger(0);
+    protected Pair p = new Pair();
+    private List<Pair> storage = Collections.synchronizedList(new ArrayList<>());
+
+    public synchronized Pair getPair() {
+        // Make a copy to keep the original safe:
+        return new Pair(p.getX(), p.getY());
+    }
+
+    // Assme this is a time consuming peration
+    protected void store(Pair p) {
+        storage.add(p);
+        try {
+            TimeUnit.MILLISECONDS.sleep(50);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public abstract void increment();
+}
+
+class PairManager1 extends PairManager {
+    @Override
+    public synchronized void increment() {
+        p.incrementX();
+        p.incrementY();
+        store(getPair());
+    }
+}
+
+// Use a critical section
+class PairManager2 extends PairManager {
+    @Override
+    public void increment() {
+        Pair temp;
+        synchronized (this) {
+            p.incrementX();
+            p.incrementY();
+            temp = getPair();
+        }
+        store(temp);
+    }
+}
+
+class PairManipulator implements Runnable {
+    private PairManager pm;
+
+    public PairManipulator(PairManager pm) {
+        this.pm = pm;
+    }
+
+    @Override
+    public void run() {
+        while (true)
+            pm.increment();
+    }
+
+    @Override
+    public String toString() {
+        return "Pair: " + pm.getPair() + " checkCounter = " + pm.checkCounter.get();
+    }
+}
+
+class PairChecker implements Runnable {
+    private PairManager pm;
+
+    public PairChecker(PairManager pm) {
+        this.pm = pm;
+    }
+
+    @Override
+    public void run() {
+        while (true) {
+            pm.checkCounter.incrementAndGet();
+            pm.getPair().checkState();
+        }
+    }
+}
+
+// pm1: Pair: x: 42, y: 42 checkCounter = 2
+// pm2: Pair: x: 42, y: 42 checkCounter = 2133930
+```
+
+PS: Note that the synchronized keyword is not part of the method signature and thus may be added during overriding. 
+
+synchronized 不是方法签名的一部分！！
+
+从输出的实验结果可以看到方法锁的可使用率要比 block 锁低很多，完全是碾压级别的差距。block 类型的锁可以提供更多的 unlock time.
+
+下面通过使用 Lock 类来进行精确锁, 共能和之前的例子类似，只不过新实现了两个 PairManager 类，一个还是用方法级别的锁， ExplicitPairManager1 由于已经加了 synchronized 的了，里面的 lock 其实没什么用，去掉也不影响结果
+
+ExplicitPairManager1 中直接使用了 Lock 类进行 block level 的锁。运行结果失败，会抛异常
+
+```java
+public class ExplicitCriticalSection {
+    public static void main(String[] args) {
+        PairManager
+                pman1 = new ExplicitPairManager1(),
+                pman2 = new ExplicitPairManager2();
+        CriticalSection.testApproaches(pman1, pman2);
+    }
+}
+
+class ExplicitPairManager1 extends PairManager {
+    private Lock lock = new ReentrantLock();
+
+    @Override
+    public synchronized void increment() {
+        lock.lock();
+        try {
+            p.incrementX();
+            p.incrementY();
+            store(getPair());
+        } finally {
+            lock.unlock();
+        }
+    }
+}
+
+class ExplicitPairManager2 extends PairManager {
+    private Lock lock = new ReentrantLock();
+    public void increment() {
+        Pair temp;
+        lock.lock();
+        try {
+            p.incrementX();
+            p.incrementY();
+            temp = getPair();
+        } finally {
+            lock.unlock();
+        }
+        store(temp);
+    }
+    //
+    // @Override
+    // public Pair getPair() {
+    //     lock.lock();
+    //     try {
+    //         return new Pair(p.getX(), p.getY());
+    //     } finally {
+    //         lock.unlock();
+    //     }
+    // }
+}
+// Exception in thread "pool-1-thread-4" org.jz.c23.Pair$PairValuesNotEqualException: Pair values not equal: x: 2, y: 1
+// 	at org.jz.c23.Pair.checkState(CriticalSection.java:83)
+// 	at org.jz.c23.PairChecker.run(CriticalSection.java:163)
+// pm1: Pair: x: 127, y: 127 checkCounter = 3
+// pm2: Pair: x: 127, y: 127 checkCounter = 1816160
+```
+
+搜索了一下，发先这个[博客](https://blog.nex3z.com/2016/07/03/%E6%B7%B7%E7%94%A8%E5%90%8C%E6%AD%A5%E5%9D%97%E5%92%8C%E5%90%8C%E6%AD%A5%E6%96%B9%E6%B3%95%E6%97%B6%E7%9A%84%E9%97%AE%E9%A2%98/)说的挺好. 总结一下就是 getPair 用的 synchronized 语法，而 increment 用的 Lock 类的方法，两个都是锁，但是拿到的锁是不一样的，将 getPair 重写一下，也用同样的 Lock 类提供的锁即可修复。
+
+### Synchronizing on other objects
+
+synchronized block 的写法中，需要给出一个 lock 的对象，一般来说我们都会使用 this 作为参数，表示持有这个方法的对象就是我们要 lock 的对象。当然你也可以指定另一个对象，但是你一定要理清楚自己的业务逻辑，知道你要 lock 的对象是哪一个
+
+下面例子中声明了一个 DualSynch 类，里面有两个方法，f(), g() 分别打印 5 次，f() 是 method lock，就是锁住自己的意思，g() 在内部指定锁住一个内部成员变量。在主函数中，我们通过新起线程调用 f()，在主函数中调用 g()。可以看到虽然外部 class 实体也有 lock 但是和内部的变量是不冲突的，两个 task 可以一起执行
+
+```java
+public class SyncObject {
+    public static void main(String[] args) {
+        final DualSynch ds = new DualSynch();
+        new Thread(ds::f).start();
+        ds.g();
+    }
+}
+
+class DualSynch {
+    private Object syncObject = new Object();
+    public synchronized void f() {
+        for (int i = 0; i < 5; i++) {
+            System.out.println("f()");
+            Thread.yield();
+        }
+    }
+
+    public void g() {
+        synchronized (syncObject) {
+            for (int i = 0; i < 5; i++) {
+                System.out.println("g()");
+                Thread.yield();
+            }
+        }
+    }
+}
+// g()
+// f()
+// f()
+// g()
+// f()
+// f()
+// f()
+// g()
+// g()
+// g()
+```
+
+### Thread local storage
+
+```java
+public class ThreadLocalVariableHolder {
+    private static ThreadLocal<Integer> value = new ThreadLocal<Integer>() {
+        private Random rand = new Random(47);
+
+        protected synchronized Integer initialValue() {
+            return rand.nextInt(10000);
+        }
+    };
+
+    public static void increment() {
+        value.set(value.get() + 1);
+    }
+
+    public static int get() {
+        return value.get();
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        ExecutorService exec = Executors.newCachedThreadPool();
+        for (int i = 0; i < 5; i++) {
+            exec.execute(new Accessor(i));
+        }
+        TimeUnit.SECONDS.sleep(3);
+        exec.shutdown();
+    }
+}
+
+class Accessor implements Runnable {
+    private final int id;
+
+    public Accessor(int idn) {
+        id = idn;
+    }
+
+    @Override
+    public void run() {
+        while (!Thread.currentThread().isInterrupted()) {
+            ThreadLocalVariableHolder.increment();
+            System.out.println(this);
+            Thread.yield();
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "#" + id + ": " + ThreadLocalVariableHolder.get();
+    }
+}
+// #0: 9259
+// #1: 556
+// #2: 6694
+// #0: 9260
+// #2: 6695
+// #1: 557
+// ...
+```
+
 ## Cooperation between tasks
