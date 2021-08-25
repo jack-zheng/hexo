@@ -1804,6 +1804,16 @@ class DualSynch {
 
 ### Thread local storage
 
+Java 还提供了另一种解决多线程使用共享资源时的冲突问题，叫做 ThreadLocal.
+
+对与被管理的变量，Thread local storage 会在不同的 thread 总为变量创建单独的副本，所以各个 thread 彼此不会被影响到。
+
+下面的例子中 Accessor 是一个具体的 task，他会通过 while 循环不停的调用 holder 的 increment 方法并答应对应的值。
+
+ThreadLocalVariableHolder 中持有一个 Integer 类型的 ThreadLocal 变量，提供自增长方法，在 main 函数中，启动五个线程，调用自增方法并打印。
+
+可以看到每个线程中拿到的 integer 值都是不一样的，而且相互不影响。
+
 ```java
 public class ThreadLocalVariableHolder {
     private static ThreadLocal<Integer> value = new ThreadLocal<Integer>() {
@@ -1861,5 +1871,354 @@ class Accessor implements Runnable {
 // #1: 557
 // ...
 ```
+
+## Terminating tasks
+
+本章介绍如何外部结束 task
+
+### The ornamental garden
+
+下面的例子模拟一个植物园的场景，植物园入口处有闸机，通过统计闸机记述统计园内总人数。只做演示用，没有其他深意。
+
+Count 用来管理总人数，提供 increment 和 value 方法，且都是 synchronized 修饰的。increment 中还包含一个 yield 方法用来提高多线程问题出发的概率。
+
+Entrance 表示入口，他持有一个 Count 的静态变量，用来合计总人数。同时还申明了一个 number 的成员变量，用来审计从这个门进入的游客数量。声明 entrances 这个静态变量，用于线程结束后的统计，cancel 声明为 volatile 用来控制 task 的结束。
+
+OrnamentalGarden 为 client 端，他的 main 函数会启动五个线程模拟入园操作。3s 后结束，分别答应 number 加和以及 count 值做统计，两个值应该是一样的。
+
+```java
+public class OrnamentalGarden {
+    public static void main(String[] args) throws InterruptedException {
+        ExecutorService exec = Executors.newCachedThreadPool();
+        for (int i = 0; i < 5; i++) {
+            exec.execute(new Entrance(i));
+        }
+        // Run for a while then stop and collect the data:
+        TimeUnit.SECONDS.sleep(3);
+        Entrance.cancel();
+        exec.shutdown();
+        if (!exec.awaitTermination(250, TimeUnit.MILLISECONDS))
+            System.out.println("Some task were not terminated!");
+        System.out.println("Total: " + Entrance.getTotalCount());
+        System.out.println("Sum of Entrances: " + Entrance.sumEntrances());
+    }
+}
+
+class Count {
+    private int count = 0;
+    private Random rand = new Random(47);
+
+    // Remove the synchronized keyword to see counting fail:
+    public synchronized int increment() {
+        int temp = count;
+        if (rand.nextBoolean()) // Yield half the time
+            Thread.yield();
+        return (count = ++temp);
+    }
+
+    public synchronized int value() {
+        return count;
+    }
+}
+
+class Entrance implements Runnable {
+    private static Count count = new Count();
+    private static List<Entrance> entrances = new ArrayList<>();
+    private int number = 0;
+    // Doesn't need synchronization to read:
+    private final int id;
+    private static volatile boolean canceled = false;
+
+    // Atomic operation on a volatile field:
+    public static void cancel() {
+        canceled = true;
+    }
+
+    public Entrance(int id) {
+        this.id = id;
+        // Keep this task in a list. Also prevents garbage collection of dead tasks:
+        entrances.add(this);
+    }
+
+    @Override
+    public void run() {
+        while (!canceled) {
+            synchronized (this) {
+                ++number;
+            }
+            System.out.println(this + " Total: " + count.increment());
+            try {
+                TimeUnit.MILLISECONDS.sleep(100);
+            } catch (InterruptedException e) {
+                System.out.println("Sleep interrupted");
+            }
+        }
+        System.out.println("Stopping " + this);
+    }
+
+    public synchronized int getValue() {
+        return number;
+    }
+
+    @Override
+    public String toString() {
+        return "Entrance " + id + ": " + getValue();
+    }
+
+    public static int getTotalCount() {
+        return count.value();
+    }
+
+    public static int sumEntrances() {
+        int sum = 0;
+        for (Entrance entrance : entrances) {
+            sum += entrance.getValue();
+        }
+        return sum;
+    }
+}
+// Entrance 0: 1 Total: 1
+// Entrance 2: 1 Total: 3
+// Entrance 1: 1 Total: 2
+// Entrance 3: 1 Total: 4
+// Entrance 4: 1 Total: 5
+// ...
+// Entrance 2: 30 Total: 150
+// Entrance 1: 30 Total: 148
+// Stopping Entrance 3: 30
+// Stopping Entrance 4: 30
+// Stopping Entrance 1: 30
+// Stopping Entrance 2: 30
+// Stopping Entrance 0: 30
+// Total: 150
+// Sum of Entrances: 150
+```
+
+### Terminating when blocked
+
+#### Thread states
+
+一个 Thread 可能处于四种状态中的任意一种
+
+1. New: 这种状态很短暂，在创建线程的时候出现。系统为他配置所需要的资源，完成后，scheduler 会把它置于 runnable 或者 blocked
+2. Runnable: 当 CPU 有空闲时就可以运行它
+3. Blocked: 可以运行，但是被阻止了。CPU 会直接跳过它。
+4. Dead: task 结束了，不会再被 schedule。从 run() 中返回，或者被 interrupted 时会处于这种状态。
+
+#### Becoming blocked
+
+一下情况会导致 task 进入 block 状态
+
+* 调用 sleep() 方法
+* 调用 wait() 方法，可以调用 notify()/notifyAll() 解除
+* 等待 I/O 完成
+* 调用其他被 lock 的方法时
+
+#### Interruption
+
+和你预期的一样，在 thread 中间打断它要比等到它出来，判断 cancel flag 结束要复杂的多，你打断 thread 的时候可能要处理很多 clean up 的操作。
+
+你可以通过 Thread.interrupt() 方法打断线程，这个方法会将线程设置为 interrupted 状态，然后这个线程就会抛出 InterruptedException. 这个状态会在异常抛出或者调用 Thread.interrupted() 方法的时候置位。interrupted() 是另一种结束 run() 而不抛异常的方法。
+
+为了调用 interrupt() 方法，你需要持有 Thread 对象。Java 提供的 concurrent 包让你避免直接使用 Thread，你可以用 Executor 来完成这类工作。shutdownNow() 会向它开启的所有线程发送 interrupt() 指令。如果你想单独控制某个 task 你可以使用 Executor 的 submit() 方法，它会返回 Feature 对象，你可以调用 feature.cancel(true) 来给对应的 task 传递 interrupt 指令。
+
+下面是通过 feature.cancel() 来中断线程的测试, 定义了三种 block
+
+SleepBlocked: 普通的 Runnable 实现，在 run 方法中，sleep 100s 作为 block
+
+IOBlocked: 普通的 Runnable 实现，run 中读取输入流的内容
+
+SynchronizedBlocked: f() 中无限循环调用 yield, 在构造函数中新起一个线程，调用 f(), 然后 main 中通过 test 起新线程制造 lock
+
+Interrupting: 测试类， 写了一个 test 方法，接收 Runnable 实现，并通过 submit() 运行，然后通过 cancel(true) 中断 task. main 函数中将之前定义的 block 分别进行 test。
+
+从输出可以看出，你可以 interrupt sleep 类型的 block，但是不能打断 IO 或者 Synchronized 类型的锁
+
+```java
+public class Interrupting {
+    private static ExecutorService exec = Executors.newCachedThreadPool();
+    static void test(Runnable r) throws InterruptedException {
+        Future<?> f = exec.submit(r);
+        TimeUnit.MILLISECONDS.sleep(100);
+        System.out.println("Interrupting " + r.getClass().getName());
+        f.cancel(true); // Interrupts if running
+        System.out.println("Interrupt sent to " + r.getClass().getName());
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        test(new SleepBlocked());
+        test(new IOBlocked(System.in));
+        test(new SynchronizedBlocked());
+        TimeUnit.SECONDS.sleep(3);
+        System.out.println("Aborting with System.exit(0)");
+        System.exit(0);
+    }
+}
+
+class SleepBlocked implements Runnable {
+    @Override
+    public void run() {
+        try {
+            TimeUnit.SECONDS.sleep(100);
+        } catch (InterruptedException e) {
+            System.out.println("InterruptedException");
+        }
+        System.out.println("Existing SleepBlocked.run()");
+    }
+}
+
+class IOBlocked implements Runnable {
+    private InputStream in;
+
+    public IOBlocked(InputStream in) {
+        this.in = in;
+    }
+
+    @Override
+    public void run() {
+        try {
+            System.out.println("Waiting for read(): ");
+            in.read();
+        } catch (IOException e) {
+            if (Thread.currentThread().isInterrupted()) {
+                System.out.println("Interrupted from blocked I/O");
+            } else {
+                throw new RuntimeException(e);
+            }
+        }
+        System.out.println("Exiting IOBlocked.run()");
+    }
+}
+
+class SynchronizedBlocked implements Runnable {
+    public synchronized void f() {
+        while(true)
+            Thread.yield();
+    }
+
+    public SynchronizedBlocked() {
+        new Thread() {
+            public void run() {
+                f(); // Lock acquired by this thread
+            }
+        }.start();
+    }
+
+    public void run () {
+        System.out.println("Trying to call f()");
+        f();
+        System.out.println("Exiting SynchronizedBlocked.run()");
+    }
+}
+
+// Interrupting org.jz.c23.SleepBlocked
+// Interrupt sent to org.jz.c23.SleepBlocked
+// InterruptedException
+// Existing SleepBlocked.run()
+// Waiting for read(): 
+// Interrupting org.jz.c23.IOBlocked
+// Interrupt sent to org.jz.c23.IOBlocked
+// Trying to call f()
+// Interrupting org.jz.c23.SynchronizedBlocked
+// Interrupt sent to org.jz.c23.SynchronizedBlocked
+// Aborting with System.exit(0)
+```
+
+有时你可以通过关闭底层的 resource 来中断 IO, 从输出可以看到， Socket 的输入流是通过异常关闭的，而 System.in 不是。
+
+```java
+public class CloseResource {
+    public static void main(String[] args) throws IOException, InterruptedException {
+        ExecutorService exec = Executors.newCachedThreadPool();
+        ServerSocket server  = new ServerSocket(8080);
+        InputStream socketInput = new Socket("localhost", 8080).getInputStream();
+
+        exec.execute(new IOBlocked(socketInput));
+        exec.execute(new IOBlocked(System.in));
+
+        TimeUnit.MILLISECONDS.sleep(100);
+        System.out.println("Shutting down all threads");
+        exec.shutdownNow();
+
+        TimeUnit.SECONDS.sleep(1);
+        System.out.println("Closing " + socketInput.getClass().getName());
+        socketInput.close(); // Releases blocked thread
+
+        TimeUnit.SECONDS.sleep(1);
+        System.out.println("Closing " + System.in.getClass().getName());
+        System.in.close();
+    }
+}
+
+// Waiting for read(): 
+// Waiting for read(): 
+// Shutting down all threads
+// Closing java.net.SocketInputStream
+// Interrupted from blocked I/O
+// Exiting IOBlocked.run()
+// Closing java.io.BufferedInputStream
+// Exiting IOBlocked.run()
+```
+
+好消息是 nio 相关的类有提供更好的终端 IO 的方法. blocked nio channels 会自动相应 interrupt 信号。
+
+从输出可以看到，关闭底层的 channel 会释放 block，虽然这种方式和少用到。
+
+```java
+public class NIOInterruption {
+    public static void main(String[] args) throws IOException, InterruptedException {
+        ExecutorService exec = Executors.newCachedThreadPool();
+        ServerSocket server = new ServerSocket(8080);
+        InetSocketAddress isa = new InetSocketAddress("localhost", 8080);
+        SocketChannel sc1 = SocketChannel.open(isa);
+        SocketChannel sc2 = SocketChannel.open(isa);
+        Future<?> f = exec.submit(new NIOBlocked(sc1));
+        exec.execute(new NIOBlocked(sc2));
+        exec.shutdown();
+
+        TimeUnit.SECONDS.sleep(1);
+        // Produce an interrupt via cancel;
+        f.cancel(true);
+
+        TimeUnit.SECONDS.sleep(1);
+        // Release the block by closing the channel
+        sc2.close();
+    }
+}
+
+class NIOBlocked implements Runnable {
+    private final SocketChannel sc;
+
+    public NIOBlocked(SocketChannel sc) {
+        this.sc = sc;
+    }
+
+    @Override
+    public void run() {
+        try {
+            System.out.println("Waiting for read() in " + this);
+            sc.read(ByteBuffer.allocate(1));
+        } catch (ClosedByInterruptException e) {
+            System.out.println("ClosedByInterruptException");
+        } catch (AsynchronousCloseException e) {
+            System.out.println("AsynchronousCloseException");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println("Exiting NIOBlocked.run() " + this);
+    }
+}
+
+// Waiting for read() in org.jz.c23.NIOBlocked@2bc68519
+// Waiting for read() in org.jz.c23.NIOBlocked@50b0c91f
+// ClosedByInterruptException
+// Exiting NIOBlocked.run() org.jz.c23.NIOBlocked@2bc68519
+// AsynchronousCloseException
+// Exiting NIOBlocked.run() org.jz.c23.NIOBlocked@50b0c91f
+```
+
+#### Blocked by a mutex
+
+
 
 ## Cooperation between tasks

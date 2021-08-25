@@ -123,3 +123,9 @@ SF 上也给出了其他的解，可以用 `echo prefix*` 达到同样的效果
 今天遇到一个很 tricky 的 security issue. 客户在用我们的 provisioning 系统登陆的时候，是使用 SSO 的。前面还有一层 SAP 的授权层，叫 IDS 的。具体的 flow 可以表示为 IDS -> IAS -> Bizx. IAS 会用 email 做授权登陆。IDS 则是用 id. 但是 IDS 里面的用户可以随便更改自己的 email 就导致登陆到 Bizx 的用户可能串了。这是一个很严重的 security issue。如果真有心的话，这个 issue 说实话，可以让公司倒闭。
 
 这个 issue 漏出去的原因还是因为这些部分分属于不同的公司维护，彼此之前的既成测试缺失，同时也不好做的缘故。
+
+## 2021-08-25
+
+遇到 bug 没关系，但是有些 bug 调查起来就是揪心。特别是那些，你在他们的调用链里。他很把锅甩给你，你还实锤不了他的这种情况。
+
+Best Practice 说他们有个功能挂了，调用链如下 service(service1() -> myService2() -> service3()),  service3 挂了，整个 transaction roll back, myService2 执行完有一个 event 会发出去。现在的情况是 myService2 roll back 了，但是据说 event 还被消费了。整的我一脸问号。event 我们也是调用的其他模块的服务，不熟。调用方的代码，我们也不熟。我就直接黑人问号了？？？
