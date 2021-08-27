@@ -59,7 +59,7 @@
 <meta property="og:description" content="Chapter4 presents Tomcat 4’s default connector.This connector has been deprecated in favor of a faster connector called Coyote. Nevertheless, the default connector is simpler and easier to understand">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-07-20T02:32:35.000Z">
-<meta property="article:modified_time" content="2021-08-25T12:36:42.197Z">
+<meta property="article:modified_time" content="2021-08-27T12:11:57.237Z">
 <meta property="article:author" content="Jack Zheng">
 <meta property="article:tag" content="How Tomcat Works">
 <meta name="twitter:card" content="summary">
@@ -239,7 +239,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-25 20:36:42" itemprop="dateModified" datetime="2021-08-25T20:36:42+08:00">2021-08-25</time>
+                <time title="修改时间：2021-08-27 20:11:57" itemprop="dateModified" datetime="2021-08-27T20:11:57+08:00">2021-08-27</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -273,7 +273,7 @@
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>10 分钟</span>
+              <span>11 分钟</span>
             </span>
 
         </div>
@@ -288,30 +288,30 @@
         <blockquote>
 <p><strong>Chapter4</strong> presents Tomcat 4’s default connector.<br>This connector has been deprecated in favor of a faster connector called Coyote. Nevertheless, the default connector is simpler and easier to understand.</p>
 </blockquote>
-<p>Tomcat 的 connector 是一个独立的模块，现存比较知名的实现有 Coyote, mod_jk, mod_jk2 和 mod_webapp. Tomcat 的 connector 实现 需要遵循以下标准</p>
+<p>Tomcat 的 connector 是一个独立的模块，现存比较知名的实现有 Coyote, mod_jk, mod_jk2 和 mod_webapp. Tomcat 的 connector 实现需要遵循以下标准</p>
 <ul>
 <li>必须实现 org.apache.catalina.Connector 接口</li>
 <li>创建的 request 必须实现 org.apache.catalina.Request 接口</li>
-<li>创建的 response 必须实现org.apache.catalina.Response 接口</li>
+<li>创建的 response 必须实现 org.apache.catalina.Response 接口</li>
 </ul>
 <p>Tomcat4 默认的 connector 做的事情和第三章的没什么区别，它会一直 stand by 等待 Http request 的到来，然后创建 request 和 response 对象，并调用 org.apache.catalina.Container 实现类的 invoke 方法。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">invoke</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    org.apache.catalina.Request request,</span></span></span><br><span class="line"><span class="function"><span class="params">    org.apache.catalina.Response response</span></span></span><br><span class="line"><span class="function"><span class="params">    )</span></span>;</span><br></pre></td></tr></table></figure>
 
-<p>invoke 方法中，container 会加载 servlet，调用其 service 方法，管理 session，log 等资源</p>
+<p>invoke 方法中，container 会加载 servlet，调用其 service 方法，同时附带管理 session，log 等资源的功能</p>
 <p>默认的 tomcat connector 和 ex03 有点不同，它提供了 pool 机制来减小创建对象的开销，同时更多的使用 char arry 代替 string 提高效率。</p>
-<p>PS: 这节里面的多线程操作，值得好好看一看，之前一直都没有机会接触相关的知识点 (●°u°●)​ 」</p>
+<p>PS: 这节里面的多线程操作，值得好好看一看，之前一直都没有机会接触相关的知识点 (●°u°●)​ 」- 复习了小半个月，都快看吐了</p>
 <p>默认的 connector 实现了所有 HTTP 1.1 的特性，同时也支持老版本的 HTTP 协议，比如 0.9 和 1.0. 理解 1.1 的协议对后面理解 connector 实现原理很重要。之后我们会介绍 tomcat 自定义的 connector 接口(org.apache.catalina.Connector).</p>
 <h2 id="HTTP-1-1-New-Features"><a href="#HTTP-1-1-New-Features" class="headerlink" title="HTTP 1.1 New Features"></a>HTTP 1.1 New Features</h2><p>下面介绍 HTTP 1.1 的新特性</p>
 <h3 id="Persistent-Connections"><a href="#Persistent-Connections" class="headerlink" title="Persistent Connections"></a>Persistent Connections</h3><p>HTTP 1.1 之前的协议，在请求完成后会关闭链接。但是现在一个网页请求中可能会包含很多资源，比如 images， applets 等。如果这些资源都通过不同的 connection 下载，那么整个过程会很慢。使用 persistent connection 之后，连接将被复用, 减小资源开销。</p>
 <p>persistent connection 是 HTTP 1.1 的默认配置，你也可以通过 <code>connection: keep-alive</code> 属性显示的指定。</p>
 <h3 id="Chunked-Encoding"><a href="#Chunked-Encoding" class="headerlink" title="Chunked Encoding"></a>Chunked Encoding</h3><p>persistent connection 导致的一个结果是，发送方必须在发送 request 或 response 时指定自己发送的内容的长度。但是通常情况下服务器端并不能做到这一点, 服务器发送内容的时候，是准备一点，发送一点，所以很可能发送的时候根本不知道将要发送多少内容。比如 servlet 会在一些数据准备好后就发送，并不会等到所有数据都完备再开始。</p>
 <p>HTTP 1.0 的时候并不需要指定这个长度属性，连接会一直保持直到接收到 -1 这个结束标志符。</p>
-<p>HTTP 1.1 通过 transfer-encoding 这个标志位表示将要发送的流长度。每个 chunk 数据发送完后都会接一个 长度 + CR/LF 的行。如下所示，我们以发送文字 <code>I&#39;m as helpless as a kitten up a tree.</code> 为例</p>
+<p>HTTP 1.1 通过 transfer-encoding 这个标志位表示将要发送的流长度。每个 chunk 数据发送前都会先发送一个 长度 + CR/LF 的行表示后面要发送的数据长度。在通讯结束后回发送一个 0 长度的 chunk 表示 transaction 结束。如下所示，我们以发送文字 <code>I&#39;m as helpless as a kitten up a tree.</code> 为例</p>
 <p>发送时，这段文字被分成 2 个 chunks，第一个 chunk 长度为 29 第二个 chunk 长度为 9 那么体现在实际的 request 中为如下情况</p>
 <figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1D\r\n</span><br><span class="line">I&#x27;m as helpless as a kitten u</span><br><span class="line">9\r\n</span><br><span class="line">p a tree.</span><br><span class="line">0\r\n</span><br></pre></td></tr></table></figure>
 
 <p>1D 是 16 进制的 29， 表示第一个 chunk 包含 29 个 bytes. 0\r\n 表示通信结束。</p>
-<h3 id="Use-of-the-100-Continue-Status"><a href="#Use-of-the-100-Continue-Status" class="headerlink" title="Use of the 100(Continue) Status"></a>Use of the 100(Continue) Status</h3><p>当客户端发送的 request body 很大时，他会在 header 中包含 100-continue 属性来和服务器端确认是否接收来提高效率，避免资源浪费(传到一半被拒绝)。服务器如果接收这种 request， 则返回 <code>HTTP/1.1 100 Continue</code></p>
+<h3 id="Use-of-the-100-Continue-Status"><a href="#Use-of-the-100-Continue-Status" class="headerlink" title="Use of the 100(Continue) Status"></a>Use of the 100(Continue) Status</h3><p>当客户端发送的 request body 很大时，他会在 header 中包含 100-continue 属性来和服务器端确认是否接收来提高效率，避免资源浪费(传到一半被拒绝被拒绝的情况)。服务器如果接收这种 request， 则返回 <code>HTTP/1.1 100 Continue</code></p>
 <h2 id="The-Connector-interface"><a href="#The-Connector-interface" class="headerlink" title="The Connector interface"></a>The Connector interface</h2><p>Tomcat connector 必须实现 org.apache.catalina.Connector 接口，这个接口有很多方法，但是最主要方法有四个</p>
 <ul>
 <li>getContainer</li>
@@ -336,7 +336,7 @@
 
 <p>HttpConnector 中定义了两个变量(minProcessors/maxProcessors)来控制这个 stack 的大小, 在启动的时候，服务器默认创建 minProcessors 数量的 processor 备用。随着 request 的增加，这个数量也会增加知道等于 maxProcessors。如果 request 再增加，之后的 request 都会被忽略。如果你想要访问数量没有限制，可以设置 maxProcessor 为负数。</p>
 <p>PS: HttpConnector 中通过 curProcessor 这个变量表示当前可用的 processor 数量</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> Stack processors = <span class="keyword">new</span> Stack();</span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"><span class="comment">// Create the specified minimum number of processors</span></span><br><span class="line"><span class="keyword">while</span> (curProcessors &lt; minProcessors) &#123;</span><br><span class="line">    <span class="keyword">if</span> ((maxProcessors &gt; <span class="number">0</span>) &amp;&amp; (curProcessors &gt;= maxProcessors))</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    HttpProcessor processor = newProcessor();</span><br><span class="line">    recycle(processor);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">recycle</span><span class="params">(HttpProcessor processor)</span> </span>&#123;</span><br><span class="line">    processors.push(processor);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">start</span><span class="params">()</span> <span class="keyword">throws</span> LifecycleException </span>&#123;</span><br><span class="line">    <span class="comment">// Validate and update our current state</span></span><br><span class="line">    <span class="keyword">if</span> (started)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> LifecycleException</span><br><span class="line">            (sm.getString(<span class="string">&quot;httpConnector.alreadyStarted&quot;</span>));</span><br><span class="line">    threadName = <span class="string">&quot;HttpConnector[&quot;</span> + port + <span class="string">&quot;]&quot;</span>;</span><br><span class="line">    lifecycle.fireLifecycleEvent(START_EVENT, <span class="keyword">null</span>);</span><br><span class="line">    started = <span class="keyword">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Start our background thread - 启动 Connector 线程，设置为守护线程</span></span><br><span class="line">    threadStart();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Create the specified minimum number of processors</span></span><br><span class="line">    <span class="keyword">while</span> (curProcessors &lt; minProcessors) &#123;</span><br><span class="line">        <span class="keyword">if</span> ((maxProcessors &gt; <span class="number">0</span>) &amp;&amp; (curProcessors &gt;= maxProcessors))</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        HttpProcessor processor = newProcessor();</span><br><span class="line">        recycle(processor);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">recycle</span><span class="params">(HttpProcessor processor)</span> </span>&#123;</span><br><span class="line">    processors.push(processor);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>processor 创建完后，通过调用 recycle 方法将 processor 回收到栈中。processor 负责解析 request 内容，他的构造函数的参数中包含 HttpConnector, 在构造的过程中，会调用 connector 中创建 request 和 response 的方法。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">HttpProcessor</span><span class="params">(HttpConnector connector, <span class="keyword">int</span> id)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">super</span>();</span><br><span class="line">    <span class="keyword">this</span>.connector = connector;</span><br><span class="line">    <span class="keyword">this</span>.debug = connector.getDebug();</span><br><span class="line">    <span class="keyword">this</span>.id = id;</span><br><span class="line">    <span class="keyword">this</span>.proxyName = connector.getProxyName();</span><br><span class="line">    <span class="keyword">this</span>.proxyPort = connector.getProxyPort();</span><br><span class="line">    <span class="keyword">this</span>.request = (HttpRequestImpl) connector.createRequest();</span><br><span class="line">    <span class="keyword">this</span>.response = (HttpResponseImpl) connector.createResponse();</span><br><span class="line">    <span class="keyword">this</span>.serverPort = connector.getPort();</span><br><span class="line">    <span class="keyword">this</span>.threadName = <span class="string">&quot;HttpProcessor[&quot;</span> + connector.getPort() + <span class="string">&quot;][&quot;</span> + id + <span class="string">&quot;]&quot;</span>; </span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -354,7 +354,7 @@
 <li>上限为 -1，创建 processor</li>
 </ol>
 <p>processor 执行 assign() 方法后立即返回，后续工作由 processor 在单独的线程中完成</p>
-<h2 id="The-HttpProcessor-Class"><a href="#The-HttpProcessor-Class" class="headerlink" title="The HttpProcessor Class"></a>The HttpProcessor Class</h2><p>HttpProcessor 的功能和前一章中的 processor 是一样的，本章中的实现多了 assign 之后的多线程功能。下面的内容将具体介绍他的实现原理。</p>
+<h2 id="The-HttpProcessor-Class"><a href="#The-HttpProcessor-Class" class="headerlink" title="The HttpProcessor Class"></a>The HttpProcessor Class</h2><p>HttpProcessor 的功能和前一章中的 processor 是一样的，本章中的实现多了 assign 之后的多线程功能。下面将具体介绍他的实现原理。</p>
 <p>和 HttpConnector 类似 HttpProcessor 也实现了 Runnable 和 Lifecycle 接口</p>
 <img  src=http://www.plantuml.com/plantuml/svg/yymhIIrAIqnELV39J4jDhapEIUNoX8i5bURb9IO1XRZWiWesDNfw2Xub9GK1HVd9gSN5-KLSC6LOv000>
 
@@ -362,17 +362,16 @@
 <blockquote>
 <p>For each HttpProcessor instance the HttpConnector creates, its start method is called, effectively starting the “processor thread” of the HttpProcessor instance.</p>
 </blockquote>
-<p>HttpConnector 的 start() 方法被调用时，processor thread 立马就启动了</p>
+<p>HttpConnector 的 start() 方法被调用时，这个方法中有一个名为 newProcessor() 的方法，具体实现如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">    * Create and return a new processor suitable for processing HTTP</span></span><br><span class="line"><span class="comment">    * requests and returning the corresponding responses.</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> HttpProcessor <span class="title">newProcessor</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//        if (debug &gt;= 2)</span></span><br><span class="line">    <span class="comment">//            log(&quot;newProcessor: Creating new processor&quot;);</span></span><br><span class="line">    HttpProcessor processor = <span class="keyword">new</span> HttpProcessor(<span class="keyword">this</span>, curProcessors++);</span><br><span class="line">    <span class="keyword">if</span> (processor <span class="keyword">instanceof</span> Lifecycle) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            ((Lifecycle) processor).start();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (LifecycleException e) &#123;</span><br><span class="line">            log(<span class="string">&quot;newProcessor&quot;</span>, e);</span><br><span class="line">            <span class="keyword">return</span> (<span class="keyword">null</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    created.addElement(processor);</span><br><span class="line">    <span class="keyword">return</span> (processor);</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，在创建 HttpProcessor 对象之后，processor thread 立马就被启动了</p>
 <img  src=http://www.plantuml.com/plantuml/svg/qz3ILD3LjLDGIayjKIZEJyvEBL7Y0WiK5EKdfnONAsJ218fIaokJSr9r50fAInII4fEp5Kho5OfBW0o80WqjJG00>
 
 
 <p>processor 的 run 方法实现如下</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* The background thread that listens for incoming TCP/IP connections and</span></span><br><span class="line"><span class="comment">* hands them off to an appropriate processor.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Process requests until we receive a shutdown signal</span></span><br><span class="line">    <span class="keyword">while</span> (!stopped) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Wait for the next socket to be assigned</span></span><br><span class="line">        Socket socket = await();</span><br><span class="line">        <span class="keyword">if</span> (socket == <span class="keyword">null</span>)</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Process the request from this socket, omit the try-catch</span></span><br><span class="line">        process(socket);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Finish up this request</span></span><br><span class="line">        connector.recycle(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Tell threadStop() we have shut ourselves down successfully</span></span><br><span class="line">    <span class="keyword">synchronized</span> (threadSync) &#123;</span><br><span class="line">        threadSync.notifyAll();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>recycle 方法实现如下</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">recycle</span><span class="params">(HttpProcessor processor)</span> </span>&#123;</span><br><span class="line">    processors.push(processor);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>当 connector 启动的时候 processor thread 也会一起启动，然后卡在 await 这里一直等待。让 HttpConnector 接受到 request 之后会调用 processor.assign(socket) 方法。</p>
+<p>当 connector 启动时 processor thread 也会一起启动，然后卡在 await 这里一直等待。当 HttpConnector 接受到 request 之后会调用 processor.assign(socket) 方法。</p>
 <p>这里需要注意的是 assig() 方法是在 connector thread 中调用的，而 await() 方法是在 processor thread 中被调用的。这两者是怎么通信的呢？他们是通过 available flag 和 Object 自带的 wait(), notifyAll() 方法控制调度的。</p>
 <p>PS: wait() 方法使得当前线程保持等待一直到另一个线程调用 notify() 或者 notifyAll() 方法</p>
 <p>HttpConnector 中 assign 的实现</p>
@@ -590,12 +589,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">956k</span>
+    <span title="站点总字数">965k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">14:29</span>
+    <span title="站点阅读时长">14:38</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>

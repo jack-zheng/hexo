@@ -60,7 +60,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://jack-zheng.github.io/hexo/2021/07/09/HTW-ex02/F2.1.png">
 <meta property="article:published_time" content="2021-07-09T11:35:15.000Z">
-<meta property="article:modified_time" content="2021-08-25T12:36:42.197Z">
+<meta property="article:modified_time" content="2021-08-27T12:11:57.237Z">
 <meta property="article:author" content="Jack Zheng">
 <meta property="article:tag" content="How Tomcat Works">
 <meta name="twitter:card" content="summary">
@@ -241,7 +241,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-25 20:36:42" itemprop="dateModified" datetime="2021-08-25T20:36:42+08:00">2021-08-25</time>
+                <time title="修改时间：2021-08-27 20:11:57" itemprop="dateModified" datetime="2021-08-27T20:11:57+08:00">2021-08-27</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -293,7 +293,7 @@
 <p>servlet container 会为 servlet 做如下事情</p>
 <ul>
 <li>第一次调用 servlet 时，加载 servlet 并执行 init 方法</li>
-<li>为每一个连接创建对应的 ServletRequest 和 ServletResponse 对象</li>
+<li>接收 server 创建的 ServletRequest 和 ServletResponse 对象</li>
 <li>调用 service 方法，传入前面声明的两个对象</li>
 <li>servlet 生命周期结束时，调用 destroy 方法</li>
 </ul>
@@ -316,17 +316,17 @@
 <p>StaticResourceProcessor 很简单的一个类，其实就是提供了一个 process 方法，但是实现只是调用了 response 中定义的方法</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">StaticResourceProcessor</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">process</span><span class="params">(Request request, Response response)</span> </span>&#123;</span><br><span class="line">        response.sendStaticResource();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>ServletProcessor1 即处理 servlet 的类，作者参考了 tomcat 中的处理方式，通过 url 解析出来请求的 servlet 名字，在通过 URLClassLoader 还在这个类，并在后面生成实体类并调用 service 方法</p>
+<p>ServletProcessor1 即处理 servlet 的类，作者参考了 tomcat 中的处理方式，通过 url 解析出来请求的 servlet 名字，再通过 URLClassLoader 做类加载，最后生成实体类并调用 service 方法</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ServletProcessor1</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">process</span><span class="params">(Request request, Response response)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 解析 servlet 名字</span></span><br><span class="line">        String uri = request.getUri();</span><br><span class="line">        String servletName = uri.substring(uri.lastIndexOf(<span class="string">&quot;/&quot;</span>) + <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// create a URLClassLoader</span></span><br><span class="line">        URL[] urls = <span class="keyword">new</span> URL[<span class="number">1</span>];</span><br><span class="line">        URLStreamHandler streamHandler = <span class="keyword">null</span>;</span><br><span class="line">        File classPath = <span class="keyword">new</span> File(Constants.WEB_ROOT);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// the forming of repository is taken from the createClassLoader</span></span><br><span class="line">        <span class="comment">// method in org.apache.catalina.startup.ClassLoaderFactory</span></span><br><span class="line">        String repository = (<span class="keyword">new</span> URL(<span class="string">&quot;file&quot;</span>, <span class="keyword">null</span>, classPath.getCanonicalPath() + File.separator)).toString();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// the code for forming the URL is taken from the addRepository</span></span><br><span class="line">        <span class="comment">// method in org.apache.catalina.loader.StandardClassLoader class.</span></span><br><span class="line">        urls[<span class="number">0</span>] = <span class="keyword">new</span> URL(<span class="keyword">null</span>, repository, streamHandler);</span><br><span class="line">        URLClassLoader loader = <span class="keyword">new</span> URLClassLoader(urls);</span><br><span class="line">       </span><br><span class="line"></span><br><span class="line">        Class&lt;?&gt; myClass = myClass = loader.loadClass(servletName);</span><br><span class="line">        Servlet servlet = (Servlet) myClass.newInstance();</span><br><span class="line">        servlet.service(request, response);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>启动 server 通过终端访问测试地址. 现在的浏览器对 response 格式要求都挺严格的，默认的代码访问会因为 header 不全被 block，通过终端访问则没这么多问题。</p>
 <figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">curl &#x27;http://localhost:8080/servlet/PrimitiveServlet&#x27;</span><br><span class="line">Hello. Roses are red.</span><br><span class="line"></span><br><span class="line">curl &#x27;http://localhost:8080/index.html&#x27;</span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">    &lt;title&gt;Welcome to BrainySoftware&lt;/title&gt;</span><br><span class="line">&lt;/head&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line">&lt;img src=&quot;images/logo.gif&quot;&gt;</span><br><span class="line">&lt;br&gt;</span><br><span class="line">Welcome to BrainySoftware.</span><br><span class="line">&lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
 
-<h2 id="练习-02"><a href="#练习-02" class="headerlink" title="练习 02"></a>练习 02</h2><p>这一节练习主要解决的问题是，如果恶意强转的问题。上面的例子中，在 ServletProcessor1 中，我们直接将 request/response 对象作为参数传入 service 方法中，如果使用方知道我们对应的实现，就可以做对象强转并调用 public 方法，比如调用解析静态资源的 sendStaticResource() 方法，这是不安全的，所以我们通过 Facade 的模式，将 request/response 作为内部私有变量持有并调用，以达到隐藏实现的目的。</p>
+<h2 id="练习-02"><a href="#练习-02" class="headerlink" title="练习 02"></a>练习 02</h2><p>这一节练习主要解决一个安全问题-恶意强转。上面的例子中，在 ServletProcessor1 中，我们直接将 request/response 对象作为参数传入 service 方法中，如果使用方知道我们对应的实现，就可以做对象强转并调用 public 方法，比如调用解析静态资源的 sendStaticResource() 方法，这是不安全的，所以我们通过 Facade 的模式，将 request/response 作为内部私有变量持有并调用，以达到隐藏实现的目的。</p>
 <p>Facade 和 request/response 的关系</p>
 <img  src=http://www.plantuml.com/plantuml/svg/oymhIIrAIqnELSXAB4kiq2jEBIhBIItH2uRGGQc5fQd59Lpu91LiQlJq54XMwPQOd9YIoiMLISW5nGNvUSMfN7XbOIQJhXRY3000>
 
-<p>最大的区别 ServletProcessor2</p>
+<p>ServletProcessor1 和 ServletProcessor2 最大的区别只有下面这些</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ...</span></span><br><span class="line">Servlet servlet = <span class="keyword">null</span>;</span><br><span class="line">RequestFacade requestFacade = <span class="keyword">new</span> RequestFacade(request);</span><br><span class="line">ResponseFacade responseFacade = <span class="keyword">new</span> ResponseFacade(response);</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    servlet = (Servlet) myClass.newInstance();</span><br><span class="line">    servlet.service((ServletRequest) requestFacade, (ServletResponse) responseFacade);</span><br><span class="line">&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">    System.out.println(e.toString());</span><br><span class="line">&#125; <span class="keyword">catch</span> (Throwable e) &#123;</span><br><span class="line">    System.out.println(e.toString());</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// ...</span></span><br></pre></td></tr></table></figure>
 
 <h2 id="思考题"><a href="#思考题" class="headerlink" title="思考题"></a>思考题</h2><blockquote>
@@ -498,12 +498,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">956k</span>
+    <span title="站点总字数">965k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">14:29</span>
+    <span title="站点阅读时长">14:38</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
