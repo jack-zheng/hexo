@@ -2219,6 +2219,372 @@ class NIOBlocked implements Runnable {
 
 #### Blocked by a mutex
 
+从 Interrupting.java 的例子可以看到，如果我们调用一个对象的 synchronized 方法，如果该方法的 lock 已经被获取了，那么这个 task 会 block 并等到 lock 被释放后再调用。下面的例子展示了同一个 task 如何多次获取同一个对象的锁
 
+MultiLock 有两个方法 f, g 分别调用对方，并用 synchronized 关键字修饰。每次方法被调用时，方法的实例都会被 lock 一次。
+
+举一个
+
+```java
+public class MultiLock {
+    public synchronized void f1(int count) {
+        if (count-- > 0) {
+            System.out.println("f1() calling f2() with count " + count);
+            f2(count);
+        }
+    }
+
+    public synchronized void f2(int count) {
+        if (count-- > 0) {
+            System.out.println("f2() calling f1() with count " + count);
+            f1(count);
+        }
+    }
+
+    public static void main(String[] args) {
+        final MultiLock multiLock = new MultiLock();
+        new Thread(() -> multiLock.f1(10)).start();
+    }
+}
+// f1() calling f2() with count 9
+// f2() calling f1() with count 8
+// f1() calling f2() with count 7
+// f2() calling f1() with count 6
+// f1() calling f2() with count 5
+// f2() calling f1() with count 4
+// f1() calling f2() with count 3
+// f2() calling f1() with count 2
+// f1() calling f2() with count 1
+// f2() calling f1() with count 0
+```
+
+这个例子的说明不是很懂，但是大概就是 concurrency lib 的 RenntrantLocks 提供了一种打断机制
+
+BlockedMutex 持有 ReentrantLock 变量，并在构造函数中 lock，提供 f() 方法，调用 lock.lockInterruptibly(); 由于构造中的 lock，这个方法会一直 block。
+
+Blocked2 新建 BlockedMutex 对象，导致上锁。然后调用 f() 被 block。
+
+Interrupting2 在启动 Blocked2 之后 1s 进行打断，interrupt 成功
+
+```java
+public class Interrupting2 {
+    public static void main(String[] args) throws InterruptedException {
+        Thread t = new Thread(new Blocked2());
+        t.start();
+        TimeUnit.SECONDS.sleep(1);
+        System.out.println("Issuing t.interrupt()");
+        t.interrupt();
+    }
+}
+
+class BlockedMutex {
+    private Lock lock = new ReentrantLock();
+
+    public BlockedMutex() {
+        // Acquire it right away, to demonstrate interruption of a task blocked on a ReentrantLock
+        lock.lock();
+    }
+
+    public void f() {
+        try {
+            // This will never be available to a second task
+            lock.lockInterruptibly();
+            System.out.println("lock acquired in f()");
+        } catch (InterruptedException e) {
+            System.out.println("Interrupted from lock acquisition in f()");
+        }
+    }
+}
+
+class Blocked2 implements Runnable {
+    BlockedMutex blocked = new BlockedMutex();
+
+    @Override
+    public void run() {
+        System.out.println("Waiting for f() in BlockedMutex");
+        blocked.f();
+        System.out.println("Broken out of blocked call");
+    }
+}
+
+// Waiting for f() in BlockedMutex
+// Issuing t.interrupt()
+// Interrupted from lock acquisition in f()
+// Broken out of blocked call
+```
+
+### Checking for an interrupt
+
+TBD
 
 ## Cooperation between tasks
+
+通过之前的章节，我们知道可以通过互斥锁来控制多个 task 对一个资源的访问。
+
+这章我们会学习如何通过内置方法，协调多个 task 之间对一个资源的调用。Object 提供了 wait()/notifyAll()，concurrent lib 提供了 await()/signal() 来完成这些功能。
+
+### wait() and notifyAll()
+
+下面将 wait/notifyAll 应用在汽车打蜡的场景
+
+Car 代表将会被 lock 的类, 提供了四个方法，使用 synchronized 修饰，分别是打蜡，抛光，等待上蜡，等待抛光。
+
+WaxOn 代表上蜡的 task, 接收一个 car 做参数，在 run 中，打印状态并将 car 的 flag 置位 true，等待抛光
+
+WaxOff 代表抛光的 task, 接收一个 car 做参数，在 run 中，打印状态并将 car 的 flag 置位 false, 并等待打蜡
+
+WaxOMatic 新建 car 对象，并启动两个 task 让他们轮流操作 car, 并在一定时间后结束操作
+
+```java
+public class WaxOMatic {
+    public static void main(String[] args) throws InterruptedException {
+        Car car = new Car();
+        ExecutorService exec = Executors.newCachedThreadPool();
+        exec.execute(new WaxOff(car));
+        exec.execute(new WaxOn(car));
+        TimeUnit.SECONDS.sleep(2);
+        exec.shutdownNow();
+    }
+}
+
+class Car {
+    private boolean waxOn = false;
+
+    public synchronized void waxed() {
+        waxOn = true; // Ready to buff
+        notifyAll();
+    }
+
+    public synchronized void buffed() {
+        waxOn = false; // Ready for another coat of wax
+        notifyAll();
+    }
+
+    public synchronized void waitForWaxing() throws InterruptedException {
+        while (waxOn == false)
+            wait();
+    }
+
+    public synchronized void waitForBuffing() throws InterruptedException {
+        while (waxOn == true)
+            wait();
+    }
+}
+
+class WaxOn implements Runnable {
+    private Car car;
+
+    public WaxOn(Car c) {
+        car = c;
+    }
+
+    @Override
+    public void run() {
+        try {
+            while (!Thread.interrupted()) {
+                System.out.println("Wax On!");
+                TimeUnit.MILLISECONDS.sleep(200);
+                car.waxed();
+                car.waitForBuffing();
+            }
+        } catch (InterruptedException e) {
+            System.out.println("Exiting via interrupt");
+        }
+        System.out.println("Ending Wax On task");
+    }
+}
+
+class WaxOff implements Runnable {
+    private Car car;
+
+    public WaxOff(Car c) {
+        car = c;
+    }
+
+    @Override
+    public void run() {
+        try {
+            while (!Thread.interrupted()) {
+                car.waitForWaxing();
+                System.out.println("Wax Off!");
+                TimeUnit.MILLISECONDS.sleep(200);
+                car.buffed();
+            }
+        } catch (InterruptedException e) {
+            System.out.println("Exiting via interrupt");
+        }
+        System.out.println("Ending Wax Off task");
+
+
+    }
+}
+// Wax On!
+// Wax Off!
+// Wax On!
+// Wax Off!
+// Wax On!
+// Wax Off!
+// Wax On!
+// Wax Off!
+// Wax On!
+// Wax Off!
+// Exiting via interrupt
+// Ending Wax Off task
+// Exiting via interrupt
+// Ending Wax On task
+```
+
+上面的例子中需要强调的一点是，你必须将 wait() 用 while 包裹起来，因为
+
+* 多个 task 等待同一个 lock 时，前面的 task 可能会改变某些条件，当前的 task 需要 block 住知道条件允许
+* 当前 task 唤醒后，可能条件不允许，他要继续等待
+* 当前 task 唤醒后，可能操作的对象还在 block 中，那它就要继续 wait
+
+#### Missed Singals
+
+当两个 task 在通过 notify()/wait() 或者 notifyAll()/wait() 协调工作时，有可能错过一些指令，比如下面的例子
+
+<setup condition for T2> 会组织 T2 调用 wait
+
+```txt
+T1: 
+synchronized(sharedMonitor) {
+    <setup condition for T2>
+    sharedMonitor.notify(); 
+}
+
+T2: 
+while(someCondition) {
+    // Point 1   
+    synchronized(sharedMonitor) 
+    {     
+        sharedMonitor.wait();   
+    } 
+} 
+```
+
+假设 T2 通过了 someCondition 的验证，在 Point1 时，切换到 T1，然后 T1 拿到锁并运行就结束，发出 notify() 这时切换回 T2 继续运行，发现 T2 一直等待，就死锁了。
+
+T2 的正确写法应该是
+
+```txt
+synchronized(sharedMonitor) {
+    while(someCondition)
+        sharedMonitor.wait();
+}
+```
+
+如果 T1 先运行，当返回到 T2 时，回判断 condition 不满足，将不会进入等待状态。相反，当 T2 先运行，他会进如 wait, 等待 T1 唤醒
+
+PS: 看的很迷，我的逻辑应该是错的，但是我放弃思考了。。。
+
+### notify() vs notifyAll()
+
+notify 是 notifyAll 的一个优化，由于 notify 只会唤醒一个 task. 如果你要使用它，请确保，在你调用的时候只有想要调用的那个 task 是处于等待状态的。
+
+notifyAll() 并不会 wake up "all waiting tasks", only the tasks that are waiting on a particular lock are awoken when notifyAll() is called/or that lock
+
+实验说明如下：
+
+Blocker 是操作的对象类，提供三个方法，waitingCall 用来停留在 wait() 状态，prod/prodAll 分别是唤醒单个和唤醒全部线程。
+
+Task1/2 分别是两个 task, 功能一样，唯一的作用是提供提供两个操作类进行实验。
+
+NotifyVsNotifyAll 为 client 类，先启动 5 个 Task1，再启动 1 个 Task2. 6 个线程都停留在 wait 状态。然后通过 timer 分别出发 Task1 的 prod 和 prodAll 方法，从输出可以看到，当调用 notify 时只有一个 Task1 被唤醒，当调用 notifyAll 时，所有 Task1 都醒了，Task2 毫无反应。只有最后结束时调用了 Task2 的 prodAll 时，Task2 对应的线程被唤醒。
+
+```java
+public class NotifyVsNotifyAll {
+    public static void main(String[] args) throws InterruptedException {
+        ExecutorService exec = Executors.newCachedThreadPool();
+        for (int i = 0; i < 5; i++) {
+            exec.execute(new Task());
+        }
+        exec.execute(new Task2());
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            boolean prod = true;
+
+            @Override
+            public void run() {
+                if (prod) {
+                    System.out.println("\nnotify() ");
+                    Task.blocker.prod();
+                    prod = false;
+                } else {
+                    System.out.println("\nnotifyAll() ");
+                    Task.blocker.prodAll();
+                    prod = true;
+                }
+            }
+        }, 400, 400);
+        TimeUnit.SECONDS.sleep(5);
+        timer.cancel();
+        System.out.println("\nTimer canceled");
+        TimeUnit.MILLISECONDS.sleep(500);
+        System.out.println("Task2.blocker.prodAll() ");
+        Task2.blocker.prodAll();
+        TimeUnit.MILLISECONDS.sleep(500);
+        System.out.println("\nShutting down");
+        exec.shutdownNow();// Interrupt all tasks
+    }
+}
+
+class Blocker {
+    synchronized void waitingCall() {
+        try {
+            while (!Thread.interrupted()) {
+                wait();
+                System.out.println(Thread.currentThread() + " ");
+            }
+        } catch (InterruptedException e) {
+            // OK to exit this way
+        }
+    }
+
+    synchronized void prod() {
+        notify();
+    }
+
+    synchronized void prodAll() {
+        notifyAll();
+    }
+}
+
+class Task implements Runnable {
+    static Blocker blocker = new Blocker();
+
+    @Override
+    public void run() {
+        blocker.waitingCall();
+    }
+}
+
+class Task2 implements Runnable {
+    // A separate Blocker object:
+    static Blocker blocker = new Blocker();
+
+    @Override
+    public void run() {
+        blocker.waitingCall();
+    }
+}
+// notify() 
+// Thread[pool-1-thread-1,5,main] 
+
+// notifyAll() 
+// Thread[pool-1-thread-2,5,main] 
+// Thread[pool-1-thread-1,5,main] 
+// Thread[pool-1-thread-5,5,main] 
+// Thread[pool-1-thread-4,5,main] 
+// Thread[pool-1-thread-3,5,main] 
+
+// ....
+
+// Timer canceled
+// Task2.blocker.prodAll() 
+// Thread[pool-1-thread-6,5,main] 
+
+// Shutting down
+```
+
+暂时就先看到这儿把，耐心已经磨光了，以后有动力了再接着看

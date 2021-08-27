@@ -45,7 +45,7 @@ Client -> Server : "request"
 Server -> Client : "resp"
 {% endplantuml %}
 
-按照上面的图示，难道 client 是直接 new 一个 request 和 web server 进行交互吗？难道 web server 会 new 一个 response 发送给 client 吗? 非也。模型化成下面的样子应该更合适
+按照上面的图示，难道 client 是直接 new 一个 request 和 web server 进行交互吗？难道 web server 会 new 一个 response 发送给 client 吗? 非也。模型画成下面的样子应该更合适
 
 {% plantuml %}
 left to right direction
@@ -230,4 +230,4 @@ public class Response {
 }
 ```
 
-结合计网的知识坐下分层的整理，这里当然是属于 Application 层，HTTP 规范是在处理 socket 的时候体现的. 那这里来说就是写 reponse 的时候，需要特殊指定 HTTP 版本，header 等信息，他都是服务器端指定的。
+结合计算机网络的知识做下分层的整理：Tomcat 处理的问题属于 Application 层，HTTP 规范是在处理 socket 的时候体现的. 那么写 reponse 的时候，需要特殊指定 HTTP 版本，header 等信息，这些参数都是服务器端指定的。

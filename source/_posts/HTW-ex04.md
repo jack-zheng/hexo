@@ -10,11 +10,11 @@ tags:
 > **Chapter4** presents Tomcat 4's default connector. 
 > This connector has been deprecated in favor of a faster connector called Coyote. Nevertheless, the default connector is simpler and easier to understand.
 
-Tomcat 的 connector 是一个独立的模块，现存比较知名的实现有 Coyote, mod_jk, mod_jk2 和 mod_webapp. Tomcat 的 connector 实现 需要遵循以下标准
+Tomcat 的 connector 是一个独立的模块，现存比较知名的实现有 Coyote, mod_jk, mod_jk2 和 mod_webapp. Tomcat 的 connector 实现需要遵循以下标准
 
 * 必须实现 org.apache.catalina.Connector 接口
 * 创建的 request 必须实现 org.apache.catalina.Request 接口
-* 创建的 response 必须实现org.apache.catalina.Response 接口
+* 创建的 response 必须实现 org.apache.catalina.Response 接口
 
 Tomcat4 默认的 connector 做的事情和第三章的没什么区别，它会一直 stand by 等待 Http request 的到来，然后创建 request 和 response 对象，并调用 org.apache.catalina.Container 实现类的 invoke 方法。
 
@@ -25,11 +25,11 @@ public void invoke(
     );
 ```
 
-invoke 方法中，container 会加载 servlet，调用其 service 方法，管理 session，log 等资源
+invoke 方法中，container 会加载 servlet，调用其 service 方法，同时附带管理 session，log 等资源的功能
 
 默认的 tomcat connector 和 ex03 有点不同，它提供了 pool 机制来减小创建对象的开销，同时更多的使用 char arry 代替 string 提高效率。
 
-PS: 这节里面的多线程操作，值得好好看一看，之前一直都没有机会接触相关的知识点 (●°u°●)​ 」
+PS: 这节里面的多线程操作，值得好好看一看，之前一直都没有机会接触相关的知识点 (●°u°●)​ 」- 复习了小半个月，都快看吐了
 
 默认的 connector 实现了所有 HTTP 1.1 的特性，同时也支持老版本的 HTTP 协议，比如 0.9 和 1.0. 理解 1.1 的协议对后面理解 connector 实现原理很重要。之后我们会介绍 tomcat 自定义的 connector 接口(org.apache.catalina.Connector).
 
@@ -49,7 +49,7 @@ persistent connection 导致的一个结果是，发送方必须在发送 reques
 
 HTTP 1.0 的时候并不需要指定这个长度属性，连接会一直保持直到接收到 -1 这个结束标志符。
 
-HTTP 1.1 通过 transfer-encoding 这个标志位表示将要发送的流长度。每个 chunk 数据发送完后都会接一个 长度 + CR/LF 的行。如下所示，我们以发送文字 `I'm as helpless as a kitten up a tree.` 为例
+HTTP 1.1 通过 transfer-encoding 这个标志位表示将要发送的流长度。每个 chunk 数据发送前都会先发送一个 长度 + CR/LF 的行表示后面要发送的数据长度。在通讯结束后回发送一个 0 长度的 chunk 表示 transaction 结束。如下所示，我们以发送文字 `I'm as helpless as a kitten up a tree.` 为例
 
 发送时，这段文字被分成 2 个 chunks，第一个 chunk 长度为 29 第二个 chunk 长度为 9 那么体现在实际的 request 中为如下情况
 
@@ -65,7 +65,7 @@ p a tree.
 
 ### Use of the 100(Continue) Status
 
-当客户端发送的 request body 很大时，他会在 header 中包含 100-continue 属性来和服务器端确认是否接收来提高效率，避免资源浪费(传到一半被拒绝)。服务器如果接收这种 request， 则返回 `HTTP/1.1 100 Continue`
+当客户端发送的 request body 很大时，他会在 header 中包含 100-continue 属性来和服务器端确认是否接收来提高效率，避免资源浪费(传到一半被拒绝被拒绝的情况)。服务器如果接收这种 request， 则返回 `HTTP/1.1 100 Continue`
 
 ## The Connector interface
 
@@ -157,16 +157,27 @@ HttpConnector 中定义了两个变量(minProcessors/maxProcessors)来控制这�
 PS: HttpConnector 中通过 curProcessor 这个变量表示当前可用的 processor 数量
 
 ```java
-private Stack processors = new Stack();
-// ...
-// Create the specified minimum number of processors
-while (curProcessors < minProcessors) {
-    if ((maxProcessors > 0) && (curProcessors >= maxProcessors))
-        break;
-    HttpProcessor processor = newProcessor();
-    recycle(processor);
+public void start() throws LifecycleException {
+    // Validate and update our current state
+    if (started)
+        throw new LifecycleException
+            (sm.getString("httpConnector.alreadyStarted"));
+    threadName = "HttpConnector[" + port + "]";
+    lifecycle.fireLifecycleEvent(START_EVENT, null);
+    started = true;
+
+    // Start our background thread - 启动 Connector 线程，设置为守护线程
+    threadStart();
+
+    // Create the specified minimum number of processors
+    while (curProcessors < minProcessors) {
+        if ((maxProcessors > 0) && (curProcessors >= maxProcessors))
+            break;
+        HttpProcessor processor = newProcessor();
+        recycle(processor);
+    }
 }
-// ...
+
 void recycle(HttpProcessor processor) {
     processors.push(processor);
 }
@@ -233,7 +244,7 @@ processor 执行 assign() 方法后立即返回，后续工作由 processor 在�
 
 ## The HttpProcessor Class
 
-HttpProcessor 的功能和前一章中的 processor 是一样的，本章中的实现多了 assign 之后的多线程功能。下面的内容将具体介绍他的实现原理。
+HttpProcessor 的功能和前一章中的 processor 是一样的，本章中的实现多了 assign 之后的多线程功能。下面将具体介绍他的实现原理。
 
 和 HttpConnector 类似 HttpProcessor 也实现了 Runnable 和 Lifecycle 接口
 
@@ -249,7 +260,33 @@ Runnable <|.. HttpProcessor
 
 > For each HttpProcessor instance the HttpConnector creates, its start method is called, effectively starting the "processor thread" of the HttpProcessor instance.
 
-HttpConnector 的 start() 方法被调用时，processor thread 立马就启动了
+HttpConnector 的 start() 方法被调用时，这个方法中有一个名为 newProcessor() 的方法，具体实现如下：
+
+```java
+/**
+    * Create and return a new processor suitable for processing HTTP
+    * requests and returning the corresponding responses.
+    */
+private HttpProcessor newProcessor() {
+
+    //        if (debug >= 2)
+    //            log("newProcessor: Creating new processor");
+    HttpProcessor processor = new HttpProcessor(this, curProcessors++);
+    if (processor instanceof Lifecycle) {
+        try {
+            ((Lifecycle) processor).start();
+        } catch (LifecycleException e) {
+            log("newProcessor", e);
+            return (null);
+        }
+    }
+    created.addElement(processor);
+    return (processor);
+
+}
+```
+
+可以看到，在创建 HttpProcessor 对象之后，processor thread 立马就被启动了
 
 {% plantuml %}
 (*) --> "get socket"
@@ -289,16 +326,7 @@ public void run() {
     }
 }
 ```
-
-recycle 方法实现如下
-
-```java
-void recycle(HttpProcessor processor) {
-    processors.push(processor);
-}
-```
-
-当 connector 启动的时候 processor thread 也会一起启动，然后卡在 await 这里一直等待。让 HttpConnector 接受到 request 之后会调用 processor.assign(socket) 方法。
+当 connector 启动时 processor thread 也会一起启动，然后卡在 await 这里一直等待。当 HttpConnector 接受到 request 之后会调用 processor.assign(socket) 方法。
 
 这里需要注意的是 assig() 方法是在 connector thread 中调用的，而 await() 方法是在 processor thread 中被调用的。这两者是怎么通信的呢？他们是通过 available flag 和 Object 自带的 wait(), notifyAll() 方法控制调度的。
 

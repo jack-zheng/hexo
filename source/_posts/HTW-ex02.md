@@ -16,7 +16,7 @@ tags:
 servlet container 会为 servlet 做如下事情
 
 * 第一次调用 servlet 时，加载 servlet 并执行 init 方法
-* 为每一个连接创建对应的 ServletRequest 和 ServletResponse 对象
+* 接收 server 创建的 ServletRequest 和 ServletResponse 对象
 * 调用 service 方法，传入前面声明的两个对象
 * servlet 生命周期结束时，调用 destroy 方法
 
@@ -141,7 +141,7 @@ public class StaticResourceProcessor {
 }
 ```
 
-ServletProcessor1 即处理 servlet 的类，作者参考了 tomcat 中的处理方式，通过 url 解析出来请求的 servlet 名字，在通过 URLClassLoader 还在这个类，并在后面生成实体类并调用 service 方法
+ServletProcessor1 即处理 servlet 的类，作者参考了 tomcat 中的处理方式，通过 url 解析出来请求的 servlet 名字，再通过 URLClassLoader 做类加载，最后生成实体类并调用 service 方法
 
 ```java
 public class ServletProcessor1 {
@@ -193,7 +193,7 @@ Welcome to BrainySoftware.
 
 ## 练习 02
 
-这一节练习主要解决的问题是，如果恶意强转的问题。上面的例子中，在 ServletProcessor1 中，我们直接将 request/response 对象作为参数传入 service 方法中，如果使用方知道我们对应的实现，就可以做对象强转并调用 public 方法，比如调用解析静态资源的 sendStaticResource() 方法，这是不安全的，所以我们通过 Facade 的模式，将 request/response 作为内部私有变量持有并调用，以达到隐藏实现的目的。
+这一节练习主要解决一个安全问题-恶意强转。上面的例子中，在 ServletProcessor1 中，我们直接将 request/response 对象作为参数传入 service 方法中，如果使用方知道我们对应的实现，就可以做对象强转并调用 public 方法，比如调用解析静态资源的 sendStaticResource() 方法，这是不安全的，所以我们通过 Facade 的模式，将 request/response 作为内部私有变量持有并调用，以达到隐藏实现的目的。
 
 Facade 和 request/response 的关系
 
@@ -207,7 +207,7 @@ javax.servlet.ServletResponse <|.. Response
 javax.servlet.ServletResponse <|.. ResponseFacade
 {% endplantuml %}
 
-最大的区别 ServletProcessor2
+ServletProcessor1 和 ServletProcessor2 最大的区别只有下面这些
 
 ```java
     // ...

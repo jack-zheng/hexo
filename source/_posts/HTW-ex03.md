@@ -58,7 +58,7 @@ public synchronized static StringManager getManager(String packageName) {
 }
 ```
 
-PS: 它这里用的是饿汉式的声明，类加载的时候就创建了对象，调用 getManager() 的时候通过 synchronized 加锁保证线程安全。每一个 package 下的 LocalStrings 都回创建一个对象存储多语言信息。
+PS: 它这里用的是饿汉式的声明，类加载的时候就创建了对象，调用 getManager() 的时候通过 synchronized 加锁保证线程安全。每一个 package 下的 LocalStrings 都会创建一个对象存储多语言信息。
 
 ## The Application
 
@@ -128,7 +128,7 @@ StaticResourceProcessor "uses".down.> HttpResponse
 
 HttpConnector 表示 connector 的实体类，他负责创建 server socket 并等待 Http request 的到来。HttpConnector 实现 runnable 接口，当 start() 被调用时，HttpConnector 被创建并运行。
 
-connector 运行时回做如下几件事情
+connector 运行时会做如下几件事情
 
 * 等待 HTTP requests
 * 为每个 request 创建 HttpProcessor
@@ -195,7 +195,7 @@ request line 就是 inputStream 中的第一行内容，下面是示例
 
 servlet/JSP 程序中通过 JsessionId 指代 session。 session 标识符通常通过 cookies 存储，如果客户端没有 enable cookie 还需要将它 append 到 URL 中
 
-HttpProcessor 的 process 方法会将上面提到的对象重 inputStream 中提取出来并塞到对应的对象中
+HttpProcessor 的 process 方法会将上面提到的对象从 inputStream 中提取出来并塞到对应的对象中
 
 ```java
 private void parseRequest(SocketInputStream input, OutputStream output) throws IOException, ServletException {
@@ -296,7 +296,7 @@ endif
 --> (*)
 {% endplantuml %}
 
-Request line 的类实现为 HttpRequestLine, 它的实现比较有意思，它为这一样中的各个部分声明了一个存储的 char 数组，并标识了结束地址 `char[] method, int methodEnd`
+Request line 的类实现为 HttpRequestLine, 它的实现比较有意思，它为这个类中的各个部分声明了一个存储的 char 数组，并标识了结束地址 `char[] method, int methodEnd`
 
 {% plantuml %}
 Class HttpRequestLine {
@@ -335,7 +335,7 @@ public int read()
 }
 ```
 
-可以看到最后的处理方式是返回 `buf[n] & 0xff` 0xff 即 0000 0000 0000 1111 做与操作可以将前面的值置位
+可以看到最后的处理方式是返回 `buf[n] & 0xff` 0xff 即 0000 0000 0000 1111 做与操作可以将前面的值置零
 
 readRequestLine 中用了三个 while 循环通过判断空格和行结束符将首行的信息提取出来。很雷同的还有一个叫 readHeader() 的方法处理解析 request 中的 headers.
 
@@ -404,7 +404,9 @@ private void parseHeaders(SocketInputStream input) throws IOException, ServletEx
 
 随便访问了一下网页，下面是一个 cookie 的例子
 
-`cookie: fontstyle=null; loginMethodCookieKey=PWD; bizxThemeId=lightGrayPlacematBlueAccentNoTexture; route=133abdfd8b5240fdc3330810e535ae4c79433a08; zsessionid=45641c6c-9dff-4d67-8893-b0764636ee1f; JSESSIONID=D8477F13FD4A9257B98731F666694D91.mo-bce0c171c`
+```
+txtcookie: fontstyle=null; loginMethodCookieKey=PWD; bizxThemeId=lightGrayPlacematBlueAccentNoTexture; route=133abdfd8b5240fdc3330810e535ae4c79433a08; zsessionid=45641c6c-9dff-4d67-8893-b0764636ee1f; JSESSIONID=D8477F13FD4A9257B98731F666694D91.mo-bce0c171c
+```
 
 在前面的 parseHeaders 方法中，处理 cookie 的部分，通过 RequestUtil.parseCookieHeader(value) 解析 cookie
 
@@ -450,7 +452,7 @@ public static Cookie[] parseCookieHeader(String header) {
 
 #### Obtaining Parameters
 
-解析 parameter 的动作放在 HttpRequest 的 parseParameter 方法中。在调用 parameter 相关的方法，比如 getParameterMap, getParameterNames 等时，会先调用 parseParameter 方法解析他，而且只需要解析一次即可，再次调用是，使用之前解析的结果。
+解析 parameter 的动作放在 HttpRequest 的 parseParameters 方法中。在调用 parameter 相关的方法，比如 getParameterMap, getParameterNames 等时，会先调用 parseParameters 方法解析他，而且只需要解析一次即可，再次调用时，使用之前解析的结果。
 
 ```java
 /**
@@ -524,7 +526,26 @@ protected void parseParameters() {
     }
 ```
 
-在 GET 类型的 request 中，所有的 parameter 都是存在 URL 中的，POST 类型的 request，parameter 是存在 body 中的。解析的 parameter 会存在特殊的 Map 中，这个 map 不允许改变存放的 parameter 的值。对应的实现是 org.apache.catalina.util.ParameterMap. 看了一下具体的实现类代码，其实就是一个 HashMap, 最大的特点是他新加了一个 locked 的 boolean 属性，在增删改的时候都会先检查一下这个 flag 如果 flag 为 false 则抛异常。
+在 GET 类型的 request 中，所有的 parameter 都是存在 URL 中的，在POST 类型的 request，parameter 是存在 body 中的。解析的 parameter 会存在特殊的 Map 中，这个 map 不允许改变存放的 parameter 的值。对应的实现是 org.apache.catalina.util.ParameterMap. 看了一下具体的实现类代码，其实就是一个 HashMap, 最大的特点是他新加了一个 locked 的 boolean 属性，在增删改的时候都会先检查一下这个 flag 如果此时 flag 为 false 则抛异常。
+
+```java
+public final class ParameterMap extends HashMap {
+    // ...
+    private boolean locked = false;
+    
+    // ...
+
+    public void clear() {
+
+        if (locked)
+            throw new IllegalStateException(sm.getString("parameterMap.locked"));
+        super.clear();
+
+    }
+
+    // ...
+}
+```
 
 ### Creating a HttpResponse Object
 
