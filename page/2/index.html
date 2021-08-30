@@ -237,7 +237,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-27 20:11:57" itemprop="dateModified" datetime="2021-08-27T20:11:57+08:00">2021-08-27</time>
+                <time title="修改时间：2021-08-30 20:23:19" itemprop="dateModified" datetime="2021-08-30T20:23:19+08:00">2021-08-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -257,7 +257,7 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>12k</span>
+              <span>13k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -363,24 +363,24 @@
 <p>processor 的 run 方法实现如下</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* The background thread that listens for incoming TCP/IP connections and</span></span><br><span class="line"><span class="comment">* hands them off to an appropriate processor.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Process requests until we receive a shutdown signal</span></span><br><span class="line">    <span class="keyword">while</span> (!stopped) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Wait for the next socket to be assigned</span></span><br><span class="line">        Socket socket = await();</span><br><span class="line">        <span class="keyword">if</span> (socket == <span class="keyword">null</span>)</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Process the request from this socket, omit the try-catch</span></span><br><span class="line">        process(socket);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Finish up this request</span></span><br><span class="line">        connector.recycle(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Tell threadStop() we have shut ourselves down successfully</span></span><br><span class="line">    <span class="keyword">synchronized</span> (threadSync) &#123;</span><br><span class="line">        threadSync.notifyAll();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>当 connector 启动时 processor thread 也会一起启动，然后卡在 await 这里一直等待。当 HttpConnector 接受到 request 之后会调用 processor.assign(socket) 方法。</p>
-<p>这里需要注意的是 assig() 方法是在 connector thread 中调用的，而 await() 方法是在 processor thread 中被调用的。这两者是怎么通信的呢？他们是通过 available flag 和 Object 自带的 wait(), notifyAll() 方法控制调度的。</p>
+<p>这里需要注意的是 assign() 方法是在 connector thread 中调用的，而 await() 方法是在 processor thread 中被调用的。这两者是怎么通信的呢？他们是通过 available flag 和 Object 自带的 wait(), notifyAll() 方法控制调度的。</p>
 <p>PS: wait() 方法使得当前线程保持等待一直到另一个线程调用 notify() 或者 notifyAll() 方法</p>
-<p>HttpConnector 中 assign 的实现</p>
+<p>HttpConnector 中 回调用 processor 的 assign 方法</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Process an incoming TCP/IP connection on the specified socket.  Any</span></span><br><span class="line"><span class="comment">* exception that occurs during processing must be logged and swallowed.</span></span><br><span class="line"><span class="comment">* &lt;b&gt;NOTE&lt;/b&gt;:  This method is called from our Connector&#x27;s thread.  We</span></span><br><span class="line"><span class="comment">* must assign it to our own thread so that multiple simultaneous</span></span><br><span class="line"><span class="comment">* requests can be handled.</span></span><br><span class="line"><span class="comment">*</span></span><br><span class="line"><span class="comment">* <span class="doctag">@param</span> socket TCP socket to process</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">assign</span><span class="params">(Socket socket)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Wait for the Processor to get the previous Socket</span></span><br><span class="line">    <span class="keyword">while</span> (available) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            wait();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Store the newly available Socket and notify our thread</span></span><br><span class="line">    <span class="keyword">this</span>.socket = socket;</span><br><span class="line">    available = <span class="keyword">true</span>;</span><br><span class="line">    notifyAll();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((debug &gt;= <span class="number">1</span>) &amp;&amp; (socket != <span class="keyword">null</span>))</span><br><span class="line">        log(<span class="string">&quot; An incoming request is being assigned&quot;</span>);</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>HttpConnector 中 await 的实现</p>
+<p>HttpProcessor 中 await 的实现</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Await a newly assigned Socket from our Connector, or &lt;code&gt;null&lt;/code&gt;</span></span><br><span class="line"><span class="comment">* if we are supposed to shut down.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">synchronized</span> Socket <span class="title">await</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Wait for the Connector to provide a new Socket</span></span><br><span class="line">    <span class="keyword">while</span> (!available) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            wait();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Notify the Connector that we have received this Socket</span></span><br><span class="line">    Socket socket = <span class="keyword">this</span>.socket;</span><br><span class="line">    available = <span class="keyword">false</span>;</span><br><span class="line">    notifyAll();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((debug &gt;= <span class="number">1</span>) &amp;&amp; (socket != <span class="keyword">null</span>))</span><br><span class="line">        log(<span class="string">&quot;  The incoming request has been awaited&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> (socket);</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>TODO: connector thread 和 processor thread 的处理时间线 UML 图示</p>
+<p>简单图示一下交互过程</p>
+<p><img src="diagram.png" alt="connector processor communication"></p>
+<p>PS: 当时脑抽了，应该直接用 markdown 的 form 表示就好了，画个图好麻烦的 （；￣ェ￣）</p>
 <p>两个 thread 交互描述：</p>
-<p>服务器启动时 processor thread 一起启动并 block 在 wait() 方法处死循环等待唤醒。这时如果 connector thread 中接收到一个 request， connector 会从 stack 中取出一个可用的 processor 并调用 assing(socket) 方法。</p>
-<p>assign 方法会判断 available flag, 初始值为 false， 跳过 while, 将 socket 复刻到成员变量，设置 available 为 true, 唤醒所有等待的线程。</p>
-<p>这时 process thread 的 await() 方法从 wait() 中醒过来，跳出 while 循环将 socket 复刻到 local 变量中，并将 available 设置成 false，调用 notifyAll() 唤醒其他线程。</p>
+<p>服务器启动时回执行 connector 的 start 方法，这个方法回启动 connector 线程和 processor 线程。connector 线程启动后 block 在等待 request 的地方，而 processor 线程启动后 block 在 wait()。</p>
+<p>这时如果 connector thread 中接收到一个 request， connector 会从 stack 中取出一个可用的 processor 并调用 assign(socket) 方法。assign 方法会判断 available flag, 初始值为 false， 跳过 while, 将 socket 复刻到成员变量，设置 available 为 true, 唤醒所有等待的线程。</p>
+<p>这时 process thread 的 await() 方法从 wait() 中被唤醒过来，跳出 while 循环将 socket 复刻到 local 变量中，并将 available 设置成 false，调用 notifyAll() 唤醒其他线程。接着跳出 await() 方法，执行其余方法，包括解析 socket，并回收重用 processor。然后继续执行 while block 在 await 中，如此循环。</p>
 <blockquote>
-<p>问题：<br>Q：为什么 await 要使用 local variable 类型的 socket 而不是直接返回传入的 socket<br>A: 没有用 local 的 socket 的时候， socket 还是 connector 中的那个 socket，我们用 local 的复刻之后返回，这个  socket 就可以用来处理下一个 request 了。<br>Q: 为什么 await 需要调用 notifyAll() 方法<br>A: 处理了第一个 request 之后，connector thread 如果接受到第二个 request，available 是 true，就会卡住，需要 notifyAll() 唤醒它</p>
+<p>问题：<br>Q：为什么 await 要使用 local variable 类型的 socket 而不是直接返回传入的 socket<br>A: 如果没有用 local 的 socket， 那么 socket 还是 connector 中的那个 socket，我们用 local 的复刻之后返回，这个 socket 就可以用来处理下一个 request 了。<br>Q: 为什么 await 需要调用 notifyAll() 方法<br>A: 书上给的答案是防止这个时候 processor 再次收到一个 socket，此时 assign() 中 available 为 true，回死循环，需要唤醒。但是从我的理解来看，这种情况压根不会发生才对啊，同一个 processor 此时应该接受不到其他 socket 了才对。不知道是不是我理解有问题。</p>
 </blockquote>
-<p>PS: 第二个问题不是很清楚，需要画图来帮助理解</p>
-<p>PPS: 再看看创建多个 processor 的那部分代码，有助于理解这里的内容</p>
 <h2 id="Request-Objects-Response-Objects"><a href="#Request-Objects-Response-Objects" class="headerlink" title="Request Objects / Response Objects"></a>Request Objects / Response Objects</h2><p>default connector 的 request 实现采用 org.apache.catalina.Request 接口. 对应的实现基础类是 RequestBase，他的子类是 HttpRequest. 最终实现类是 HttpRequestImpl. 这些类也有格子的 Facade 类。 UML 示例如下</p>
 <img  src=http://www.plantuml.com/plantuml/svg/oymhIIrAIqnELGXABInDBIxXoeIB1ASMbUMabi0aa6GyIaeAOC9GMi6cHbSNXuIU7inqfyJYL2ukL8Cn5M2J1vcCvY0ynhWb9YUc06r2SW_266IhaDWOFW0hmBGNkq74A8Iw2eM7In4NcWKOhlFCBSZXGd6_ag6IbYwGW0L2S4bHQc8kB9WyymfAeK8eGGKH0W00>
 
@@ -484,7 +484,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-27 20:11:57" itemprop="dateModified" datetime="2021-08-27T20:11:57+08:00">2021-08-27</time>
+                <time title="修改时间：2021-08-30 20:23:19" itemprop="dateModified" datetime="2021-08-30T20:23:19+08:00">2021-08-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -691,7 +691,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-27 20:11:57" itemprop="dateModified" datetime="2021-08-27T20:11:57+08:00">2021-08-27</time>
+                <time title="修改时间：2021-08-30 20:23:19" itemprop="dateModified" datetime="2021-08-30T20:23:19+08:00">2021-08-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -845,7 +845,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-27 20:11:57" itemprop="dateModified" datetime="2021-08-27T20:11:57+08:00">2021-08-27</time>
+                <time title="修改时间：2021-08-30 20:23:19" itemprop="dateModified" datetime="2021-08-30T20:23:19+08:00">2021-08-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -976,7 +976,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-27 20:11:57" itemprop="dateModified" datetime="2021-08-27T20:11:57+08:00">2021-08-27</time>
+                <time title="修改时间：2021-08-30 20:23:19" itemprop="dateModified" datetime="2021-08-30T20:23:19+08:00">2021-08-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1107,7 +1107,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-27 20:11:57" itemprop="dateModified" datetime="2021-08-27T20:11:57+08:00">2021-08-27</time>
+                <time title="修改时间：2021-08-30 20:23:19" itemprop="dateModified" datetime="2021-08-30T20:23:19+08:00">2021-08-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1214,7 +1214,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-27 20:11:57" itemprop="dateModified" datetime="2021-08-27T20:11:57+08:00">2021-08-27</time>
+                <time title="修改时间：2021-08-30 20:23:19" itemprop="dateModified" datetime="2021-08-30T20:23:19+08:00">2021-08-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1338,7 +1338,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-27 20:11:57" itemprop="dateModified" datetime="2021-08-27T20:11:57+08:00">2021-08-27</time>
+                <time title="修改时间：2021-08-30 20:23:19" itemprop="dateModified" datetime="2021-08-30T20:23:19+08:00">2021-08-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1447,7 +1447,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-27 20:11:57" itemprop="dateModified" datetime="2021-08-27T20:11:57+08:00">2021-08-27</time>
+                <time title="修改时间：2021-08-30 20:23:19" itemprop="dateModified" datetime="2021-08-30T20:23:19+08:00">2021-08-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1570,7 +1570,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-27 20:11:57" itemprop="dateModified" datetime="2021-08-27T20:11:57+08:00">2021-08-27</time>
+                <time title="修改时间：2021-08-30 20:23:19" itemprop="dateModified" datetime="2021-08-30T20:23:19+08:00">2021-08-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1753,7 +1753,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">965k</span>
+    <span title="站点总字数">966k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
