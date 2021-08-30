@@ -328,11 +328,11 @@ public void run() {
 ```
 当 connector 启动时 processor thread 也会一起启动，然后卡在 await 这里一直等待。当 HttpConnector 接受到 request 之后会调用 processor.assign(socket) 方法。
 
-这里需要注意的是 assig() 方法是在 connector thread 中调用的，而 await() 方法是在 processor thread 中被调用的。这两者是怎么通信的呢？他们是通过 available flag 和 Object 自带的 wait(), notifyAll() 方法控制调度的。
+这里需要注意的是 assign() 方法是在 connector thread 中调用的，而 await() 方法是在 processor thread 中被调用的。这两者是怎么通信的呢？他们是通过 available flag 和 Object 自带的 wait(), notifyAll() 方法控制调度的。
 
 PS: wait() 方法使得当前线程保持等待一直到另一个线程调用 notify() 或者 notifyAll() 方法
 
-HttpConnector 中 assign 的实现
+HttpConnector 中 回调用 processor 的 assign 方法
 
 ```java
 /**
@@ -365,7 +365,7 @@ synchronized void assign(Socket socket) {
 }
 ```
 
-HttpConnector 中 await 的实现
+HttpProcessor 中 await 的实现
 
 ```java
 /**
@@ -395,25 +395,25 @@ private synchronized Socket await() {
 }
 ```
 
-TODO: connector thread 和 processor thread 的处理时间线 UML 图示
+简单图示一下交互过程
+
+![connector processor communication](diagram.png)
+
+PS: 当时脑抽了，应该直接用 markdown 的 form 表示就好了，画个图好麻烦的 （；￣ェ￣）
 
 两个 thread 交互描述：
 
-服务器启动时 processor thread 一起启动并 block 在 wait() 方法处死循环等待唤醒。这时如果 connector thread 中接收到一个 request， connector 会从 stack 中取出一个可用的 processor 并调用 assing(socket) 方法。
+服务器启动时回执行 connector 的 start 方法，这个方法回启动 connector 线程和 processor 线程。connector 线程启动后 block 在等待 request 的地方，而 processor 线程启动后 block 在 wait()。
 
-assign 方法会判断 available flag, 初始值为 false， 跳过 while, 将 socket 复刻到成员变量，设置 available 为 true, 唤醒所有等待的线程。
+这时如果 connector thread 中接收到一个 request， connector 会从 stack 中取出一个可用的 processor 并调用 assign(socket) 方法。assign 方法会判断 available flag, 初始值为 false， 跳过 while, 将 socket 复刻到成员变量，设置 available 为 true, 唤醒所有等待的线程。
 
-这时 process thread 的 await() 方法从 wait() 中醒过来，跳出 while 循环将 socket 复刻到 local 变量中，并将 available 设置成 false，调用 notifyAll() 唤醒其他线程。
+这时 process thread 的 await() 方法从 wait() 中被唤醒过来，跳出 while 循环将 socket 复刻到 local 变量中，并将 available 设置成 false，调用 notifyAll() 唤醒其他线程。接着跳出 await() 方法，执行其余方法，包括解析 socket，并回收重用 processor。然后继续执行 while block 在 await 中，如此循环。
 
 > 问题：
 > Q：为什么 await 要使用 local variable 类型的 socket 而不是直接返回传入的 socket
-> A: 没有用 local 的 socket 的时候， socket 还是 connector 中的那个 socket，我们用 local 的复刻之后返回，这个  socket 就可以用来处理下一个 request 了。
+> A: 如果没有用 local 的 socket， 那么 socket 还是 connector 中的那个 socket，我们用 local 的复刻之后返回，这个 socket 就可以用来处理下一个 request 了。
 > Q: 为什么 await 需要调用 notifyAll() 方法
-> A: 处理了第一个 request 之后，connector thread 如果接受到第二个 request，available 是 true，就会卡住，需要 notifyAll() 唤醒它
-
-PS: 第二个问题不是很清楚，需要画图来帮助理解
-
-PPS: 再看看创建多个 processor 的那部分代码，有助于理解这里的内容
+> A: 书上给的答案是防止这个时候 processor 再次收到一个 socket，此时 assign() 中 available 为 true，回死循环，需要唤醒。但是从我的理解来看，这种情况压根不会发生才对啊，同一个 processor 此时应该接受不到其他 socket 了才对。不知道是不是我理解有问题。
 
 ## Request Objects / Response Objects
 
