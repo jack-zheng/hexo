@@ -59,7 +59,7 @@
 <meta property="og:description" content="问题：  forward 和 redirect 时 request 传递的区别 forward 和 redirect 时 url 传递的区别  问: forward 和 redirect 时 request 传递的区别forward 可以将 request 传递下去，而 redirect 不能。其实写了 code 之后才意识到，forward 的传递性是因为它直接把之前的 request 当参数传">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-07-09T03:00:04.000Z">
-<meta property="article:modified_time" content="2021-08-30T12:23:19.401Z">
+<meta property="article:modified_time" content="2021-09-01T11:58:33.377Z">
 <meta property="article:author" content="Jack Zheng">
 <meta property="article:tag" content="servlet">
 <meta property="article:tag" content="forward">
@@ -241,7 +241,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-30 20:23:19" itemprop="dateModified" datetime="2021-08-30T20:23:19+08:00">2021-08-30</time>
+                <time title="修改时间：2021-09-01 19:58:33" itemprop="dateModified" datetime="2021-09-01T19:58:33+08:00">2021-09-01</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -303,7 +303,7 @@
 <p>同样的思路我们设计一个 redirect 的测试。新建 RedirectServlet 并在 request 对象中设置 name 属性，接着 redirect 到 RedirectedServlet 并打印 name</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RedirectServlet</span> <span class="keyword">extends</span> <span class="title">HttpServlet</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">doGet</span><span class="params">(HttpServletRequest req, HttpServletResponse resp)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        req.setAttribute(<span class="string">&quot;name&quot;</span>, <span class="string">&quot;jack&quot;</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;context path: &quot;</span> + req.getContextPath());</span><br><span class="line">        resp.sendRedirect(req.getContextPath() + <span class="string">&quot;/redirected&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RedirectedServlet</span> <span class="keyword">extends</span> <span class="title">HttpServlet</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">doGet</span><span class="params">(HttpServletRequest req, HttpServletResponse resp)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Name in request: &quot;</span> + req.getAttribute(<span class="string">&quot;name&quot;</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>name 为 null. 远影也很简单 <code>resp.sendRedirect(req.getContextPath() + &quot;/redirected&quot;);</code> 并没有传递 request 参数。</p>
+<p>name 为 null. 原因也很简单 <code>resp.sendRedirect(req.getContextPath() + &quot;/redirected&quot;);</code> 并没有传递 request 参数。</p>
 <h2 id="问-forward-和-redirect-时-url-传递的区别"><a href="#问-forward-和-redirect-时-url-传递的区别" class="headerlink" title="问: forward 和 redirect 时 url 传递的区别"></a>问: forward 和 redirect 时 url 传递的区别</h2><p>forward 方式不会改变 URL，redirect 会变。上面的实验中，我们访问 <code>/redirect</code> 时，最终浏览器显示的是 <code>/redirected</code></p>
 
     </div>
