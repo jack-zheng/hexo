@@ -82,7 +82,7 @@ public class RedirectedServlet extends HttpServlet {
 }
 ```
 
-name 为 null. 远影也很简单 `resp.sendRedirect(req.getContextPath() + "/redirected");` 并没有传递 request 参数。
+name 为 null. 原因也很简单 `resp.sendRedirect(req.getContextPath() + "/redirected");` 并没有传递 request 参数。
 
 ## 问: forward 和 redirect 时 url 传递的区别
 

@@ -332,7 +332,7 @@ public void run() {
 
 PS: wait() 方法使得当前线程保持等待一直到另一个线程调用 notify() 或者 notifyAll() 方法
 
-HttpConnector 中 回调用 processor 的 assign 方法
+HttpConnector 中 会调用 processor 的 assign 方法
 
 ```java
 /**
@@ -399,8 +399,6 @@ private synchronized Socket await() {
 
 ![connector processor communication](diagram.png)
 
-PS: 当时脑抽了，应该直接用 markdown 的 form 表示就好了，画个图好麻烦的 （；￣ェ￣）
-
 两个 thread 交互描述：
 
 服务器启动时回执行 connector 的 start 方法，这个方法回启动 connector 线程和 processor 线程。connector 线程启动后 block 在等待 request 的地方，而 processor 线程启动后 block 在 wait()。
@@ -413,11 +411,11 @@ PS: 当时脑抽了，应该直接用 markdown 的 form 表示就好了，画个
 > Q：为什么 await 要使用 local variable 类型的 socket 而不是直接返回传入的 socket
 > A: 如果没有用 local 的 socket， 那么 socket 还是 connector 中的那个 socket，我们用 local 的复刻之后返回，这个 socket 就可以用来处理下一个 request 了。
 > Q: 为什么 await 需要调用 notifyAll() 方法
-> A: 书上给的答案是防止这个时候 processor 再次收到一个 socket，此时 assign() 中 available 为 true，回死循环，需要唤醒。但是从我的理解来看，这种情况压根不会发生才对啊，同一个 processor 此时应该接受不到其他 socket 了才对。不知道是不是我理解有问题。
+> A: 书上给的答案是防止这个时候 processor 再次收到一个 socket，此时 assign() 中 available 为 true，会进入到 wait 方法，需要主动唤醒。但是从我的理解来看，这种情况压根不会发生才对啊，同一个 processor 此时应该接受不到其他 socket 了才对。不知道是不是我理解有问题。
 
 ## Request Objects / Response Objects
 
-default connector 的 request 实现采用 org.apache.catalina.Request 接口. 对应的实现基础类是 RequestBase，他的子类是 HttpRequest. 最终实现类是 HttpRequestImpl. 这些类也有格子的 Facade 类。 UML 示例如下
+default connector 的 request 实现采用 org.apache.catalina.Request 接口. 对应的实现基础类是 RequestBase，他的子类是 HttpRequest. 最终实现类是 HttpRequestImpl. 这些类也有各自的 Facade 类。 UML 示例如下
 
 {% plantuml %}
 interface Request

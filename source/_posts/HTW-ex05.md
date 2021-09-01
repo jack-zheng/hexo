@@ -1,5 +1,5 @@
 ---
-title: HTW ex05
+title: Ex05 自定义 Container
 date: 2021-07-22 15:47:11
 categories:
 - Tomcat
@@ -11,7 +11,19 @@ tags:
 > A container is represented by the org.apache.catalina.Container interface and there are four types of containers: engine, host, context, and wrapper.
 > This chapter offers two applications that work with contexts and wrappers.
 
-Tomcat 中有 4 中 container: Wrapper, Context, Engine and Host. container module 的主要作用是用来处理 request 并向 response 中填充处理结果。这节主要介绍前两种，后两种将在 13 节中介绍。
+Tomcat 中有 4 种 container: Wrapper, Context, Engine and Host. container module 的主要作用是用来处理 request 并向 response 中填充处理结果。这节主要介绍前两种，后两种将在 13 节中介绍。
+
+这节的主要目标是理解一下几个概念分别代表了什么
+
+Container: 这个类注释解释的挺好的。container 表示的是可以执行 client 传过来的 request 的类。container 会将他的 invoke 委托给 pipeline 执行
+
+> A Container is an object that can execute requests received from a client, and return responses based on those requests.
+
+Pipeline: 表示装载着 container 将会 invoke 的 tasks 的容器
+
+Valve: 表示将会被执行的 task, 有一个特殊的 valve 叫做 basic valve, 要求最后执行
+
+* ValveContext
 
 ## The Container Interface
 
@@ -121,7 +133,7 @@ public abstract class ContainerBase implements Container, Lifecycle, Pipeline {
 }
 ```
 
-pipeline 需要保证所有被添加进来的 valves 和 basic valve 只被调用一次。pipeline 是通过 ValveContext 这个接口实现该功能的。ValveContext 是 pipeline 的一个内部类(innerClass)，通过这种定义是的 ValveContext 可以访问 pipeline 中的所有对象。ValveContext 中最重要的方法是 invokeNext
+pipeline 需要保证所有被添加进来的 valves 和 basic valve 只被调用一次。pipeline 是通过 ValveContext 这个接口实现该功能的。ValveContext 是 pipeline 的一个内部类(innerClass)，通过这种定义使得 ValveContext 可以访问 pipeline 中的所有对象。ValveContext 中最重要的方法是 invokeNext
 
 ```java
 public interface ValveContext {
@@ -130,6 +142,10 @@ public interface ValveContext {
 }
 
 public class SimplePipeline implements Pipeline {
+    protected Valve valves[] = new Valve[0];
+
+    public void addValve(Valve valve) {...}
+    
     protected class SimplePipelineValveContext implements ValveContext {
         protected int stage = 0;
 
@@ -187,9 +203,28 @@ public interface Pipeline {
 
 这个 component 用于处理一个 request，只有两个方法 invoke 和 getInfo
 
+```java
+public interface Valve {
+    public String getInfo();
+
+    public void invoke(Request request, Response response, ValveContext context)
+        throws IOException, ServletException;
+}
+```
+
 ### The ValveContext Interface
 
 只有 invokeNext 和 getInfo 两个方法
+
+```java
+public interface ValveContext {
+
+    public String getInfo();
+
+    public void invokeNext(Request request, Response response)
+        throws IOException, ServletException;
+}
+```
 
 ### The Contained Interface
 
@@ -225,14 +260,14 @@ allocate 用于指定 wrapper 指代的 servlet，load 用于加载 servlet 的�
 
 ## The Context Interface
 
-Context 知道一个 web application. 一个 context 可以包含一个或多个 wrapper
+Context 指代一个 web application. 一个 context 可以包含一个或多个 wrapper
 
 ## The Wrapper Application
 
 下面是本章的第一个例子，一个简单的 container，只由一个 wrapper 来充当 container 主体。包含七个类
 
 * SimpleWrapper: Wrapper 的实现类，包含一个 Pipeline, 通过一个 Loader 来加载 servlet。
-* SimplePipeline: Pipeline 的实现类，包含一个 basic value 和两个额外 valve
+* SimplePipeline: Pipeline 的实现类，包含一个 basic valve 和两个额外 valve
 * SimpleLoader: 用于加载 servlet
 * SimpleWrapperValve: basic valve 的实现类
 * ClientIPLoggerValve, HeaderLoggerValve: 额外 valve 的实现类
@@ -314,7 +349,7 @@ public interface Mapper {
 }
 ```
 
-{ plantuml }
+{% plantuml %}
 interface Container
 interface Loader
 interface Mapper
@@ -355,7 +390,7 @@ Valve <|.. ClientIPLoggerValve
 Valve <|.. HeaderLoggerValve
 
 SimpleContext "1" o-- "*" SimpleWrapper: "contains"
-{ endplantuml }
+{% endplantuml %}
 
 过程：
 
