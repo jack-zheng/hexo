@@ -60,7 +60,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://jack-zheng.github.io/hexo/2021/07/22/HTW-ex05/pipeline_valve.png">
 <meta property="article:published_time" content="2021-07-22T07:47:11.000Z">
-<meta property="article:modified_time" content="2021-09-01T11:58:33.365Z">
+<meta property="article:modified_time" content="2021-09-03T06:25:18.984Z">
 <meta property="article:author" content="Jack Zheng">
 <meta property="article:tag" content="How Tomcat Works">
 <meta name="twitter:card" content="summary">
@@ -241,7 +241,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-09-01 19:58:33" itemprop="dateModified" datetime="2021-09-01T19:58:33+08:00">2021-09-01</time>
+                <time title="修改时间：2021-09-03 14:25:18" itemprop="dateModified" datetime="2021-09-03T14:25:18+08:00">2021-09-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -268,14 +268,14 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>7.6k</span>
+              <span>8.6k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>7 分钟</span>
+              <span>8 分钟</span>
             </span>
 
         </div>
@@ -297,9 +297,9 @@
 <p>A Container is an object that can execute requests received from a client, and return responses based on those requests.</p>
 </blockquote>
 <p>Pipeline: 表示装载着 container 将会 invoke 的 tasks 的容器</p>
-<p>Valve: 表示将会被执行的 task, 有一个特殊的 valve 叫做 basic valve, 要求最后执行</p>
+<p>Valve: 表示将会被执行的 task, 有一个特殊的 valve 叫做 basic valve, 要求最后执行。在这章的例子中，basic valve 用于处理 servlet，不知道实际应用中是不是也是这样处理的，第六章应该可以看到结果。</p>
 <ul>
-<li>ValveContext</li>
+<li>ValveContext: 由一个内部类作为实现，由此可以访问外部类的成员变量，遍历所有的 valve。</li>
 </ul>
 <h2 id="The-Container-Interface"><a href="#The-Container-Interface" class="headerlink" title="The Container Interface"></a>The Container Interface</h2><p>container 必须实现 catalina 的 Container 接口。connector 会调用实现类的 invoke 逻辑(怎么调用的我一直没看到，估摸着应该在 Lifecycle 部分才涉及到)。按处理的业务来分，有四种类型的 Container</p>
 <ul>
@@ -372,12 +372,18 @@
 <figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">ModernServlet -- init</span><br><span class="line">Client IP Logger Valve</span><br><span class="line">0:0:0:0:0:0:0:1</span><br><span class="line">------------------------------------</span><br><span class="line">Header Logger Valve</span><br><span class="line">host:localhost:8080</span><br><span class="line">connection:keep-alive</span><br><span class="line">sec-ch-ua:&quot;Chromium&quot;;v=&quot;92&quot;, &quot; Not A;Brand&quot;;v=&quot;99&quot;, &quot;Google Chrome&quot;;v=&quot;92&quot;</span><br><span class="line">sec-ch-ua-mobile:?0</span><br><span class="line">upgrade-insecure-requests:1</span><br><span class="line">user-agent:Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36</span><br><span class="line">accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9</span><br><span class="line">sec-fetch-site:none</span><br><span class="line">sec-fetch-mode:navigate</span><br><span class="line">sec-fetch-user:?1</span><br><span class="line">sec-fetch-dest:document</span><br><span class="line">accept-encoding:gzip, deflate, br</span><br><span class="line">accept-language:en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7,zh-TW;q=0.6</span><br><span class="line">cookie:loginMethodCookieKey=PWD; bizxThemeId=2wyfwkupsp; fontstyle=null; _pk_id.1.1fff=9a13b6b396550ca6.1619008137.; Idea-12b942b0=d6d70da6-7368-4631-b3f7-a91eafcb1e9f; Idea-cead54cd=ce25569f-051c-4d11-b8f4-6b99d512503d; JSESSIONID=B3BD850D653D266A9BB2346D7D97B8A2</span><br><span class="line">------------------------------------</span><br></pre></td></tr></table></figure>
 
 <h2 id="The-Context-Application"><a href="#The-Context-Application" class="headerlink" title="The Context Application"></a>The Context Application</h2><p>当服务器需要处理多个 servlet 时，就需要用到 context 和 mapper 了。mapper 帮助父容器选择子 container 处理 request。</p>
-<p>PS: mapper 只在 Tomcat4 中使用，到 Tomcat5 就使用其他技术了。</p>
+<p>PS: mapper 只在 Tomcat4 中使用，到 Tomcat5 就淘汰了。</p>
 <p>一个 container 可以使用多个 mapper 支持多种 protocols. 这个例子中只处理一种。比如一个 container 可以配置一个 mapper 处理 http 请求，配置另一个 mapper 处理 https.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Container <span class="title">map</span><span class="params">(Request request, <span class="keyword">boolean</span> update)</span> </span>&#123;</span><br><span class="line">    <span class="comment">//this method is taken from the map method in org.apache.cataline.core.ContainerBase</span></span><br><span class="line">    <span class="comment">//the findMapper method always returns the default mapper, if any, regardless the</span></span><br><span class="line">    <span class="comment">//request&#x27;s protocol</span></span><br><span class="line">    Mapper mapper = findMapper(request.getRequest().getProtocol());</span><br><span class="line">    <span class="keyword">if</span> (mapper == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">return</span> (<span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Use this Mapper to perform this mapping</span></span><br><span class="line">    <span class="keyword">return</span> (mapper.map(request, update));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个例子的实现中没有做 protocol 的处理，直接返回默认的 mapper。Mapper 接口的定义如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Mapper</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Container <span class="title">getContainer</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setContainer</span><span class="params">(Container container)</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getProtocol</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setProtocol</span><span class="params">(String protocol)</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Container <span class="title">map</span><span class="params">(Request request, <span class="keyword">boolean</span> update)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <img  src=http://www.plantuml.com/plantuml/svg/RL8z2uCm5Dpz5I6Z4A5hSNDfmO9GQ8VI8UYh3TWOh9GE_lWcJNm-FwQ4ktVtBgTAzz0zP0aiQtKlbOOkKeZbhQncm4aQOu78dup7NCHynuaORypYmd71PDIaGvAmitgP1jmiVFjWwkSeFohLBAHL4EJQUVM45Cf0OnCGw2AR3qHHK3DnUwgg0dr7TJW9WoxZXN313XdtobZGBRw1T1028o_WSVEKQbqCnY8Kwd0x8TUXDqotE7ITZP8dByR-JzqmznMisA1RiLcZGFV78c_hUeC-WFl-b5paSyMtjapx7yutxHalVTzl_WC0>
 
+<p>Context 的例子中定义了两个 map, 一个是 url_path - servlet_name 的 map, 另一个是 servlet_name - servlet_class 的 map。就我看来有点啰嗦，这样做可能是为了实现定制 url path 的功能(个人感觉，没有细究)。</p>
+<p>处理过程和 SimpleWrapper 一样，通过 pipeline 处理所有的 valves, 最后处理 basic valve. 这里定义的 basic valve 叫做 SimpleContextValve. 他的实现中通过调用 <code>container.map(request, true)</code> 拿到指定的 wrapper，之后调用 <code>wrapper.invoke(req, resp)</code> 完成 servlet 的调用。invoke 的实现中会调用 SimpleWrapperValve 完成 servlet 类加载，并执行 service 方法，完成功能调用。</p>
+<p>PS: SimpleWrapper 和 SimpleWrapperValve 是强绑定的，之前找了好久，通过 debug 确定了相互关系。</p>
 <p>过程：</p>
 <ol>
 <li>SimpleContext 调用 pipeline 的 invoke 方法</li>
@@ -530,12 +536,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">966k</span>
+    <span title="站点总字数">968k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">14:38</span>
+    <span title="站点阅读时长">14:40</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
