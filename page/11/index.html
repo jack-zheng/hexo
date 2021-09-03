@@ -206,6 +206,107 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/11/05/Java-xml-parser-compare/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2020/11/05/Java-xml-parser-compare/" class="post-title-link" itemprop="url">Java xml parser compare</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-11-05 14:49:50" itemprop="dateCreated datePublished" datetime="2020-11-05T14:49:50+08:00">2020-11-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-09-03 19:27:40" itemprop="dateModified" datetime="2021-09-03T19:27:40+08:00">2021-09-03</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>记录一下公司实际项目中新老两种 XML 解析框架的实现方式，作为以后类似问题的参考</p>
+<h2 id="老的实现方式"><a href="#老的实现方式" class="headerlink" title="老的实现方式"></a>老的实现方式</h2><p>用的是最传统的 SAX 解析模式，优点是很直观，在这个模块规模还小的时候挺好的，只要熟悉 SAX 的使用方式上手很快，但是不管什么功能，在经过十几年的反复堆砌之后都会变成一个难以维护的怪物。</p>
+<p>实现的时候，最大的弊端应该是参杂了很多的业务逻辑到解析过程中，就我看来，解析就应该是纯粹的过程，业务相关的验证应该放到解析后做才对！</p>
+<p>重构前：</p>
+<ul>
+<li>最外层有 3k 的代码来解析 xml</li>
+<li>最外层到 DefaultHandler 接口，中间还有 2 个父类继承关系存放各种公共变量和方法</li>
+<li>所有的模块组都在一个 class 中维护代码，很臃肿，很多冗余</li>
+<li>一些公共的 element, 比如 description, label 之类的每个模块都可能出一些奇葩用法，维护更难</li>
+<li>在最外层的 Handler 实现中需要存储很多变量来存储中间状态的值</li>
+</ul>
+<p>实现伪代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LegacyParser</span> <span class="keyword">extends</span> <span class="title">SuperParser3</span>...<span class="title">SuperParser1</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> ParsedResultBean bean;</span><br><span class="line">    <span class="keyword">private</span> ModuleElement1 element1;</span><br><span class="line">    <span class="keyword">private</span> ModuleElement2 element1;</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">private</span> ModuleElementN elementn;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Map&lt;String, IModuleElement&gt; elementGroup1 = <span class="keyword">new</span> HashMap();</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">private</span> Map&lt;String, IModuleElement&gt; elementGroupn = <span class="keyword">new</span> HashMap();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 多种重载的构造函数包含 module 各自的 flag 参数，再定制后面 module 内容部的处理逻辑</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span>  <span class="title">LegacyParser</span><span class="params">(ParsedResultBean bean)</span> </span>&#123;...&#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span>  <span class="title">LegacyParser</span><span class="params">(ParsedResultBean bean, <span class="keyword">boolean</span> moduleFlag1)</span> </span>&#123;...&#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span>  <span class="title">LegacyParser</span><span class="params">(ParsedResultBean bean, <span class="keyword">boolean</span> moduleFlag1, <span class="keyword">boolean</span> moduleFlag2)</span> </span>&#123;...&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 定义一个集合存储可用解析器</span></span><br><span class="line">    <span class="keyword">private</span> Map&lt;String, ElementParser&gt; availableParsers = <span class="keyword">new</span> HashMap();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">ElementParser1</span> <span class="keyword">extends</span> <span class="title">BaseElementParser</span>...<span class="title">DefaultHander</span> <span class="keyword">implements</span> <span class="title">IElementParser</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> String <span class="title">getElementName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> ElementName1;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">startElement</span><span class="params">(String uri, String localName, String qName, Attributes attrs)</span> <span class="keyword">throws</span> SAXException </span>&#123;</span><br><span class="line">          <span class="comment">// module logic</span></span><br><span class="line">          elementGroup1.put(...);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">endElement</span><span class="params">(String uri, String localName, String qName)</span> <span class="keyword">throws</span> SAXException </span>&#123;</span><br><span class="line">            <span class="comment">// do something</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">moduleMehtods</span><span class="params">(...)</span> </span>&#123;</span><br><span class="line">            <span class="comment">// do something</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">ElementParser2</span>...<span class="title">N</span> <span class="keyword">extends</span> <span class="title">BaseElementParser</span>...<span class="title">DefaultHander</span> <span class="keyword">implements</span> <span class="title">IElementParser</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 最外部一个</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">startElement</span><span class="params">(String uri, String localName, String name, Attributes attrs)</span> <span class="keyword">throws</span> SAXException </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (availableParsers.containsKey(name)) &#123;</span><br><span class="line">            elementParsers.get(name).startElement(uri, localName, name, attrs);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> SAXException(<span class="string">&quot;Unexpected element &quot;</span> + name);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">endElement</span><span class="params">(String uri, String localName, String name, Attributes attrs)</span> <span class="keyword">throws</span> SAXException </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (availableParsers.containsKey(name)) &#123;</span><br><span class="line">            elementParsers.get(name).endElement(uri, localName, name, attrs);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> SAXException(<span class="string">&quot;Unexpected element &quot;</span> + name);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/11/03/Java-use-SAX-parse-xml/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +338,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-09-03 14:25:18" itemprop="dateModified" datetime="2021-09-03T14:25:18+08:00">2021-09-03</time>
+                <time title="修改时间：2021-09-03 19:27:40" itemprop="dateModified" datetime="2021-09-03T19:27:40+08:00">2021-09-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -385,7 +486,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-09-03 14:25:18" itemprop="dateModified" datetime="2021-09-03T14:25:18+08:00">2021-09-03</time>
+                <time title="修改时间：2021-09-03 19:27:40" itemprop="dateModified" datetime="2021-09-03T19:27:40+08:00">2021-09-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -483,7 +584,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-09-03 14:25:18" itemprop="dateModified" datetime="2021-09-03T14:25:18+08:00">2021-09-03</time>
+                <time title="修改时间：2021-09-03 19:27:40" itemprop="dateModified" datetime="2021-09-03T19:27:40+08:00">2021-09-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -585,7 +686,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-09-03 14:25:18" itemprop="dateModified" datetime="2021-09-03T14:25:18+08:00">2021-09-03</time>
+                <time title="修改时间：2021-09-03 19:27:40" itemprop="dateModified" datetime="2021-09-03T19:27:40+08:00">2021-09-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -743,7 +844,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-09-03 14:25:18" itemprop="dateModified" datetime="2021-09-03T14:25:18+08:00">2021-09-03</time>
+                <time title="修改时间：2021-09-03 19:27:40" itemprop="dateModified" datetime="2021-09-03T19:27:40+08:00">2021-09-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -875,7 +976,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-09-03 14:25:19" itemprop="dateModified" datetime="2021-09-03T14:25:19+08:00">2021-09-03</time>
+                <time title="修改时间：2021-09-03 19:27:40" itemprop="dateModified" datetime="2021-09-03T19:27:40+08:00">2021-09-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1093,7 +1194,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-09-03 14:25:19" itemprop="dateModified" datetime="2021-09-03T14:25:19+08:00">2021-09-03</time>
+                <time title="修改时间：2021-09-03 19:27:40" itemprop="dateModified" datetime="2021-09-03T19:27:40+08:00">2021-09-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1204,7 +1305,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-09-03 14:25:18" itemprop="dateModified" datetime="2021-09-03T14:25:18+08:00">2021-09-03</time>
+                <time title="修改时间：2021-09-03 19:27:40" itemprop="dateModified" datetime="2021-09-03T19:27:40+08:00">2021-09-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1339,7 +1440,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-09-03 14:25:18" itemprop="dateModified" datetime="2021-09-03T14:25:18+08:00">2021-09-03</time>
+                <time title="修改时间：2021-09-03 19:27:40" itemprop="dateModified" datetime="2021-09-03T19:27:40+08:00">2021-09-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1429,135 +1530,11 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/10/12/Design-pattern-proxy/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2020/10/12/Design-pattern-proxy/" class="post-title-link" itemprop="url">代理模式</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-10-12 14:05:30" itemprop="dateCreated datePublished" datetime="2020-10-12T14:05:30+08:00">2020-10-12</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-09-03 14:25:18" itemprop="dateModified" datetime="2021-09-03T14:25:18+08:00">2021-09-03</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index">
-                    <span itemprop="name">设计模式</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>2k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>2 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>记录一下代理模式的学习路径。代理模式常用的两种形式：静态代理，动态代理。其中，动态代理在两个国民级框架 mybatis 和 spring 中都有用到。</p>
-<p>代理模式的定义：为其他对象提供一种代理以控制对这个对象的访问。在某些情况下，一个对象不适合或者不能直接引用另一个对象，而代理对象可以在客户端和目标对象之间起到中介的作用。</p>
-<p>通过代理模式我们可以：</p>
-<ol>
-<li>隐藏委托类的具体实现</li>
-<li>客户和委托类解偶，在不改变委托类的情况下添加额外功能</li>
-</ol>
-<p>插入类图 Here…</p>
-<p>这里我们举一个生活中常见的例子，外卖小哥。在这个情境下，外卖小哥就是我们的代理。帮我们执行买餐这个动作。同时作为扩展，它还可以帮我们买烟买水，倒垃圾等。。。虽然我不提倡这种做法，只用于举例，无伤大雅。</p>
-<h2 id="静态代理"><a href="#静态代理" class="headerlink" title="静态代理"></a>静态代理</h2><p>公共接口，用来点单</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Order</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">order</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>客户实现，这个类代表叫外卖的人</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Customer</span> <span class="keyword">implements</span> <span class="title">Order</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">order</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Order and pay money...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>外卖小哥类</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DeliveryGuy</span> <span class="keyword">implements</span> <span class="title">Order</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Customer customer;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DeliveryGuy</span><span class="params">(Customer customer)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.customer = customer;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">order</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        customer.order();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>客户端调用</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Customer customer = <span class="keyword">new</span> Customer();</span><br><span class="line">        Order order = <span class="keyword">new</span> DeliveryGuy(customer);</span><br><span class="line">        order.order();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>优点：</p>
-<ol>
-<li>简单直接</li>
-<li>解偶</li>
-<li>代理类扩展业务方便</li>
-</ol>
-<p>缺点：</p>
-<p>每个业务都需要一个代理类，冗余代码很多</p>
-<h2 id="动态代理"><a href="#动态代理" class="headerlink" title="动态代理"></a>动态代理</h2><p>常见的有两种方式：JDK 原生动态代理和 CGLib 动态代理，这里只介绍第一种。</p>
-<p>JDK 根据代理模式的特性，制定了一套规范，参照他的规范，可以在很方便的在运行时产生代理类代码，而不需要在编译器写源码，更方便，当然代价就是增加了学习成本，代码不像之前那么一目了然了。实现时主要依赖两个 reflect 下的原生类 Proxy 和 InvocationHandler。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LogHandler</span> <span class="keyword">implements</span> <span class="title">InvocationHandler</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Object target;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">LogHandler</span><span class="params">(Object target)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.target = target;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">invoke</span><span class="params">(Object proxy, Method method, Object[] args)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">        before();</span><br><span class="line">        Object obj = method.invoke(target, args);</span><br><span class="line">        after();</span><br><span class="line">        <span class="keyword">return</span> obj;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">before</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;buy something...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">after</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;take out the trash...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        LogHandler logHandler = <span class="keyword">new</span> LogHandler(<span class="keyword">new</span> Customer());</span><br><span class="line">        Order order = (Order) (Proxy.newProxyInstance(Order.class.getClassLoader(), <span class="keyword">new</span> Class[] &#123;Order.class&#125;, logHandler));</span><br><span class="line">        order.order();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>LogHandler 的实现中 invok 的是要要特别注意一下，method.invoke 的参数是<strong>target</strong>。我一开始直接把 proxy 但参数传入了，排查了好久 （；￣ェ￣）</p>
-<p>中的来说没什么难度，最花时间的部分是熟悉这种使用方式，第一次理解起来可能花点时间。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/hexo/page/10/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/hexo/">1</a><span class="space">&hellip;</span><a class="page-number" href="/hexo/page/10/">10</a><span class="page-number current">11</span><a class="page-number" href="/hexo/page/12/">12</a><span class="space">&hellip;</span><a class="page-number" href="/hexo/page/18/">18</a><a class="extend next" rel="next" href="/hexo/page/12/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <a class="extend prev" rel="prev" href="/hexo/page/10/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/hexo/">1</a><span class="space">&hellip;</span><a class="page-number" href="/hexo/page/10/">10</a><span class="page-number current">11</span><a class="page-number" href="/hexo/page/12/">12</a><span class="space">&hellip;</span><a class="page-number" href="/hexo/page/19/">19</a><a class="extend next" rel="next" href="/hexo/page/12/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1603,7 +1580,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">180</span>
+          <span class="site-state-item-count">181</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1616,7 +1593,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">168</span>
+        <span class="site-state-item-count">169</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1650,12 +1627,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">968k</span>
+    <span title="站点总字数">973k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">14:40</span>
+    <span title="站点阅读时长">14:45</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>

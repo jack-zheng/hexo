@@ -51,15 +51,15 @@
   };
 </script>
 
-  <meta name="description" content="Chapter 8 explains about loaders.A loader is an important Catalina module responsible for loading servlet and other classes that a web application uses.This chapter also shows how application reloadi">
+  <meta name="description" content="Chapter 8 explains about loaders. A loader is an important Catalina module responsible for loading servlet and other classes that a web application uses. This chapter also shows how application reloa">
 <meta property="og:type" content="article">
 <meta property="og:title" content="HTW ex08">
 <meta property="og:url" content="https://jack-zheng.github.io/hexo/2021/08/02/HTW-ex08/index.html">
 <meta property="og:site_name" content="Jackpot">
-<meta property="og:description" content="Chapter 8 explains about loaders.A loader is an important Catalina module responsible for loading servlet and other classes that a web application uses.This chapter also shows how application reloadi">
+<meta property="og:description" content="Chapter 8 explains about loaders. A loader is an important Catalina module responsible for loading servlet and other classes that a web application uses. This chapter also shows how application reloa">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-08-02T03:14:13.000Z">
-<meta property="article:modified_time" content="2021-09-03T06:25:18.984Z">
+<meta property="article:modified_time" content="2021-09-03T11:27:40.276Z">
 <meta property="article:author" content="Jack Zheng">
 <meta property="article:tag" content="How Tomcat Works">
 <meta name="twitter:card" content="summary">
@@ -239,7 +239,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-09-03 14:25:18" itemprop="dateModified" datetime="2021-09-03T14:25:18+08:00">2021-09-03</time>
+                <time title="修改时间：2021-09-03 19:27:40" itemprop="dateModified" datetime="2021-09-03T19:27:40+08:00">2021-09-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -286,19 +286,19 @@
 
       
         <blockquote>
-<p><strong>Chapter 8</strong> explains about loaders.<br>A loader is an important Catalina module responsible for loading servlet and other classes that a web application uses.<br>This chapter also shows how application reloading is achieved.</p>
+<p><strong>Chapter 8</strong> explains about loaders. A loader is an important Catalina module responsible for loading servlet and other classes that a web application uses. This chapter also shows how application reloading is achieved.</p>
 </blockquote>
-<p>之前章节我们已经给出了一个简单的 loader 实现用于加载 servlet。这章我们将介绍 tomcat 的 standard web application loader. servlet container 必须实现自己的 loader，而不能使用系统自带的那个。因为它不能相信 运行的 servlets。如果它像我们之前的例子那样使用默认的类加载器，那么 servlet 将可以访问任何 JVM classpath 下的 class 和 lib，这和 security 的规则相违背。</p>
+<p>之前章节我们已经给出了一个简单的 loader 实现用于加载 servlet。这章我们将介绍 tomcat 的 standard web application loader. servlet container 必须实现自己的 loader，而不能使用系统自带的那个。因为它不信任运行的 servlets。如果它像我们之前的例子那样使用默认的类加载器，那么 servlet 将可以访问任何 JVM classpath 下的 class 和 lib，这和 security 的规则相违背。</p>
 <p>一个 servlet 只允许加载 WEB-INF/classes 和 WEB-INF/lib 文件夹下的内容, 那个 web application(context) 需要有它自己的 loader。Catalina 中，org.apache.catalina.Loader 表示 loader 类。</p>
-<p>另一个 tomcat 需要自己的 loader 的原因是它需要支持自动加载的功能。当 WEB-INF/classes 和 lib 下的内容发生改变时，这个 loader 需要自动检测并重新加载。Tomcat 新起一个线程完成这个功能。reload 的接口为 org.apache.catalina.loader.Reloader</p>
-<p>本章第一部分介绍 Java 中的类加载机制。之后介绍 Loader 接口，最后延时 tomcat 的 loader 使用案例</p>
+<p>另一个 tomcat 需要自己的 loader 的原因是它需要支持自动加载的功能。当 WEB-INF/classes 和 lib 下的内容发生改变时，这个 loader 需要自动检测并重新加载。Tomcat 新起一个线程完成这个功能, org.apache.catalina.loader.Reloader 即代表了 reload 这个行为。</p>
+<p>本章第一部分介绍 Java 中的类加载机制。之后介绍 Loader 接口，最后演示 tomcat 的 loader 使用案例</p>
 <p>本章中两个术语 repository 表示 class loader 会搜索的地方，resources 表示 DirContext，它指向 context 的 document 目录。</p>
 <p>PS: 看这章的介绍感觉可以复习一下类加载机制相关章节了，中间说的用同一个 class loader 会有安全问题的事情不是很清楚</p>
-<h2 id="Java-Class-Loader"><a href="#Java-Class-Loader" class="headerlink" title="Java Class Loader"></a>Java Class Loader</h2><p>每当你创建一个 Java 实例时，对应的类必须加载到内存中。JVM 会使用 class loader 搜索 Java 的核心类库和 classpath 中包含的环境变量。如果没有找到对应的实例，则会跑出 ClassNotFoundException。</p>
-<p>Java 1.2 开始，JVM 通过三个类加载类文件，他们是 bootstrap class loader, extension class loader 和 system class loader。三者是父子关系，bootstrap class loader 是父节点，system class loader 是最后的子节点。</p>
-<p>bootstrap class loader 用来 bootstrap JVM，它用来加载 JVM 启动所需的类，通过 native code 实现。它还负责加载所有的 Java 核心类，比如 java.lang 和 i。 也加载 rt.jar 和 i8n.jar 等 lib.</p>
+<h2 id="Java-Class-Loader"><a href="#Java-Class-Loader" class="headerlink" title="Java Class Loader"></a>Java Class Loader</h2><p>每当你创建一个 Java 实例时，对应的类必须加载到内存中。JVM 会使用 class loader 搜索 Java 的核心类库和 classpath 中包含的环境变量。如果没有找到对应的实例，则会抛出 ClassNotFoundException。</p>
+<p>Java 1.2 开始，JVM 通过三个加载器加载类文件，他们是 bootstrap class loader, extension class loader 和 system class loader。三者是父子关系，bootstrap class loader 是父节点，system class loader 是最后的子节点。</p>
+<p>bootstrap class loader 用来 bootstrap JVM，它用来加载 JVM 启动所需的类，通过 native code 实现。它还负责加载所有的 Java 核心类，比如 java.lang 和 io。 也加载 rt.jar 和 i8n.jar 等 lib.</p>
 <p>extension class loader 负责加载 standard extension 文件夹下的内容，各个供应商的文件夹可能不一样，Sun 的标准扩展文件夹是 /jdk/jre/lib/ext</p>
-<p>system class loader 负责加载classpath 中的环境变量</p>
+<p>system class loader 负责加载 classpath 中的环境变量</p>
 <p>为了保证安全，JVM 使用 delegation model 来加载类。每当一个类需要被加载时，他会先委托给 system class loader 然后再委托给 extension class loader 最后给 bootstrap class loader。当 bootstrap 找不到时，extension class loader 再找，最后是 system class loader。如果都没找到，抛出 ClassNotFoundException.</p>
 <p>PS: 感觉这三者唯一的区别就是 load class 的路径不同，是不是可以理解为我在指定路径下加载类，保证特定的类是安全的</p>
 <p>举例这种安全模型的作用，比如我是黑客，像破坏 Java 系统，我自己写了一个 java.lang.Object 的 class 来代替官方的这个类。但是由于前面说的这种代理机制，JVM 会到指定路径下加载 Object 类，所以我的企图不能实现。</p>
@@ -341,8 +341,8 @@
 
           <div class="post-nav">
             <div class="post-nav-next post-nav-item">
-                <a href="/hexo/2021/07/30/HTW-ex07/" rel="next" title="HTW ex07">
-                  <i class="fa fa-chevron-left"></i> HTW ex07
+                <a href="/hexo/2021/07/30/HTW-ex07/" rel="next" title="Ex07 实现 Logger 机制">
+                  <i class="fa fa-chevron-left"></i> Ex07 实现 Logger 机制
                 </a>
             </div>
 
@@ -407,7 +407,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">180</span>
+          <span class="site-state-item-count">181</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -420,7 +420,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">168</span>
+        <span class="site-state-item-count">169</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -454,12 +454,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">968k</span>
+    <span title="站点总字数">973k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">14:40</span>
+    <span title="站点阅读时长">14:45</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
