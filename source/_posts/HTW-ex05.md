@@ -21,9 +21,9 @@ Container: 这个类注释解释的挺好的。container 表示的是可以执�
 
 Pipeline: 表示装载着 container 将会 invoke 的 tasks 的容器
 
-Valve: 表示将会被执行的 task, 有一个特殊的 valve 叫做 basic valve, 要求最后执行
+Valve: 表示将会被执行的 task, 有一个特殊的 valve 叫做 basic valve, 要求最后执行。在这章的例子中，basic valve 用于处理 servlet，不知道实际应用中是不是也是这样处理的，第六章应该可以看到结果。
 
-* ValveContext
+* ValveContext: 由一个内部类作为实现，由此可以访问外部类的成员变量，遍历所有的 valve。
 
 ## The Container Interface
 
@@ -335,9 +335,25 @@ cookie:loginMethodCookieKey=PWD; bizxThemeId=2wyfwkupsp; fontstyle=null; _pk_id.
 
 当服务器需要处理多个 servlet 时，就需要用到 context 和 mapper 了。mapper 帮助父容器选择子 container 处理 request。
 
-PS: mapper 只在 Tomcat4 中使用，到 Tomcat5 就使用其他技术了。
+PS: mapper 只在 Tomcat4 中使用，到 Tomcat5 就淘汰了。
 
 一个 container 可以使用多个 mapper 支持多种 protocols. 这个例子中只处理一种。比如一个 container 可以配置一个 mapper 处理 http 请求，配置另一个 mapper 处理 https.
+
+```java
+public Container map(Request request, boolean update) {
+    //this method is taken from the map method in org.apache.cataline.core.ContainerBase
+    //the findMapper method always returns the default mapper, if any, regardless the
+    //request's protocol
+    Mapper mapper = findMapper(request.getRequest().getProtocol());
+    if (mapper == null)
+        return (null);
+
+    // Use this Mapper to perform this mapping
+    return (mapper.map(request, update));
+}
+```
+
+这个例子的实现中没有做 protocol 的处理，直接返回默认的 mapper。Mapper 接口的定义如下：
 
 ```java
 public interface Mapper {
@@ -391,6 +407,12 @@ Valve <|.. HeaderLoggerValve
 
 SimpleContext "1" o-- "*" SimpleWrapper: "contains"
 {% endplantuml %}
+
+Context 的例子中定义了两个 map, 一个是 url_path - servlet_name 的 map, 另一个是 servlet_name - servlet_class 的 map。就我看来有点啰嗦，这样做可能是为了实现定制 url path 的功能(个人感觉，没有细究)。
+
+处理过程和 SimpleWrapper 一样，通过 pipeline 处理所有的 valves, 最后处理 basic valve. 这里定义的 basic valve 叫做 SimpleContextValve. 他的实现中通过调用 `container.map(request, true)` 拿到指定的 wrapper，之后调用 `wrapper.invoke(req, resp)` 完成 servlet 的调用。invoke 的实现中会调用 SimpleWrapperValve 完成 servlet 类加载，并执行 service 方法，完成功能调用。
+
+PS: SimpleWrapper 和 SimpleWrapperValve 是强绑定的，之前找了好久，通过 debug 确定了相互关系。
 
 过程：
 
