@@ -276,7 +276,7 @@ public class Test22 {
 
 这项技术原来是为了支持 Java Applet 而设计的，如今，Applet 已经淘汰了，但是类加载器却在 类层次划分，OSGi, 如部署，代码加密等领域大放异彩。
 
-## 7.4.1 类与类加载器
+### 7.4.1 类与类加载器
 
 类加载器虽然只用于实现类的加载动作，但他在 Java 程序中起到的作用却远超类加载阶段。任意类，必须由加载他的类加载器和这个类本身共同确立其在 jvm 中的唯一性，俄米格类加载器都拥有一个独立的类名称空间。
 
@@ -317,5 +317,114 @@ public class ClassLoaderTest {
 // false
 ```
 
-## 7.4.2 双亲委派模型
+### 7.4.2 双亲委派模型
 
+从虚拟机的角度看，只有两类加载器
+
+* 启动类加载器(Bootstrap Class Loader): C++ 实现，虚拟机的一部分
+* 其他加载器：Java 实现，独立与虚拟机外
+
+开发人员角度看，可以分的更细致，可以分为三层类加载器
+
+* 启动类加载器：加载存放在 <JAVA_HOME>\lib 或者 -Xbootstrapclasspth 参数指定的路径下，能被 JVM 识别的类库到内存中。不能被 Java 程序直接使用，编写自定义加载器时，返回 null 即可将加载委托给启动类加载器了
+* 扩展类加载器(Extension Class Loader): 在类 sun.misc.Lanucher$ExtClassLoader 中，负责加载 <JAVA_HOME>\lib\ext 或者 java.ext.dirs 系统变量锁指定的路径中所有的类库。JDK9 之后，被模块化所替代。
+* 应用程序类加载器(Application Class Loader): 由 sun.misc.Lanucher$AppClassLoader 实现。ClassLoader 的 getSystemClassLoader() 方法的返回值。记载用户类路径上所有类库。如果应用程序没有自定义过自己的类加载器，一般这个就是默认的类加载器。
+
+{% plantuml %}
+title 类加载器的双亲委派模型
+
+node bcl [
+启动类加载器
+Bootstrap Class Loader
+]
+
+node ecl [
+扩展类加载器
+Extension Class Loader
+]
+
+node acl [
+应用类加载器
+Application Class Loader
+]
+
+node ucl1 [
+自定义类加载器
+User Class Loader
+]
+
+node ucl2 [
+自定义类加载器
+User Class Loader
+]
+
+bcl <-- ecl
+ecl <-- acl
+
+acl <-- ucl1
+acl <-- ucl2
+{% endplantuml%}
+
+JDK9 之前的 Java 应用都是由这三类加载器互相配合来完成加载的。双亲委派模型要求，除了顶层的启动类加载器外，其余的类加载器都要有自己的父类加载器。这里的父子关系不是通过继承关系实现的，而是通过使用组合(Composition)关系来复用父加载器的代码。
+
+双亲委派模型的工作过程是：如果一个类加载器收到了类加载请求，首先不会尝试自己去加载这个类，而是委派给父类加载器去完成，每次皆是如此。只有当父类无法实现这个加载请求时，子类才是尝试自己去加载。
+
+使用亲委派模型的好处是具备了一种带有优先级的层次关系。例如 java.lang.Object, 无论那哪个加载器加载它，最终都会使用 rt.jar 下的 Object 定义。如果不用这个模型，用户在 ClassPath 下定义一个 java.lang.Object 类, 系统中就会出现多个不同的 Object 类，Java 类型体系中最基础的行为就无法得到保证了。
+
+下面是 ClassLoader 中加载类的代码实现。先尝试查这个类是否已经被加载。再看是否有父加载器，如果没有则使用启动类加载器加载。如果还是没有找到类，则尝试用自己加载。
+
+```java
+protected Class<?> loadClass(String name, boolean resolve)
+        throws ClassNotFoundException
+    {
+        synchronized (getClassLoadingLock(name)) {
+            // First, check if the class has already been loaded
+            Class<?> c = findLoadedClass(name);
+            if (c == null) {
+                long t0 = System.nanoTime();
+                try {
+                    if (parent != null) {
+                        c = parent.loadClass(name, false);
+                    } else {
+                        c = findBootstrapClassOrNull(name);
+                    }
+                } catch (ClassNotFoundException e) {
+                    // ClassNotFoundException thrown if class not found
+                    // from the non-null parent class loader
+                }
+
+                if (c == null) {
+                    // If still not found, then invoke findClass in order
+                    // to find the class.
+                    long t1 = System.nanoTime();
+                    c = findClass(name);
+
+                    // this is the defining class loader; record the stats
+                    sun.misc.PerfCounter.getParentDelegationTime().addTime(t1 - t0);
+                    sun.misc.PerfCounter.getFindClassTime().addElapsedTimeFrom(t1);
+                    sun.misc.PerfCounter.getFindClasses().increment();
+                }
+            }
+            if (resolve) {
+                resolveClass(c);
+            }
+            return c;
+        }
+    }
+```
+
+### 7.4.3 破坏双亲委派模型
+
+双亲委派模式是推荐方式，而不是强制性约束。直到 JDK9 的模块化为止，主要出现过 3 次较大规模的被破坏情况。
+
+第一次是 JDK1.2 之前，双亲委派模型还没出现，但是类加载器的概念和抽象类已经引入了。
+
+第二次被破坏是由于这个模型自身的缺陷导致的。这个模型很好的解决了各个类加载器协作时基础类型的一致性问题，但程序设计往往没有绝对不变的完美规则，如果基础类型又要调用回用户的代码，该如何。典型的例子便是 JNDI 服务。JDNI 现在已经是 Java 的标准服务，代码由启动类加载器来完成加载(JDK1.3 时加入到 rt.jar)，肯定属于 Java 中很基础的类型了。JNDI 目的是对资源进行查找和集中管理，它需要调用由其他厂商实现并部署在应用程序的 ClassPath 下的 JNDI 服务提供者接口(Service Provider Interface, SPI) 的代码，现在问题来了，启动类加载器是绝不可能认识，加载这些代码的。
+
+为了解决这个困境，Java 设计团队引入了一个不太优雅的设计：线程上下文类加载器(Thread Context ClassLoader). 这个加载器可以通过 java.lang.Thread 的 setContextClassLoader() 方法进行设置，如果创建线程时未设置，将会从父类线程中继承一个，如果再应用程序的全局范围内都没有设置过的话，那这个类加载器默认就是应用程序类加载器。JNDI 使用这个线程上下文类加载器去加载所需的 SPI 服务代码，这个是一个类加载器去请求子类加载器完成类加载的行为，实际上打通了双亲委派模型的层次结构来逆向使用类加载器，Java 中涉及 SPI 的加载基本都采用这种方式，比如 JNDI，JDBC，JCE，JAXB 和 JBI 等。当 SPI 多于一个时，只能采用硬编码，为了消除这种不雅的实现，JDK6 提供了 java.util.ServiceLoader 配合 META-INF/services 中的配置信息，辅以责任链模式，才算给 SPI 提供了一种相对合理的解决方案。
+
+第三次被破坏是由于用户对程序动态性的追求导致的。典型应用场景有：代码热部署，模块热部署等。即像电脑外设一般，在没有重新启动的情况下完成功能升级。现在比较热门的实现是 IBM 的 OSGi, Oracle 的 Jigsaw 。后面还有一些 OSGi 的介绍，但是没用过，看看就过了，用到再说。
+
+### 7.5 Java 模块化系统
+
+pass, 暂时用不到
