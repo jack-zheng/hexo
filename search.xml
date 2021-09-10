@@ -2531,7 +2531,7 @@
       </tags>
   </entry>
   <entry>
-    <title>HTW ex08</title>
+    <title>Ex08 类加载器</title>
     <url>/hexo/2021/08/02/HTW-ex08/</url>
     <content><![CDATA[<blockquote>
 <p><strong>Chapter 8</strong> explains about loaders. A loader is an important Catalina module responsible for loading servlet and other classes that a web application uses. This chapter also shows how application reloading is achieved.</p>
@@ -2541,21 +2541,94 @@
 <p>另一个 tomcat 需要自己的 loader 的原因是它需要支持自动加载的功能。当 WEB-INF/classes 和 lib 下的内容发生改变时，这个 loader 需要自动检测并重新加载。Tomcat 新起一个线程完成这个功能, org.apache.catalina.loader.Reloader 即代表了 reload 这个行为。</p>
 <p>本章第一部分介绍 Java 中的类加载机制。之后介绍 Loader 接口，最后演示 tomcat 的 loader 使用案例</p>
 <p>本章中两个术语 repository 表示 class loader 会搜索的地方，resources 表示 DirContext，它指向 context 的 document 目录。</p>
-<p>PS: 看这章的介绍感觉可以复习一下类加载机制相关章节了，中间说的用同一个 class loader 会有安全问题的事情不是很清楚</p>
-<h2 id="Java-Class-Loader"><a href="#Java-Class-Loader" class="headerlink" title="Java Class Loader"></a>Java Class Loader</h2><p>每当你创建一个 Java 实例时，对应的类必须加载到内存中。JVM 会使用 class loader 搜索 Java 的核心类库和 classpath 中包含的环境变量。如果没有找到对应的实例，则会抛出 ClassNotFoundException。</p>
-<p>Java 1.2 开始，JVM 通过三个加载器加载类文件，他们是 bootstrap class loader, extension class loader 和 system class loader。三者是父子关系，bootstrap class loader 是父节点，system class loader 是最后的子节点。</p>
-<p>bootstrap class loader 用来 bootstrap JVM，它用来加载 JVM 启动所需的类，通过 native code 实现。它还负责加载所有的 Java 核心类，比如 java.lang 和 io。 也加载 rt.jar 和 i8n.jar 等 lib.</p>
-<p>extension class loader 负责加载 standard extension 文件夹下的内容，各个供应商的文件夹可能不一样，Sun 的标准扩展文件夹是 /jdk/jre/lib/ext</p>
-<p>system class loader 负责加载 classpath 中的环境变量</p>
-<p>为了保证安全，JVM 使用 delegation model 来加载类。每当一个类需要被加载时，他会先委托给 system class loader 然后再委托给 extension class loader 最后给 bootstrap class loader。当 bootstrap 找不到时，extension class loader 再找，最后是 system class loader。如果都没找到，抛出 ClassNotFoundException.</p>
-<p>PS: 感觉这三者唯一的区别就是 load class 的路径不同，是不是可以理解为我在指定路径下加载类，保证特定的类是安全的</p>
-<p>举例这种安全模型的作用，比如我是黑客，像破坏 Java 系统，我自己写了一个 java.lang.Object 的 class 来代替官方的这个类。但是由于前面说的这种代理机制，JVM 会到指定路径下加载 Object 类，所以我的企图不能实现。</p>
+<h2 id="Java-Class-Loader"><a href="#Java-Class-Loader" class="headerlink" title="Java Class Loader"></a>Java Class Loader</h2><p>查看 深入理解 Java 虚拟机 第 7，9 章节，说的很清楚了。</p>
 <p>Java 允许你定制自己的 class loader，只需继承 java.lang.ClassLoader 即可。以下是 tomcat 需要定制 loader 的原因</p>
 <ul>
 <li>To specify certain rules in loading classes.</li>
 <li>To cache the previously loaded classes.</li>
 <li>To pre-load classes so they are ready to use.</li>
 </ul>
+<h2 id="The-Loader-Interface"><a href="#The-Loader-Interface" class="headerlink" title="The Loader Interface"></a>The Loader Interface</h2><img  src=http://www.plantuml.com/plantuml/svg/ROwn3i8m34HtliBgtdm1Oc7DL54nc_OGbj8qgZtoyHIL2aUmMU_ETsTY2NHvWEBC8nQIR5ZkF80uZoIc95D9c92DJUPy-1gs3mSwf0qDYLMfx-BvVKGFhxXnAPvNmiu-QuxF46fbx_2IJwjBLrVR_klqcTJq2ct2wTVu0W00>
+
+<h2 id="The-Reloader-Interface"><a href="#The-Reloader-Interface" class="headerlink" title="The Reloader Interface"></a>The Reloader Interface</h2><p>为了提供自动重载的功能，loader 必须实现 org.apache.catalina.loader.Reloader 接口</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Reloader</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addRepository</span><span class="params">(String repository)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> String[] findRepositories();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">modified</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中最重要的是 modified() 方法，当应用中的 servlet 或者 supporting classes 有改动时，他会返回 true。</p>
+<h2 id="The-WebappLoader-Class"><a href="#The-WebappLoader-Class" class="headerlink" title="The WebappLoader Class"></a>The WebappLoader Class</h2><p>WebappLoader 是 Loader 接口的一个实现，他代表一个 web application 负责为这个应用加载 class。WebappLoader 会创建一个 WebappClassLoader 作为他的类加载器。和其他 Catalina 组件一样，WebappLoader 也实现了 Lifecycle 和 Runnable 接口。前者借由相关组件控制开启停止，后者可以通过多线程实现类的重载。class 重载由 Context 执行，而不是 WebappLoader， 细节将在 Chapter 12 的 StandardContext 介绍。</p>
+<p>WebappLoader 中的主要方任务：</p>
+<ul>
+<li>Creating a class loader</li>
+<li>Setting repositories</li>
+<li>Setting the class path</li>
+<li>Setting permissions</li>
+<li>Starting a new thread for auto-reload</li>
+</ul>
+<h3 id="Create-A-Class-Loader"><a href="#Create-A-Class-Loader" class="headerlink" title="Create A Class Loader"></a>Create A Class Loader</h3><p>WebappLoader 将类加载委托给了一个内部的类加载器，外部并不能直接直接创建这个加载器。但是可以通过 getClassLoader() 拿到它。如果你想要指定自己的应用加载器，可以通过 setLoaderClass() 方法传入加载器全路径，需要注意的是，加载器最终是通过 createClassLoader() 方法创建的，所以自定义的类加载器必须继承自 WebappClassLoader 不然会抛异常。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> WebappClassLoader <span class="title">createClassLoader</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line"></span><br><span class="line">    Class clazz = Class.forName(loaderClass);</span><br><span class="line">    WebappClassLoader classLoader = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (parentClassLoader == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="comment">// Will cause a ClassCast is the class does not extend WCL, but</span></span><br><span class="line">        <span class="comment">// this is on purpose (the exception will be caught and rethrown)</span></span><br><span class="line">        classLoader = (WebappClassLoader) clazz.newInstance();</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        Class[] argTypes = &#123; ClassLoader.class &#125;;</span><br><span class="line">        Object[] args = &#123; parentClassLoader &#125;;</span><br><span class="line">        Constructor constr = clazz.getConstructor(argTypes);</span><br><span class="line">        classLoader = (WebappClassLoader) constr.newInstance(args);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> classLoader;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Setting-Repositories"><a href="#Setting-Repositories" class="headerlink" title="Setting Repositories"></a>Setting Repositories</h3><p>WebappLoader 的 start() 方法中调用 setRepsitories 向 class loader 中添加 repositories。WEB-INF/classes 传给了 addRepository()，WEB-INF/lib 传给了 setJarPath()。</p>
+<h3 id="Setting-the-Class-Path"><a href="#Setting-the-Class-Path" class="headerlink" title="Setting the Class Path"></a>Setting the Class Path</h3><p>这个 task 通过在 start() 方法中调用 setClassPath() 实现。</p>
+<h3 id="Setting-a-New-Thread-for-Auto-Reload"><a href="#Setting-a-New-Thread-for-Auto-Reload" class="headerlink" title="Setting a New Thread for Auto-Reload"></a>Setting a New Thread for Auto-Reload</h3><p>当 WEB-INF/classes 或者 WEB-INF/lib 下的文件被修改了，修改的类需要在 Tomcat 不重启的情况下自动刷新。为了达到这个效果，WebappLoader 新启了一个线程，周期性的检查文件的时间戳，默认检查周期为 15s, 用户可以通过 get/setCheckinterval() 设置这个值。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (debug &gt;= <span class="number">1</span>)</span><br><span class="line">        log(<span class="string">&quot;BACKGROUND THREAD Starting&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Loop until the termination semaphore is set</span></span><br><span class="line">    <span class="keyword">while</span> (!threadDone) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Wait for our check interval</span></span><br><span class="line">        threadSleep();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!started)</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">// Perform our modification check</span></span><br><span class="line">            <span class="keyword">if</span> (!classLoader.modified())</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            log(sm.getString(<span class="string">&quot;webappLoader.failModifiedCheck&quot;</span>), e);</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Handle a need for reloading</span></span><br><span class="line">        notifyContext();</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (debug &gt;= <span class="number">1</span>)</span><br><span class="line">        log(<span class="string">&quot;BACKGROUND THREAD Stopping&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>PS: Tomcat5 中将这部分 task 移到 StandardContext 中的 backgroundProcess() 中去了</p>
+<p>run() 中的核心方法是通过 while 循环定时检测 modified 的值，流程如下</p>
+<ul>
+<li>Sleep 一定时间</li>
+<li>调用 modified() 查看 flag, 如果 false，continue</li>
+<li>返回 true，调用 notifyContext() 方法，通过 Context 做 reload</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">notifyContext</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    WebappContextNotifier notifier = <span class="keyword">new</span> WebappContextNotifier();</span><br><span class="line">    (<span class="keyword">new</span> Thread(notifier)).start();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>notifyContext 并没有直接调用 Context 的 relaod 方法，而是通过启动内部类 WebappContextNotifier 线程做的。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">protected</span> <span class="class"><span class="keyword">class</span> <span class="title">WebappContextNotifier</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        ((Context) container).reload();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="The-WebappClassLoader-Class"><a href="#The-WebappClassLoader-Class" class="headerlink" title="The WebappClassLoader Class"></a>The WebappClassLoader Class</h2><p>WebappClassLoader 继承自 URLClassLoader，在实现时兼顾了性能和安全。性能方面，它会将之前还在的类 cache 一下，当需要加载类时先从 cache 中寻在，找不到在通过加载器加载。之前加载失败的也有对应的 cache.</p>
+<p>安全方面，WebappClassLoader 有一个黑名单，阻止加载一些类</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String[] triggers = &#123;</span><br><span class="line">    <span class="string">&quot;javax.servlet.Servlet&quot;</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String[] packageTriggers = &#123;</span><br><span class="line">    <span class="string">&quot;javax&quot;</span>,                                     <span class="comment">// Java extensions</span></span><br><span class="line">    <span class="string">&quot;org.xml.sax&quot;</span>,                               <span class="comment">// SAX 1 &amp; 2</span></span><br><span class="line">    <span class="string">&quot;org.w3c.dom&quot;</span>,                               <span class="comment">// DOM 1 &amp; 2</span></span><br><span class="line">    <span class="string">&quot;org.apache.xerces&quot;</span>,                         <span class="comment">// Xerces 1 &amp; 2</span></span><br><span class="line">    <span class="string">&quot;org.apache.xalan&quot;</span>                           <span class="comment">// Xalan</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Caching"><a href="#Caching" class="headerlink" title="Caching"></a>Caching</h3><p>为了性能考虑，加载的类会被 cache 住，后面 class 加载时，会先从 cache 中拿。Caching 是通过 WebappClassLoader 中的 local cache 实现的，同时之前加载过的类通过 ClassLoader 中的 Vector 管理避免类被垃圾回收掉。</p>
+<p>能被 WebappClassLoader 加载的类统称为 resource，通过 org.apache.catalina.loader.ResourceEntry 表示。ResourceEntry 会持有类的 byte 数据，最后修改日期，Manifest 等。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ResourceEntry</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">long</span> lastModified = -<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">byte</span>[] binaryContent = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">public</span> Class loadedClass = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">public</span> URL source = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">public</span> URL codeBase = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">public</span> Manifest manifest = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">public</span> Certificate[] certificates = <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>cached resources 存在名为 resourceEntries 的 HashMap 中，以 resource name 作为 key. 没有找到的 resource 存在名为 notFoundResources 的 HashMap 中。</p>
+<h3 id="Loading-Classes"><a href="#Loading-Classes" class="headerlink" title="Loading Classes"></a>Loading Classes</h3><p>下面是 WebappClassLoader 加载 class 的规则</p>
+<ul>
+<li>All previously loaded classes are cached, so first check the local cache.</li>
+<li>If not found in the local cache, check in the cache, i.e. by calling the findLoadedClass of the java.lang.ClassLoader class. </li>
+<li>If not found in both caches, use the system’s class loader to prevent the web application from overriding J2EE class.</li>
+<li>If SecurityManager is used, check if the class is allowed to be loaded. If the class is not allowed, throw a ClassNotFoundException.</li>
+<li>If the delegate flag is on or if the class to be loaded belongs to the package name in the package trigger, use the parent class loader to load the class. If the parent class loader is null, use the system class loader.</li>
+<li>Load the class from the current repositories.</li>
+<li>If the class is not found in the current repositories, and if the delegate flag is not on, use the parent class loader. If the parent class loader is null, use the system class loader.</li>
+<li>If the class is still not found, throw a ClassNotFoundException.</li>
+</ul>
+<h2 id="The-Application"><a href="#The-Application" class="headerlink" title="The Application"></a>The Application</h2><p>本章使用现成的 StandardContext 管理上下文，12 章会具体介绍，目前你只需要知道 StandardContext 会结合 listener 处理 event 即可。</p>
+<p>本章自定义的 listener</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SimpleContextConfig</span> <span class="keyword">implements</span> <span class="title">LifecycleListener</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">lifecycleEvent</span><span class="params">(LifecycleEvent event)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (Lifecycle.START_EVENT.equals(event.getType())) &#123;</span><br><span class="line">            Context context = (Context) event.getLifecycle();</span><br><span class="line">            context.setConfigured(<span class="keyword">true</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们创建 StandardContext 和 SimpleContextConfig 的实例并将 SimpleContextConfig 注册到 StandardContext 中。</p>
+<p>同时我们复用前面章节的 SimplePipeline, SimpleWrapper 和 SimpleWrapperValve.</p>
+<p>由于使用了 StandardContext 我们必须将测试 servlet 放到 WEB-INF/classes 下，这个例子中，我们创建一个新的目录 myApp 并创建对应的目录，通过 <code>System.setProperty(&quot;catalina.base&quot;, System.getProperty(&quot;user.dir&quot;));</code> 指定 myApp 文件夹。</p>
+<p>简单过一下 Bootstrap 的代码</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">Bootstrap</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//invoke: http://localhost:8080/Modern or  http://localhost:8080/Primitive</span></span><br><span class="line"></span><br><span class="line">        System.setProperty(<span class="string">&quot;catalina.base&quot;</span>, System.getProperty(<span class="string">&quot;user.dir&quot;</span>));</span><br><span class="line">        Connector connector = <span class="keyword">new</span> HttpConnector();</span><br><span class="line">        Wrapper wrapper1 = <span class="keyword">new</span> SimpleWrapper();</span><br><span class="line">        <span class="comment">// ... 设置 wrapper</span></span><br><span class="line"></span><br><span class="line">        Context context = <span class="keyword">new</span> StandardContext();</span><br><span class="line">        <span class="comment">// StandardContext&#x27;s start method adds a default mapper</span></span><br><span class="line">        context.setPath(<span class="string">&quot;/myApp&quot;</span>);</span><br><span class="line">        context.setDocBase(<span class="string">&quot;myApp&quot;</span>);</span><br><span class="line"></span><br><span class="line">        context.addChild(wrapper1);</span><br><span class="line">        context.addChild(wrapper2);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// context.addServletMapping()...</span></span><br><span class="line">        <span class="comment">// add ContextConfig. This listener is important because it configures</span></span><br><span class="line">        <span class="comment">// StandardContext (sets configured to true), otherwise StandardContext</span></span><br><span class="line">        <span class="comment">// won&#x27;t start</span></span><br><span class="line">        LifecycleListener listener = <span class="keyword">new</span> SimpleContextConfig();</span><br><span class="line">        ((Lifecycle) context).addLifecycleListener(listener);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// here is our loader</span></span><br><span class="line">        Loader loader = <span class="keyword">new</span> WebappLoader();</span><br><span class="line">        <span class="comment">// associate the loader with the Context</span></span><br><span class="line">        context.setLoader(loader);</span><br><span class="line"></span><br><span class="line">        connector.setContainer(context);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            connector.initialize();</span><br><span class="line">            ((Lifecycle) connector).start();</span><br><span class="line">            ((Lifecycle) context).start();</span><br><span class="line">            <span class="comment">// now we want to know some details about WebappLoader</span></span><br><span class="line">            WebappClassLoader classLoader = (WebappClassLoader) loader.getClassLoader();</span><br><span class="line">            System.out.println(<span class="string">&quot;Resources&#x27; docBase: &quot;</span> + ((ProxyDirContext) classLoader.getResources()).getDocBase());</span><br><span class="line">            String[] repositories = classLoader.findRepositories();</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; repositories.length; i++) &#123;</span><br><span class="line">                System.out.println(<span class="string">&quot;  repository: &quot;</span> + repositories[i]);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// make the application wait until we press a key.</span></span><br><span class="line">            System.in.read();</span><br><span class="line">            ((Lifecycle) context).stop();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>整理一下思路：这张讲的内容调用点在 SimpleWrapper 的 loadServlet() 方法中。当访问页面时，最终到这个方法中，从 context 中拿到 class loader 并通过 classLoader.loadClass(cls) 加载类。这个 loader 和 classLoader 就是本章中的 WebappLoader 和 WebappClassLoader.</p>
+<p>看完了感觉和 JVM 那边看到的有出入，很多自定义的 loader 都没讲到，热加载也没讲到，往后看看再说。</p>
+]]></content>
+      <categories>
+        <category>Tomcat</category>
+      </categories>
+      <tags>
+        <tag>How Tomcat Works</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Ex09 Session 管理</title>
+    <url>/hexo/2021/09/10/HTW-ex09/</url>
+    <content><![CDATA[<blockquote>
+<p><strong>Chapter 9</strong> discusses the manager, the component that manages sessions in session management. It explains the various types of managers and how a manager can persist session objects into a store. At the end of the chapter, you will learn how to build an application that uses a StandardManager instance to run a servlet that uses session objects to store values. </p>
+</blockquote>
 ]]></content>
       <categories>
         <category>Tomcat</category>
@@ -3223,6 +3296,42 @@
         <tag>JMM</tag>
         <tag>内存模型</tag>
         <tag>concurrent</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>JVM c9 class loader and sub system execution samples</title>
+    <url>/hexo/2021/09/10/JVM-c9-class-loader-and-sub-system-execution-samples/</url>
+    <content><![CDATA[<p>代码编译的结果从本地机器码转为字节码，是存储格式发展的一小步，却是编程语言发展的一大步。</p>
+<h2 id="9-1-概述"><a href="#9-1-概述" class="headerlink" title="9.1 概述"></a>9.1 概述</h2><p>在 Class 文件格式与执行引擎这部分里，用户的程序能直接参与的内容并不多，Class 以何种格式存储，类型和施加在，如何连接，以及虚拟机如何执行字节码指令等都是由虚拟机直接控制的行为，用户程序无法对其进行改变。能操作的，主要是字节码生成与类加载两个部分的功能，但仅仅在如何处理这两点上，就已经出现了许多值得欣赏借鉴的思路，这些思路后来成为很多常用功能和程序实现的基础。</p>
+<h2 id="9-2-案例分析"><a href="#9-2-案例分析" class="headerlink" title="9.2 案例分析"></a>9.2 案例分析</h2><p>四个案例，关于类加载和字节码各两个。</p>
+<h3 id="9-2-1-Tomcat-正统的类加载架构"><a href="#9-2-1-Tomcat-正统的类加载架构" class="headerlink" title="9.2.1 Tomcat: 正统的类加载架构"></a>9.2.1 Tomcat: 正统的类加载架构</h3><p>主流的 Java Web 服务器，如 Tomcat, Jetty 等都实现了自己定义的类加载器，而且还不止一个。因为一个功能健全的 Web 服务器，都要解决如下这些问题：</p>
+<ul>
+<li>部署在同一个服务器上的两个 web 应用程序所使用的 Java 类库可以实现互相隔离。两个不同应用可能依赖同一个第三方类库的不同版本，不能要求每个类库在一个服务器中只能有一份，服务器应该能够保证两个独立应用程序的类库可以互相独立使用。</li>
+<li>部署在同一个服务器上的两个 web 应用所使用的 Java 类库可以互相共享。与前一个相反，但很常见，如用户可能有 10 个使用 Spring 的应用部署在统一台服务器，如果把 10 份 Spring 分别存在应用的隔离目录，将会很大的浪费资源。磁盘空间是其次，主要是良妃内存，很容易造成方法去过度膨胀的风险。</li>
+<li>服务器需要尽可能保证自身的安全不受部署的 Web 应用程序的影响。一般来说，给予安全考虑，服务器所使用的类库应该与程序类库相互独立。</li>
+<li>只是 JSP 应用的 Web 服务器，十有八九都需要支持 HotSwap 功能。JSP 由于其纯文本特性，修改几率远大于第三方类库和自己的 Class 文件。ASP，PHP 和 JSP 这些网页应用也将修改后无需重启作为优势来看待，因此，主流 Web 服务器都会支持 JSP 生成类的热替换。</li>
+</ul>
+<p>由于以上问题，不是 web 应用时，单独一个 ClassPath 就不能满足要求了，所以各种 web 服务器不约而同的提供了好几个不同还以的 ClassPath 路径供用户存放第三方类库。一般这些路径都以 lib 或 classes 命名。不同路径中的类库，具备不同的访问范围和服务对象，通常每个目录都会对应一个自定义类加载器去加载防止在里面的 Java 类库。下面以 Tomcat 为例，分析其规划。</p>
+<p>Tomcat 目录结构中，有三组目录可以设置，一组默认，供4组。分别是</p>
+<ul>
+<li>/common 目录，类库可被 Tomcat 和所有 Web 应用共同使用</li>
+<li>/server 目录，类库可被 Tomcat 使用，对所有 Web 应用不可见</li>
+<li>/shared 目录，类库可以被所有 Web 应用共同使用，对 Tomcat 不可见</li>
+<li>/WebApp/WEB-INF 目录，仅被该 Web 应用使用，对 Tomcat 和其他应用不可见</li>
+</ul>
+<img  src=http://www.plantuml.com/plantuml/svg/bPAnJiCm54LtVuKbvl81b0Kg5iG64WDYU8cVH91ZH_53z0Ew40c9eGmWLC5M9jI50TJFSS9du2HE98imPFEzyRt7yJCb996VwJG6Ab_kRV5cdzRLywBQVDlYzMUxBLUVvMh1cD82UHHBVi7imuSjrlqE5s27MfEX738-as0CFz4WC6UNFeTDhhnxjvl787Sq9rGcqMeu1otlQrajGzv1bid47VdVPEoIE-3sO2HlS2eJXNlzQbTe8XHJmZarheFCT9fg5K1QgwdlsdbN3-JA5Ooc-5p8yURmdvYnZDCho544XDOQxh_52B9iBEGS8pU30D9Qmv1hCvfmRC9wfp7_qrw_oFt9f7vX3FtQJOKny2AkHTo9VcozPUhlnelkBbX_ARNR7FuN>
+
+<p>实线节点是 JDK 自带加载起，虚线是 Tomcat 自建的加载器。Common类加载器，Catalina类加载器(也称为Server类加载器)，Shared类加载器和Webapp类加载器则是 Tomcat 自定义的类加载器，分别加载 /common/<em>, /server/</em>, shared/* 和 /WebApp/WEB-INF/* 中的 Java 类库。WebApp 类加载器和 JSP 类加载器通常还会有多个实例，每个 Web 应用对应一个 WebApp 类加载器，每个 JSP 文件对应一个 JasperLoader 类加载器。</p>
+<p>从图可以看出，Common 类加载器能加载的类都可以被 Catalina 类加载器和 Shared 类加载器使用，而 Catalina 类加载器和 Shared 类加载器自己能加载的类则与对方相互隔离。WebApp类加载器可以使用Shared类加载器加载到的类，但各个WebApp类加载器实例之间相互隔离。而JasperLoader的加载范围仅仅是这个JSP文件所编译出来的那一个Class文件，它存在的目的就是为了被丢弃：当服务器检测到JSP文件被修改时，会替换掉目前的JasperLoader的实例，并通过再建立一个新的JSP类加载器来实现JSP文件的HotSwap功能。</p>
+<p>上面讲的是 Tomcat6 之前的加载器架构，Tomcat6 之后对默认的目录结构做了简化，只有指定 tomcat/conf/catalina.properties 的 server.loader 和 share.loader 后才会真正建立 Catalina类加载器和Shared类加载器实例，否则用到的地方都会用 Common 类加载器实例代替，而默认的配置文件中没有设置这两项，所以 Tomcat6 之后顺理成章的把 /common, /server 和 /shared 三个目录合并在一起变成 /lib 目录，相当于之前的 /common 目录的作用，是 Tomcat 团队简化部署的一项改动。</p>
+<h3 id="9-2-2-OSGi：灵活的类加载器架构"><a href="#9-2-2-OSGi：灵活的类加载器架构" class="headerlink" title="9.2.2 OSGi：灵活的类加载器架构"></a>9.2.2 OSGi：灵活的类加载器架构</h3><p>没兴趣，用到再看</p>
+<h3 id="9-2-3-字节码生成技术与动态代理的实现"><a href="#9-2-3-字节码生成技术与动态代理的实现" class="headerlink" title="9.2.3 字节码生成技术与动态代理的实现"></a>9.2.3 字节码生成技术与动态代理的实现</h3><p>有兴趣，等 Tomcat 完结了再看，不过应该要先看完第八章的内容才行</p>
+]]></content>
+      <categories>
+        <category>JVM</category>
+      </categories>
+      <tags>
+        <tag>类加载</tag>
       </tags>
   </entry>
   <entry>
