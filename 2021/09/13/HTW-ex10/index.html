@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/hexo/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/hexo/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/hexo/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/hexo/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="UgODgWVmvTsdD--vjodDR3tPUZRWM3i7JpHzbYejxUM">
+
+<link rel="stylesheet" href="/hexo/css/main.css">
+
+
+<link rel="stylesheet" href="/hexo/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/hexo/',
+    scheme: 'Muse',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="Chapter 10 covers web application security constraints for restricting access to certain contents. You will learn entities related to security such as principals, roles, login config, authenticators,">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Ex10 安全">
+<meta property="og:url" content="https://jack-zheng.github.io/hexo/2021/09/13/HTW-ex10/index.html">
+<meta property="og:site_name" content="Jackpot">
+<meta property="og:description" content="Chapter 10 covers web application security constraints for restricting access to certain contents. You will learn entities related to security such as principals, roles, login config, authenticators,">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-09-13T08:42:16.000Z">
+<meta property="article:modified_time" content="2021-09-14T11:46:44.461Z">
+<meta property="article:author" content="Jack Zheng">
+<meta property="article:tag" content="How Tomcat Works">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://jack-zheng.github.io/hexo/2021/09/13/HTW-ex10/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>Ex10 安全 | Jackpot</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/hexo/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jackpot</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-tags">
+
+    <a href="/hexo/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/hexo/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/hexo/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/jack-zheng" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/09/13/HTW-ex10/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Ex10 安全
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-09-13 16:42:16" itemprop="dateCreated datePublished" datetime="2021-09-13T16:42:16+08:00">2021-09-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-09-14 19:46:44" itemprop="dateModified" datetime="2021-09-14T19:46:44+08:00">2021-09-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/Tomcat/" itemprop="url" rel="index">
+                    <span itemprop="name">Tomcat</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>11k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>10 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p><strong>Chapter 10</strong> covers web application security constraints for restricting access to certain contents. You will learn entities related to security such as principals, roles, login config, authenticators, etc. You will also write two applications that install an authenticator valve in the StandardContext object and uses basic authentication to authenticate users.</p>
+</blockquote>
+<p>主体和之前的一样，新加的内容是安全相关的东西，更具体来说，是授权相关。可以根据配置的账户密码信息限制用户访问。这个功能现在应该挺鸡肋了，因为一般的 App 都是将这部分功能坐在内部的 login service 中的，哪里会通过这种方式作授权啊，除非买现成的但是不提供授权服务，这也太蠢了吧。。。</p>
+<p>问题：Bootstrap2 中貌似做了一次授权之后，会将信息 cache 起来，看看它是存在哪里的</p>
+<h2 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h2><p>有些网站服务需要有访问限制，Tomcat 可以通过配置文件达到这种效果，访问页面时只有输入正确的用户名密码之后才能访问。</p>
+<p>Tomcat 有一个 authenticator valve 可以用来做授权，他在系统启动后加入 context 的 pipeline 中，他会在 wrapper valve 之前被调用，做用户验证。</p>
+<h2 id="Realm"><a href="#Realm" class="headerlink" title="Realm"></a>Realm</h2><p>Tomcat 中 realm 模块可以做用户验证。一个 context 只能有一个 realm 服务，我们可以通过 context 的 setRealm() 方法设置它。</p>
+<p>Realm 中用户信息存放的地址由配置决定，默认情况下，Tomcat 会拿 conf/tomcat-users.xml 中的用户信息做比对。当然我们也可以配置其他数据源，比如 DB。</p>
+<p>Catalina 中使用 org.apache.catalina.Realm 这个接口表示这个概念，核心就那四个授权方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Realm</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Principal <span class="title">authenticate</span><span class="params">(String username, String credentials)</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Principal <span class="title">authenticate</span><span class="params">(String username, <span class="keyword">byte</span>[] credentials)</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Principal <span class="title">authenticate</span><span class="params">(String username, String digest,</span></span></span><br><span class="line"><span class="function"><span class="params">                                  String nonce, String nc, String cnonce,</span></span></span><br><span class="line"><span class="function"><span class="params">                                  String qop, String realm,</span></span></span><br><span class="line"><span class="function"><span class="params">                                  String md5a2)</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Principal <span class="title">authenticate</span><span class="params">(X509Certificate certs[])</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>同时这个接口还包含 <code>public boolean hasRole(Principal principal, String role);</code> 方法。这个接口有一个抽象实现 org.apache.catalina.realm.RealmBase 还有几个具体实现都在同一个包下：JDBCRealm, JNDIRealm, MemoryRealm, and UserDatabaseRealm。默认使用的是 MemoryRealm，当 server 启动时，他会读取 tomcat-users.xml。</p>
+<h2 id="GenericPrincipal"><a href="#GenericPrincipal" class="headerlink" title="GenericPrincipal"></a>GenericPrincipal</h2><p>java.security.Principal 代表 Principal 这个概念，具体实现为 org.apache.catalina.realm.GenericPrincipal。GenericPrincipal 必须关联一个 realm, 构造函数如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">GenericPrincipal</span><span class="params">(Realm realm, String name, String password)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>(realm, name, password, <span class="keyword">null</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">GenericPrincipal</span><span class="params">(Realm realm, String name, String password, List roles)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>();</span><br><span class="line">    <span class="keyword">this</span>.realm = realm;</span><br><span class="line">    <span class="keyword">this</span>.name = name;</span><br><span class="line">    <span class="keyword">this</span>.password = password;</span><br><span class="line">    <span class="keyword">if</span> (roles != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">this</span>.roles = <span class="keyword">new</span> String[roles.size()];</span><br><span class="line">        <span class="keyword">this</span>.roles = (String[]) roles.toArray(<span class="keyword">this</span>.roles);</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.roles.length &gt; <span class="number">0</span>)</span><br><span class="line">            Arrays.sort(<span class="keyword">this</span>.roles);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Principal 中也包含 <code>hasRole()</code> 方法，你可以传入 <code>*</code> 作为参数检测是否包含任意 role 的意思。</p>
+<h2 id="LoginConfig"><a href="#LoginConfig" class="headerlink" title="LoginConfig"></a>LoginConfig</h2><p>login config 包含 realm name 由 org.apache.catalina.deploy.LoginConfig 这个 final class 表示. LoginConfig 包含 realm 和 authentication 的信息，auth name 必须是 BASIC, DIGEST, FORM, or CLIENT-CERT。</p>
+<p>当服务器启动的时候，Tomcat 会读取 web.xml 信息，如果 xml 包含 login-config 元素，tomcat 就会创建一个 LoginConfig 对象并为他设置属性。authentication valve 会调用 LoginConfig 的 getRealmName() 方法并传送给浏览器的登陆界面。</p>
+<h2 id="Authenticator"><a href="#Authenticator" class="headerlink" title="Authenticator"></a>Authenticator</h2><p>org.apache.catalina.Authenticator 是 authenticator 的表现类，他没有任何方法，只是一个壳子。有一个抽象的实现类 org.apache.catalina.authenticator.AuthenticatorBase，它还集策划给你了 ValveBase 表明它是一个 valve。具体的实现类由 BasicAuthenticator, FormAuthenticator, DigestAuthentication 和 SSLAuthenticator。如果没有具体指明 authentication 类型，则会默认使用 NonLoginAuthenticator。它表示只检测安全限制而不需要授权。</p>
+<img  src=http://www.plantuml.com/plantuml/svg/ZOx12i8m44Jl-OhyGFe5lIZYgUWXu4KyBEcQBiGD9D5JFrvff3IjGcx3p9lP9KuOxc1GNi2zK1W7CMQzXuY2vdptJ0Do8WF91o4cHBPZqopeMKbr7QZlaM_hNZwWYQr3JPRF_BKARbfRpBMZKcLfbMtRXPCV_N5YO-MvZo9JVlw7rBghueu-FAh00rcCgGezUUwy9IxYDm00>
+
+<h2 id="Installing-the-Authenticator-Valve"><a href="#Installing-the-Authenticator-Valve" class="headerlink" title="Installing the Authenticator Valve"></a>Installing the Authenticator Valve</h2><p>login-config element 在 deployment 文件中只能出现一次，其中包含有 auth-method 元素。这意味着 context 中只能有一个 LoginConfig 实例并且只能有一个 authentication class 实现。</p>
+<table>
+<thead>
+<tr>
+<th align="left">Type</th>
+<th align="left">Impl</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">BASIC</td>
+<td align="left">BasicAuthenticator</td>
+</tr>
+<tr>
+<td align="left">FORM</td>
+<td align="left">FormAuthenticator</td>
+</tr>
+<tr>
+<td align="left">DIGEST</td>
+<td align="left">DigestAuthenticator</td>
+</tr>
+<tr>
+<td align="left">CLIENT-CERT</td>
+<td align="left">SSLAuthenticator</td>
+</tr>
+</tbody></table>
+<p>如果 auth-method 没有设置，就表示使用的是 NonLoginAuthenticator。org.apache.catalina.startup.ContextConfig 是 Context 的配置类，包含 authentication 信息。下面的例子中，我们使用 SimpleContextConfig 动态加载 BasicAuthenticator 作为 StandardContext 的配置项。</p>
+<h2 id="The-Applications"><a href="#The-Applications" class="headerlink" title="The Applications"></a>The Applications</h2><h3 id="Bootsrap1"><a href="#Bootsrap1" class="headerlink" title="Bootsrap1"></a>Bootsrap1</h3><p>第一个例子，没有使用配置文件，而是直接在 Bootstrap 类中做了设置。新建了一个 SimpleContextConfig，它是一个 Listener，添加到 context 的监听器列表中，当 context start 时，接受到 event 并配置 context</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Bootstrap1 中代码如下</span></span><br><span class="line">LifecycleListener listener = <span class="keyword">new</span> SimpleContextConfig();</span><br><span class="line">((Lifecycle) context).addLifecycleListener(listener);</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">((Lifecycle) context).start();</span><br></pre></td></tr></table></figure>
+
+<p>实现如下,  context start 后，event 触发，在 listener 中拿到对应的 context，并进行 auth 相关的设置，内容包括</p>
+<ul>
+<li>设置 login config</li>
+<li>设置 authenticator 到 context 的 pipeline</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SimpleContextConfig</span> <span class="keyword">implements</span> <span class="title">LifecycleListener</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Context context;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">lifecycleEvent</span><span class="params">(LifecycleEvent event)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (Lifecycle.START_EVENT.equals(event.getType())) &#123;</span><br><span class="line">            context = (Context) event.getLifecycle();</span><br><span class="line">            authenticatorConfig();</span><br><span class="line">            context.setConfigured(<span class="keyword">true</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">authenticatorConfig</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// Does this Context require an Authenticator?</span></span><br><span class="line">        SecurityConstraint constraints[] = context.findConstraints();</span><br><span class="line">        <span class="keyword">if</span> ((constraints == <span class="keyword">null</span>) || (constraints.length == <span class="number">0</span>))</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        LoginConfig loginConfig = context.getLoginConfig();</span><br><span class="line">        <span class="keyword">if</span> (loginConfig == <span class="keyword">null</span>) &#123;</span><br><span class="line">            loginConfig = <span class="keyword">new</span> LoginConfig(<span class="string">&quot;NONE&quot;</span>, <span class="keyword">null</span>, <span class="keyword">null</span>, <span class="keyword">null</span>);</span><br><span class="line">            context.setLoginConfig(loginConfig);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Has an authenticator been configured already?</span></span><br><span class="line">        Pipeline pipeline = ((StandardContext) context).getPipeline();</span><br><span class="line">        <span class="keyword">if</span> (pipeline != <span class="keyword">null</span>) &#123;</span><br><span class="line">            Valve basic = pipeline.getBasic();</span><br><span class="line">            <span class="keyword">if</span> ((basic != <span class="keyword">null</span>) &amp;&amp; (basic <span class="keyword">instanceof</span> Authenticator))</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            Valve valves[] = pipeline.getValves();</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; valves.length; i++) &#123;</span><br><span class="line">                <span class="keyword">if</span> (valves[i] <span class="keyword">instanceof</span> Authenticator)</span><br><span class="line">                    <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123; <span class="comment">// no Pipeline, cannot install authenticator valve</span></span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Has a Realm been configured for us to authenticate against?</span></span><br><span class="line">        <span class="keyword">if</span> (context.getRealm() == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Identify the class name of the Valve we should configure</span></span><br><span class="line">        String authenticatorName = <span class="string">&quot;org.apache.catalina.authenticator.BasicAuthenticator&quot;</span>;</span><br><span class="line">        <span class="comment">// Instantiate and install an Authenticator of the requested class</span></span><br><span class="line">        Valve authenticator = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            Class authenticatorClass = Class.forName(authenticatorName);</span><br><span class="line">            authenticator = (Valve) authenticatorClass.newInstance();</span><br><span class="line">            ((StandardContext) context).addValve(authenticator);</span><br><span class="line">            System.out.println(<span class="string">&quot;Added authenticator valve to Context&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Throwable t) &#123;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>接着在 Bootstrap1 中设置 security constraint 相关的配置. 这里指定了 constraint 中只有 role 是 manager 的可以访问</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// add constraint</span></span><br><span class="line">SecurityCollection securityCollection = <span class="keyword">new</span> SecurityCollection();</span><br><span class="line">securityCollection.addPattern(<span class="string">&quot;/&quot;</span>);</span><br><span class="line">securityCollection.addMethod(<span class="string">&quot;GET&quot;</span>);</span><br><span class="line"></span><br><span class="line">SecurityConstraint constraint = <span class="keyword">new</span> SecurityConstraint();</span><br><span class="line">constraint.addCollection(securityCollection);</span><br><span class="line">constraint.addAuthRole(<span class="string">&quot;manager&quot;</span>);</span><br><span class="line">LoginConfig loginConfig = <span class="keyword">new</span> LoginConfig();</span><br><span class="line">loginConfig.setRealmName(<span class="string">&quot;Simple Realm&quot;</span>);</span><br><span class="line"><span class="comment">// add realm</span></span><br><span class="line">Realm realm = <span class="keyword">new</span> SimpleRealm();</span><br><span class="line"></span><br><span class="line">context.setRealm(realm);</span><br><span class="line">context.addConstraint(constraint);</span><br><span class="line">context.setLoginConfig(loginConfig);</span><br></pre></td></tr></table></figure>
+
+<p>SimpleRealm 实现如下, 它其实就是模拟了一个内存中的 DB，当开启 security constrain 后，通过 GET 访问页面就会跳出验证弹窗。输入账户信息，就会调用到下面 authenticate() 方法中做判断了</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SimpleRealm</span> <span class="keyword">implements</span> <span class="title">Realm</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">SimpleRealm</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        createUserDatabase();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Container container;</span><br><span class="line">    <span class="keyword">private</span> ArrayList users = <span class="keyword">new</span> ArrayList();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Container <span class="title">getContainer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> container;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setContainer</span><span class="params">(Container container)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.container = container;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getInfo</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;A simple Realm implementation&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addPropertyChangeListener</span><span class="params">(PropertyChangeListener listener)</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Principal <span class="title">authenticate</span><span class="params">(String username, String credentials)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;SimpleRealm.authenticate()&quot;</span>);</span><br><span class="line">        <span class="keyword">if</span> (username == <span class="keyword">null</span> || credentials == <span class="keyword">null</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        User user = getUser(username, credentials);</span><br><span class="line">        <span class="keyword">if</span> (user == <span class="keyword">null</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> GenericPrincipal(<span class="keyword">this</span>, user.username, user.password, user.getRoles());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Principal <span class="title">authenticate</span><span class="params">(String username, <span class="keyword">byte</span>[] credentials)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Principal <span class="title">authenticate</span><span class="params">(String username, String digest, String nonce,</span></span></span><br><span class="line"><span class="function"><span class="params">                                  String nc, String cnonce, String qop, String realm, String md5a2)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Principal <span class="title">authenticate</span><span class="params">(X509Certificate certs[])</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">hasRole</span><span class="params">(Principal principal, String role)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> ((principal == <span class="keyword">null</span>) || (role == <span class="keyword">null</span>) ||</span><br><span class="line">                !(principal <span class="keyword">instanceof</span> GenericPrincipal))</span><br><span class="line">            <span class="keyword">return</span> (<span class="keyword">false</span>);</span><br><span class="line">        GenericPrincipal gp = (GenericPrincipal) principal;</span><br><span class="line">        <span class="keyword">if</span> (!(gp.getRealm() == <span class="keyword">this</span>))</span><br><span class="line">            <span class="keyword">return</span> (<span class="keyword">false</span>);</span><br><span class="line">        <span class="keyword">boolean</span> result = gp.hasRole(role);</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">removePropertyChangeListener</span><span class="params">(PropertyChangeListener listener)</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> User <span class="title">getUser</span><span class="params">(String username, String password)</span> </span>&#123;</span><br><span class="line">        Iterator iterator = users.iterator();</span><br><span class="line">        <span class="keyword">while</span> (iterator.hasNext()) &#123;</span><br><span class="line">            User user = (User) iterator.next();</span><br><span class="line">            <span class="keyword">if</span> (user.username.equals(username) &amp;&amp; user.password.equals(password))</span><br><span class="line">                <span class="keyword">return</span> user;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">createUserDatabase</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        User user1 = <span class="keyword">new</span> User(<span class="string">&quot;ken&quot;</span>, <span class="string">&quot;blackcomb&quot;</span>);</span><br><span class="line">        user1.addRole(<span class="string">&quot;manager&quot;</span>);</span><br><span class="line">        user1.addRole(<span class="string">&quot;programmer&quot;</span>);</span><br><span class="line">        User user2 = <span class="keyword">new</span> User(<span class="string">&quot;cindy&quot;</span>, <span class="string">&quot;bamboo&quot;</span>);</span><br><span class="line">        user2.addRole(<span class="string">&quot;programmer&quot;</span>);</span><br><span class="line"></span><br><span class="line">        users.add(user1);</span><br><span class="line">        users.add(user2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">User</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="title">User</span><span class="params">(String username, String password)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">this</span>.username = username;</span><br><span class="line">            <span class="keyword">this</span>.password = password;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">public</span> String username;</span><br><span class="line">        <span class="keyword">public</span> ArrayList roles = <span class="keyword">new</span> ArrayList();</span><br><span class="line">        <span class="keyword">public</span> String password;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addRole</span><span class="params">(String role)</span> </span>&#123;</span><br><span class="line">            roles.add(role);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> ArrayList <span class="title">getRoles</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> roles;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>启动服务器，当我们用 role 是 manager 的 user 去访问，页面显示正常，当我们用 programer 去访问，页面不显示</p>
+<p>流程大致描述如下</p>
+<ol>
+<li>启动 server 加载配置</li>
+<li>访问页面</li>
+<li>context 调用 pipeline</li>
+<li>pipeline 调用 valve</li>
+<li>调用 BasicAuthenticator 的 auth 方法验证 - 在 listener 中指定</li>
+</ol>
+<h2 id="Bootstrap2"><a href="#Bootstrap2" class="headerlink" title="Bootstrap2"></a>Bootstrap2</h2><p>第二个例子和第一个例子很想，唯一区别就是将 Realm 的配置指定到了 tomcat-users.xml 文件</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// add realm</span></span><br><span class="line">Realm realm = <span class="keyword">new</span> SimpleUserDatabaseRealm();</span><br><span class="line">((SimpleUserDatabaseRealm) realm).createDatabase(<span class="string">&quot;conf/tomcat-users.xml&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>SimpleUserDatabaseRealm 实现如下, 里面一个比较有意思的点是 MemoryUserDatabase 这个类，它会默认加载 conf/tomcat-users.xml 的内容，解析出来，格式是 hard code 的，挺有意思。逻辑和之前的基本一样，没什么新鲜的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SimpleUserDatabaseRealm</span> <span class="keyword">extends</span> <span class="title">RealmBase</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">protected</span> UserDatabase database = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">static</span> <span class="keyword">final</span> String name = <span class="string">&quot;SimpleUserDatabaseRealm&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">protected</span> String resourceName = <span class="string">&quot;UserDatabase&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Principal <span class="title">authenticate</span><span class="params">(String username, String credentials)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// Does a user with this username exist?</span></span><br><span class="line">        User user = database.findUser(username);</span><br><span class="line">        <span class="keyword">if</span> (user == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> (<span class="keyword">null</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Do the credentials specified by the user match?</span></span><br><span class="line">        <span class="comment">// FIXME - Update all realms to support encoded passwords</span></span><br><span class="line">        <span class="keyword">boolean</span> validated = <span class="keyword">false</span>;</span><br><span class="line">        <span class="keyword">if</span> (hasMessageDigest()) &#123;</span><br><span class="line">            <span class="comment">// Hex hashes should be compared case-insensitive</span></span><br><span class="line">            validated = (digest(credentials).equalsIgnoreCase(user.getPassword()));</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            validated = (digest(credentials).equals(user.getPassword()));</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (!validated) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        ArrayList combined = <span class="keyword">new</span> ArrayList();</span><br><span class="line">        Iterator roles = user.getRoles();</span><br><span class="line">        <span class="keyword">while</span> (roles.hasNext()) &#123;</span><br><span class="line">            Role role = (Role) roles.next();</span><br><span class="line">            String rolename = role.getRolename();</span><br><span class="line">            <span class="keyword">if</span> (!combined.contains(rolename)) &#123;</span><br><span class="line">                combined.add(rolename);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        Iterator groups = user.getGroups();</span><br><span class="line">        <span class="keyword">while</span> (groups.hasNext()) &#123;</span><br><span class="line">            Group group = (Group) groups.next();</span><br><span class="line">            roles = group.getRoles();</span><br><span class="line">            <span class="keyword">while</span> (roles.hasNext()) &#123;</span><br><span class="line">                Role role = (Role) roles.next();</span><br><span class="line">                String rolename = role.getRolename();</span><br><span class="line">                <span class="keyword">if</span> (!combined.contains(rolename)) &#123;</span><br><span class="line">                    combined.add(rolename);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> (<span class="keyword">new</span> GenericPrincipal(<span class="keyword">this</span>, user.getUsername(),</span><br><span class="line">                user.getPassword(), combined));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ------------------------------------------------------ Lifecycle Methods</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Prepare for active use of the public methods of this Component.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> Principal <span class="title">getPrincipal</span><span class="params">(String username)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (<span class="keyword">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> String <span class="title">getPassword</span><span class="params">(String username)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">createDatabase</span><span class="params">(String path)</span> </span>&#123;</span><br><span class="line">        database = <span class="keyword">new</span> MemoryUserDatabase(name);</span><br><span class="line">        ((MemoryUserDatabase) database).setPathname(path);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            database.open();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span> (Exception e)  &#123;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Jack Zheng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://jack-zheng.github.io/hexo/2021/09/13/HTW-ex10/" title="Ex10 安全">https://jack-zheng.github.io/hexo/2021/09/13/HTW-ex10/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/null" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/hexo/tags/How-Tomcat-Works/" rel="tag"># How Tomcat Works</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+                <a href="/hexo/2021/09/10/HTW-ex09/" rel="next" title="Ex09 Session 管理">
+                  <i class="fa fa-chevron-left"></i> Ex09 Session 管理
+                </a>
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+                <a href="/hexo/2021/09/14/HTW-ex11/" rel="prev" title="Ex11 StandardWrapper">
+                  Ex11 StandardWrapper <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Overview"><span class="nav-number">1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Realm"><span class="nav-number">2.</span> <span class="nav-text">Realm</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GenericPrincipal"><span class="nav-number">3.</span> <span class="nav-text">GenericPrincipal</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LoginConfig"><span class="nav-number">4.</span> <span class="nav-text">LoginConfig</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Authenticator"><span class="nav-number">5.</span> <span class="nav-text">Authenticator</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Installing-the-Authenticator-Valve"><span class="nav-number">6.</span> <span class="nav-text">Installing the Authenticator Valve</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-Applications"><span class="nav-number">7.</span> <span class="nav-text">The Applications</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Bootsrap1"><span class="nav-number">7.1.</span> <span class="nav-text">Bootsrap1</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Bootstrap2"><span class="nav-number">8.</span> <span class="nav-text">Bootstrap2</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Jack Zheng"
+      src="/hexo/images/jack.jpg">
+  <p class="site-author-name" itemprop="name">Jack Zheng</p>
+  <div class="site-description" itemprop="description">我是张江搬砖小码农, 知识搬运工</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/hexo/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/hexo/categories/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/hexo/tags/">
+          
+        <span class="site-state-item-count">169</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jack Zheng</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">1m</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">15:12</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.5.0
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/hexo/lib/anime.min.js"></script>
+  <script src="/hexo/lib/velocity/velocity.min.js"></script>
+  <script src="/hexo/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/hexo/js/utils.js"></script>
+
+<script src="/hexo/js/motion.js"></script>
+
+
+<script src="/hexo/js/schemes/muse.js"></script>
+
+
+<script src="/hexo/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/hexo/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'd444c814810f7e73ee3a',
+      clientSecret: '9b3c417a0c1076887b3cf583c7d7a27456b708ef',
+      repo: 'hexo-comments',
+      owner: 'jack-zheng',
+      admin: ['jack-zheng'],
+      id: '1ecea88ed39b2f2468edcc5a382407f0',
+        language: '',
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>
