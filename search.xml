@@ -2828,7 +2828,7 @@
       </tags>
   </entry>
   <entry>
-    <title>HTW ex12</title>
+    <title>Ex12 StandardContext</title>
     <url>/hexo/2021/09/15/HTW-ex12/</url>
     <content><![CDATA[<blockquote>
 <p><strong>Chapter 12</strong> covers the org.apache.catalina.core.StandardContext class that represents a web application. In particular this chapter discusses how a StandardContext object is configured, what happens in it for each incoming HTTP request, how it supports automatic reloading, and how Tomcat 5 shares a thread that executes periodic tasks in its associated components.</p>
@@ -2867,7 +2867,72 @@
 <li>fire AFTER_START event</li>
 </ul>
 <p>PS: Tomcat 5 中逻辑基本一致，此外还增加了 JMX 相关的代码</p>
-<h3 id="The-Invoke-Method"><a href="#The-Invoke-Method" class="headerlink" title="The Invoke Method"></a>The Invoke Method</h3>]]></content>
+<h2 id="StandardContextMapper"><a href="#StandardContextMapper" class="headerlink" title="StandardContextMapper"></a>StandardContextMapper</h2><p>StandardContext 的 invoke 方法调用时，会调用自己的 StandardContextValve 的 invoke 方法，它做的第一件事是拿到处理 request 匹配的 wrapper。</p>
+<p>ContainerBase 类中有 addDefaultMapper() 方法，实现如下</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">addDefaultMapper</span><span class="params">(String mapperClass)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Do we need a default Mapper?</span></span><br><span class="line">    <span class="keyword">if</span> (mapperClass == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    <span class="keyword">if</span> (mappers.size() &gt;= <span class="number">1</span>)</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Instantiate and add a default Mapper</span></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        Class clazz = Class.forName(mapperClass);</span><br><span class="line">        Mapper mapper = (Mapper) clazz.newInstance();</span><br><span class="line">        mapper.setProtocol(<span class="string">&quot;http&quot;</span>);</span><br><span class="line">        addMapper(mapper);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        log(sm.getString(<span class="string">&quot;containerBase.addDefaultMapper&quot;</span>, mapperClass),</span><br><span class="line">            e);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>StandardContext 中定义了对应的 mapperClass 类</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> String mapperClass = <span class="string">&quot;org.apache.catalina.core.StandardContextMapper&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>Mapper 中最核心的方法为 map 方法 <code>public Container map(Request request, boolean update)</code> 返回 request 对应的 wrapper。mapper 中会一次通过四种筛选条件过滤出目标 wrapper</p>
+<ul>
+<li>精确匹配</li>
+<li>前缀匹配</li>
+<li>后缀匹配</li>
+<li>默认匹配</li>
+</ul>
+<p>如果还是没找到，就返回 null. Tomcat 5 中做了改进，直接从 request 中可以拿到对应的 wrapper</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Wrapper wrapper = request.getWrapper();</span><br></pre></td></tr></table></figure>
+
+<h2 id="Support-for-Reloading"><a href="#Support-for-Reloading" class="headerlink" title="Support for Reloading"></a>Support for Reloading</h2><p>StandardContext 中又一个 reloadable 属性，当 web.xml 改变或者 WEB-INF/classes 文件夹下文件发生改变时，这个 flag 会置位</p>
+<p>StandardContext 的 loader - WebappLoader 在执行 setContainer 时会启动一个线程，当上述目录的文件发生改变，loader 会重新加载 application</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">    * Set the Container with which this Logger has been associated.</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@param</span> container The associated Container</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setContainer</span><span class="params">(Container container)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Deregister from the old Container (if any)</span></span><br><span class="line">    <span class="keyword">if</span> ((<span class="keyword">this</span>.container != <span class="keyword">null</span>) &amp;&amp; (<span class="keyword">this</span>.container <span class="keyword">instanceof</span> Context))</span><br><span class="line">        ((Context) <span class="keyword">this</span>.container).removePropertyChangeListener(<span class="keyword">this</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Process this property change</span></span><br><span class="line">    Container oldContainer = <span class="keyword">this</span>.container;</span><br><span class="line">    <span class="keyword">this</span>.container = container;</span><br><span class="line">    support.firePropertyChange(<span class="string">&quot;container&quot;</span>, oldContainer, <span class="keyword">this</span>.container);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Register with the new Container (if any)</span></span><br><span class="line">    <span class="keyword">if</span> ((<span class="keyword">this</span>.container != <span class="keyword">null</span>) &amp;&amp; (<span class="keyword">this</span>.container <span class="keyword">instanceof</span> Context)) &#123;</span><br><span class="line">        setReloadable( ((Context) <span class="keyword">this</span>.container).getReloadable() );</span><br><span class="line">        ((Context) <span class="keyword">this</span>.container).addPropertyChangeListener(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最后一段的 setReloadable() 方法实现如下</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Set the reloadable flag for this Loader.</span></span><br><span class="line"><span class="comment">*</span></span><br><span class="line"><span class="comment">* <span class="doctag">@param</span> reloadable The new reloadable flag</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setReloadable</span><span class="params">(<span class="keyword">boolean</span> reloadable)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Process this property change</span></span><br><span class="line"><span class="keyword">boolean</span> oldReloadable = <span class="keyword">this</span>.reloadable;</span><br><span class="line"><span class="keyword">this</span>.reloadable = reloadable;</span><br><span class="line">support.firePropertyChange(<span class="string">&quot;reloadable&quot;</span>,</span><br><span class="line">                            <span class="keyword">new</span> Boolean(oldReloadable),</span><br><span class="line">                            <span class="keyword">new</span> Boolean(<span class="keyword">this</span>.reloadable));</span><br><span class="line"></span><br><span class="line"><span class="comment">// Start or stop our background thread if required</span></span><br><span class="line"><span class="keyword">if</span> (!started)</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line"><span class="keyword">if</span> (!oldReloadable &amp;&amp; <span class="keyword">this</span>.reloadable)</span><br><span class="line">    threadStart();</span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (oldReloadable &amp;&amp; !<span class="keyword">this</span>.reloadable)</span><br><span class="line">    threadStop();</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>threadStart() 会启动一个线程，持续监测 WEB-INF 文件夹下文件的时间戳，threadStop() 则用来停止这个线程</p>
+<p>PS：Tomcat 5 中这个监测过程使用专门的 backgroundProcess 来完成</p>
+<h2 id="The-backgroundProcess-Method"><a href="#The-backgroundProcess-Method" class="headerlink" title="The backgroundProcess Method"></a>The backgroundProcess Method</h2><p>略</p>
+<p>PS：这本书看完之后，为了巩固他，可以看看 Stackoverflow 上 Tomcat 相关的问题，找找灵感</p>
+]]></content>
+      <categories>
+        <category>Tomcat</category>
+      </categories>
+      <tags>
+        <tag>How Tomcat Works</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Ex13 Engine 和 Host</title>
+    <url>/hexo/2021/09/16/HTW-ex13/</url>
+    <content><![CDATA[<blockquote>
+<p><strong>Chapter 13</strong> presents the two other containers: host and engine. You can also find the standard implementation of these two containers: org.apache.catalina.core.StandardHost and org.apache.catalina.core.StandardEngine.</p>
+</blockquote>
+<p>介绍了另外两个 Container 概念：engine 和 host。如果你的系统需要有一个以上的 context，那你就需要 host 了。如果只有一个 context，理论上可以不用 host。</p>
+<h2 id="The-Host-Interface"><a href="#The-Host-Interface" class="headerlink" title="The Host Interface"></a>The Host Interface</h2><p>Container 的一个接口实现，最重要的方法为 map</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Return the Context that would be used to process the specified</span></span><br><span class="line"><span class="comment">* host-relative request URI, if any; otherwise return &lt;code&gt;null&lt;/code&gt;.</span></span><br><span class="line"><span class="comment">*</span></span><br><span class="line"><span class="comment">* <span class="doctag">@param</span> uri Request URI to be mapped</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Context <span class="title">map</span><span class="params">(String uri)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<h2 id="StandardHost"><a href="#StandardHost" class="headerlink" title="StandardHost"></a>StandardHost</h2><p>Host 的具体实现，也没什么新鲜的，还是 Container + pipeline + valve 三件套。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">StandardHost</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>();</span><br><span class="line">    pipeline.setBasic(<span class="keyword">new</span> StandardHostValve());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在它的 start() 方法中还会添加两个新的 valve 进 pipeline, 一个是 ErrorReportValve 另一个是 ErrorDispatcherValve</p>
+<p>StandardHost 的 map() 用来寻找匹配的 context。</p>
+<p>PS: Tomcat 5 已经不用 Mapper 机制的，直接从 request 中找到正确的 context</p>
+<h2 id="StandardHostMapper"><a href="#StandardHostMapper" class="headerlink" title="StandardHostMapper"></a>StandardHostMapper</h2><p>略</p>
+<h2 id="StandardHostValve"><a href="#StandardHostValve" class="headerlink" title="StandardHostValve"></a>StandardHostValve</h2><p>里面有涉及 Session 的操作，挺有意思</p>
+<h2 id="Why-You-Cannot-Live-without-a-Host"><a href="#Why-You-Cannot-Live-without-a-Host" class="headerlink" title="Why You Cannot Live without a Host"></a>Why You Cannot Live without a Host</h2><p>如果你的应用使用了默认的 ContextConfig 作为配置的对象，那你必须创建 Host。因为它的加载配置文件的方法 applicationConfig() 的实现如下</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">URL url = servletContext.getResource(Constants.ApplicationWebXml);</span><br><span class="line"></span><br><span class="line">InputSource is = <span class="keyword">new</span> InputSource(url.toExternalForm());</span><br><span class="line">is.setByteStream(stream);</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">webDigester.parse(is);</span><br></pre></td></tr></table></figure>
+
+<p>servletContext 的实现如下</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> URL <span class="title">getResource</span><span class="params">(String path)</span> <span class="keyword">throws</span> MalformedURLException </span>&#123;</span><br><span class="line">    DirContext resources = context.getResources();</span><br><span class="line">    <span class="keyword">if</span> (resources != <span class="keyword">null</span>) &#123;</span><br><span class="line">        String fullPath = context.getName() + path;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// this is the problem. Host must not be null</span></span><br><span class="line">        String hostName = context.getParent().getName();</span><br><span class="line">        <span class="comment">//...</span></span><br></pre></td></tr></table></figure>
+
+<p>最后一行表示，当使用 ContextConfig 时，你必须有一个 Host 类型的 parent</p>
+<h2 id="Bootstrap1"><a href="#Bootstrap1" class="headerlink" title="Bootstrap1"></a>Bootstrap1</h2><p>使用 Host 的案例</p>
+<h2 id="The-Engine-Interface"><a href="#The-Engine-Interface" class="headerlink" title="The Engine Interface"></a>The Engine Interface</h2><p>Engin 表示整个 Catalina servlet engine, 让你想要你的应用有多个 Host 的时候可以使用它。</p>
+<p>对应的实现是 org.apache.catalina.core.StandardEngine。和其他 Container 实现相比，StandardEngine 要单薄的多。套路还是一样，结合 valve 使用。在 addChild() 时，如果不是 Host 类型的 container 会抛异常。 setParent() 时，由于它是顶层 Container，setParent() 会抛异常。</p>
+<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>按理来说，学到这里应该就可以设置一个网站，多个域名了，怎么实现？</p>
+]]></content>
       <categories>
         <category>Tomcat</category>
       </categories>
