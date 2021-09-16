@@ -1,5 +1,5 @@
 ---
-title: HTW ex12
+title: Ex12 StandardContext
 date: 2021-09-15 19:52:57
 categories:
 - Tomcat
@@ -58,4 +58,118 @@ public StandardContext() {
 
 PS: Tomcat 5 中逻辑基本一致，此外还增加了 JMX 相关的代码
 
-### The Invoke Method
+## StandardContextMapper
+
+StandardContext 的 invoke 方法调用时，会调用自己的 StandardContextValve 的 invoke 方法，它做的第一件事是拿到处理 request 匹配的 wrapper。
+
+ContainerBase 类中有 addDefaultMapper() 方法，实现如下
+
+```java
+protected void addDefaultMapper(String mapperClass) {
+    // Do we need a default Mapper?
+    if (mapperClass == null)
+        return;
+    if (mappers.size() >= 1)
+        return;
+
+    // Instantiate and add a default Mapper
+    try {
+        Class clazz = Class.forName(mapperClass);
+        Mapper mapper = (Mapper) clazz.newInstance();
+        mapper.setProtocol("http");
+        addMapper(mapper);
+    } catch (Exception e) {
+        log(sm.getString("containerBase.addDefaultMapper", mapperClass),
+            e);
+    }
+}
+```
+
+StandardContext 中定义了对应的 mapperClass 类
+
+```java
+private String mapperClass = "org.apache.catalina.core.StandardContextMapper"
+```
+
+Mapper 中最核心的方法为 map 方法 `public Container map(Request request, boolean update)` 返回 request 对应的 wrapper。mapper 中会一次通过四种筛选条件过滤出目标 wrapper
+
+* 精确匹配
+* 前缀匹配
+* 后缀匹配
+* 默认匹配
+
+如果还是没找到，就返回 null. Tomcat 5 中做了改进，直接从 request 中可以拿到对应的 wrapper
+
+```java
+Wrapper wrapper = request.getWrapper();
+```
+
+## Support for Reloading
+
+StandardContext 中又一个 reloadable 属性，当 web.xml 改变或者 WEB-INF/classes 文件夹下文件发生改变时，这个 flag 会置位
+
+StandardContext 的 loader - WebappLoader 在执行 setContainer 时会启动一个线程，当上述目录的文件发生改变，loader 会重新加载 application
+
+```java
+/**
+    * Set the Container with which this Logger has been associated.
+    *
+    * @param container The associated Container
+    */
+public void setContainer(Container container) {
+
+    // Deregister from the old Container (if any)
+    if ((this.container != null) && (this.container instanceof Context))
+        ((Context) this.container).removePropertyChangeListener(this);
+
+    // Process this property change
+    Container oldContainer = this.container;
+    this.container = container;
+    support.firePropertyChange("container", oldContainer, this.container);
+
+    // Register with the new Container (if any)
+    if ((this.container != null) && (this.container instanceof Context)) {
+        setReloadable( ((Context) this.container).getReloadable() );
+        ((Context) this.container).addPropertyChangeListener(this);
+    }
+
+}
+```
+
+最后一段的 setReloadable() 方法实现如下
+
+```java
+/**
+* Set the reloadable flag for this Loader.
+*
+* @param reloadable The new reloadable flag
+*/
+public void setReloadable(boolean reloadable) {
+
+// Process this property change
+boolean oldReloadable = this.reloadable;
+this.reloadable = reloadable;
+support.firePropertyChange("reloadable",
+                            new Boolean(oldReloadable),
+                            new Boolean(this.reloadable));
+
+// Start or stop our background thread if required
+if (!started)
+    return;
+if (!oldReloadable && this.reloadable)
+    threadStart();
+else if (oldReloadable && !this.reloadable)
+    threadStop();
+
+}
+```
+
+threadStart() 会启动一个线程，持续监测 WEB-INF 文件夹下文件的时间戳，threadStop() 则用来停止这个线程
+
+PS：Tomcat 5 中这个监测过程使用专门的 backgroundProcess 来完成
+
+## The backgroundProcess Method
+
+略
+
+PS：这本书看完之后，为了巩固他，可以看看 Stackoverflow 上 Tomcat 相关的问题，找找灵感
