@@ -1050,7 +1050,12 @@
     <title>单例模式</title>
     <url>/hexo/2021/08/11/Design-pattern-singleton-md/</url>
     <content><![CDATA[<p>目的：保证一个类只有一个实例，并提供一个访问他的全局访问点</p>
-<p>关键代码：构造函数私有化</p>
+<p>关键代码：</p>
+<ul>
+<li>构造函数<strong>私有化</strong></li>
+<li>私有静态变量</li>
+<li>对外的静态方法</li>
+</ul>
 <p>介绍几种单例模式的实现方式 - 有种回字的几种写法的意思，略无聊</p>
 <h2 id="懒汉式-线程不安全"><a href="#懒汉式-线程不安全" class="headerlink" title="懒汉式 - 线程不安全"></a>懒汉式 - 线程不安全</h2><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton01</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Singleton01 instance;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Singleton01</span><span class="params">()</span></span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton01 <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">            instance = <span class="keyword">new</span> Singleton01();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> instance;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -1061,9 +1066,13 @@
 <h2 id="饿汉式-线程安全"><a href="#饿汉式-线程安全" class="headerlink" title="饿汉式 - 线程安全"></a>饿汉式 - 线程安全</h2><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton03</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Singleton03 instance = <span class="keyword">new</span> Singleton03();</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Singleton03</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton03 <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> instance;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>实现简单，线程安全，通过 classloader 避免同步问题，缺点是类加载就初始化，浪费内存</p>
-<h2 id="双检锁-双重校验锁-DCL-double-checked-locking"><a href="#双检锁-双重校验锁-DCL-double-checked-locking" class="headerlink" title="双检锁/双重校验锁 DCL double-checked locking"></a>双检锁/双重校验锁 DCL double-checked locking</h2><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton04</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="keyword">static</span> Singleton04 instance;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Singleton04</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton04 <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">synchronized</span> (Singleton04.class) &#123;</span><br><span class="line">                <span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">                    instance = <span class="keyword">new</span> Singleton04();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> instance;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="双检锁-双重校验锁-DCL-double-checked-locking"><a href="#双检锁-双重校验锁-DCL-double-checked-locking" class="headerlink" title="双检锁/双重校验锁 DCL double-checked locking"></a>双检锁/双重校验锁 DCL double-checked locking</h2><p>注意 volatile 的使用，避免指令重排</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton04</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="keyword">static</span> Singleton04 instance;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Singleton04</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton04 <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">synchronized</span> (Singleton04.class) &#123;</span><br><span class="line">                <span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">                    instance = <span class="keyword">new</span> Singleton04();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> instance;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>略显复杂，但是性能良好效率高，懒加载，线程安全 Java 1.5 后有效。</p>
+<ul>
+<li><a href="https://www.cnblogs.com/xz816111/p/8470048.html">CNBLOG</a></li>
+</ul>
 <h2 id="登记式-静态内部类"><a href="#登记式-静态内部类" class="headerlink" title="登记式/静态内部类"></a>登记式/静态内部类</h2><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton05</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">SingletonHolder</span> </span>&#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Singleton05 INSTANCE = <span class="keyword">new</span> Singleton05();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Singleton05</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton05 <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> SingletonHolder.INSTANCE;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>实现简单，线程安全，懒加载。效果和双检锁一致。但是由于只在被使用时才通过 classloader 加载，效率回更高</p>
@@ -1076,6 +1085,8 @@
       </categories>
       <tags>
         <tag>Design Pattern</tag>
+        <tag>应试</tag>
+        <tag>剑指 offer</tag>
       </tags>
   </entry>
   <entry>
@@ -2046,6 +2057,8 @@
 
 <h2 id="将本地的单个文件还原成-master-版本"><a href="#将本地的单个文件还原成-master-版本" class="headerlink" title="将本地的单个文件还原成 master 版本"></a>将本地的单个文件还原成 master 版本</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git checkout origin/master -- /path/to/file</span><br></pre></td></tr></table></figure>
 
+<h2 id="将远端删除的文件找回来"><a href="#将远端删除的文件找回来" class="headerlink" title="将远端删除的文件找回来"></a>将远端删除的文件找回来</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git <span class="built_in">log</span> -- /path/of/deleted/file <span class="comment"># 找到删除 commit 的前一个 commit number</span></span><br><span class="line"></span><br><span class="line">git checkout pre-commit-num -- /path/of/deleted/file</span><br></pre></td></tr></table></figure>
+
 <h2 id="将-git-add-commit-合并到一个命令中"><a href="#将-git-add-commit-合并到一个命令中" class="headerlink" title="将 git add, commit 合并到一个命令中"></a>将 git add, commit 合并到一个命令中</h2><blockquote>
 <p><a href="https://stackoverflow.com/questions/4298960/git-add-and-commit-in-one-command">StackOverflow: git-add-and-commit-in-one-command</a></p>
 </blockquote>
@@ -2532,7 +2545,7 @@
   </entry>
   <entry>
     <title>Ex08 类加载器</title>
-    <url>/hexo/2021/08/02/HTW-ex08/</url>
+    <url>/hexo/2021/08/02/HTW-ex08-classloader/</url>
     <content><![CDATA[<blockquote>
 <p><strong>Chapter 8</strong> explains about loaders. A loader is an important Catalina module responsible for loading servlet and other classes that a web application uses. This chapter also shows how application reloading is achieved.</p>
 </blockquote>
@@ -3112,6 +3125,20 @@
 <h2 id="The-Bootstrap-Class"><a href="#The-Bootstrap-Class" class="headerlink" title="The Bootstrap Class"></a>The Bootstrap Class</h2><p>Tomcat 通过 Bootstrap 调用 Catalina，我们平时启动用的 dot/shll 文件也是直接调用的 Bootstrap 类。其中的 main 方法创建了三个 class loader 并对 Catalina 做了实例话，最后调用了他的 process 方法启动服务器。</p>
 <p>PS: 这部分后面可以结合第八章仔细看看，应该挺有意思</p>
 <h2 id="Running-Tomcat-on-Windows-Linux"><a href="#Running-Tomcat-on-Windows-Linux" class="headerlink" title="Running Tomcat on Windows/Linux"></a>Running Tomcat on Windows/Linux</h2><p>略</p>
+]]></content>
+      <categories>
+        <category>Tomcat</category>
+      </categories>
+      <tags>
+        <tag>How Tomcat Works</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>HTW ex18</title>
+    <url>/hexo/2021/09/22/HTW-ex18/</url>
+    <content><![CDATA[<blockquote>
+<p><strong>Chapter 18</strong> presents the deployer, the component responsible for deploying and installing web applications. </p>
+</blockquote>
 ]]></content>
       <categories>
         <category>Tomcat</category>
@@ -3900,6 +3927,29 @@
       <tags>
         <tag>collection</tag>
         <tag>HashMap</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java JMX</title>
+    <url>/hexo/2021/09/24/Java-JMX/</url>
+    <content><![CDATA[<p>Tomcat 中用到这个技术，但是很陌生，手机一下资料，整理如下。</p>
+<p>JMX - java management extension, 简单理解就是 Java 提供了一套规范，可以在 JVM 运行时，操作对象。</p>
+<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><p>新建一个类并在 MBeanServer 中注册，等程序运行时，我们可以通过 jconsole 对运行时的对象进行操作</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">HelloMBean</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setName</span><span class="params">(String name)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getAge</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setAge</span><span class="params">(String age)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">helloWorld</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">helloWorld</span><span class="params">(String str)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">getTelephone</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Hello</span> <span class="keyword">implements</span> <span class="title">HelloMBean</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line">    <span class="keyword">private</span> String age;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">getTelephone</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;get Telephone&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">helloWorld</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;hello world&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">helloWorld</span><span class="params">(String str)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;helloWorld:&quot;</span> + str);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;get name 123&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;set name 123&quot;</span>);</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getAge</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;get age 123&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> age;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setAge</span><span class="params">(String age)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;set age 123&quot;</span>);</span><br><span class="line">        <span class="keyword">this</span>.age = age;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> javax.management.MBeanServer;</span><br><span class="line"><span class="keyword">import</span> javax.management.ObjectName;</span><br><span class="line"><span class="keyword">import</span> java.lang.management.ManagementFactory;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">main</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        MBeanServer server = ManagementFactory.getPlatformMBeanServer();</span><br><span class="line">        ObjectName helloName = <span class="keyword">new</span> ObjectName(<span class="string">&quot;jmxBean:name=hello&quot;</span>);</span><br><span class="line">        <span class="comment">//create mbean and register mbean</span></span><br><span class="line">        server.registerMBean(<span class="keyword">new</span> Hello(), helloName);</span><br><span class="line">        Thread.sleep(<span class="number">60</span> * <span class="number">60</span> * <span class="number">1000</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>ObjectName(&quot;jmxBean:name=hello&quot;);</code> 中括号中的内容类似 entrypoint 可以确定我们要监测的节点。下一句就是注册 bean 到 MBeanServer。运行程序后 thread 会 hold.</p>
+<p>这时启动 jdk 的 bin 目录下的 jconsole 客户端，选择 main 这个 thread, 链接上去</p>
+<p><img src="jconsole_connection.png" alt="connection"></p>
+<p>选中 MBean tab，展开 jmxBean 可以看到我们定义的 MBean</p>
+<p><img src="mbbean_show.png" alt="show"></p>
+<h2 id="其他链接方式"><a href="#其他链接方式" class="headerlink" title="其他链接方式"></a>其他链接方式</h2><p>JMX 是一个规范，除了 jconsole 这中修改方式，还是通过 web, client 等，只需要实现了对应的接口就行。暂时没用到，略。</p>
+<p>这篇博客说的很详细，有需要可以参考一下 <a href="https://www.cnblogs.com/dongguacai/p/5900507.html">cnblog</a></p>
+]]></content>
+      <categories>
+        <category>java</category>
+      </categories>
+      <tags>
+        <tag>JMX</tag>
       </tags>
   </entry>
   <entry>
@@ -4827,10 +4877,9 @@
       </tags>
   </entry>
   <entry>
-    <title>No sleep night</title>
+    <title>码农生活小记 之 无眠的夜</title>
     <url>/hexo/2020/11/27/No-sleep-night/</url>
-    <content><![CDATA[<p>码农生活小记</p>
-<h2 id="2020-11-27"><a href="#2020-11-27" class="headerlink" title="2020-11-27"></a>2020-11-27</h2><p>Cross pillar 的改动，我们 team 在做重构的时候改了其他 team 的 code，半年过去了，突然告诉我上线出问题了，也不知道他们之前都是怎么做的测试，无力吐槽。打了 emergency 的 patch。也是各种折腾，第一次 fix 还导致了更大的 issue，瑟瑟发抖。搞到将近一点，release 成功，等第二天的测试结果。索性一切 OK。发现老板工作是真的拼，晚上守到近两点，早上七点多又起来 verify，大老板也是，佩服佩服。敬业没得说，值的学习。</p>
+    <content><![CDATA[<h2 id="2020-11-27"><a href="#2020-11-27" class="headerlink" title="2020-11-27"></a>2020-11-27</h2><p>Cross pillar 的改动，我们 team 在做重构的时候改了其他 team 的 code，半年过去了，突然告诉我上线出问题了，也不知道他们之前都是怎么做的测试，无力吐槽。打了 emergency 的 patch。也是各种折腾，第一次 fix 还导致了更大的 issue，瑟瑟发抖。搞到将近一点，release 成功，等第二天的测试结果。索性一切 OK。发现老板工作是真的拼，晚上守到近两点，早上七点多又起来 verify，大老板也是，佩服佩服。敬业没得说，值的学习。</p>
 ]]></content>
       <categories>
         <category>杂记</category>
@@ -6904,12 +6953,37 @@
 <p>这个 issue 漏出去的原因还是因为这些部分分属于不同的公司维护，彼此之前的既成测试缺失，同时也不好做的缘故。</p>
 <h2 id="2021-08-25"><a href="#2021-08-25" class="headerlink" title="2021-08-25"></a>2021-08-25</h2><p>遇到 bug 没关系，但是有些 bug 调查起来就是揪心。特别是那些，你在他们的调用链里。他很把锅甩给你，你还实锤不了他的这种情况。</p>
 <p>Best Practice 说他们有个功能挂了，调用链如下 service(service1() -&gt; myService2() -&gt; service3()),  service3 挂了，整个 transaction roll back, myService2 执行完有一个 event 会发出去。现在的情况是 myService2 roll back 了，但是据说 event 还被消费了。整的我一脸问号。event 我们也是调用的其他模块的服务，不熟。调用方的代码，我们也不熟。我就直接黑人问号了？？？</p>
+<h2 id="2021-09-22"><a href="#2021-09-22" class="headerlink" title="2021-09-22"></a>2021-09-22</h2><p>今天和 PM 讨论一个 last minutes 修改，只是改一个网站的地址(Prov Access Contral - HCM to HXM)。从我(开发)的角度来看，只是一个无所谓的改动，看了下代码，只是 5 分钟的改动。和 PM confirm 的时候，她反问了一句，这个新网址是不是已经上线了，老的是不是已经下线了。突然意识到，这是个很关键的问题，直接关系到 fix 的优先级，之前没考虑到。姜还是老的辣，哈哈，受教。</p>
 ]]></content>
       <categories>
         <category>杂记</category>
       </categories>
       <tags>
         <tag>bug</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Tomcat manager app</title>
+    <url>/hexo/2021/09/24/Tomcat-manager-app/</url>
+    <content><![CDATA[<p>官方文档：<a href="https://tomcat.apache.org/tomcat-8.0-doc/manager-howto.html">Manager - howto</a></p>
+<p>长见识了，读这本书之前，完全不知道，原来 tomcat 还有集成这种功能，厉害了。看了 How To 说明。这个 Manager 给了维护人员一个快捷的通道，通过他你可以管理 Tomcat 下的各个 app 的状态，可以随时开启，停止，重新 deploy 而且你不需要问了这个目的重启整个 Tomcat。此外还可以监测各种环境数据，比如 JVM 信息，系统参数，Server 状态等。</p>
+<h2 id="开启"><a href="#开启" class="headerlink" title="开启"></a>开启</h2><p>Manager 功能默认是不开启的，当你本地启动项目时，可以试着访问一下 <code>/manager</code> 这个路径，会给 403 err</p>
+<p><img src="403.png" alt="403"></p>
+<p>提示很清楚，你要在 /conf 下配置 tomcat-user.xml 才能开启这个功能。给了 manager-gui 之后就不需要 script 和 status 权限了，这是处于安全考虑。为了测试方便也可以全部加上</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">user</span> <span class="attr">username</span>=<span class="string">&quot;tomcat&quot;</span> <span class="attr">password</span>=<span class="string">&quot;s3cret&quot;</span> <span class="attr">roles</span>=<span class="string">&quot;manager-gui,manager-script,manager-jmx,manager-status&quot;</span>/&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>重启 Tomcat，访问 <a href="http://localhost:8080/manager">http://localhost:8080/manager</a> 即可看到管理页面</p>
+<p><img src="status.png" alt="status"></p>
+<p>能管理的项目 UI 展示都很直接，不细说了</p>
+<h2 id="Manager-Commands"><a href="#Manager-Commands" class="headerlink" title="Manager Commands"></a>Manager Commands</h2><p>Manager 还支持通过 request 进行控制，你需要按照前面说的给 manager-status 这个 permission 之后才能开启。开启后，访问 <a href="http://localhost:8080/manager/text/list">http://localhost:8080/manager/text/list</a> 就能看到效果，其实就是 UI 功能的 request 版本，细节参考开头的文档。</p>
+<p>此外 Tomcat 还支持 Ant 脚本跑这些命令，用不到，暂时不看了。</p>
+]]></content>
+      <categories>
+        <category>Tomcat</category>
+      </categories>
+      <tags>
+        <tag>Manager</tag>
+        <tag>Tomcat</tag>
       </tags>
   </entry>
   <entry>

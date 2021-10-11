@@ -206,6 +206,389 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/09/13/HTW-ex10/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/09/13/HTW-ex10/" class="post-title-link" itemprop="url">Ex10 安全</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-09-13 16:42:16" itemprop="dateCreated datePublished" datetime="2021-09-13T16:42:16+08:00">2021-09-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-10-11 10:39:59" itemprop="dateModified" datetime="2021-10-11T10:39:59+08:00">2021-10-11</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/Tomcat/" itemprop="url" rel="index">
+                    <span itemprop="name">Tomcat</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>11k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>10 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p><strong>Chapter 10</strong> covers web application security constraints for restricting access to certain contents. You will learn entities related to security such as principals, roles, login config, authenticators, etc. You will also write two applications that install an authenticator valve in the StandardContext object and uses basic authentication to authenticate users.</p>
+</blockquote>
+<p>主体和之前的一样，新加的内容是安全相关的东西，更具体来说，是授权相关。可以根据配置的账户密码信息限制用户访问。这个功能现在应该挺鸡肋了，因为一般的 App 都是将这部分功能坐在内部的 login service 中的，哪里会通过这种方式作授权啊，除非买现成的但是不提供授权服务，这也太蠢了吧。。。</p>
+<p>问题：Bootstrap2 中貌似做了一次授权之后，会将信息 cache 起来，看看它是存在哪里的</p>
+<h2 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h2><p>有些网站服务需要有访问限制，Tomcat 可以通过配置文件达到这种效果，访问页面时只有输入正确的用户名密码之后才能访问。</p>
+<p>Tomcat 有一个 authenticator valve 可以用来做授权，他在系统启动后加入 context 的 pipeline 中，他会在 wrapper valve 之前被调用，做用户验证。</p>
+<h2 id="Realm"><a href="#Realm" class="headerlink" title="Realm"></a>Realm</h2><p>Tomcat 中 realm 模块可以做用户验证。一个 context 只能有一个 realm 服务，我们可以通过 context 的 setRealm() 方法设置它。</p>
+<p>Realm 中用户信息存放的地址由配置决定，默认情况下，Tomcat 会拿 conf/tomcat-users.xml 中的用户信息做比对。当然我们也可以配置其他数据源，比如 DB。</p>
+<p>Catalina 中使用 org.apache.catalina.Realm 这个接口表示这个概念，核心就那四个授权方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Realm</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Principal <span class="title">authenticate</span><span class="params">(String username, String credentials)</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Principal <span class="title">authenticate</span><span class="params">(String username, <span class="keyword">byte</span>[] credentials)</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Principal <span class="title">authenticate</span><span class="params">(String username, String digest,</span></span></span><br><span class="line"><span class="function"><span class="params">                                  String nonce, String nc, String cnonce,</span></span></span><br><span class="line"><span class="function"><span class="params">                                  String qop, String realm,</span></span></span><br><span class="line"><span class="function"><span class="params">                                  String md5a2)</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Principal <span class="title">authenticate</span><span class="params">(X509Certificate certs[])</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>同时这个接口还包含 <code>public boolean hasRole(Principal principal, String role);</code> 方法。这个接口有一个抽象实现 org.apache.catalina.realm.RealmBase 还有几个具体实现都在同一个包下：JDBCRealm, JNDIRealm, MemoryRealm, and UserDatabaseRealm。默认使用的是 MemoryRealm，当 server 启动时，他会读取 tomcat-users.xml。</p>
+<h2 id="GenericPrincipal"><a href="#GenericPrincipal" class="headerlink" title="GenericPrincipal"></a>GenericPrincipal</h2><p>java.security.Principal 代表 Principal 这个概念，具体实现为 org.apache.catalina.realm.GenericPrincipal。GenericPrincipal 必须关联一个 realm, 构造函数如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">GenericPrincipal</span><span class="params">(Realm realm, String name, String password)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>(realm, name, password, <span class="keyword">null</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">GenericPrincipal</span><span class="params">(Realm realm, String name, String password, List roles)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>();</span><br><span class="line">    <span class="keyword">this</span>.realm = realm;</span><br><span class="line">    <span class="keyword">this</span>.name = name;</span><br><span class="line">    <span class="keyword">this</span>.password = password;</span><br><span class="line">    <span class="keyword">if</span> (roles != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">this</span>.roles = <span class="keyword">new</span> String[roles.size()];</span><br><span class="line">        <span class="keyword">this</span>.roles = (String[]) roles.toArray(<span class="keyword">this</span>.roles);</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.roles.length &gt; <span class="number">0</span>)</span><br><span class="line">            Arrays.sort(<span class="keyword">this</span>.roles);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Principal 中也包含 <code>hasRole()</code> 方法，你可以传入 <code>*</code> 作为参数检测是否包含任意 role 的意思。</p>
+<h2 id="LoginConfig"><a href="#LoginConfig" class="headerlink" title="LoginConfig"></a>LoginConfig</h2><p>login config 包含 realm name 由 org.apache.catalina.deploy.LoginConfig 这个 final class 表示. LoginConfig 包含 realm 和 authentication 的信息，auth name 必须是 BASIC, DIGEST, FORM, or CLIENT-CERT。</p>
+<p>当服务器启动的时候，Tomcat 会读取 web.xml 信息，如果 xml 包含 login-config 元素，tomcat 就会创建一个 LoginConfig 对象并为他设置属性。authentication valve 会调用 LoginConfig 的 getRealmName() 方法并传送给浏览器的登陆界面。</p>
+<h2 id="Authenticator"><a href="#Authenticator" class="headerlink" title="Authenticator"></a>Authenticator</h2><p>org.apache.catalina.Authenticator 是 authenticator 的表现类，他没有任何方法，只是一个壳子。有一个抽象的实现类 org.apache.catalina.authenticator.AuthenticatorBase，它还集策划给你了 ValveBase 表明它是一个 valve。具体的实现类由 BasicAuthenticator, FormAuthenticator, DigestAuthentication 和 SSLAuthenticator。如果没有具体指明 authentication 类型，则会默认使用 NonLoginAuthenticator。它表示只检测安全限制而不需要授权。</p>
+<img  src=http://www.plantuml.com/plantuml/svg/ZOx12i8m44Jl-OhyGFe5lIZYgUWXu4KyBEcQBiGD9D5JFrvff3IjGcx3p9lP9KuOxc1GNi2zK1W7CMQzXuY2vdptJ0Do8WF91o4cHBPZqopeMKbr7QZlaM_hNZwWYQr3JPRF_BKARbfRpBMZKcLfbMtRXPCV_N5YO-MvZo9JVlw7rBghueu-FAh00rcCgGezUUwy9IxYDm00>
+
+<h2 id="Installing-the-Authenticator-Valve"><a href="#Installing-the-Authenticator-Valve" class="headerlink" title="Installing the Authenticator Valve"></a>Installing the Authenticator Valve</h2><p>login-config element 在 deployment 文件中只能出现一次，其中包含有 auth-method 元素。这意味着 context 中只能有一个 LoginConfig 实例并且只能有一个 authentication class 实现。</p>
+<table>
+<thead>
+<tr>
+<th align="left">Type</th>
+<th align="left">Impl</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">BASIC</td>
+<td align="left">BasicAuthenticator</td>
+</tr>
+<tr>
+<td align="left">FORM</td>
+<td align="left">FormAuthenticator</td>
+</tr>
+<tr>
+<td align="left">DIGEST</td>
+<td align="left">DigestAuthenticator</td>
+</tr>
+<tr>
+<td align="left">CLIENT-CERT</td>
+<td align="left">SSLAuthenticator</td>
+</tr>
+</tbody></table>
+<p>如果 auth-method 没有设置，就表示使用的是 NonLoginAuthenticator。org.apache.catalina.startup.ContextConfig 是 Context 的配置类，包含 authentication 信息。下面的例子中，我们使用 SimpleContextConfig 动态加载 BasicAuthenticator 作为 StandardContext 的配置项。</p>
+<h2 id="The-Applications"><a href="#The-Applications" class="headerlink" title="The Applications"></a>The Applications</h2><h3 id="Bootsrap1"><a href="#Bootsrap1" class="headerlink" title="Bootsrap1"></a>Bootsrap1</h3><p>第一个例子，没有使用配置文件，而是直接在 Bootstrap 类中做了设置。新建了一个 SimpleContextConfig，它是一个 Listener，添加到 context 的监听器列表中，当 context start 时，接受到 event 并配置 context</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Bootstrap1 中代码如下</span></span><br><span class="line">LifecycleListener listener = <span class="keyword">new</span> SimpleContextConfig();</span><br><span class="line">((Lifecycle) context).addLifecycleListener(listener);</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">((Lifecycle) context).start();</span><br></pre></td></tr></table></figure>
+
+<p>实现如下,  context start 后，event 触发，在 listener 中拿到对应的 context，并进行 auth 相关的设置，内容包括</p>
+<ul>
+<li>设置 login config</li>
+<li>设置 authenticator 到 context 的 pipeline</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SimpleContextConfig</span> <span class="keyword">implements</span> <span class="title">LifecycleListener</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Context context;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">lifecycleEvent</span><span class="params">(LifecycleEvent event)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (Lifecycle.START_EVENT.equals(event.getType())) &#123;</span><br><span class="line">            context = (Context) event.getLifecycle();</span><br><span class="line">            authenticatorConfig();</span><br><span class="line">            context.setConfigured(<span class="keyword">true</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">authenticatorConfig</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// Does this Context require an Authenticator?</span></span><br><span class="line">        SecurityConstraint constraints[] = context.findConstraints();</span><br><span class="line">        <span class="keyword">if</span> ((constraints == <span class="keyword">null</span>) || (constraints.length == <span class="number">0</span>))</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        LoginConfig loginConfig = context.getLoginConfig();</span><br><span class="line">        <span class="keyword">if</span> (loginConfig == <span class="keyword">null</span>) &#123;</span><br><span class="line">            loginConfig = <span class="keyword">new</span> LoginConfig(<span class="string">&quot;NONE&quot;</span>, <span class="keyword">null</span>, <span class="keyword">null</span>, <span class="keyword">null</span>);</span><br><span class="line">            context.setLoginConfig(loginConfig);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Has an authenticator been configured already?</span></span><br><span class="line">        Pipeline pipeline = ((StandardContext) context).getPipeline();</span><br><span class="line">        <span class="keyword">if</span> (pipeline != <span class="keyword">null</span>) &#123;</span><br><span class="line">            Valve basic = pipeline.getBasic();</span><br><span class="line">            <span class="keyword">if</span> ((basic != <span class="keyword">null</span>) &amp;&amp; (basic <span class="keyword">instanceof</span> Authenticator))</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            Valve valves[] = pipeline.getValves();</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; valves.length; i++) &#123;</span><br><span class="line">                <span class="keyword">if</span> (valves[i] <span class="keyword">instanceof</span> Authenticator)</span><br><span class="line">                    <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123; <span class="comment">// no Pipeline, cannot install authenticator valve</span></span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Has a Realm been configured for us to authenticate against?</span></span><br><span class="line">        <span class="keyword">if</span> (context.getRealm() == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Identify the class name of the Valve we should configure</span></span><br><span class="line">        String authenticatorName = <span class="string">&quot;org.apache.catalina.authenticator.BasicAuthenticator&quot;</span>;</span><br><span class="line">        <span class="comment">// Instantiate and install an Authenticator of the requested class</span></span><br><span class="line">        Valve authenticator = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            Class authenticatorClass = Class.forName(authenticatorName);</span><br><span class="line">            authenticator = (Valve) authenticatorClass.newInstance();</span><br><span class="line">            ((StandardContext) context).addValve(authenticator);</span><br><span class="line">            System.out.println(<span class="string">&quot;Added authenticator valve to Context&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Throwable t) &#123;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>接着在 Bootstrap1 中设置 security constraint 相关的配置. 这里指定了 constraint 中只有 role 是 manager 的可以访问</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// add constraint</span></span><br><span class="line">SecurityCollection securityCollection = <span class="keyword">new</span> SecurityCollection();</span><br><span class="line">securityCollection.addPattern(<span class="string">&quot;/&quot;</span>);</span><br><span class="line">securityCollection.addMethod(<span class="string">&quot;GET&quot;</span>);</span><br><span class="line"></span><br><span class="line">SecurityConstraint constraint = <span class="keyword">new</span> SecurityConstraint();</span><br><span class="line">constraint.addCollection(securityCollection);</span><br><span class="line">constraint.addAuthRole(<span class="string">&quot;manager&quot;</span>);</span><br><span class="line">LoginConfig loginConfig = <span class="keyword">new</span> LoginConfig();</span><br><span class="line">loginConfig.setRealmName(<span class="string">&quot;Simple Realm&quot;</span>);</span><br><span class="line"><span class="comment">// add realm</span></span><br><span class="line">Realm realm = <span class="keyword">new</span> SimpleRealm();</span><br><span class="line"></span><br><span class="line">context.setRealm(realm);</span><br><span class="line">context.addConstraint(constraint);</span><br><span class="line">context.setLoginConfig(loginConfig);</span><br></pre></td></tr></table></figure>
+
+<p>SimpleRealm 实现如下, 它其实就是模拟了一个内存中的 DB，当开启 security constrain 后，通过 GET 访问页面就会跳出验证弹窗。输入账户信息，就会调用到下面 authenticate() 方法中做判断了</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SimpleRealm</span> <span class="keyword">implements</span> <span class="title">Realm</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">SimpleRealm</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        createUserDatabase();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Container container;</span><br><span class="line">    <span class="keyword">private</span> ArrayList users = <span class="keyword">new</span> ArrayList();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Container <span class="title">getContainer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> container;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setContainer</span><span class="params">(Container container)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.container = container;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getInfo</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;A simple Realm implementation&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addPropertyChangeListener</span><span class="params">(PropertyChangeListener listener)</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Principal <span class="title">authenticate</span><span class="params">(String username, String credentials)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;SimpleRealm.authenticate()&quot;</span>);</span><br><span class="line">        <span class="keyword">if</span> (username == <span class="keyword">null</span> || credentials == <span class="keyword">null</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        User user = getUser(username, credentials);</span><br><span class="line">        <span class="keyword">if</span> (user == <span class="keyword">null</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> GenericPrincipal(<span class="keyword">this</span>, user.username, user.password, user.getRoles());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Principal <span class="title">authenticate</span><span class="params">(String username, <span class="keyword">byte</span>[] credentials)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Principal <span class="title">authenticate</span><span class="params">(String username, String digest, String nonce,</span></span></span><br><span class="line"><span class="function"><span class="params">                                  String nc, String cnonce, String qop, String realm, String md5a2)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Principal <span class="title">authenticate</span><span class="params">(X509Certificate certs[])</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">hasRole</span><span class="params">(Principal principal, String role)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> ((principal == <span class="keyword">null</span>) || (role == <span class="keyword">null</span>) ||</span><br><span class="line">                !(principal <span class="keyword">instanceof</span> GenericPrincipal))</span><br><span class="line">            <span class="keyword">return</span> (<span class="keyword">false</span>);</span><br><span class="line">        GenericPrincipal gp = (GenericPrincipal) principal;</span><br><span class="line">        <span class="keyword">if</span> (!(gp.getRealm() == <span class="keyword">this</span>))</span><br><span class="line">            <span class="keyword">return</span> (<span class="keyword">false</span>);</span><br><span class="line">        <span class="keyword">boolean</span> result = gp.hasRole(role);</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">removePropertyChangeListener</span><span class="params">(PropertyChangeListener listener)</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> User <span class="title">getUser</span><span class="params">(String username, String password)</span> </span>&#123;</span><br><span class="line">        Iterator iterator = users.iterator();</span><br><span class="line">        <span class="keyword">while</span> (iterator.hasNext()) &#123;</span><br><span class="line">            User user = (User) iterator.next();</span><br><span class="line">            <span class="keyword">if</span> (user.username.equals(username) &amp;&amp; user.password.equals(password))</span><br><span class="line">                <span class="keyword">return</span> user;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">createUserDatabase</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        User user1 = <span class="keyword">new</span> User(<span class="string">&quot;ken&quot;</span>, <span class="string">&quot;blackcomb&quot;</span>);</span><br><span class="line">        user1.addRole(<span class="string">&quot;manager&quot;</span>);</span><br><span class="line">        user1.addRole(<span class="string">&quot;programmer&quot;</span>);</span><br><span class="line">        User user2 = <span class="keyword">new</span> User(<span class="string">&quot;cindy&quot;</span>, <span class="string">&quot;bamboo&quot;</span>);</span><br><span class="line">        user2.addRole(<span class="string">&quot;programmer&quot;</span>);</span><br><span class="line"></span><br><span class="line">        users.add(user1);</span><br><span class="line">        users.add(user2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">User</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="title">User</span><span class="params">(String username, String password)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">this</span>.username = username;</span><br><span class="line">            <span class="keyword">this</span>.password = password;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">public</span> String username;</span><br><span class="line">        <span class="keyword">public</span> ArrayList roles = <span class="keyword">new</span> ArrayList();</span><br><span class="line">        <span class="keyword">public</span> String password;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addRole</span><span class="params">(String role)</span> </span>&#123;</span><br><span class="line">            roles.add(role);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> ArrayList <span class="title">getRoles</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> roles;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>启动服务器，当我们用 role 是 manager 的 user 去访问，页面显示正常，当我们用 programer 去访问，页面不显示</p>
+<p>流程大致描述如下</p>
+<ol>
+<li>启动 server 加载配置</li>
+<li>访问页面</li>
+<li>context 调用 pipeline</li>
+<li>pipeline 调用 valve</li>
+<li>调用 BasicAuthenticator 的 auth 方法验证 - 在 listener 中指定</li>
+</ol>
+<h2 id="Bootstrap2"><a href="#Bootstrap2" class="headerlink" title="Bootstrap2"></a>Bootstrap2</h2><p>第二个例子和第一个例子很想，唯一区别就是将 Realm 的配置指定到了 tomcat-users.xml 文件</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// add realm</span></span><br><span class="line">Realm realm = <span class="keyword">new</span> SimpleUserDatabaseRealm();</span><br><span class="line">((SimpleUserDatabaseRealm) realm).createDatabase(<span class="string">&quot;conf/tomcat-users.xml&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>SimpleUserDatabaseRealm 实现如下, 里面一个比较有意思的点是 MemoryUserDatabase 这个类，它会默认加载 conf/tomcat-users.xml 的内容，解析出来，格式是 hard code 的，挺有意思。逻辑和之前的基本一样，没什么新鲜的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SimpleUserDatabaseRealm</span> <span class="keyword">extends</span> <span class="title">RealmBase</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">protected</span> UserDatabase database = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">static</span> <span class="keyword">final</span> String name = <span class="string">&quot;SimpleUserDatabaseRealm&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">protected</span> String resourceName = <span class="string">&quot;UserDatabase&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Principal <span class="title">authenticate</span><span class="params">(String username, String credentials)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// Does a user with this username exist?</span></span><br><span class="line">        User user = database.findUser(username);</span><br><span class="line">        <span class="keyword">if</span> (user == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> (<span class="keyword">null</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Do the credentials specified by the user match?</span></span><br><span class="line">        <span class="comment">// FIXME - Update all realms to support encoded passwords</span></span><br><span class="line">        <span class="keyword">boolean</span> validated = <span class="keyword">false</span>;</span><br><span class="line">        <span class="keyword">if</span> (hasMessageDigest()) &#123;</span><br><span class="line">            <span class="comment">// Hex hashes should be compared case-insensitive</span></span><br><span class="line">            validated = (digest(credentials).equalsIgnoreCase(user.getPassword()));</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            validated = (digest(credentials).equals(user.getPassword()));</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (!validated) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        ArrayList combined = <span class="keyword">new</span> ArrayList();</span><br><span class="line">        Iterator roles = user.getRoles();</span><br><span class="line">        <span class="keyword">while</span> (roles.hasNext()) &#123;</span><br><span class="line">            Role role = (Role) roles.next();</span><br><span class="line">            String rolename = role.getRolename();</span><br><span class="line">            <span class="keyword">if</span> (!combined.contains(rolename)) &#123;</span><br><span class="line">                combined.add(rolename);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        Iterator groups = user.getGroups();</span><br><span class="line">        <span class="keyword">while</span> (groups.hasNext()) &#123;</span><br><span class="line">            Group group = (Group) groups.next();</span><br><span class="line">            roles = group.getRoles();</span><br><span class="line">            <span class="keyword">while</span> (roles.hasNext()) &#123;</span><br><span class="line">                Role role = (Role) roles.next();</span><br><span class="line">                String rolename = role.getRolename();</span><br><span class="line">                <span class="keyword">if</span> (!combined.contains(rolename)) &#123;</span><br><span class="line">                    combined.add(rolename);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> (<span class="keyword">new</span> GenericPrincipal(<span class="keyword">this</span>, user.getUsername(),</span><br><span class="line">                user.getPassword(), combined));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ------------------------------------------------------ Lifecycle Methods</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Prepare for active use of the public methods of this Component.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> Principal <span class="title">getPrincipal</span><span class="params">(String username)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (<span class="keyword">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> String <span class="title">getPassword</span><span class="params">(String username)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">createDatabase</span><span class="params">(String path)</span> </span>&#123;</span><br><span class="line">        database = <span class="keyword">new</span> MemoryUserDatabase(name);</span><br><span class="line">        ((MemoryUserDatabase) database).setPathname(path);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            database.open();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span> (Exception e)  &#123;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/09/10/HTW-ex09/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/09/10/HTW-ex09/" class="post-title-link" itemprop="url">Ex09 Session 管理</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-09-10 17:48:20" itemprop="dateCreated datePublished" datetime="2021-09-10T17:48:20+08:00">2021-09-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-10-11 10:39:59" itemprop="dateModified" datetime="2021-10-11T10:39:59+08:00">2021-10-11</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/Tomcat/" itemprop="url" rel="index">
+                    <span itemprop="name">Tomcat</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>505</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p><strong>Chapter 9</strong> discusses the manager, the component that manages sessions in session management. It explains the various types of managers and how a manager can persist session objects into a store. At the end of the chapter, you will learn how to build an application that uses a StandardManager instance to run a servlet that uses session objects to store values. </p>
+</blockquote>
+<p>PS: 本节实验失败了，页面显示不出来，追踪了一下，servlet 可以正常加载，但是执行 init() 方法的时候报错了。感觉可以先用之前的 javaweb 项目把这个页面显示出来，在看看问题。有可能是依赖有问题。</p>
+<p>主要知识点</p>
+<ul>
+<li>Session 相关的接口关系</li>
+<li>通过 Manager 管理 session</li>
+<li>实现了 Lifecycle 接口</li>
+<li>提供 swap out 功能，节省内存资源 - 长时间不用的 session 暂存</li>
+<li>持久化</li>
+</ul>
+<p>没什么成就感，暂时先记怎么多把</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/09/10/JVM-c9-class-loader-and-sub-system-execution-samples/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/09/10/JVM-c9-class-loader-and-sub-system-execution-samples/" class="post-title-link" itemprop="url">JVM c9 class loader and sub system execution samples</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-09-10 10:32:15" itemprop="dateCreated datePublished" datetime="2021-09-10T10:32:15+08:00">2021-09-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-10-11 10:39:59" itemprop="dateModified" datetime="2021-10-11T10:39:59+08:00">2021-10-11</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/JVM/" itemprop="url" rel="index">
+                    <span itemprop="name">JVM</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>代码编译的结果从本地机器码转为字节码，是存储格式发展的一小步，却是编程语言发展的一大步。</p>
+<h2 id="9-1-概述"><a href="#9-1-概述" class="headerlink" title="9.1 概述"></a>9.1 概述</h2><p>在 Class 文件格式与执行引擎这部分里，用户的程序能直接参与的内容并不多，Class 以何种格式存储，类型和施加在，如何连接，以及虚拟机如何执行字节码指令等都是由虚拟机直接控制的行为，用户程序无法对其进行改变。能操作的，主要是字节码生成与类加载两个部分的功能，但仅仅在如何处理这两点上，就已经出现了许多值得欣赏借鉴的思路，这些思路后来成为很多常用功能和程序实现的基础。</p>
+<h2 id="9-2-案例分析"><a href="#9-2-案例分析" class="headerlink" title="9.2 案例分析"></a>9.2 案例分析</h2><p>四个案例，关于类加载和字节码各两个。</p>
+<h3 id="9-2-1-Tomcat-正统的类加载架构"><a href="#9-2-1-Tomcat-正统的类加载架构" class="headerlink" title="9.2.1 Tomcat: 正统的类加载架构"></a>9.2.1 Tomcat: 正统的类加载架构</h3><p>主流的 Java Web 服务器，如 Tomcat, Jetty 等都实现了自己定义的类加载器，而且还不止一个。因为一个功能健全的 Web 服务器，都要解决如下这些问题：</p>
+<ul>
+<li>部署在同一个服务器上的两个 web 应用程序所使用的 Java 类库可以实现互相隔离。两个不同应用可能依赖同一个第三方类库的不同版本，不能要求每个类库在一个服务器中只能有一份，服务器应该能够保证两个独立应用程序的类库可以互相独立使用。</li>
+<li>部署在同一个服务器上的两个 web 应用所使用的 Java 类库可以互相共享。与前一个相反，但很常见，如用户可能有 10 个使用 Spring 的应用部署在统一台服务器，如果把 10 份 Spring 分别存在应用的隔离目录，将会很大的浪费资源。磁盘空间是其次，主要是良妃内存，很容易造成方法去过度膨胀的风险。</li>
+<li>服务器需要尽可能保证自身的安全不受部署的 Web 应用程序的影响。一般来说，给予安全考虑，服务器所使用的类库应该与程序类库相互独立。</li>
+<li>只是 JSP 应用的 Web 服务器，十有八九都需要支持 HotSwap 功能。JSP 由于其纯文本特性，修改几率远大于第三方类库和自己的 Class 文件。ASP，PHP 和 JSP 这些网页应用也将修改后无需重启作为优势来看待，因此，主流 Web 服务器都会支持 JSP 生成类的热替换。</li>
+</ul>
+<p>由于以上问题，不是 web 应用时，单独一个 ClassPath 就不能满足要求了，所以各种 web 服务器不约而同的提供了好几个不同还以的 ClassPath 路径供用户存放第三方类库。一般这些路径都以 lib 或 classes 命名。不同路径中的类库，具备不同的访问范围和服务对象，通常每个目录都会对应一个自定义类加载器去加载防止在里面的 Java 类库。下面以 Tomcat 为例，分析其规划。</p>
+<p>Tomcat 目录结构中，有三组目录可以设置，一组默认，供4组。分别是</p>
+<ul>
+<li>/common 目录，类库可被 Tomcat 和所有 Web 应用共同使用</li>
+<li>/server 目录，类库可被 Tomcat 使用，对所有 Web 应用不可见</li>
+<li>/shared 目录，类库可以被所有 Web 应用共同使用，对 Tomcat 不可见</li>
+<li>/WebApp/WEB-INF 目录，仅被该 Web 应用使用，对 Tomcat 和其他应用不可见</li>
+</ul>
+<img  src=http://www.plantuml.com/plantuml/svg/bPAnJiCm54LtVuKbvl81b0Kg5iG64WDYU8cVH91ZH_53z0Ew40c9eGmWLC5M9jI50TJFSS9du2HE98imPFEzyRt7yJCb996VwJG6Ab_kRV5cdzRLywBQVDlYzMUxBLUVvMh1cD82UHHBVi7imuSjrlqE5s27MfEX738-as0CFz4WC6UNFeTDhhnxjvl787Sq9rGcqMeu1otlQrajGzv1bid47VdVPEoIE-3sO2HlS2eJXNlzQbTe8XHJmZarheFCT9fg5K1QgwdlsdbN3-JA5Ooc-5p8yURmdvYnZDCho544XDOQxh_52B9iBEGS8pU30D9Qmv1hCvfmRC9wfp7_qrw_oFt9f7vX3FtQJOKny2AkHTo9VcozPUhlnelkBbX_ARNR7FuN>
+
+<p>实线节点是 JDK 自带加载起，虚线是 Tomcat 自建的加载器。Common类加载器，Catalina类加载器(也称为Server类加载器)，Shared类加载器和Webapp类加载器则是 Tomcat 自定义的类加载器，分别加载 /common/<em>, /server/</em>, shared/* 和 /WebApp/WEB-INF/* 中的 Java 类库。WebApp 类加载器和 JSP 类加载器通常还会有多个实例，每个 Web 应用对应一个 WebApp 类加载器，每个 JSP 文件对应一个 JasperLoader 类加载器。</p>
+<p>从图可以看出，Common 类加载器能加载的类都可以被 Catalina 类加载器和 Shared 类加载器使用，而 Catalina 类加载器和 Shared 类加载器自己能加载的类则与对方相互隔离。WebApp类加载器可以使用Shared类加载器加载到的类，但各个WebApp类加载器实例之间相互隔离。而JasperLoader的加载范围仅仅是这个JSP文件所编译出来的那一个Class文件，它存在的目的就是为了被丢弃：当服务器检测到JSP文件被修改时，会替换掉目前的JasperLoader的实例，并通过再建立一个新的JSP类加载器来实现JSP文件的HotSwap功能。</p>
+<p>上面讲的是 Tomcat6 之前的加载器架构，Tomcat6 之后对默认的目录结构做了简化，只有指定 tomcat/conf/catalina.properties 的 server.loader 和 share.loader 后才会真正建立 Catalina类加载器和Shared类加载器实例，否则用到的地方都会用 Common 类加载器实例代替，而默认的配置文件中没有设置这两项，所以 Tomcat6 之后顺理成章的把 /common, /server 和 /shared 三个目录合并在一起变成 /lib 目录，相当于之前的 /common 目录的作用，是 Tomcat 团队简化部署的一项改动。</p>
+<h3 id="9-2-2-OSGi：灵活的类加载器架构"><a href="#9-2-2-OSGi：灵活的类加载器架构" class="headerlink" title="9.2.2 OSGi：灵活的类加载器架构"></a>9.2.2 OSGi：灵活的类加载器架构</h3><p>没兴趣，用到再看</p>
+<h3 id="9-2-3-字节码生成技术与动态代理的实现"><a href="#9-2-3-字节码生成技术与动态代理的实现" class="headerlink" title="9.2.3 字节码生成技术与动态代理的实现"></a>9.2.3 字节码生成技术与动态代理的实现</h3><p>有兴趣，等 Tomcat 完结了再看，不过应该要先看完第八章的内容才行</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/09/03/JVM-c7-class-loader/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +620,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-09-20 19:53:13" itemprop="dateModified" datetime="2021-09-20T19:53:13+08:00">2021-09-20</time>
+                <time title="修改时间：2021-10-11 10:39:59" itemprop="dateModified" datetime="2021-10-11T10:39:59+08:00">2021-10-11</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -501,7 +884,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-09-20 19:53:13" itemprop="dateModified" datetime="2021-09-20T19:53:13+08:00">2021-09-20</time>
+                <time title="修改时间：2021-10-11 10:39:59" itemprop="dateModified" datetime="2021-10-11T10:39:59+08:00">2021-10-11</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -939,7 +1322,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-09-20 19:53:13" itemprop="dateModified" datetime="2021-09-20T19:53:13+08:00">2021-09-20</time>
+                <time title="修改时间：2021-10-11 10:39:59" itemprop="dateModified" datetime="2021-10-11T10:39:59+08:00">2021-10-11</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1050,7 +1433,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-09-20 19:53:13" itemprop="dateModified" datetime="2021-09-20T19:53:13+08:00">2021-09-20</time>
+                <time title="修改时间：2021-10-11 10:39:59" itemprop="dateModified" datetime="2021-10-11T10:39:59+08:00">2021-10-11</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1090,7 +1473,12 @@
 
       
           <p>目的：保证一个类只有一个实例，并提供一个访问他的全局访问点</p>
-<p>关键代码：构造函数私有化</p>
+<p>关键代码：</p>
+<ul>
+<li>构造函数<strong>私有化</strong></li>
+<li>私有静态变量</li>
+<li>对外的静态方法</li>
+</ul>
 <p>介绍几种单例模式的实现方式 - 有种回字的几种写法的意思，略无聊</p>
 <h2 id="懒汉式-线程不安全"><a href="#懒汉式-线程不安全" class="headerlink" title="懒汉式 - 线程不安全"></a>懒汉式 - 线程不安全</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton01</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Singleton01 instance;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Singleton01</span><span class="params">()</span></span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton01 <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">            instance = <span class="keyword">new</span> Singleton01();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> instance;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -1101,9 +1489,13 @@
 <h2 id="饿汉式-线程安全"><a href="#饿汉式-线程安全" class="headerlink" title="饿汉式 - 线程安全"></a>饿汉式 - 线程安全</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton03</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Singleton03 instance = <span class="keyword">new</span> Singleton03();</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Singleton03</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton03 <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> instance;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>实现简单，线程安全，通过 classloader 避免同步问题，缺点是类加载就初始化，浪费内存</p>
-<h2 id="双检锁-双重校验锁-DCL-double-checked-locking"><a href="#双检锁-双重校验锁-DCL-double-checked-locking" class="headerlink" title="双检锁/双重校验锁 DCL double-checked locking"></a>双检锁/双重校验锁 DCL double-checked locking</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton04</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="keyword">static</span> Singleton04 instance;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Singleton04</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton04 <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">synchronized</span> (Singleton04.class) &#123;</span><br><span class="line">                <span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">                    instance = <span class="keyword">new</span> Singleton04();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> instance;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="双检锁-双重校验锁-DCL-double-checked-locking"><a href="#双检锁-双重校验锁-DCL-double-checked-locking" class="headerlink" title="双检锁/双重校验锁 DCL double-checked locking"></a>双检锁/双重校验锁 DCL double-checked locking</h2><p>注意 volatile 的使用，避免指令重排</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton04</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="keyword">static</span> Singleton04 instance;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Singleton04</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton04 <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">synchronized</span> (Singleton04.class) &#123;</span><br><span class="line">                <span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">                    instance = <span class="keyword">new</span> Singleton04();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> instance;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>略显复杂，但是性能良好效率高，懒加载，线程安全 Java 1.5 后有效。</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/xz816111/p/8470048.html">CNBLOG</a></li>
+</ul>
 <h2 id="登记式-静态内部类"><a href="#登记式-静态内部类" class="headerlink" title="登记式/静态内部类"></a>登记式/静态内部类</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton05</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">SingletonHolder</span> </span>&#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Singleton05 INSTANCE = <span class="keyword">new</span> Singleton05();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Singleton05</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton05 <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> SingletonHolder.INSTANCE;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>实现简单，线程安全，懒加载。效果和双检锁一致。但是由于只在被使用时才通过 classloader 加载，效率回更高</p>
@@ -1160,7 +1552,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-09-20 19:53:13" itemprop="dateModified" datetime="2021-09-20T19:53:13+08:00">2021-09-20</time>
+                <time title="修改时间：2021-10-11 10:39:59" itemprop="dateModified" datetime="2021-10-11T10:39:59+08:00">2021-10-11</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1254,7 +1646,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/08/02/HTW-ex08/">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/08/02/HTW-ex08-classloader/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/hexo/images/jack.jpg">
@@ -1268,7 +1660,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
           
-            <a href="/hexo/2021/08/02/HTW-ex08/" class="post-title-link" itemprop="url">Ex08 类加载器</a>
+            <a href="/hexo/2021/08/02/HTW-ex08-classloader/" class="post-title-link" itemprop="url">Ex08 类加载器</a>
         </h1>
 
         <div class="post-meta">
@@ -1285,7 +1677,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-09-20 19:53:13" itemprop="dateModified" datetime="2021-09-20T19:53:13+08:00">2021-09-20</time>
+                <time title="修改时间：2021-10-11 10:39:59" itemprop="dateModified" datetime="2021-10-11T10:39:59+08:00">2021-10-11</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1456,7 +1848,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-09-20 19:53:13" itemprop="dateModified" datetime="2021-09-20T19:53:13+08:00">2021-09-20</time>
+                <time title="修改时间：2021-10-11 10:39:59" itemprop="dateModified" datetime="2021-10-11T10:39:59+08:00">2021-10-11</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1565,376 +1957,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/07/29/HTW-ex06/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/07/29/HTW-ex06/" class="post-title-link" itemprop="url">Ex06 生命周期</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-07-29 16:36:06" itemprop="dateCreated datePublished" datetime="2021-07-29T16:36:06+08:00">2021-07-29</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-09-20 19:53:13" itemprop="dateModified" datetime="2021-09-20T19:53:13+08:00">2021-09-20</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/Tomcat/" itemprop="url" rel="index">
-                    <span itemprop="name">Tomcat</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>4.3k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>4 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <blockquote>
-<p><strong>Chapter 6</strong> explains the Lifecycle interface.<br>This interface defines the lifecycle of a Catalina component and provides an elegant way of notifying other components of events that occur in that component.<br>In addition, the Lifecycle interface provides an elegant mechanism for starting and stopping all the components in Catalina by one single start/stop.</p>
-</blockquote>
-<p>Catalina 是由多个模块组成的，当 Catalina 启动时，这些模块也要一起启动，停止时也是。比如 destroy 所有的 servlet，将 session 存到二级缓存等。Catalina 通过 Lifecycle 接口管理这些事件。</p>
-<p>实现了 Lifecycle 的组件可以出发以下事件</p>
-<ul>
-<li>BEFORE_START_EVENT</li>
-<li>START_EVENT</li>
-<li>AFTER_START_EVENT</li>
-<li>BEFORE_STOP_EVENT</li>
-<li>STOP_EVENT</li>
-<li>AFTER_STOP_EVENT</li>
-</ul>
-<p>LifecycleEvent 这个接口表示上面这些事件。这些事件可以由 LifecycleListener 监听。本章会介绍上面这些类，介绍 LifecycleSupport，他可以帮助组件处理事件和监听器。</p>
-<p>理解本章的关键点是理解如下概念</p>
-<p>Lifecycle: 实现这个接口的 component 可以发送 event</p>
-<p>LifecycleEvent: 代表具体的 event 事件，比如 开始，停止之类的</p>
-<p>LifecycleListener: 监听事件的类</p>
-<p>LifecycleSupport: Util 类，提供简化处理事件的方法. 一个实现了 Lifecycle 的 class 如果要添加 Listener 就得内部创建一些容器，比如 ArrayList 管理这些 Listener。LifecycleSupport 就是用来代替这些容器的。</p>
-<h2 id="The-Lifecycle-Interface"><a href="#The-Lifecycle-Interface" class="headerlink" title="The Lifecycle Interface"></a>The Lifecycle Interface</h2><p>Catalina 允许一个 component 包含另一个 component。比如 container 可以包含 loader，manager 等。父组件需要管理子组件的起止。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Lifecycle</span> </span>&#123;</span><br><span class="line">    String START_EVENT = <span class="string">&quot;start&quot;</span>;</span><br><span class="line">    String BEFORE_START_EVENT = <span class="string">&quot;before_start&quot;</span>;</span><br><span class="line">    String AFTER_START_EVENT = <span class="string">&quot;after_start&quot;</span>;</span><br><span class="line">    String STOP_EVENT = <span class="string">&quot;stop&quot;</span>;</span><br><span class="line">    String BEFORE_STOP_EVENT = <span class="string">&quot;before_stop&quot;</span>;</span><br><span class="line">    String AFTER_STOP_EVENT = <span class="string">&quot;after_stop&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">addLifecycleListener</span><span class="params">(LifecycleListener var1)</span></span>;</span><br><span class="line"></span><br><span class="line">    LifecycleListener[] findLifecycleListeners();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">removeLifecycleListener</span><span class="params">(LifecycleListener var1)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">start</span><span class="params">()</span> <span class="keyword">throws</span> LifecycleException</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">stop</span><span class="params">()</span> <span class="keyword">throws</span> LifecycleException</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>start 和 stop 是其中的核心方法，component 提供对应的实现，parent component 可以 调用start/stop 方法。其他三个方法是用来监听事件的。</p>
-<h2 id="The-LifecycleEvent-Class"><a href="#The-LifecycleEvent-Class" class="headerlink" title="The LifecycleEvent Class"></a>The LifecycleEvent Class</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">LifecycleEvent</span> <span class="keyword">extends</span> <span class="title">EventObject</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">LifecycleEvent</span><span class="params">(Lifecycle lifecycle, String type)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>(lifecycle, type, <span class="keyword">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">LifecycleEvent</span><span class="params">(Lifecycle lifecycle, String type, Object data)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(lifecycle);</span><br><span class="line">        <span class="keyword">this</span>.lifecycle = lifecycle;</span><br><span class="line">        <span class="keyword">this</span>.type = type;</span><br><span class="line">        <span class="keyword">this</span>.data = data;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Object data = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Lifecycle lifecycle = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String type = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">getData</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (<span class="keyword">this</span>.data);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Lifecycle <span class="title">getLifecycle</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (<span class="keyword">this</span>.lifecycle);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getType</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (<span class="keyword">this</span>.type);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="The-LifecycleListener-Interface"><a href="#The-LifecycleListener-Interface" class="headerlink" title="The LifecycleListener Interface"></a>The LifecycleListener Interface</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">LifecycleListener</span> </span>&#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Acknowledge the occurrence of the specified event.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> event LifecycleEvent that has occurred</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">lifecycleEvent</span><span class="params">(LifecycleEvent event)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="The-LifecycleSupport-Class"><a href="#The-LifecycleSupport-Class" class="headerlink" title="The LifecycleSupport Class"></a>The LifecycleSupport Class</h2><p>这个 support 类内部声明了一个 Array 变量存储要操作的 Listener: <code>private LifecycleListener listeners[] = new LifecycleListener[0];</code>. 主就三个方法:</p>
-<ul>
-<li>addLifecycleListener</li>
-<li>findLifecycleListeners</li>
-<li>fireLifecycleEvent</li>
-<li>removeLifecycleListener</li>
-</ul>
-<p>addLifecycleListener(LifecycleListener listener) 被调用时，老的 listener list size + 1， 老的 listener 被拷贝，最后再加上新的这个 listener。</p>
-<p>removeLifecycleListener(LifecycleListener listener): 遍历所有的 listener 如果有则删除，最后新建一个 size - 1 的 list，将原来的 list 拷贝进去</p>
-<h2 id="The-Application"><a href="#The-Application" class="headerlink" title="The Application"></a>The Application</h2><p>实验环境是在 ex05 之上，删掉了额外 valves，context 实现了 Lifecycle 和 listener 接口。</p>
-<img  src=http://www.plantuml.com/plantuml/svg/Iyv9B2vMyCbCIqskJCv93IujACWlAk7Ap2j9BKfBJ4v5I64JyyaiBadDIotYua8tGS56Jqz1gRGujLX98JWpjo0drJaVgB-YX0YLuKM91GKeXYhOr00LuJ07MHAc5QjaG6P1QavcNYfsMP_yn1HSEg5s-gAx2-P_B6hnXP62dXrc6080>
-
-<p>启动项目可以看到如下 log</p>
-<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">HttpConnector Opening server socket on all host IP addresses</span><br><span class="line">HttpConnector[8080] Starting background thread</span><br><span class="line">SimpleContextLifecycleListener&#x27;s event before_start</span><br><span class="line">Starting SimpleLoader</span><br><span class="line">Starting Wrapper Primitive</span><br><span class="line">Starting Wrapper Modern</span><br><span class="line">SimpleContextLifecycleListener&#x27;s event start</span><br><span class="line">Starting context.</span><br><span class="line">SimpleContextLifecycleListener&#x27;s event after_start</span><br><span class="line"></span><br><span class="line">SimpleContextLifecycleListener&#x27;s event before_stop</span><br><span class="line">SimpleContextLifecycleListener&#x27;s event stop</span><br><span class="line">Stopping context.</span><br><span class="line">Stopping wrapper Primitive</span><br><span class="line">Stopping wrapper Modern</span><br><span class="line">SimpleContextLifecycleListener&#x27;s event after_stop</span><br></pre></td></tr></table></figure>
-
-<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>Q: SimpleContext 中 fire 的 event 是什么时候被 listener 执行的，代码在哪里</p>
-<p>A: 在 SimpleContext 的 start() 里。但是和我臆想的事件处理不同，感觉这最多是个伪事件。我本以为他会有一个多线程之类的东西。<br>实际处理的时候，start() 方法一开始就通过 support 发出了一个 before 的 event，support 发送的时候会调用 listener 实现对应的逻辑。说到底还是串行操作。</p>
-<p>Q: 这个 event 和 listener 是不是用了观察这模式啊，复习一下</p>
-<p>A: 貌似没有，没看出来</p>
-<h2 id="解构"><a href="#解构" class="headerlink" title="解构"></a>解构</h2><p>复盘一下这个 Lifecycle 的原理。Tomcat 提供了一个机制，通过套娃的方式，让所有相关的组件知道某个事件发生了，并让他可以采取相应的动作。</p>
-<p>PS: 解构的时候才注意到，start() 和 stop() 方法中操作的 component 对象，顺序上是相反的，666</p>
-<p>这里当 event 发生时，有两种对象需要进行操作，一种是 Component，代表 Tomcat 里的 service 组件。另一种是 Listener，我的理解是，独立于 Tomcat 之外的一些 service，比如 log 之类的东西。</p>
-<p>Listener 说白了就是定义了一个接口，接受 event 作为参数，实现中通过 if-else 判断 event 类型并采取对应的行为</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">LifecycleListener</span> </span>&#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Acknowledge the occurrence of the specified event.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> event LifecycleEvent that has occurred</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">lifecycleEvent</span><span class="params">(LifecycleEvent event)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>没有理解透彻，不能很顺利的重构出这个模型，但是理解层面的话已经做到了。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/07/28/What-is-IPv6/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/07/28/What-is-IPv6/" class="post-title-link" itemprop="url">What is IPv6</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-07-28 11:30:31" itemprop="dateCreated datePublished" datetime="2021-07-28T11:30:31+08:00">2021-07-28</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-09-20 19:53:13" itemprop="dateModified" datetime="2021-09-20T19:53:13+08:00">2021-09-20</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/What/" itemprop="url" rel="index">
-                    <span itemprop="name">What</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>985</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="What-is-IPv6"><a href="#What-is-IPv6" class="headerlink" title="What is IPv6"></a>What is IPv6</h2><p>Internet Protocol version 6: 网际协议第六版，用于解决 IPv4 地址枯竭的问题</p>
-<p><strong>格式:</strong> IPv6二进位制下为128位长度，以16位为一组，每组以冒号“:”隔开，可以分为8组，每组以4位十六进制方式表示。例如：2001:0db8:86a3:08d3:1319:8a2e:0370:7344 是一个合法的IPv6地址。</p>
-<p>同时IPv6在某些条件下可以省略：</p>
-<p>每项数字前导的0可以省略，省略后前导数字仍是0则继续，例如下组IPv6是等价的。</p>
-<ul>
-<li>2001:0db8:02de:0000:0000:0000:0000:0e13</li>
-<li>2001:db8:2de:0000:0000:0000:0000:e13</li>
-<li>2001:db8:2de:000:000:000:000:e13</li>
-<li>2001:db8:2de:00:00:00:00:e13</li>
-<li>2001:db8:2de:0:0:0:0:e13</li>
-</ul>
-<p>可以用双冒号“::”表示一组0或多组连续的0，但只能出现一次：如果四组数字都是零，可以被省略。遵照以上省略规则，下面这两组IPv6都是相等的。</p>
-<ul>
-<li>2001:db8:2de:0:0:0:0:e13</li>
-<li>2001:db8:2de::e13</li>
-<li>2001:0db8:0000:0000:0000:0000:1428:57ab</li>
-<li>2001:0db8:0000:0000:0000::1428:57ab</li>
-<li>2001:0db8:0:0:0:0:1428:57ab</li>
-<li>2001:0db8:0::0:1428:57ab</li>
-<li>2001:0db8::1428:57ab</li>
-</ul>
-<p>2001::25de::cade 是非法的，因为双冒号出现了两次。它有可能是下种情形之一，造成无法推断。</p>
-<ul>
-<li>2001:0000:0000:0000:0000:25de:0000:cade</li>
-<li>2001:0000:0000:0000:25de:0000:0000:cade</li>
-<li>2001:0000:0000:25de:0000:0000:0000:cade</li>
-<li>2001:0000:25de:0000:0000:0000:0000:cade</li>
-</ul>
-<p>如果这个地址实际上是IPv4的地址，后32位可以用10进制数表示；因此::ffff:192.168.89.9 相等于::ffff:c0a8:5909。另外，::ffff:1.2.3.4 格式叫做IPv4映射地址。</p>
-<h2 id="How-to-test"><a href="#How-to-test" class="headerlink" title="How to test"></a>How to test</h2><p>本地怎么模拟一个 IPv6 的地址做测试？</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/07/23/Design-pattern-chain-of-responsibility/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/07/23/Design-pattern-chain-of-responsibility/" class="post-title-link" itemprop="url">责任链模式</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-07-23 13:47:46" itemprop="dateCreated datePublished" datetime="2021-07-23T13:47:46+08:00">2021-07-23</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-09-20 19:53:13" itemprop="dateModified" datetime="2021-09-20T19:53:13+08:00">2021-09-20</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index">
-                    <span itemprop="name">设计模式</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>5.5k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>5 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <blockquote>
-<p>避免请求发送者和接受者的耦合，让多个对象都有可能接受请求，将这些对象连成一条链，并且沿着这条链传递请求，直到有对象处理它为止</p>
-</blockquote>
-<p>典型应用：</p>
-<ul>
-<li>JS 中的冒泡事件</li>
-<li>tomcat 中对 Encoding 的处理</li>
-<li>servlet 的 filter</li>
-</ul>
-<img  src=http://www.plantuml.com/plantuml/svg/Iyv9B2vMy4ZCIyb9BLAevkBKXR6BIvEJKukByuku5810EmCi79HQM9fQNAAXoLNBnUMSavcQLwAWPmVJpmNJgmJNhAIGhukGXokmgT7LLN3EpqikIaqiIOMAEkANTW80>
-
-<ul>
-<li>Handler(抽象处理者): 定义一个处理请求的接口，提供对后续处理者的引用</li>
-<li>ConcreteHandler(具体处理者): 抽象处理者的子类，处理用户请求，可选择将请求处理掉或者传给下家；在具体处理者中可以访问链中的下一个对象，以便请求的转发。</li>
-</ul>
-<h2 id="Handler-示例"><a href="#Handler-示例" class="headerlink" title="Handler 示例"></a>Handler 示例</h2><p>示例描述：定义一个 handler 的抽象类以及三个对应的实现类。抽象类中定义 handleRequest() 方法作为统一的处理入口，最后创建一个 ChainClient 建立处理链并测试</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">AbstractHandler</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> AbstractHandler handler;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">handleRequest</span><span class="params">(String condition)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> AbstractHandler <span class="title">getHandler</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> handler;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setHandler</span><span class="params">(AbstractHandler handler)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.handler = handler;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ConcreteHandlerA</span> <span class="keyword">extends</span> <span class="title">AbstractHandler</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handleRequest</span><span class="params">(String condition)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (condition.equals(<span class="string">&quot;A&quot;</span>)) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Concrete Handler A processed...&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Concrete Handler A can&#x27;t process, call other handler...&quot;</span>);</span><br><span class="line">            getHandler().handleRequest(condition);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ConcreteHandlerB</span> <span class="keyword">extends</span> <span class="title">AbstractHandler</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handleRequest</span><span class="params">(String condition)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (condition.equals(<span class="string">&quot;B&quot;</span>)) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Concrete Handler B processed...&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Concrete Handler B can&#x27;t process, call other handler...&quot;</span>);</span><br><span class="line">            getHandler().handleRequest(condition);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ConcreteHandlerZ</span> <span class="keyword">extends</span> <span class="title">AbstractHandler</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handleRequest</span><span class="params">(String condition)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 一般就是最后一个处理器</span></span><br><span class="line">        System.out.println(<span class="string">&quot;Concrete handler z processed...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ChainClient</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        AbstractHandler handlerA = <span class="keyword">new</span> ConcreteHandlerA();</span><br><span class="line">        AbstractHandler handlerB = <span class="keyword">new</span> ConcreteHandlerB();</span><br><span class="line">        AbstractHandler handlerZ = <span class="keyword">new</span> ConcreteHandlerZ();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 设置链顺序</span></span><br><span class="line">        handlerA.setHandler(handlerB);</span><br><span class="line">        handlerB.setHandler(handlerZ);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;--------------- handle A ---------------&quot;</span>);</span><br><span class="line">        handlerA.handleRequest(<span class="string">&quot;A&quot;</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;--------------- handle B ---------------&quot;</span>);</span><br><span class="line">        handlerA.handleRequest(<span class="string">&quot;B&quot;</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;--------------- handle Z ---------------&quot;</span>);</span><br><span class="line">        handlerA.handleRequest(<span class="string">&quot;Z&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 执行结果</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">// --------------- handle A ---------------</span></span><br><span class="line"><span class="comment">// Concrete Handler A processed...</span></span><br><span class="line"><span class="comment">// --------------- handle B ---------------</span></span><br><span class="line"><span class="comment">// Concrete Handler A can&#x27;t process, call other handler...</span></span><br><span class="line"><span class="comment">// Concrete Handler B processed...</span></span><br><span class="line"><span class="comment">// --------------- handle Z ---------------</span></span><br><span class="line"><span class="comment">// Concrete Handler A can&#x27;t process, call other handler...</span></span><br><span class="line"><span class="comment">// Concrete Handler B can&#x27;t process, call other handler...</span></span><br><span class="line"><span class="comment">// Concrete handler z processed...</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="Log-示例"><a href="#Log-示例" class="headerlink" title="Log 示例"></a>Log 示例</h2><p>目标：实现一个 log 机制，当 log level 比当前 log 类的 level 高是，记录它</p>
-<p>这个示例的套路和上一个很类似，但是它把处理逻辑固定了，在抽象类中做了实现，每个具体的类只定制自己的 write 行为即可，和上一个在思路上有些许的不同</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">AbstractLogger</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> INFO = <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> DEBUG = <span class="number">2</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> ERROR = <span class="number">3</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">int</span> level;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//责任链中的下一个元素</span></span><br><span class="line">    <span class="keyword">protected</span> AbstractLogger nextLogger;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setNextLogger</span><span class="params">(AbstractLogger nextLogger)</span></span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.nextLogger = nextLogger;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">logMessage</span><span class="params">(<span class="keyword">int</span> level, String message)</span></span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(<span class="keyword">this</span>.level &lt;= level)&#123;</span><br><span class="line">            write(message);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(nextLogger !=<span class="keyword">null</span>)&#123;</span><br><span class="line">            nextLogger.logMessage(level, message);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">abstract</span> <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">write</span><span class="params">(String message)</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ConsoleLogger</span> <span class="keyword">extends</span> <span class="title">AbstractLogger</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ConsoleLogger</span><span class="params">(<span class="keyword">int</span> level)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.level = level;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">write</span><span class="params">(String message)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Standard Console::Logger: &quot;</span> + message);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ErrorLogger</span>  <span class="keyword">extends</span> <span class="title">AbstractLogger</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ErrorLogger</span><span class="params">(<span class="keyword">int</span> level)</span></span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.level = level;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">write</span><span class="params">(String message)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Error Console::Logger: &quot;</span> + message);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FileLogger</span> <span class="keyword">extends</span> <span class="title">AbstractLogger</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">FileLogger</span><span class="params">(<span class="keyword">int</span> level)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.level = level;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">write</span><span class="params">(String message)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;File::Logger: &quot;</span> + message);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ChainPatternDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> AbstractLogger <span class="title">getChainOfLoggers</span><span class="params">()</span></span>&#123;</span><br><span class="line"></span><br><span class="line">        AbstractLogger errorLogger = <span class="keyword">new</span> ErrorLogger(AbstractLogger.ERROR);</span><br><span class="line">        AbstractLogger fileLogger = <span class="keyword">new</span> FileLogger(AbstractLogger.DEBUG);</span><br><span class="line">        AbstractLogger consoleLogger = <span class="keyword">new</span> ConsoleLogger(AbstractLogger.INFO);</span><br><span class="line"></span><br><span class="line">        errorLogger.setNextLogger(fileLogger);</span><br><span class="line">        fileLogger.setNextLogger(consoleLogger);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> errorLogger;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        AbstractLogger loggerChain = getChainOfLoggers();</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;--------------- handle info ---------------&quot;</span>);</span><br><span class="line">        loggerChain.logMessage(AbstractLogger.INFO, <span class="string">&quot;This is an information.&quot;</span>);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;--------------- handle debug ---------------&quot;</span>);</span><br><span class="line">        loggerChain.logMessage(AbstractLogger.DEBUG, <span class="string">&quot;This is a debug level information.&quot;</span>);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;--------------- handle Error ---------------&quot;</span>);</span><br><span class="line">        loggerChain.logMessage(AbstractLogger.ERROR, <span class="string">&quot;This is an error information.&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// --------------- handle info ---------------</span></span><br><span class="line"><span class="comment">// Standard Console::Logger: This is an information.</span></span><br><span class="line"><span class="comment">// --------------- handle debug ---------------</span></span><br><span class="line"><span class="comment">// File::Logger: This is a debug level information.</span></span><br><span class="line"><span class="comment">// Standard Console::Logger: This is a debug level information.</span></span><br><span class="line"><span class="comment">// --------------- handle Error ---------------</span></span><br><span class="line"><span class="comment">// Error Console::Logger: This is an error information.</span></span><br><span class="line"><span class="comment">// File::Logger: This is an error information.</span></span><br><span class="line"><span class="comment">// Standard Console::Logger: This is an error information.</span></span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1985,7 +2007,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">191</span>
+          <span class="site-state-item-count">194</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1998,7 +2020,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">169</span>
+        <span class="site-state-item-count">174</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -2037,7 +2059,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">15:44</span>
+    <span title="站点阅读时长">15:47</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
