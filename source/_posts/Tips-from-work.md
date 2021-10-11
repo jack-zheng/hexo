@@ -129,3 +129,7 @@ SF 上也给出了其他的解，可以用 `echo prefix*` 达到同样的效果
 遇到 bug 没关系，但是有些 bug 调查起来就是揪心。特别是那些，你在他们的调用链里。他很把锅甩给你，你还实锤不了他的这种情况。
 
 Best Practice 说他们有个功能挂了，调用链如下 service(service1() -> myService2() -> service3()),  service3 挂了，整个 transaction roll back, myService2 执行完有一个 event 会发出去。现在的情况是 myService2 roll back 了，但是据说 event 还被消费了。整的我一脸问号。event 我们也是调用的其他模块的服务，不熟。调用方的代码，我们也不熟。我就直接黑人问号了？？？
+
+## 2021-09-22
+
+今天和 PM 讨论一个 last minutes 修改，只是改一个网站的地址(Prov Access Contral - HCM to HXM)。从我(开发)的角度来看，只是一个无所谓的改动，看了下代码，只是 5 分钟的改动。和 PM confirm 的时候，她反问了一句，这个新网址是不是已经上线了，老的是不是已经下线了。突然意识到，这是个很关键的问题，直接关系到 fix 的优先级，之前没考虑到。姜还是老的辣，哈哈，受教。

@@ -5,11 +5,17 @@ categories:
 - 设计模式 
 tags:
 - Design Pattern
+- 应试
+- 剑指 offer
 ---
 
 目的：保证一个类只有一个实例，并提供一个访问他的全局访问点
 
-关键代码：构造函数私有化
+关键代码：
+
+* 构造函数**私有化**
+* 私有静态变量
+* 对外的静态方法
 
 介绍几种单例模式的实现方式 - 有种回字的几种写法的意思，略无聊
 
@@ -66,6 +72,8 @@ public class Singleton03 {
 
 ## 双检锁/双重校验锁 DCL double-checked locking
 
+注意 volatile 的使用，避免指令重排
+
 ```java
 public class Singleton04 {
     private volatile static Singleton04 instance;
@@ -85,6 +93,8 @@ public class Singleton04 {
 ```
 
 略显复杂，但是性能良好效率高，懒加载，线程安全 Java 1.5 后有效。
+
+* [CNBLOG](https://www.cnblogs.com/xz816111/p/8470048.html)
 
 ## 登记式/静态内部类
 

@@ -73,6 +73,14 @@ git reset --hard HEAD~1 # 同时将改动也去掉
 git checkout origin/master -- /path/to/file
 ```
 
+## 将远端删除的文件找回来
+
+```bash
+git log -- /path/of/deleted/file # 找到删除 commit 的前一个 commit number
+
+git checkout pre-commit-num -- /path/of/deleted/file
+```
+
 ## 将 git add, commit 合并到一个命令中
 
 > [StackOverflow: git-add-and-commit-in-one-command](https://stackoverflow.com/questions/4298960/git-add-and-commit-in-one-command)

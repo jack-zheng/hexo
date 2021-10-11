@@ -1,13 +1,11 @@
 ---
-title: No sleep night
+title: 码农生活小记 之 无眠的夜
 date: 2020-11-27 11:13:52
 categories:
 - 杂记
 tags:
 - 吐槽
 ---
-
-码农生活小记
 
 ## 2020-11-27
 
