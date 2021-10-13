@@ -1,5 +1,5 @@
 ---
-title: Algorithm merge sort
+title: 归并排序
 date: 2021-04-28 14:02:39
 categories:
 - 算法
