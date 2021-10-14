@@ -302,24 +302,6 @@
       </tags>
   </entry>
   <entry>
-    <title>归并排序</title>
-    <url>/hexo/2021/04/28/Algorithm-merge-sort/</url>
-    <content><![CDATA[<p>采用分治(Divide and Conquer)的思想，解题思路如下：</p>
-<ol>
-<li>先将整个数组分为有序数组(对半分，直到长度为1)</li>
-<li>两两合并，并确保合并后的数组有序 - 二路归并</li>
-<li>重复直到所有数组合并完成</li>
-</ol>
-<p>时间复杂度 O(nlog<sup>n</sup>)</p>
-<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"><span class="keyword">import</span> java.util.Random;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MergeSort</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] sample = <span class="keyword">new</span> Random().ints(<span class="number">0</span>, <span class="number">100</span>).limit(<span class="number">10</span>).toArray();</span><br><span class="line">        System.out.println(<span class="string">&quot;Origin: &quot;</span> + Arrays.toString(sample));</span><br><span class="line"></span><br><span class="line">        mergeSort(sample, <span class="number">0</span>, sample.length - <span class="number">1</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;Origin: &quot;</span> + Arrays.toString(sample));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">mergeSort</span><span class="params">(<span class="keyword">int</span>[] sample, <span class="keyword">int</span> low, <span class="keyword">int</span> high)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 结束条件</span></span><br><span class="line">        <span class="keyword">if</span> (low &gt;= high)</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        <span class="comment">// 对半分</span></span><br><span class="line">        <span class="keyword">int</span> mid = (low + high) / <span class="number">2</span>;</span><br><span class="line">        <span class="comment">// 分别对两个子数组做归并排序</span></span><br><span class="line">        mergeSort(sample, low, mid);</span><br><span class="line">        mergeSort(sample, mid + <span class="number">1</span>, high);</span><br><span class="line">        <span class="comment">// 合并两个子数组</span></span><br><span class="line">        merge(sample, low, mid, high);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">merge</span><span class="params">(<span class="keyword">int</span>[] sample, <span class="keyword">int</span> low, <span class="keyword">int</span> mid, <span class="keyword">int</span> high)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 声明零时数组存放排序结果</span></span><br><span class="line">        <span class="keyword">int</span>[] tmp = <span class="keyword">new</span> <span class="keyword">int</span>[high - low + <span class="number">1</span>];</span><br><span class="line">        <span class="keyword">int</span> i = low, j = mid + <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">int</span> index = <span class="number">0</span>;</span><br><span class="line">        <span class="comment">// 比较两个子数组的最值，并放到临时数组中</span></span><br><span class="line">        <span class="keyword">while</span> (i &lt;= mid &amp;&amp; j &lt;= high) &#123;</span><br><span class="line">            <span class="keyword">if</span> (sample[i] &lt; sample[j]) &#123;</span><br><span class="line">                tmp[index++] = sample[i++];</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                tmp[index++] = sample[j++];</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 将子数组剩余值放入临时数组中，经过上一步之后其中一个数组已经空了，所以下面两个 while 先后顺序没关系</span></span><br><span class="line">        <span class="keyword">while</span> (i &lt;= mid) &#123;</span><br><span class="line">            tmp[index++] = sample[i++];</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (j &lt;= high) &#123;</span><br><span class="line">            tmp[index++] = sample[j++];</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 将临时数组中的结果覆盖到原数组中</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> pos = <span class="number">0</span>; pos &lt; tmp.length; pos++) &#123;</span><br><span class="line">            sample[low + pos] = tmp[pos];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>算法</category>
-      </categories>
-      <tags>
-        <tag>归并排序</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>快速排序</title>
     <url>/hexo/2021/04/08/Algorithm-quick-sort/</url>
     <content><![CDATA[<p>分而治之（divide and conquer，D&amp;C）- 种著名的递归式问题解决方法</p>
@@ -363,6 +345,24 @@
       </tags>
   </entry>
   <entry>
+    <title>归并排序</title>
+    <url>/hexo/2021/04/28/Algorithm-merge-sort/</url>
+    <content><![CDATA[<p>采用分治(Divide and Conquer)的思想，解题思路如下：</p>
+<ol>
+<li>先将整个数组分为有序数组(对半分，直到长度为1)</li>
+<li>两两合并，并确保合并后的数组有序 - 二路归并</li>
+<li>重复直到所有数组合并完成</li>
+</ol>
+<p>时间复杂度 O(nlog<sup>n</sup>)</p>
+<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"><span class="keyword">import</span> java.util.Random;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MergeSort</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] sample = <span class="keyword">new</span> Random().ints(<span class="number">0</span>, <span class="number">100</span>).limit(<span class="number">10</span>).toArray();</span><br><span class="line">        System.out.println(<span class="string">&quot;Origin: &quot;</span> + Arrays.toString(sample));</span><br><span class="line"></span><br><span class="line">        mergeSort(sample, <span class="number">0</span>, sample.length - <span class="number">1</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;Origin: &quot;</span> + Arrays.toString(sample));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">mergeSort</span><span class="params">(<span class="keyword">int</span>[] sample, <span class="keyword">int</span> low, <span class="keyword">int</span> high)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 结束条件</span></span><br><span class="line">        <span class="keyword">if</span> (low &gt;= high)</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        <span class="comment">// 对半分</span></span><br><span class="line">        <span class="keyword">int</span> mid = (low + high) / <span class="number">2</span>;</span><br><span class="line">        <span class="comment">// 分别对两个子数组做归并排序</span></span><br><span class="line">        mergeSort(sample, low, mid);</span><br><span class="line">        mergeSort(sample, mid + <span class="number">1</span>, high);</span><br><span class="line">        <span class="comment">// 合并两个子数组</span></span><br><span class="line">        merge(sample, low, mid, high);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">merge</span><span class="params">(<span class="keyword">int</span>[] sample, <span class="keyword">int</span> low, <span class="keyword">int</span> mid, <span class="keyword">int</span> high)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 声明零时数组存放排序结果</span></span><br><span class="line">        <span class="keyword">int</span>[] tmp = <span class="keyword">new</span> <span class="keyword">int</span>[high - low + <span class="number">1</span>];</span><br><span class="line">        <span class="keyword">int</span> i = low, j = mid + <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">int</span> index = <span class="number">0</span>;</span><br><span class="line">        <span class="comment">// 比较两个子数组的最值，并放到临时数组中</span></span><br><span class="line">        <span class="keyword">while</span> (i &lt;= mid &amp;&amp; j &lt;= high) &#123;</span><br><span class="line">            <span class="keyword">if</span> (sample[i] &lt; sample[j]) &#123;</span><br><span class="line">                tmp[index++] = sample[i++];</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                tmp[index++] = sample[j++];</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 将子数组剩余值放入临时数组中，经过上一步之后其中一个数组已经空了，所以下面两个 while 先后顺序没关系</span></span><br><span class="line">        <span class="keyword">while</span> (i &lt;= mid) &#123;</span><br><span class="line">            tmp[index++] = sample[i++];</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (j &lt;= high) &#123;</span><br><span class="line">            tmp[index++] = sample[j++];</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 将临时数组中的结果覆盖到原数组中</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> pos = <span class="number">0</span>; pos &lt; tmp.length; pos++) &#123;</span><br><span class="line">            sample[low + pos] = tmp[pos];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>算法</category>
+      </categories>
+      <tags>
+        <tag>归并排序</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>基数排序</title>
     <url>/hexo/2021/05/10/Algorithm-radix-sort/</url>
     <content><![CDATA[<p>算法描述：</p>
@@ -386,6 +386,24 @@
       <tags>
         <tag>基数排序</tag>
         <tag>radix sort</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>选择排序</title>
+    <url>/hexo/2021/04/20/Algorithm-selection-sort/</url>
+    <content><![CDATA[<p>算法描述</p>
+<ol>
+<li>首先在未排序序列中找到最小（大）元素，存放到排序序列的起始位置。</li>
+<li>再从剩余未排序元素中继续寻找最小（大）元素，然后放到已排序序列的末尾。</li>
+<li>重复第二步，直到所有元素均排序完毕。</li>
+</ol>
+<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SelectionSortDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] sample = <span class="keyword">new</span> Random().ints(<span class="number">0</span>, <span class="number">100</span>).limit(<span class="number">10</span>).toArray();</span><br><span class="line">        System.out.println(<span class="string">&quot;Origin: &quot;</span> + Arrays.toString(sample));</span><br><span class="line"></span><br><span class="line">        selectionSort(sample);</span><br><span class="line">        System.out.println(<span class="string">&quot;After:  &quot;</span> + Arrays.toString(sample));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">selectionSort</span><span class="params">(<span class="keyword">int</span>[] sample)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; sample.length - <span class="number">1</span>; i++) &#123;</span><br><span class="line">            <span class="keyword">int</span> max_idx = i;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> j = i; j &lt; sample.length; j++) &#123; <span class="comment">// 这里注意一下，是对整个数组做 selection，所以为 sample.length, 如果写为 sample.length-1 则最后一个元素会跳过排序</span></span><br><span class="line">                <span class="keyword">if</span> (sample[max_idx] &lt; sample[j]) &#123;</span><br><span class="line">                    max_idx = j;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (max_idx != i) &#123;</span><br><span class="line">                swap(sample, i, max_idx);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">swap</span><span class="params">(<span class="keyword">int</span>[] sample, <span class="keyword">int</span> i, <span class="keyword">int</span> j)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> tmp = sample[i];</span><br><span class="line">        sample[i] = sample[j];</span><br><span class="line">        sample[j] = tmp;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// Origin: [32, 47, 97, 16, 3, 81, 61, 78, 43, 65]</span></span><br><span class="line"><span class="comment">// After:  [97, 81, 78, 65, 61, 47, 43, 32, 16, 3]</span></span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>算法</category>
+      </categories>
+      <tags>
+        <tag>选择排序</tag>
       </tags>
   </entry>
   <entry>
@@ -421,24 +439,6 @@
       <tags>
         <tag>链表反转</tag>
         <tag>interview</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>选择排序</title>
-    <url>/hexo/2021/04/20/Algorithm-selection-sort/</url>
-    <content><![CDATA[<p>算法描述</p>
-<ol>
-<li>首先在未排序序列中找到最小（大）元素，存放到排序序列的起始位置。</li>
-<li>再从剩余未排序元素中继续寻找最小（大）元素，然后放到已排序序列的末尾。</li>
-<li>重复第二步，直到所有元素均排序完毕。</li>
-</ol>
-<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SelectionSortDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] sample = <span class="keyword">new</span> Random().ints(<span class="number">0</span>, <span class="number">100</span>).limit(<span class="number">10</span>).toArray();</span><br><span class="line">        System.out.println(<span class="string">&quot;Origin: &quot;</span> + Arrays.toString(sample));</span><br><span class="line"></span><br><span class="line">        selectionSort(sample);</span><br><span class="line">        System.out.println(<span class="string">&quot;After:  &quot;</span> + Arrays.toString(sample));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">selectionSort</span><span class="params">(<span class="keyword">int</span>[] sample)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; sample.length - <span class="number">1</span>; i++) &#123;</span><br><span class="line">            <span class="keyword">int</span> max_idx = i;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> j = i; j &lt; sample.length; j++) &#123; <span class="comment">// 这里注意一下，是对整个数组做 selection，所以为 sample.length, 如果写为 sample.length-1 则最后一个元素会跳过排序</span></span><br><span class="line">                <span class="keyword">if</span> (sample[max_idx] &lt; sample[j]) &#123;</span><br><span class="line">                    max_idx = j;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (max_idx != i) &#123;</span><br><span class="line">                swap(sample, i, max_idx);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">swap</span><span class="params">(<span class="keyword">int</span>[] sample, <span class="keyword">int</span> i, <span class="keyword">int</span> j)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> tmp = sample[i];</span><br><span class="line">        sample[i] = sample[j];</span><br><span class="line">        sample[j] = tmp;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// Origin: [32, 47, 97, 16, 3, 81, 61, 78, 43, 65]</span></span><br><span class="line"><span class="comment">// After:  [97, 81, 78, 65, 61, 47, 43, 32, 16, 3]</span></span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>算法</category>
-      </categories>
-      <tags>
-        <tag>选择排序</tag>
       </tags>
   </entry>
   <entry>
@@ -958,6 +958,52 @@
       </tags>
   </entry>
   <entry>
+    <title>代理模式</title>
+    <url>/hexo/2020/10/12/Design-pattern-proxy/</url>
+    <content><![CDATA[<p>记录一下代理模式的学习路径。代理模式常用的两种形式：静态代理，动态代理。其中，动态代理在两个国民级框架 mybatis 和 spring 中都有用到。</p>
+<p>代理模式的定义：为其他对象提供一种代理以控制对这个对象的访问。在某些情况下，一个对象不适合或者不能直接引用另一个对象，而代理对象可以在客户端和目标对象之间起到中介的作用。</p>
+<p>通过代理模式我们可以：</p>
+<ol>
+<li>隐藏委托类的具体实现</li>
+<li>客户和委托类解偶，在不改变委托类的情况下添加额外功能</li>
+</ol>
+<p>插入类图 Here…</p>
+<p>这里我们举一个生活中常见的例子，外卖小哥。在这个情境下，外卖小哥就是我们的代理。帮我们执行买餐这个动作。同时作为扩展，它还可以帮我们买烟买水，倒垃圾等。。。虽然我不提倡这种做法，只用于举例，无伤大雅。</p>
+<h2 id="静态代理"><a href="#静态代理" class="headerlink" title="静态代理"></a>静态代理</h2><p>公共接口，用来点单</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Order</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">order</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>客户实现，这个类代表叫外卖的人</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Customer</span> <span class="keyword">implements</span> <span class="title">Order</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">order</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Order and pay money...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>外卖小哥类</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DeliveryGuy</span> <span class="keyword">implements</span> <span class="title">Order</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Customer customer;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DeliveryGuy</span><span class="params">(Customer customer)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.customer = customer;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">order</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        customer.order();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>客户端调用</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Customer customer = <span class="keyword">new</span> Customer();</span><br><span class="line">        Order order = <span class="keyword">new</span> DeliveryGuy(customer);</span><br><span class="line">        order.order();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>优点：</p>
+<ol>
+<li>简单直接</li>
+<li>解偶</li>
+<li>代理类扩展业务方便</li>
+</ol>
+<p>缺点：</p>
+<p>每个业务都需要一个代理类，冗余代码很多</p>
+<h2 id="动态代理"><a href="#动态代理" class="headerlink" title="动态代理"></a>动态代理</h2><p>常见的有两种方式：JDK 原生动态代理和 CGLib 动态代理，这里只介绍第一种。</p>
+<p>JDK 根据代理模式的特性，制定了一套规范，参照他的规范，可以在很方便的在运行时产生代理类代码，而不需要在编译器写源码，更方便，当然代价就是增加了学习成本，代码不像之前那么一目了然了。实现时主要依赖两个 reflect 下的原生类 Proxy 和 InvocationHandler。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LogHandler</span> <span class="keyword">implements</span> <span class="title">InvocationHandler</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Object target;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">LogHandler</span><span class="params">(Object target)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.target = target;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">invoke</span><span class="params">(Object proxy, Method method, Object[] args)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">        before();</span><br><span class="line">        Object obj = method.invoke(target, args);</span><br><span class="line">        after();</span><br><span class="line">        <span class="keyword">return</span> obj;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">before</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;buy something...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">after</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;take out the trash...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        LogHandler logHandler = <span class="keyword">new</span> LogHandler(<span class="keyword">new</span> Customer());</span><br><span class="line">        Order order = (Order) (Proxy.newProxyInstance(Order.class.getClassLoader(), <span class="keyword">new</span> Class[] &#123;Order.class&#125;, logHandler));</span><br><span class="line">        order.order();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>LogHandler 的实现中 invok 的是要要特别注意一下，method.invoke 的参数是<strong>target</strong>。我一开始直接把 proxy 但参数传入了，排查了好久 （；￣ェ￣）</p>
+<p>中的来说没什么难度，最花时间的部分是熟悉这种使用方式，第一次理解起来可能花点时间。</p>
+]]></content>
+      <categories>
+        <category>设计模式</category>
+      </categories>
+      <tags>
+        <tag>Design Pattern</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>迭代器模式</title>
     <url>/hexo/2021/04/16/Design-pattern-iterator/</url>
     <content><![CDATA[<blockquote>
@@ -1017,52 +1063,6 @@
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">IteratorClient</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Menu menu1 = <span class="keyword">new</span> PancakeHouseMenu();</span><br><span class="line">        Menu menu2 = <span class="keyword">new</span> DinerMenu();</span><br><span class="line">        Menu menu3 = <span class="keyword">new</span> CafeMenu();</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;MENU\n----\nBREAKFAST&quot;</span>);</span><br><span class="line">        printMenu(menu1);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;\nLUNCH&quot;</span>);</span><br><span class="line">        printMenu(menu2);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;\n DRINK&quot;</span>);</span><br><span class="line">        printMenu(menu3);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">printMenu</span><span class="params">(Menu menu)</span> </span>&#123;</span><br><span class="line">        Iterator&lt;MenuItem&gt; it = menu.createIterator();</span><br><span class="line">        <span class="keyword">while</span> (it.hasNext()) &#123;</span><br><span class="line">            System.out.println(it.next());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// MENU</span></span><br><span class="line"><span class="comment">// ----</span></span><br><span class="line"><span class="comment">// BREAKFAST</span></span><br><span class="line"><span class="comment">// K &amp; B’s Pancake Breakfast, 2.99 -- Pancakes with scrambled eggs, and toast</span></span><br><span class="line"><span class="comment">// Regular Pancake Breakfast, 2.99 -- Pancakes with fried eggs, sausage</span></span><br><span class="line"><span class="comment">// Blueberry Pancakes, 3.49 -- Pancakes made with fresh blueberries</span></span><br><span class="line"><span class="comment">// Waffles, 3.59 -- Waffles, with your choice of blueberries or strawberries</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// LUNCH</span></span><br><span class="line"><span class="comment">// Vegetarian BLT, 2.99 --  (Fakin’)Bacon with lettuce &amp; tomato on whole wheat</span></span><br><span class="line"><span class="comment">// BLT, 2.99 -- Bacon with lettuce &amp; tomato on whole wheat</span></span><br><span class="line"><span class="comment">// Soup of the day, 3.29 -- Soup of the day, with a side of potato salad</span></span><br><span class="line"><span class="comment">// Hotdog, 3.05 -- A hot dog, with saurkraut, relish, onions, topped with cheese</span></span><br><span class="line"><span class="comment">// Steamed Veggies and Brown Rice, 3.99 -- Steamed vegetables over brown rice</span></span><br><span class="line"><span class="comment">// Pasta, 3.89 -- Spaghetti with Marinara Sauce, and a slice of sourdough bread</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//  DRINK</span></span><br><span class="line"><span class="comment">// Soup of the day, 3.69 -- A cup of the soup of the day, with a side salad</span></span><br><span class="line"><span class="comment">// Burrito, 4.29 -- A large burrito, with whole pinto beans, salsa, guacamole</span></span><br></pre></td></tr></table></figure>
 
 <p>一切和预期的一样 ╮(￣▽￣””)╭</p>
-]]></content>
-      <categories>
-        <category>设计模式</category>
-      </categories>
-      <tags>
-        <tag>Design Pattern</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>代理模式</title>
-    <url>/hexo/2020/10/12/Design-pattern-proxy/</url>
-    <content><![CDATA[<p>记录一下代理模式的学习路径。代理模式常用的两种形式：静态代理，动态代理。其中，动态代理在两个国民级框架 mybatis 和 spring 中都有用到。</p>
-<p>代理模式的定义：为其他对象提供一种代理以控制对这个对象的访问。在某些情况下，一个对象不适合或者不能直接引用另一个对象，而代理对象可以在客户端和目标对象之间起到中介的作用。</p>
-<p>通过代理模式我们可以：</p>
-<ol>
-<li>隐藏委托类的具体实现</li>
-<li>客户和委托类解偶，在不改变委托类的情况下添加额外功能</li>
-</ol>
-<p>插入类图 Here…</p>
-<p>这里我们举一个生活中常见的例子，外卖小哥。在这个情境下，外卖小哥就是我们的代理。帮我们执行买餐这个动作。同时作为扩展，它还可以帮我们买烟买水，倒垃圾等。。。虽然我不提倡这种做法，只用于举例，无伤大雅。</p>
-<h2 id="静态代理"><a href="#静态代理" class="headerlink" title="静态代理"></a>静态代理</h2><p>公共接口，用来点单</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Order</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">order</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>客户实现，这个类代表叫外卖的人</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Customer</span> <span class="keyword">implements</span> <span class="title">Order</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">order</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Order and pay money...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>外卖小哥类</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DeliveryGuy</span> <span class="keyword">implements</span> <span class="title">Order</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Customer customer;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DeliveryGuy</span><span class="params">(Customer customer)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.customer = customer;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">order</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        customer.order();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>客户端调用</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Customer customer = <span class="keyword">new</span> Customer();</span><br><span class="line">        Order order = <span class="keyword">new</span> DeliveryGuy(customer);</span><br><span class="line">        order.order();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>优点：</p>
-<ol>
-<li>简单直接</li>
-<li>解偶</li>
-<li>代理类扩展业务方便</li>
-</ol>
-<p>缺点：</p>
-<p>每个业务都需要一个代理类，冗余代码很多</p>
-<h2 id="动态代理"><a href="#动态代理" class="headerlink" title="动态代理"></a>动态代理</h2><p>常见的有两种方式：JDK 原生动态代理和 CGLib 动态代理，这里只介绍第一种。</p>
-<p>JDK 根据代理模式的特性，制定了一套规范，参照他的规范，可以在很方便的在运行时产生代理类代码，而不需要在编译器写源码，更方便，当然代价就是增加了学习成本，代码不像之前那么一目了然了。实现时主要依赖两个 reflect 下的原生类 Proxy 和 InvocationHandler。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LogHandler</span> <span class="keyword">implements</span> <span class="title">InvocationHandler</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Object target;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">LogHandler</span><span class="params">(Object target)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.target = target;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">invoke</span><span class="params">(Object proxy, Method method, Object[] args)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">        before();</span><br><span class="line">        Object obj = method.invoke(target, args);</span><br><span class="line">        after();</span><br><span class="line">        <span class="keyword">return</span> obj;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">before</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;buy something...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">after</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;take out the trash...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        LogHandler logHandler = <span class="keyword">new</span> LogHandler(<span class="keyword">new</span> Customer());</span><br><span class="line">        Order order = (Order) (Proxy.newProxyInstance(Order.class.getClassLoader(), <span class="keyword">new</span> Class[] &#123;Order.class&#125;, logHandler));</span><br><span class="line">        order.order();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>LogHandler 的实现中 invok 的是要要特别注意一下，method.invoke 的参数是<strong>target</strong>。我一开始直接把 proxy 但参数传入了，排查了好久 （；￣ェ￣）</p>
-<p>中的来说没什么难度，最花时间的部分是熟悉这种使用方式，第一次理解起来可能花点时间。</p>
 ]]></content>
       <categories>
         <category>设计模式</category>
@@ -1648,6 +1648,29 @@
       </tags>
   </entry>
   <entry>
+    <title>Java 集合类初探</title>
+    <url>/hexo/2021/01/14/Get-know-about-java-collection/</url>
+    <content><![CDATA[<p>想要解决的问题：</p>
+<ol>
+<li>了解集合类的大致情况，包括名称，类关系</li>
+<li>HashMap 和 Collection 的关系</li>
+<li>自己画一个关系图并和 TIJ4 做对比</li>
+<li>为什么 ArrayList 在继承了 AbstractList 之后还要 impl List 接口？意义上不是重复了吗</li>
+</ol>
+<p>Answers:</p>
+<ol start="4">
+<li>这样做，语义上没有改变，便于阅读，省的你再去一层层的去父类找接口实现， Stackoverflow 上是这么说的</li>
+</ol>
+<p>基本上能将这一簇类的关系图画出来即可</p>
+]]></content>
+      <categories>
+        <category>java</category>
+      </categories>
+      <tags>
+        <tag>collection</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Java 拾遗之 Stream 类</title>
     <url>/hexo/2020/06/07/Get-Know-About-Java-Stream/</url>
     <content><![CDATA[<p>概要：</p>
@@ -2006,29 +2029,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Java 集合类初探</title>
-    <url>/hexo/2021/01/14/Get-know-about-java-collection/</url>
-    <content><![CDATA[<p>想要解决的问题：</p>
-<ol>
-<li>了解集合类的大致情况，包括名称，类关系</li>
-<li>HashMap 和 Collection 的关系</li>
-<li>自己画一个关系图并和 TIJ4 做对比</li>
-<li>为什么 ArrayList 在继承了 AbstractList 之后还要 impl List 接口？意义上不是重复了吗</li>
-</ol>
-<p>Answers:</p>
-<ol start="4">
-<li>这样做，语义上没有改变，便于阅读，省的你再去一层层的去父类找接口实现， Stackoverflow 上是这么说的</li>
-</ol>
-<p>基本上能将这一簇类的关系图画出来即可</p>
-]]></content>
-      <categories>
-        <category>java</category>
-      </categories>
-      <tags>
-        <tag>collection</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Java 拾遗之 final 关键字</title>
     <url>/hexo/2020/10/22/Get-know-about-java-final/</url>
     <content><![CDATA[<p>从定义上来说 final 表达的是只能赋值一次，赋之后不能改变的意思。下面介绍几种常见使用形式。</p>
@@ -2051,156 +2051,6 @@
       <tags>
         <tag>拾遗</tag>
         <tag>泛型</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Git 小贴士</title>
-    <url>/hexo/2019/11/15/Git-Tips/</url>
-    <content><![CDATA[<h2 id="怎么查看一个月之前的版本信息"><a href="#怎么查看一个月之前的版本信息" class="headerlink" title="怎么查看一个月之前的版本信息"></a>怎么查看一个月之前的版本信息</h2><p>最近发现一个 bug 不知道是不是自己的代码改出来的，由于是一些 context 的改动不好查。打算直接一点，使用一个月之前(我的改动还没有进去的节点)的 build 起一个服务测试一下, git 支持类似的查找</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git <span class="built_in">log</span> --after=<span class="string">&quot;2014-02-12T16:36:00-07:00&quot;</span></span><br><span class="line">git <span class="built_in">log</span> --before=<span class="string">&quot;2014-02-12T16:36:00-07:00&quot;</span></span><br><span class="line">git <span class="built_in">log</span> --since=<span class="string">&quot;1 month ago&quot;</span></span><br><span class="line">git <span class="built_in">log</span> --since=<span class="string">&quot;2 weeks 3 days 2 hours 30 minutes 59 seconds ago&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>结合 reverse 使用效果更佳 <code>git log --since=&quot;1 month ago&quot; --reverse</code></p>
-<h2 id="怎么添加-commited-file-到-gitignore-中"><a href="#怎么添加-commited-file-到-gitignore-中" class="headerlink" title="怎么添加 commited file 到 .gitignore 中"></a>怎么添加 commited file 到 <code>.gitignore</code> 中</h2><blockquote>
-<p><a href="https://stackoverflow.com/questions/7527982/applying-gitignore-to-committed-files/7528016">StackOverflow: applying-gitignore-to-committed-files</a></p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git rm --cached path/to/file</span><br></pre></td></tr></table></figure>
-
-<h2 id="怎么把local-master-branch-还原成和-remote-端一致"><a href="#怎么把local-master-branch-还原成和-remote-端一致" class="headerlink" title="怎么把local master branch 还原成和 remote 端一致"></a>怎么把local master branch 还原成和 remote 端一致</h2><blockquote>
-<p><a href="https://stackoverflow.com/questions/1628088/reset-local-repository-branch-to-be-just-like-remote-repository-head">StackOverflow: reset-local-repository-branch-to-be-just-like-remote-repository-head</a></p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git fetch origin</span><br><span class="line">git reset --hard origin/master</span><br></pre></td></tr></table></figure>
-
-<h2 id="移除本地的-commit"><a href="#移除本地的-commit" class="headerlink" title="移除本地的 commit"></a>移除本地的 commit</h2><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">git reset HEAD~1</span><br></pre></td></tr></table></figure>
-
-<h2 id="将-remote-会滚到上个-commit"><a href="#将-remote-会滚到上个-commit" class="headerlink" title="将 remote 会滚到上个 commit"></a>将 remote 会滚到上个 commit</h2><p><code>git revert -m 1 commit_hash</code> 将对应的 commit 改动回滚， 很棒！</p>
-<p>PS: <code>-m 1</code> 会使用默认的 comment 信息，如果你想自定义 comment 内容，可以将这个参数去掉</p>
-<h2 id="reset-VS-revert"><a href="#reset-VS-revert" class="headerlink" title="reset VS revert"></a>reset VS revert</h2><p>reset 历史记录后退，revert 前进</p>
-<p>reset 会将历史记录也一并会滚，这样就会导致记录缺失。不是很好，但是在自己 local branch 做了改动想还原的这种 scenario 还是和合适的。还有 <code>reset --hard commit_hash + git push --force</code> 也可以重置代码，但是会修改历史记录，操作比较危险</p>
-<p>revert 会在原有的基础上将对应的 commit 改动重置并添加新的历史记录，路径更完成</p>
-<p>这个 <a href="https://juejin.im/post/6844903614767448072">文章</a> 比较两者的区别，写的挺清楚的</p>
-<h2 id="将本地的-commit-回退到前一个-commit"><a href="#将本地的-commit-回退到前一个-commit" class="headerlink" title="将本地的 commit 回退到前一个 commit"></a>将本地的 commit 回退到前一个 commit</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git reset HEAD~1 <span class="comment"># 保留改动，回退到 index 状态（add 之前）</span></span><br><span class="line">git reset --soft HEAD~1 <span class="comment"># 保留改动到 stage 状态 (add 之后，commit 之前)</span></span><br><span class="line">git reset --hard HEAD~1 <span class="comment"># 同时将改动也去掉</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="将本地的单个文件还原成-master-版本"><a href="#将本地的单个文件还原成-master-版本" class="headerlink" title="将本地的单个文件还原成 master 版本"></a>将本地的单个文件还原成 master 版本</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git checkout origin/master -- /path/to/file</span><br></pre></td></tr></table></figure>
-
-<h2 id="将远端删除的文件找回来"><a href="#将远端删除的文件找回来" class="headerlink" title="将远端删除的文件找回来"></a>将远端删除的文件找回来</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git <span class="built_in">log</span> -- /path/of/deleted/file <span class="comment"># 找到删除 commit 的前一个 commit number</span></span><br><span class="line"></span><br><span class="line">git checkout pre-commit-num -- /path/of/deleted/file</span><br></pre></td></tr></table></figure>
-
-<h2 id="将-git-add-commit-合并到一个命令中"><a href="#将-git-add-commit-合并到一个命令中" class="headerlink" title="将 git add, commit 合并到一个命令中"></a>将 git add, commit 合并到一个命令中</h2><blockquote>
-<p><a href="https://stackoverflow.com/questions/4298960/git-add-and-commit-in-one-command">StackOverflow: git-add-and-commit-in-one-command</a></p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># config git alias</span></span><br><span class="line">git config --global alias.add-commit <span class="string">&#x27;!git add -A &amp;&amp; git commit&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># and use it with</span></span><br><span class="line">git add-commit -m <span class="string">&#x27;My commit message&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="Rename-local-repo"><a href="#Rename-local-repo" class="headerlink" title="Rename local repo"></a>Rename local repo</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git checkout &lt;repo need to re-name&gt;</span><br><span class="line">git branch -m &lt;new name&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># or make sure you are not at renamed repo</span></span><br><span class="line">git branch -m &lt;old repo name&gt; &lt;new repo name&gt;</span><br></pre></td></tr></table></figure>
-
-<h2 id="移除-merge-内容"><a href="#移除-merge-内容" class="headerlink" title="移除 merge 内容"></a>移除 merge 内容</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git reset --hard HEAD</span><br><span class="line"></span><br><span class="line"><span class="comment"># or</span></span><br><span class="line">git merge --abort</span><br></pre></td></tr></table></figure>
-
-<h2 id="国内-git-clone-有时会卡住-有没有-debug-的选项"><a href="#国内-git-clone-有时会卡住-有没有-debug-的选项" class="headerlink" title="国内 git clone 有时会卡住, 有没有 debug 的选项"></a>国内 git clone 有时会卡住, 有没有 debug 的选项</h2><blockquote>
-<p><a href="https://stackoverflow.com/questions/6178401/how-can-i-debug-git-git-shell-related-problems">StackOverflow: how-can-i-debug-git-git-shell-related-problems</a></p>
-</blockquote>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">GIT_CURL_VERBOSE&#x3D;1 GIT_TRACE&#x3D;1 git pull origin master</span><br></pre></td></tr></table></figure>
-
-<h2 id="已创建-repo-添加证书"><a href="#已创建-repo-添加证书" class="headerlink" title="已创建 repo 添加证书"></a>已创建 repo 添加证书</h2><blockquote>
-<p>跳转到项目页面，添加文件 ‘create a new file’ -&gt; 输入 ‘license’ 会给出提示</p>
-</blockquote>
-<h2 id="查看某人的-commit-记录"><a href="#查看某人的-commit-记录" class="headerlink" title="查看某人的 commit 记录"></a>查看某人的 commit 记录</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git <span class="built_in">log</span> --author=<span class="string">&#x27;jack&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="查看-log-反序"><a href="#查看-log-反序" class="headerlink" title="查看 log 反序"></a>查看 log 反序</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git <span class="built_in">log</span> --reverse</span><br></pre></td></tr></table></figure>
-
-<h2 id="对比文件"><a href="#对比文件" class="headerlink" title="对比文件"></a>对比文件</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git diff &lt;base-commit&gt; &lt;changed-commit&gt; -- &lt;file-path&gt;</span><br></pre></td></tr></table></figure>
-
-<p>比如我像比较 8ab244e3b2de31ca 相对于 f31762ada1764 有什么改动可以使用</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git diff f31762ada1764 8ab244e3b2de31ca -- &lt;file-path&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果是相对于 header 的改动，可以省略第一个 commit 内容</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="查看被删除文件的历史记录"><a href="#查看被删除文件的历史记录" class="headerlink" title="查看被删除文件的历史记录"></a>查看被删除文件的历史记录</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git <span class="built_in">log</span> -- &lt;file path&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 或者使用</span></span><br><span class="line"></span><br><span class="line">git <span class="built_in">log</span> --full-log -- &lt;file path&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 第二种会包含各种 merge 的信息， 比较全。但是一般第一种就够用了</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="查看文件某一行删除记录"><a href="#查看文件某一行删除记录" class="headerlink" title="查看文件某一行删除记录"></a>查看文件某一行删除记录</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># -G 直接支持正则，-S 需要添加其他参数来支持正则</span></span><br><span class="line">git <span class="built_in">log</span> -S/G<span class="string">&#x27;key&#x27;</span> /path/to/file</span><br></pre></td></tr></table></figure>
-
-<h2 id="已经-check-in-的文件夹加入-gitignore"><a href="#已经-check-in-的文件夹加入-gitignore" class="headerlink" title="已经 check in 的文件夹加入 .gitignore"></a>已经 check in 的文件夹加入 .gitignore</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 处理文件夹</span></span><br><span class="line">git rm -r --cached /folder</span><br><span class="line"></span><br><span class="line"><span class="comment"># 处理文件</span></span><br><span class="line">git rm --cached /path/to/file</span><br></pre></td></tr></table></figure>
-
-<h2 id="显示-repo-关联的远端地址"><a href="#显示-repo-关联的远端地址" class="headerlink" title="显示 repo 关联的远端地址"></a>显示 repo 关联的远端地址</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git remote show origin</span><br></pre></td></tr></table></figure>
-
-<h2 id="cherry-pick-提取某一个-commit-和并到目标分支"><a href="#cherry-pick-提取某一个-commit-和并到目标分支" class="headerlink" title="cherry pick 提取某一个 commit 和并到目标分支"></a>cherry pick 提取某一个 commit 和并到目标分支</h2><p>情景描述：</p>
-<p>我自己有一个分支 A， 同时创建了另一个分支 B 并在上面做了改动，commit 为 c1。我对他的这个 commit 有依赖，又不想自己 CV 代码或者以后有 conflict 什么的，这时可以 checkout 到我自己的分支，然后 <code>git cherry-pick c1</code> 来合并代码。他的代码 merge 之后我也不用解决冲突，美滋滋儿。</p>
-<p>PS: 在合并 B 分支上的 commit 的时候我并不需要指定分支名字，是不是从侧面验证了，每个 git commit 都是唯一的，不同分支的 commit 也保证 id 不重复</p>
-<figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">^                  ^                                               </span><br><span class="line">|                  |                                               </span><br><span class="line">|   cherry-pick    |                                               </span><br><span class="line">|C1 &lt;---------     |C2                                             </span><br><span class="line">|            |     |                                               </span><br><span class="line">|            |     |                                               </span><br><span class="line">|C1&#x27;         ----- |C1                                             </span><br><span class="line">|                  |                                               </span><br><span class="line">|                  |                                               </span><br><span class="line">|Branch-A          |Branch-B                                       </span><br><span class="line">|------------------|                                               </span><br><span class="line">          ^                                                        </span><br><span class="line">          |                                                        </span><br><span class="line">          |                                                        </span><br><span class="line">          |                                                        </span><br><span class="line">          | Master                                                 </span><br><span class="line">          |                                                        </span><br><span class="line">          |                                                        </span><br></pre></td></tr></table></figure>
-
-<h2 id="cherry-pick-revert"><a href="#cherry-pick-revert" class="headerlink" title="cherry pick revert"></a>cherry pick revert</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git reset --hard HEAD^</span><br></pre></td></tr></table></figure>
-
-<h3 id="How-to-drop"><a href="#How-to-drop" class="headerlink" title="How to drop"></a>How to drop</h3><p>如果本地有改动</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git stash</span><br><span class="line">git reset --hard HEAD^</span><br><span class="line">git stash pop</span><br></pre></td></tr></table></figure>
-
-<p>如果没有直接 <code>git reset --hard HEAD^</code>, <code>cherry-pick</code> 本质上就是新加了一个 commit 到 branch 而已。</p>
-<h2 id="使用-rebase-来合并自己分支的-commit-记录，强迫症福音"><a href="#使用-rebase-来合并自己分支的-commit-记录，强迫症福音" class="headerlink" title="使用 rebase 来合并自己分支的 commit 记录，强迫症福音"></a>使用 rebase 来合并自己分支的 commit 记录，强迫症福音</h2><p>check out 一个测试 branch，修改 readme</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;a&#x27;</span> &gt;&gt; README.md</span><br><span class="line">git add-commit -m <span class="string">&#x27;edit01&#x27;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;b&#x27;</span> &gt;&gt; README.md</span><br><span class="line">git add-commit -m <span class="string">&#x27;edit01&#x27;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;c&#x27;</span> &gt;&gt; README.md</span><br><span class="line">git add-commit -m <span class="string">&#x27;edit01&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<p>git log –oneline 查看 commit 记录</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">dc0a087 (HEAD -&gt; testrebase2) edit03</span><br><span class="line">c6feb2a edit02</span><br><span class="line">0436650 edit01</span><br><span class="line">0dcdaac init porject</span><br></pre></td></tr></table></figure>
-
-<p>现在通过 rebase 将 edit01-03 合并为一个 commit。这里有一个地方要注意的是如果指定 commit id，start point 是你想要合并的 ID 的前一个</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git rebase -i HEAD~3 或者 git rebase -i 0dcdaac</span><br></pre></td></tr></table></figure>
-
-<p>terminal 给出提示</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pick 0436650 edit01</span><br><span class="line">pick c6feb2a edit02</span><br><span class="line">pick dc0a087 edit03</span><br><span class="line"></span><br><span class="line"><span class="comment"># Rebase 0dcdaac..dc0a087 onto 0dcdaac (3 commands)</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Commands:</span></span><br><span class="line"><span class="comment"># p, pick &lt;commit&gt; = use commit</span></span><br><span class="line"><span class="comment"># r, reword &lt;commit&gt; = use commit, but edit the commit message</span></span><br><span class="line"><span class="comment"># e, edit &lt;commit&gt; = use commit, but stop for amending</span></span><br><span class="line"><span class="comment"># s, squash &lt;commit&gt; = use commit, but meld into previous commit</span></span><br><span class="line"><span class="comment"># f, fixup &lt;commit&gt; = like &quot;squash&quot;, but discard this commit&#x27;s log message</span></span><br><span class="line"><span class="comment"># x, exec &lt;command&gt; = run command (the rest of the line) using shell</span></span><br><span class="line"><span class="comment"># b, break = stop here (continue rebase later with &#x27;git rebase --continue&#x27;)</span></span><br><span class="line"><span class="comment"># d, drop &lt;commit&gt; = remove commit</span></span><br><span class="line"><span class="comment"># l, label &lt;label&gt; = label current HEAD with a name</span></span><br><span class="line"><span class="comment"># t, reset &lt;label&gt; = reset HEAD to a label</span></span><br><span class="line"><span class="comment"># m, merge [-C &lt;commit&gt; | -c &lt;commit&gt;] &lt;label&gt; [# &lt;oneline&gt;]</span></span><br><span class="line"><span class="comment"># .       create a merge commit using the original merge commit&#x27;s</span></span><br></pre></td></tr></table></figure>
-
-<p>将 edit02, 03 的前缀改成 s，然后 :wq 进入下一个界面需改 commit message</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pick 0436650 edit01</span><br><span class="line">s c6feb2a edit02</span><br><span class="line">s dc0a087 edit03</span><br></pre></td></tr></table></figure>
-
-<p>提示信息如下</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># This is a combination of 3 commits.</span></span><br><span class="line"><span class="comment"># This is the 1st commit message:</span></span><br><span class="line"></span><br><span class="line">edit01</span><br><span class="line"></span><br><span class="line"><span class="comment"># This is the commit message #2:</span></span><br><span class="line"></span><br><span class="line">edit02</span><br><span class="line"></span><br><span class="line"><span class="comment"># This is the commit message #3:</span></span><br><span class="line"></span><br><span class="line">edit03</span><br><span class="line"></span><br><span class="line"><span class="comment"># Please enter the commit message for your changes. Lines starting</span></span><br><span class="line"><span class="comment"># with &#x27;#&#x27; will be ignored, and an empty message aborts the commit.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Date:      Wed Jul 8 17:10:52 2020 +0800</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># interactive rebase in progress; onto 0dcdaac</span></span><br><span class="line"><span class="comment"># Last commands done (3 commands done):</span></span><br></pre></td></tr></table></figure>
-
-<p>带 # 号的行不会显示，只需要修改之前我们自己添加的那些行就行了，这里修改为</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">merge commit edit01-03</span><br><span class="line"></span><br><span class="line"><span class="comment"># Please enter the commit message for your changes. Lines starting</span></span><br><span class="line"><span class="comment"># with &#x27;#&#x27; will be ignored, and an empty message aborts the commit.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Date:      Wed Jul 8 17:10:52 2020 +0800</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># interactive rebase in progress; onto 0dcdaac</span></span><br><span class="line"><span class="comment"># Last commands done (3 commands done):</span></span><br><span class="line"><span class="comment">#    squash c6feb2a edit02</span></span><br><span class="line"><span class="comment">#    squash dc0a087 edit03</span></span><br><span class="line"><span class="comment"># No commands remaining.</span></span><br><span class="line"><span class="comment"># You are currently rebasing branch &#x27;testrebase2&#x27; on &#x27;0dcdaac&#x27;.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Changes to be committed:</span></span><br><span class="line"><span class="comment">#   modified:   README.md</span></span><br><span class="line"><span class="comment">#</span></span><br></pre></td></tr></table></figure>
-
-<p>esc + :wq 退出，终端会给出修改成功的提示</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[detached HEAD 6c42812] merge commit edit01-03</span><br><span class="line"> Date: Wed Jul 8 17:10:52 2020 +0800</span><br><span class="line"> 1 file changed, 3 insertions(+)</span><br><span class="line">Successfully rebased and updated refs/heads/testrebase2.</span><br></pre></td></tr></table></figure>
-
-<p>这是再使用 git log –oneline 查看，可以发现目标 commit 已经合并成功</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">6c42812 (HEAD -&gt; testrebase2) merge commit edit01-03</span><br><span class="line">0dcdaac init porject</span><br></pre></td></tr></table></figure>
-
-<h2 id="怎么避免-branch-上出现很多-merge-的-commit-强迫症福音-2-0"><a href="#怎么避免-branch-上出现很多-merge-的-commit-强迫症福音-2-0" class="headerlink" title="怎么避免 branch 上出现很多 merge 的 commit, 强迫症福音 2.0"></a>怎么避免 branch 上出现很多 merge 的 commit, 强迫症福音 2.0</h2><p>TODO</p>
-<h2 id="Git-SS-加速"><a href="#Git-SS-加速" class="headerlink" title="Git SS 加速"></a>Git SS 加速</h2><p>修改 .gitconfig 文件，添加配置如下</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># config your &#96;~&#x2F;.gitconfig&#96; file</span><br><span class="line">[http]</span><br><span class="line">proxy &#x3D; socks5:&#x2F;&#x2F;127.0.0.1:1080</span><br><span class="line">sslVerify &#x3D; false</span><br><span class="line"></span><br><span class="line">[https]</span><br><span class="line">proxy &#x3D; socks5:&#x2F;&#x2F;127.0.0.1:1080</span><br></pre></td></tr></table></figure>
-
-<p>或者在终端输入</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># or you can config it by typing terminal</span></span><br><span class="line">git config --global http.proxy socks5://127.0.0.1:1080</span><br><span class="line">git config --global https.proxy socks5://127.0.0.1:1080</span><br><span class="line">git config --global http.sslVerify <span class="literal">false</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># turn off proxy, 开启后 git commit 会受影响</span></span><br><span class="line">git config --global --<span class="built_in">unset</span> http.proxy</span><br><span class="line">git config --global --<span class="built_in">unset</span> https.proxy</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>小工具</category>
-      </categories>
-      <tags>
-        <tag>git</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Git 多账户设置</title>
-    <url>/hexo/2021/08/17/Git-multiple-account/</url>
-    <content><![CDATA[<p>公司使用 GitHub 企业版管理代码，我自己也时常会需要在公用版 Github 上更新一些代码，经常要交互使用。2021-08-13 的时候，GitHub 官方静止了 password 类型提交代码，这不只能找找怎么本地配置双账号了，解决方案如下</p>
-<p>前置，初始化配置：</p>
-<ol>
-<li>删除 ～/.gitconfig 中的账户信息</li>
-<li>删除 ～/.ssh 下的配置信息</li>
-</ol>
-<p>配置：</p>
-<ol>
-<li>cd 到 ～/.ssh 目录下运行 <code>ssh-keygen -t rsa -C &quot;your_email@example.com&quot;</code> 生成公私密码，之前参考了官方文档指定类型 ed25519, 不知道为啥，配置不生效</li>
-<li>在提示 <code>Enter a file in which to save the key (/Users/you/.ssh/id_rsa): [Press enter]</code> 时添加后缀指定环境, 我本地的配置情况 <code>id_rsa_github id_rsa_github.pub id_rsa_sap id_rsa_sap.pub</code></li>
-<li>后面直接回车到文件生成成功。</li>
-<li>运行 <code>eval &quot;$(ssh-agent -s)&quot;</code> 启动代理并运行 <code>ssh-add ~/.ssh/id_rsa_github</code> 和 <code>ssh-add ~/.ssh/id_rsa_sap</code> 将私钥添加到密钥链中。通过 <code>ssh-add -l</code> 可以查看已经添加的 key 信息. PS: 如果你是 Mac 系统需要加一个 -K 不然重启之后 key 就没了 <code>ssh-add -K ~/.ssh/id_rsa_github</code></li>
-<li>在 ~/.ssh/config 文件中配置账号，网站的对应关系, 示例如下</li>
-<li>打开 github 网站，将 id_rsa_github.pub 这个公钥信息添加到目标网站 头像 -&gt; Settings -&gt; SSH and GPG keys -&gt;  New SSH key</li>
-<li>测试配置是否成功，终端输入 <code>ssh -T git@github.com</code> 和 <code>ssh -T git@github.wdf.sap.corp</code> 看提示信息是否正确</li>
-<li>配置 commit 账号，如果没有设置，commit 的时候, git 会用电脑主机号作为提交账号。我本地是将常用的公司账号信息通过 git config –global 配置为全局信息，在自己的 repo 中通过 git config –local 单独配置</li>
-</ol>
-<figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">Host github</span><br><span class="line">HostName github.com</span><br><span class="line">User jack-zheng</span><br><span class="line">IdentityFile ~/.ssh/id_rsa_github</span><br><span class="line"></span><br><span class="line">Host gitlab</span><br><span class="line">HostName github.wdf.sap.corp</span><br><span class="line">User Ixxxx</span><br><span class="line">IdentityFile ~/.ssh/id_rsa_sap</span><br></pre></td></tr></table></figure>
-
-<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
-<li><a href="https://docs.github.com/cn/github/authenticating-to-github/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent">官方文档</a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>小工具</category>
-      </categories>
-      <tags>
-        <tag>git</tag>
       </tags>
   </entry>
   <entry>
@@ -2246,6 +2096,39 @@
       </categories>
       <tags>
         <tag>How Tomcat Works</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Git 多账户设置</title>
+    <url>/hexo/2021/08/17/Git-multiple-account/</url>
+    <content><![CDATA[<p>公司使用 GitHub 企业版管理代码，我自己也时常会需要在公用版 Github 上更新一些代码，经常要交互使用。2021-08-13 的时候，GitHub 官方静止了 password 类型提交代码，这不只能找找怎么本地配置双账号了，解决方案如下</p>
+<p>前置，初始化配置：</p>
+<ol>
+<li>删除 ～/.gitconfig 中的账户信息</li>
+<li>删除 ～/.ssh 下的配置信息</li>
+</ol>
+<p>配置：</p>
+<ol>
+<li>cd 到 ～/.ssh 目录下运行 <code>ssh-keygen -t rsa -C &quot;your_email@example.com&quot;</code> 生成公私密码，之前参考了官方文档指定类型 ed25519, 不知道为啥，配置不生效</li>
+<li>在提示 <code>Enter a file in which to save the key (/Users/you/.ssh/id_rsa): [Press enter]</code> 时添加后缀指定环境, 我本地的配置情况 <code>id_rsa_github id_rsa_github.pub id_rsa_sap id_rsa_sap.pub</code></li>
+<li>后面直接回车到文件生成成功。</li>
+<li>运行 <code>eval &quot;$(ssh-agent -s)&quot;</code> 启动代理并运行 <code>ssh-add ~/.ssh/id_rsa_github</code> 和 <code>ssh-add ~/.ssh/id_rsa_sap</code> 将私钥添加到密钥链中。通过 <code>ssh-add -l</code> 可以查看已经添加的 key 信息. PS: 如果你是 Mac 系统需要加一个 -K 不然重启之后 key 就没了 <code>ssh-add -K ~/.ssh/id_rsa_github</code></li>
+<li>在 ~/.ssh/config 文件中配置账号，网站的对应关系, 示例如下</li>
+<li>打开 github 网站，将 id_rsa_github.pub 这个公钥信息添加到目标网站 头像 -&gt; Settings -&gt; SSH and GPG keys -&gt;  New SSH key</li>
+<li>测试配置是否成功，终端输入 <code>ssh -T git@github.com</code> 和 <code>ssh -T git@github.wdf.sap.corp</code> 看提示信息是否正确</li>
+<li>配置 commit 账号，如果没有设置，commit 的时候, git 会用电脑主机号作为提交账号。我本地是将常用的公司账号信息通过 git config –global 配置为全局信息，在自己的 repo 中通过 git config –local 单独配置</li>
+</ol>
+<figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">Host github</span><br><span class="line">HostName github.com</span><br><span class="line">User jack-zheng</span><br><span class="line">IdentityFile ~/.ssh/id_rsa_github</span><br><span class="line"></span><br><span class="line">Host gitlab</span><br><span class="line">HostName github.wdf.sap.corp</span><br><span class="line">User Ixxxx</span><br><span class="line">IdentityFile ~/.ssh/id_rsa_sap</span><br></pre></td></tr></table></figure>
+
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://docs.github.com/cn/github/authenticating-to-github/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent">官方文档</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>小工具</category>
+      </categories>
+      <tags>
+        <tag>git</tag>
       </tags>
   </entry>
   <entry>
@@ -2569,6 +2452,30 @@
       </tags>
   </entry>
   <entry>
+    <title>Ex09 Session 管理</title>
+    <url>/hexo/2021/09/10/HTW-ex09/</url>
+    <content><![CDATA[<blockquote>
+<p><strong>Chapter 9</strong> discusses the manager, the component that manages sessions in session management. It explains the various types of managers and how a manager can persist session objects into a store. At the end of the chapter, you will learn how to build an application that uses a StandardManager instance to run a servlet that uses session objects to store values. </p>
+</blockquote>
+<p>PS: 本节实验失败了，页面显示不出来，追踪了一下，servlet 可以正常加载，但是执行 init() 方法的时候报错了。感觉可以先用之前的 javaweb 项目把这个页面显示出来，在看看问题。有可能是依赖有问题。</p>
+<p>主要知识点</p>
+<ul>
+<li>Session 相关的接口关系</li>
+<li>通过 Manager 管理 session</li>
+<li>实现了 Lifecycle 接口</li>
+<li>提供 swap out 功能，节省内存资源 - 长时间不用的 session 暂存</li>
+<li>持久化</li>
+</ul>
+<p>没什么成就感，暂时先记怎么多把</p>
+]]></content>
+      <categories>
+        <category>Tomcat</category>
+      </categories>
+      <tags>
+        <tag>How Tomcat Works</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Ex08 类加载器</title>
     <url>/hexo/2021/08/02/HTW-ex08-classloader/</url>
     <content><![CDATA[<blockquote>
@@ -2662,27 +2569,120 @@
       </tags>
   </entry>
   <entry>
-    <title>Ex09 Session 管理</title>
-    <url>/hexo/2021/09/10/HTW-ex09/</url>
-    <content><![CDATA[<blockquote>
-<p><strong>Chapter 9</strong> discusses the manager, the component that manages sessions in session management. It explains the various types of managers and how a manager can persist session objects into a store. At the end of the chapter, you will learn how to build an application that uses a StandardManager instance to run a servlet that uses session objects to store values. </p>
+    <title>Git 小贴士</title>
+    <url>/hexo/2019/11/15/Git-Tips/</url>
+    <content><![CDATA[<h2 id="怎么查看一个月之前的版本信息"><a href="#怎么查看一个月之前的版本信息" class="headerlink" title="怎么查看一个月之前的版本信息"></a>怎么查看一个月之前的版本信息</h2><p>最近发现一个 bug 不知道是不是自己的代码改出来的，由于是一些 context 的改动不好查。打算直接一点，使用一个月之前(我的改动还没有进去的节点)的 build 起一个服务测试一下, git 支持类似的查找</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git <span class="built_in">log</span> --after=<span class="string">&quot;2014-02-12T16:36:00-07:00&quot;</span></span><br><span class="line">git <span class="built_in">log</span> --before=<span class="string">&quot;2014-02-12T16:36:00-07:00&quot;</span></span><br><span class="line">git <span class="built_in">log</span> --since=<span class="string">&quot;1 month ago&quot;</span></span><br><span class="line">git <span class="built_in">log</span> --since=<span class="string">&quot;2 weeks 3 days 2 hours 30 minutes 59 seconds ago&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>结合 reverse 使用效果更佳 <code>git log --since=&quot;1 month ago&quot; --reverse</code></p>
+<h2 id="怎么添加-commited-file-到-gitignore-中"><a href="#怎么添加-commited-file-到-gitignore-中" class="headerlink" title="怎么添加 commited file 到 .gitignore 中"></a>怎么添加 commited file 到 <code>.gitignore</code> 中</h2><blockquote>
+<p><a href="https://stackoverflow.com/questions/7527982/applying-gitignore-to-committed-files/7528016">StackOverflow: applying-gitignore-to-committed-files</a></p>
 </blockquote>
-<p>PS: 本节实验失败了，页面显示不出来，追踪了一下，servlet 可以正常加载，但是执行 init() 方法的时候报错了。感觉可以先用之前的 javaweb 项目把这个页面显示出来，在看看问题。有可能是依赖有问题。</p>
-<p>主要知识点</p>
-<ul>
-<li>Session 相关的接口关系</li>
-<li>通过 Manager 管理 session</li>
-<li>实现了 Lifecycle 接口</li>
-<li>提供 swap out 功能，节省内存资源 - 长时间不用的 session 暂存</li>
-<li>持久化</li>
-</ul>
-<p>没什么成就感，暂时先记怎么多把</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git rm --cached path/to/file</span><br></pre></td></tr></table></figure>
+
+<h2 id="怎么把local-master-branch-还原成和-remote-端一致"><a href="#怎么把local-master-branch-还原成和-remote-端一致" class="headerlink" title="怎么把local master branch 还原成和 remote 端一致"></a>怎么把local master branch 还原成和 remote 端一致</h2><blockquote>
+<p><a href="https://stackoverflow.com/questions/1628088/reset-local-repository-branch-to-be-just-like-remote-repository-head">StackOverflow: reset-local-repository-branch-to-be-just-like-remote-repository-head</a></p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git fetch origin</span><br><span class="line">git reset --hard origin/master</span><br></pre></td></tr></table></figure>
+
+<h2 id="移除本地的-commit"><a href="#移除本地的-commit" class="headerlink" title="移除本地的 commit"></a>移除本地的 commit</h2><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">git reset HEAD~1</span><br></pre></td></tr></table></figure>
+
+<h2 id="将-remote-会滚到上个-commit"><a href="#将-remote-会滚到上个-commit" class="headerlink" title="将 remote 会滚到上个 commit"></a>将 remote 会滚到上个 commit</h2><p><code>git revert -m 1 commit_hash</code> 将对应的 commit 改动回滚， 很棒！</p>
+<p>PS: <code>-m 1</code> 会使用默认的 comment 信息，如果你想自定义 comment 内容，可以将这个参数去掉</p>
+<h2 id="reset-VS-revert"><a href="#reset-VS-revert" class="headerlink" title="reset VS revert"></a>reset VS revert</h2><p>reset 历史记录后退，revert 前进</p>
+<p>reset 会将历史记录也一并会滚，这样就会导致记录缺失。不是很好，但是在自己 local branch 做了改动想还原的这种 scenario 还是和合适的。还有 <code>reset --hard commit_hash + git push --force</code> 也可以重置代码，但是会修改历史记录，操作比较危险</p>
+<p>revert 会在原有的基础上将对应的 commit 改动重置并添加新的历史记录，路径更完成</p>
+<p>这个 <a href="https://juejin.im/post/6844903614767448072">文章</a> 比较两者的区别，写的挺清楚的</p>
+<h2 id="将本地的-commit-回退到前一个-commit"><a href="#将本地的-commit-回退到前一个-commit" class="headerlink" title="将本地的 commit 回退到前一个 commit"></a>将本地的 commit 回退到前一个 commit</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git reset HEAD~1 <span class="comment"># 保留改动，回退到 index 状态（add 之前）</span></span><br><span class="line">git reset --soft HEAD~1 <span class="comment"># 保留改动到 stage 状态 (add 之后，commit 之前)</span></span><br><span class="line">git reset --hard HEAD~1 <span class="comment"># 同时将改动也去掉</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="将本地的单个文件还原成-master-版本"><a href="#将本地的单个文件还原成-master-版本" class="headerlink" title="将本地的单个文件还原成 master 版本"></a>将本地的单个文件还原成 master 版本</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git checkout origin/master -- /path/to/file</span><br></pre></td></tr></table></figure>
+
+<h2 id="将远端删除的文件找回来"><a href="#将远端删除的文件找回来" class="headerlink" title="将远端删除的文件找回来"></a>将远端删除的文件找回来</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git <span class="built_in">log</span> -- /path/of/deleted/file <span class="comment"># 找到删除 commit 的前一个 commit number</span></span><br><span class="line"></span><br><span class="line">git checkout pre-commit-num -- /path/of/deleted/file</span><br></pre></td></tr></table></figure>
+
+<h2 id="将-git-add-commit-合并到一个命令中"><a href="#将-git-add-commit-合并到一个命令中" class="headerlink" title="将 git add, commit 合并到一个命令中"></a>将 git add, commit 合并到一个命令中</h2><blockquote>
+<p><a href="https://stackoverflow.com/questions/4298960/git-add-and-commit-in-one-command">StackOverflow: git-add-and-commit-in-one-command</a></p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># config git alias</span></span><br><span class="line">git config --global alias.add-commit <span class="string">&#x27;!git add -A &amp;&amp; git commit&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># and use it with</span></span><br><span class="line">git add-commit -m <span class="string">&#x27;My commit message&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="Rename-local-repo"><a href="#Rename-local-repo" class="headerlink" title="Rename local repo"></a>Rename local repo</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git checkout &lt;repo need to re-name&gt;</span><br><span class="line">git branch -m &lt;new name&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># or make sure you are not at renamed repo</span></span><br><span class="line">git branch -m &lt;old repo name&gt; &lt;new repo name&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="移除-merge-内容"><a href="#移除-merge-内容" class="headerlink" title="移除 merge 内容"></a>移除 merge 内容</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git reset --hard HEAD</span><br><span class="line"></span><br><span class="line"><span class="comment"># or</span></span><br><span class="line">git merge --abort</span><br></pre></td></tr></table></figure>
+
+<h2 id="国内-git-clone-有时会卡住-有没有-debug-的选项"><a href="#国内-git-clone-有时会卡住-有没有-debug-的选项" class="headerlink" title="国内 git clone 有时会卡住, 有没有 debug 的选项"></a>国内 git clone 有时会卡住, 有没有 debug 的选项</h2><blockquote>
+<p><a href="https://stackoverflow.com/questions/6178401/how-can-i-debug-git-git-shell-related-problems">StackOverflow: how-can-i-debug-git-git-shell-related-problems</a></p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">GIT_CURL_VERBOSE&#x3D;1 GIT_TRACE&#x3D;1 git pull origin master</span><br></pre></td></tr></table></figure>
+
+<h2 id="已创建-repo-添加证书"><a href="#已创建-repo-添加证书" class="headerlink" title="已创建 repo 添加证书"></a>已创建 repo 添加证书</h2><blockquote>
+<p>跳转到项目页面，添加文件 ‘create a new file’ -&gt; 输入 ‘license’ 会给出提示</p>
+</blockquote>
+<h2 id="查看某人的-commit-记录"><a href="#查看某人的-commit-记录" class="headerlink" title="查看某人的 commit 记录"></a>查看某人的 commit 记录</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git <span class="built_in">log</span> --author=<span class="string">&#x27;jack&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="查看-log-反序"><a href="#查看-log-反序" class="headerlink" title="查看 log 反序"></a>查看 log 反序</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git <span class="built_in">log</span> --reverse</span><br></pre></td></tr></table></figure>
+
+<h2 id="对比文件"><a href="#对比文件" class="headerlink" title="对比文件"></a>对比文件</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git diff &lt;base-commit&gt; &lt;changed-commit&gt; -- &lt;file-path&gt;</span><br></pre></td></tr></table></figure>
+
+<p>比如我像比较 8ab244e3b2de31ca 相对于 f31762ada1764 有什么改动可以使用</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git diff f31762ada1764 8ab244e3b2de31ca -- &lt;file-path&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果是相对于 header 的改动，可以省略第一个 commit 内容</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="查看被删除文件的历史记录"><a href="#查看被删除文件的历史记录" class="headerlink" title="查看被删除文件的历史记录"></a>查看被删除文件的历史记录</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git <span class="built_in">log</span> -- &lt;file path&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 或者使用</span></span><br><span class="line"></span><br><span class="line">git <span class="built_in">log</span> --full-log -- &lt;file path&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 第二种会包含各种 merge 的信息， 比较全。但是一般第一种就够用了</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="查看文件某一行删除记录"><a href="#查看文件某一行删除记录" class="headerlink" title="查看文件某一行删除记录"></a>查看文件某一行删除记录</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># -G 直接支持正则，-S 需要添加其他参数来支持正则</span></span><br><span class="line">git <span class="built_in">log</span> -S/G<span class="string">&#x27;key&#x27;</span> /path/to/file</span><br></pre></td></tr></table></figure>
+
+<h2 id="已经-check-in-的文件夹加入-gitignore"><a href="#已经-check-in-的文件夹加入-gitignore" class="headerlink" title="已经 check in 的文件夹加入 .gitignore"></a>已经 check in 的文件夹加入 .gitignore</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 处理文件夹</span></span><br><span class="line">git rm -r --cached /folder</span><br><span class="line"></span><br><span class="line"><span class="comment"># 处理文件</span></span><br><span class="line">git rm --cached /path/to/file</span><br></pre></td></tr></table></figure>
+
+<h2 id="显示-repo-关联的远端地址"><a href="#显示-repo-关联的远端地址" class="headerlink" title="显示 repo 关联的远端地址"></a>显示 repo 关联的远端地址</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git remote show origin</span><br></pre></td></tr></table></figure>
+
+<h2 id="cherry-pick-提取某一个-commit-和并到目标分支"><a href="#cherry-pick-提取某一个-commit-和并到目标分支" class="headerlink" title="cherry pick 提取某一个 commit 和并到目标分支"></a>cherry pick 提取某一个 commit 和并到目标分支</h2><p>情景描述：</p>
+<p>我自己有一个分支 A， 同时创建了另一个分支 B 并在上面做了改动，commit 为 c1。我对他的这个 commit 有依赖，又不想自己 CV 代码或者以后有 conflict 什么的，这时可以 checkout 到我自己的分支，然后 <code>git cherry-pick c1</code> 来合并代码。他的代码 merge 之后我也不用解决冲突，美滋滋儿。</p>
+<p>PS: 在合并 B 分支上的 commit 的时候我并不需要指定分支名字，是不是从侧面验证了，每个 git commit 都是唯一的，不同分支的 commit 也保证 id 不重复</p>
+<figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">^                  ^                                               </span><br><span class="line">|                  |                                               </span><br><span class="line">|   cherry-pick    |                                               </span><br><span class="line">|C1 &lt;---------     |C2                                             </span><br><span class="line">|            |     |                                               </span><br><span class="line">|            |     |                                               </span><br><span class="line">|C1&#x27;         ----- |C1                                             </span><br><span class="line">|                  |                                               </span><br><span class="line">|                  |                                               </span><br><span class="line">|Branch-A          |Branch-B                                       </span><br><span class="line">|------------------|                                               </span><br><span class="line">          ^                                                        </span><br><span class="line">          |                                                        </span><br><span class="line">          |                                                        </span><br><span class="line">          |                                                        </span><br><span class="line">          | Master                                                 </span><br><span class="line">          |                                                        </span><br><span class="line">          |                                                        </span><br></pre></td></tr></table></figure>
+
+<h2 id="cherry-pick-revert"><a href="#cherry-pick-revert" class="headerlink" title="cherry pick revert"></a>cherry pick revert</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git reset --hard HEAD^</span><br></pre></td></tr></table></figure>
+
+<h3 id="How-to-drop"><a href="#How-to-drop" class="headerlink" title="How to drop"></a>How to drop</h3><p>如果本地有改动</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git stash</span><br><span class="line">git reset --hard HEAD^</span><br><span class="line">git stash pop</span><br></pre></td></tr></table></figure>
+
+<p>如果没有直接 <code>git reset --hard HEAD^</code>, <code>cherry-pick</code> 本质上就是新加了一个 commit 到 branch 而已。</p>
+<h2 id="使用-rebase-来合并自己分支的-commit-记录，强迫症福音"><a href="#使用-rebase-来合并自己分支的-commit-记录，强迫症福音" class="headerlink" title="使用 rebase 来合并自己分支的 commit 记录，强迫症福音"></a>使用 rebase 来合并自己分支的 commit 记录，强迫症福音</h2><p>check out 一个测试 branch，修改 readme</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;a&#x27;</span> &gt;&gt; README.md</span><br><span class="line">git add-commit -m <span class="string">&#x27;edit01&#x27;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;b&#x27;</span> &gt;&gt; README.md</span><br><span class="line">git add-commit -m <span class="string">&#x27;edit01&#x27;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;c&#x27;</span> &gt;&gt; README.md</span><br><span class="line">git add-commit -m <span class="string">&#x27;edit01&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>git log –oneline 查看 commit 记录</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">dc0a087 (HEAD -&gt; testrebase2) edit03</span><br><span class="line">c6feb2a edit02</span><br><span class="line">0436650 edit01</span><br><span class="line">0dcdaac init porject</span><br></pre></td></tr></table></figure>
+
+<p>现在通过 rebase 将 edit01-03 合并为一个 commit。这里有一个地方要注意的是如果指定 commit id，start point 是你想要合并的 ID 的前一个</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git rebase -i HEAD~3 或者 git rebase -i 0dcdaac</span><br></pre></td></tr></table></figure>
+
+<p>terminal 给出提示</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pick 0436650 edit01</span><br><span class="line">pick c6feb2a edit02</span><br><span class="line">pick dc0a087 edit03</span><br><span class="line"></span><br><span class="line"><span class="comment"># Rebase 0dcdaac..dc0a087 onto 0dcdaac (3 commands)</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Commands:</span></span><br><span class="line"><span class="comment"># p, pick &lt;commit&gt; = use commit</span></span><br><span class="line"><span class="comment"># r, reword &lt;commit&gt; = use commit, but edit the commit message</span></span><br><span class="line"><span class="comment"># e, edit &lt;commit&gt; = use commit, but stop for amending</span></span><br><span class="line"><span class="comment"># s, squash &lt;commit&gt; = use commit, but meld into previous commit</span></span><br><span class="line"><span class="comment"># f, fixup &lt;commit&gt; = like &quot;squash&quot;, but discard this commit&#x27;s log message</span></span><br><span class="line"><span class="comment"># x, exec &lt;command&gt; = run command (the rest of the line) using shell</span></span><br><span class="line"><span class="comment"># b, break = stop here (continue rebase later with &#x27;git rebase --continue&#x27;)</span></span><br><span class="line"><span class="comment"># d, drop &lt;commit&gt; = remove commit</span></span><br><span class="line"><span class="comment"># l, label &lt;label&gt; = label current HEAD with a name</span></span><br><span class="line"><span class="comment"># t, reset &lt;label&gt; = reset HEAD to a label</span></span><br><span class="line"><span class="comment"># m, merge [-C &lt;commit&gt; | -c &lt;commit&gt;] &lt;label&gt; [# &lt;oneline&gt;]</span></span><br><span class="line"><span class="comment"># .       create a merge commit using the original merge commit&#x27;s</span></span><br></pre></td></tr></table></figure>
+
+<p>将 edit02, 03 的前缀改成 s，然后 :wq 进入下一个界面需改 commit message</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pick 0436650 edit01</span><br><span class="line">s c6feb2a edit02</span><br><span class="line">s dc0a087 edit03</span><br></pre></td></tr></table></figure>
+
+<p>提示信息如下</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># This is a combination of 3 commits.</span></span><br><span class="line"><span class="comment"># This is the 1st commit message:</span></span><br><span class="line"></span><br><span class="line">edit01</span><br><span class="line"></span><br><span class="line"><span class="comment"># This is the commit message #2:</span></span><br><span class="line"></span><br><span class="line">edit02</span><br><span class="line"></span><br><span class="line"><span class="comment"># This is the commit message #3:</span></span><br><span class="line"></span><br><span class="line">edit03</span><br><span class="line"></span><br><span class="line"><span class="comment"># Please enter the commit message for your changes. Lines starting</span></span><br><span class="line"><span class="comment"># with &#x27;#&#x27; will be ignored, and an empty message aborts the commit.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Date:      Wed Jul 8 17:10:52 2020 +0800</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># interactive rebase in progress; onto 0dcdaac</span></span><br><span class="line"><span class="comment"># Last commands done (3 commands done):</span></span><br></pre></td></tr></table></figure>
+
+<p>带 # 号的行不会显示，只需要修改之前我们自己添加的那些行就行了，这里修改为</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">merge commit edit01-03</span><br><span class="line"></span><br><span class="line"><span class="comment"># Please enter the commit message for your changes. Lines starting</span></span><br><span class="line"><span class="comment"># with &#x27;#&#x27; will be ignored, and an empty message aborts the commit.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Date:      Wed Jul 8 17:10:52 2020 +0800</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># interactive rebase in progress; onto 0dcdaac</span></span><br><span class="line"><span class="comment"># Last commands done (3 commands done):</span></span><br><span class="line"><span class="comment">#    squash c6feb2a edit02</span></span><br><span class="line"><span class="comment">#    squash dc0a087 edit03</span></span><br><span class="line"><span class="comment"># No commands remaining.</span></span><br><span class="line"><span class="comment"># You are currently rebasing branch &#x27;testrebase2&#x27; on &#x27;0dcdaac&#x27;.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Changes to be committed:</span></span><br><span class="line"><span class="comment">#   modified:   README.md</span></span><br><span class="line"><span class="comment">#</span></span><br></pre></td></tr></table></figure>
+
+<p>esc + :wq 退出，终端会给出修改成功的提示</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[detached HEAD 6c42812] merge commit edit01-03</span><br><span class="line"> Date: Wed Jul 8 17:10:52 2020 +0800</span><br><span class="line"> 1 file changed, 3 insertions(+)</span><br><span class="line">Successfully rebased and updated refs/heads/testrebase2.</span><br></pre></td></tr></table></figure>
+
+<p>这是再使用 git log –oneline 查看，可以发现目标 commit 已经合并成功</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">6c42812 (HEAD -&gt; testrebase2) merge commit edit01-03</span><br><span class="line">0dcdaac init porject</span><br></pre></td></tr></table></figure>
+
+<h2 id="怎么避免-branch-上出现很多-merge-的-commit-强迫症福音-2-0"><a href="#怎么避免-branch-上出现很多-merge-的-commit-强迫症福音-2-0" class="headerlink" title="怎么避免 branch 上出现很多 merge 的 commit, 强迫症福音 2.0"></a>怎么避免 branch 上出现很多 merge 的 commit, 强迫症福音 2.0</h2><p>TODO</p>
+<h2 id="Git-SS-加速"><a href="#Git-SS-加速" class="headerlink" title="Git SS 加速"></a>Git SS 加速</h2><p>修改 .gitconfig 文件，添加配置如下</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># config your &#96;~&#x2F;.gitconfig&#96; file</span><br><span class="line">[http]</span><br><span class="line">proxy &#x3D; socks5:&#x2F;&#x2F;127.0.0.1:1080</span><br><span class="line">sslVerify &#x3D; false</span><br><span class="line"></span><br><span class="line">[https]</span><br><span class="line">proxy &#x3D; socks5:&#x2F;&#x2F;127.0.0.1:1080</span><br></pre></td></tr></table></figure>
+
+<p>或者在终端输入</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># or you can config it by typing terminal</span></span><br><span class="line">git config --global http.proxy socks5://127.0.0.1:1080</span><br><span class="line">git config --global https.proxy socks5://127.0.0.1:1080</span><br><span class="line">git config --global http.sslVerify <span class="literal">false</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># turn off proxy, 开启后 git commit 会受影响</span></span><br><span class="line">git config --global --<span class="built_in">unset</span> http.proxy</span><br><span class="line">git config --global --<span class="built_in">unset</span> https.proxy</span><br></pre></td></tr></table></figure>
 ]]></content>
       <categories>
-        <category>Tomcat</category>
+        <category>小工具</category>
       </categories>
       <tags>
-        <tag>How Tomcat Works</tag>
+        <tag>git</tag>
       </tags>
   </entry>
   <entry>
@@ -3018,6 +3018,52 @@
       </tags>
   </entry>
   <entry>
+    <title>Ex16 Shutdown Hook</title>
+    <url>/hexo/2021/09/20/HTW-ex16/</url>
+    <content><![CDATA[<blockquote>
+<p><strong>Chapter 16</strong> explains the shutdown hook that Tomcat uses to always get a chance to do clean-up regardless how the user stops it (i.e. either appropriately by sending a shutdown command or inappropriately by simply closing the console.)</p>
+</blockquote>
+<p>本章介绍了 Tomcat 如何优雅的执行 stop 方法，前面先通过两个例子介绍实现原理，后面分析 Tomcat 的实现方式</p>
+<p>java 中，虚拟机可以通过两种方式 shut down</p>
+<ul>
+<li>调用 System.exit 结束</li>
+<li>非正常结束，比如 CTRL+C，直接关闭终端等</li>
+</ul>
+<p>当虚拟机结束时，会一次执行下面两个步骤</p>
+<ul>
+<li>jvm 会执行所有注册的 shutdown hook. 这些 hook 被 attach 在 Runtime 对象中，结束时并行执行</li>
+<li>jvm 执行所有没有被调用的 finalizers 方法</li>
+</ul>
+<p>本章中的例子都是针对第一点做实现的</p>
+<p>创建一个 shutdown hook 的方式很简单，分一下几步</p>
+<ul>
+<li>创建 class 继承 Thread</li>
+<li>run 方法中实现定制的逻辑</li>
+<li>在目标应用中，实例话你的 hook class</li>
+<li>注册 hook 到 Runtime</li>
+</ul>
+<p>下面是一个示例程序, 不管怎么结束程序，ShutdownHook 的 run() 方法都会被调用到</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ShutdownHookDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">start</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Demo&quot;</span>);</span><br><span class="line">        ShutdownHook shutdownHook = <span class="keyword">new</span> ShutdownHook();</span><br><span class="line">        Runtime.getRuntime().addShutdownHook(shutdownHook);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ShutdownHookDemo demo = <span class="keyword">new</span> ShutdownHookDemo();</span><br><span class="line">        demo.start();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            System.in.read();</span><br><span class="line">        &#125;<span class="keyword">catch</span> (Exception e) &#123;&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ShutdownHook</span> <span class="keyword">extends</span> <span class="title">Thread</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Shutting down...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Demo</span></span><br><span class="line"><span class="comment">// Shutting down...</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="A-Shutdown-Hook-Example"><a href="#A-Shutdown-Hook-Example" class="headerlink" title="A Shutdown Hook Example"></a>A Shutdown Hook Example</h2><p>这里通过一个 UI 组件做例子，应用启动时会创建一个临时文件，我们的目标是，推出后，这个文件必须被删除。原始实现如下，当点击 Exit 推出时，文件可以被删除，但是如果通过点击 x 按钮推出，则文件还会保留。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MySwingApp</span> <span class="keyword">extends</span> <span class="title">JFrame</span> </span>&#123;</span><br><span class="line">    JButton exitButton = <span class="keyword">new</span> JButton();</span><br><span class="line">    JTextArea jTextArea1 = <span class="keyword">new</span> JTextArea();</span><br><span class="line">    String dir = System.getProperty(<span class="string">&quot;user.dir&quot;</span>);</span><br><span class="line">    String filename = <span class="string">&quot;temp.txt&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MySwingApp</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        exitButton.setText(<span class="string">&quot;Exit&quot;</span>);</span><br><span class="line">        exitButton.setBounds(<span class="keyword">new</span> Rectangle(<span class="number">304</span>, <span class="number">248</span>, <span class="number">76</span>, <span class="number">37</span>));</span><br><span class="line">        exitButton.addActionListener(e -&gt; exitButton_actionPerformed(e));</span><br><span class="line">        <span class="keyword">this</span>.getContentPane().setLayout(<span class="keyword">null</span>);</span><br><span class="line">        jTextArea1.setText(<span class="string">&quot;Click the Exit button to quit&quot;</span>);</span><br><span class="line">        jTextArea1.setBounds(<span class="keyword">new</span> Rectangle(<span class="number">9</span>, <span class="number">7</span>, <span class="number">371</span>, <span class="number">235</span>));</span><br><span class="line">        <span class="keyword">this</span>.getContentPane().add(exitButton, <span class="keyword">null</span>);</span><br><span class="line">        <span class="keyword">this</span>.getContentPane().add(jTextArea1, <span class="keyword">null</span>);</span><br><span class="line">        <span class="keyword">this</span>.setDefaultCloseOperation(EXIT_ON_CLOSE);</span><br><span class="line">        <span class="keyword">this</span>.setBounds(<span class="number">0</span>, <span class="number">0</span>, <span class="number">400</span>, <span class="number">330</span>);</span><br><span class="line">        <span class="keyword">this</span>.setVisible(<span class="keyword">true</span>);</span><br><span class="line">        initialize();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initialize</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// create a temp file</span></span><br><span class="line">        File file = <span class="keyword">new</span> File(dir, filename);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Creating temporary file&quot;</span>);</span><br><span class="line">            file.createNewFile();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Failed creating temporary file.&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">shutdown</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// delete the temp file</span></span><br><span class="line">        File file = <span class="keyword">new</span> File(dir, filename);</span><br><span class="line">        <span class="keyword">if</span> (file.exists()) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Deleting temporary file.&quot;</span>);</span><br><span class="line">            file.delete();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">exitButton_actionPerformed</span><span class="params">(ActionEvent e)</span> </span>&#123;</span><br><span class="line">        shutdown();</span><br><span class="line">        System.exit(<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        MySwingApp mySwingApp = <span class="keyword">new</span> MySwingApp();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>改进方案是，将 shutdown() 的内容包装到单独的内部类中并实现 Thread 接口。在应用启动时，在 initialize() 方法中通过 hook 的方式注册到 Runtime。这样不管怎么退出，都能保证 shutdown() 方法会被执行</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MySwingAppWithShutdownHook</span> <span class="keyword">extends</span> <span class="title">JFrame</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    JButton exitButton = <span class="keyword">new</span> JButton();</span><br><span class="line">    JTextArea jTextArea1 = <span class="keyword">new</span> JTextArea();</span><br><span class="line">    String dir = System.getProperty(<span class="string">&quot;user.dir&quot;</span>);</span><br><span class="line">    String filename = <span class="string">&quot;temp.txt&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MySwingAppWithShutdownHook</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        exitButton.setText(<span class="string">&quot;Exit&quot;</span>);</span><br><span class="line">        exitButton.setBounds(<span class="keyword">new</span> Rectangle(<span class="number">304</span>, <span class="number">248</span>, <span class="number">76</span>, <span class="number">37</span>));</span><br><span class="line">        exitButton.addActionListener(e -&gt; exitButton_actionPerformed(e));</span><br><span class="line">        <span class="keyword">this</span>.getContentPane().setLayout(<span class="keyword">null</span>);</span><br><span class="line">        jTextArea1.setText(<span class="string">&quot;Click the Exit button to quit&quot;</span>);</span><br><span class="line">        jTextArea1.setBounds(<span class="keyword">new</span> Rectangle(<span class="number">9</span>, <span class="number">7</span>, <span class="number">371</span>, <span class="number">235</span>));</span><br><span class="line">        <span class="keyword">this</span>.getContentPane().add(exitButton, <span class="keyword">null</span>);</span><br><span class="line">        <span class="keyword">this</span>.getContentPane().add(jTextArea1, <span class="keyword">null</span>);</span><br><span class="line">        <span class="keyword">this</span>.setDefaultCloseOperation(EXIT_ON_CLOSE);</span><br><span class="line">        <span class="keyword">this</span>.setBounds(<span class="number">0</span>, <span class="number">0</span>, <span class="number">400</span>, <span class="number">330</span>);</span><br><span class="line">        <span class="keyword">this</span>.setVisible(<span class="keyword">true</span>);</span><br><span class="line">        initialize();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initialize</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// add shutdown hook</span></span><br><span class="line">        MyShutdownHook shutdownHook = <span class="keyword">new</span> MyShutdownHook();</span><br><span class="line">        Runtime.getRuntime().addShutdownHook(shutdownHook);</span><br><span class="line">        <span class="comment">// create a temp file</span></span><br><span class="line">        File file = <span class="keyword">new</span> File(dir, filename);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Creating temporary file&quot;</span>);</span><br><span class="line">            file.createNewFile();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Failed creating temporary file.&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">shutdown</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// delete the temp file</span></span><br><span class="line">        File file = <span class="keyword">new</span> File(dir, filename);</span><br><span class="line">        <span class="keyword">if</span> (file.exists()) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Deleting temporary file.&quot;</span>);</span><br><span class="line">            file.delete();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">exitButton_actionPerformed</span><span class="params">(ActionEvent e)</span> </span>&#123;</span><br><span class="line">        shutdown();</span><br><span class="line">        System.exit(<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        MySwingAppWithShutdownHook mySwingApp = <span class="keyword">new</span> MySwingAppWithShutdownHook();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">MyShutdownHook</span> <span class="keyword">extends</span> <span class="title">Thread</span> </span>&#123;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            shutdown();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Shutdown-Hook-in-Tomcat"><a href="#Shutdown-Hook-in-Tomcat" class="headerlink" title="Shutdown Hook in Tomcat"></a>Shutdown Hook in Tomcat</h2><p>Tomcat 也通过同样的原理，在 Catalina 这个类中定义了一个 hook</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">protected</span> <span class="class"><span class="keyword">class</span> <span class="title">CatalinaShutdownHook</span> <span class="keyword">extends</span> <span class="title">Thread</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (server != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                ((Lifecycle) server).stop();</span><br><span class="line">            &#125; <span class="keyword">catch</span> (LifecycleException e) &#123;</span><br><span class="line">                System.out.println(<span class="string">&quot;Catalina.stop: &quot;</span> + e);</span><br><span class="line">                e.printStackTrace(System.out);</span><br><span class="line">                <span class="keyword">if</span> (e.getThrowable() != <span class="keyword">null</span>) &#123;</span><br><span class="line">                    System.out.println(<span class="string">&quot;----- Root Cause -----&quot;</span>);</span><br><span class="line">                    e.getThrowable().printStackTrace(System.out);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在 Catalina 运行 start() 方法的时候 attach 到 Runtime 对象中去</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Thread shutdownHook = <span class="keyword">new</span> CatalinaShutdownHook();</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">Runtime.getRuntime().addShutdownHook(shutdownHook);</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Tomcat</category>
+      </categories>
+      <tags>
+        <tag>How Tomcat Works</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Ex15 Digester</title>
     <url>/hexo/2021/09/17/HTW-ex15/</url>
     <content><![CDATA[<blockquote>
@@ -3081,44 +3127,12 @@
       </tags>
   </entry>
   <entry>
-    <title>Ex16 Shutdown Hook</title>
-    <url>/hexo/2021/09/20/HTW-ex16/</url>
+    <title>HTW ex18</title>
+    <url>/hexo/2021/09/22/HTW-ex18/</url>
     <content><![CDATA[<blockquote>
-<p><strong>Chapter 16</strong> explains the shutdown hook that Tomcat uses to always get a chance to do clean-up regardless how the user stops it (i.e. either appropriately by sending a shutdown command or inappropriately by simply closing the console.)</p>
+<p><strong>Chapter 18</strong> presents the deployer, the component responsible for deploying and installing web applications. </p>
 </blockquote>
-<p>本章介绍了 Tomcat 如何优雅的执行 stop 方法，前面先通过两个例子介绍实现原理，后面分析 Tomcat 的实现方式</p>
-<p>java 中，虚拟机可以通过两种方式 shut down</p>
-<ul>
-<li>调用 System.exit 结束</li>
-<li>非正常结束，比如 CTRL+C，直接关闭终端等</li>
-</ul>
-<p>当虚拟机结束时，会一次执行下面两个步骤</p>
-<ul>
-<li>jvm 会执行所有注册的 shutdown hook. 这些 hook 被 attach 在 Runtime 对象中，结束时并行执行</li>
-<li>jvm 执行所有没有被调用的 finalizers 方法</li>
-</ul>
-<p>本章中的例子都是针对第一点做实现的</p>
-<p>创建一个 shutdown hook 的方式很简单，分一下几步</p>
-<ul>
-<li>创建 class 继承 Thread</li>
-<li>run 方法中实现定制的逻辑</li>
-<li>在目标应用中，实例话你的 hook class</li>
-<li>注册 hook 到 Runtime</li>
-</ul>
-<p>下面是一个示例程序, 不管怎么结束程序，ShutdownHook 的 run() 方法都会被调用到</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ShutdownHookDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">start</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Demo&quot;</span>);</span><br><span class="line">        ShutdownHook shutdownHook = <span class="keyword">new</span> ShutdownHook();</span><br><span class="line">        Runtime.getRuntime().addShutdownHook(shutdownHook);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ShutdownHookDemo demo = <span class="keyword">new</span> ShutdownHookDemo();</span><br><span class="line">        demo.start();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            System.in.read();</span><br><span class="line">        &#125;<span class="keyword">catch</span> (Exception e) &#123;&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ShutdownHook</span> <span class="keyword">extends</span> <span class="title">Thread</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Shutting down...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Demo</span></span><br><span class="line"><span class="comment">// Shutting down...</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="A-Shutdown-Hook-Example"><a href="#A-Shutdown-Hook-Example" class="headerlink" title="A Shutdown Hook Example"></a>A Shutdown Hook Example</h2><p>这里通过一个 UI 组件做例子，应用启动时会创建一个临时文件，我们的目标是，推出后，这个文件必须被删除。原始实现如下，当点击 Exit 推出时，文件可以被删除，但是如果通过点击 x 按钮推出，则文件还会保留。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MySwingApp</span> <span class="keyword">extends</span> <span class="title">JFrame</span> </span>&#123;</span><br><span class="line">    JButton exitButton = <span class="keyword">new</span> JButton();</span><br><span class="line">    JTextArea jTextArea1 = <span class="keyword">new</span> JTextArea();</span><br><span class="line">    String dir = System.getProperty(<span class="string">&quot;user.dir&quot;</span>);</span><br><span class="line">    String filename = <span class="string">&quot;temp.txt&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MySwingApp</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        exitButton.setText(<span class="string">&quot;Exit&quot;</span>);</span><br><span class="line">        exitButton.setBounds(<span class="keyword">new</span> Rectangle(<span class="number">304</span>, <span class="number">248</span>, <span class="number">76</span>, <span class="number">37</span>));</span><br><span class="line">        exitButton.addActionListener(e -&gt; exitButton_actionPerformed(e));</span><br><span class="line">        <span class="keyword">this</span>.getContentPane().setLayout(<span class="keyword">null</span>);</span><br><span class="line">        jTextArea1.setText(<span class="string">&quot;Click the Exit button to quit&quot;</span>);</span><br><span class="line">        jTextArea1.setBounds(<span class="keyword">new</span> Rectangle(<span class="number">9</span>, <span class="number">7</span>, <span class="number">371</span>, <span class="number">235</span>));</span><br><span class="line">        <span class="keyword">this</span>.getContentPane().add(exitButton, <span class="keyword">null</span>);</span><br><span class="line">        <span class="keyword">this</span>.getContentPane().add(jTextArea1, <span class="keyword">null</span>);</span><br><span class="line">        <span class="keyword">this</span>.setDefaultCloseOperation(EXIT_ON_CLOSE);</span><br><span class="line">        <span class="keyword">this</span>.setBounds(<span class="number">0</span>, <span class="number">0</span>, <span class="number">400</span>, <span class="number">330</span>);</span><br><span class="line">        <span class="keyword">this</span>.setVisible(<span class="keyword">true</span>);</span><br><span class="line">        initialize();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initialize</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// create a temp file</span></span><br><span class="line">        File file = <span class="keyword">new</span> File(dir, filename);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Creating temporary file&quot;</span>);</span><br><span class="line">            file.createNewFile();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Failed creating temporary file.&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">shutdown</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// delete the temp file</span></span><br><span class="line">        File file = <span class="keyword">new</span> File(dir, filename);</span><br><span class="line">        <span class="keyword">if</span> (file.exists()) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Deleting temporary file.&quot;</span>);</span><br><span class="line">            file.delete();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">exitButton_actionPerformed</span><span class="params">(ActionEvent e)</span> </span>&#123;</span><br><span class="line">        shutdown();</span><br><span class="line">        System.exit(<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        MySwingApp mySwingApp = <span class="keyword">new</span> MySwingApp();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>改进方案是，将 shutdown() 的内容包装到单独的内部类中并实现 Thread 接口。在应用启动时，在 initialize() 方法中通过 hook 的方式注册到 Runtime。这样不管怎么退出，都能保证 shutdown() 方法会被执行</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MySwingAppWithShutdownHook</span> <span class="keyword">extends</span> <span class="title">JFrame</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    JButton exitButton = <span class="keyword">new</span> JButton();</span><br><span class="line">    JTextArea jTextArea1 = <span class="keyword">new</span> JTextArea();</span><br><span class="line">    String dir = System.getProperty(<span class="string">&quot;user.dir&quot;</span>);</span><br><span class="line">    String filename = <span class="string">&quot;temp.txt&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MySwingAppWithShutdownHook</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        exitButton.setText(<span class="string">&quot;Exit&quot;</span>);</span><br><span class="line">        exitButton.setBounds(<span class="keyword">new</span> Rectangle(<span class="number">304</span>, <span class="number">248</span>, <span class="number">76</span>, <span class="number">37</span>));</span><br><span class="line">        exitButton.addActionListener(e -&gt; exitButton_actionPerformed(e));</span><br><span class="line">        <span class="keyword">this</span>.getContentPane().setLayout(<span class="keyword">null</span>);</span><br><span class="line">        jTextArea1.setText(<span class="string">&quot;Click the Exit button to quit&quot;</span>);</span><br><span class="line">        jTextArea1.setBounds(<span class="keyword">new</span> Rectangle(<span class="number">9</span>, <span class="number">7</span>, <span class="number">371</span>, <span class="number">235</span>));</span><br><span class="line">        <span class="keyword">this</span>.getContentPane().add(exitButton, <span class="keyword">null</span>);</span><br><span class="line">        <span class="keyword">this</span>.getContentPane().add(jTextArea1, <span class="keyword">null</span>);</span><br><span class="line">        <span class="keyword">this</span>.setDefaultCloseOperation(EXIT_ON_CLOSE);</span><br><span class="line">        <span class="keyword">this</span>.setBounds(<span class="number">0</span>, <span class="number">0</span>, <span class="number">400</span>, <span class="number">330</span>);</span><br><span class="line">        <span class="keyword">this</span>.setVisible(<span class="keyword">true</span>);</span><br><span class="line">        initialize();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initialize</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// add shutdown hook</span></span><br><span class="line">        MyShutdownHook shutdownHook = <span class="keyword">new</span> MyShutdownHook();</span><br><span class="line">        Runtime.getRuntime().addShutdownHook(shutdownHook);</span><br><span class="line">        <span class="comment">// create a temp file</span></span><br><span class="line">        File file = <span class="keyword">new</span> File(dir, filename);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Creating temporary file&quot;</span>);</span><br><span class="line">            file.createNewFile();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Failed creating temporary file.&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">shutdown</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// delete the temp file</span></span><br><span class="line">        File file = <span class="keyword">new</span> File(dir, filename);</span><br><span class="line">        <span class="keyword">if</span> (file.exists()) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Deleting temporary file.&quot;</span>);</span><br><span class="line">            file.delete();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">exitButton_actionPerformed</span><span class="params">(ActionEvent e)</span> </span>&#123;</span><br><span class="line">        shutdown();</span><br><span class="line">        System.exit(<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        MySwingAppWithShutdownHook mySwingApp = <span class="keyword">new</span> MySwingAppWithShutdownHook();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">MyShutdownHook</span> <span class="keyword">extends</span> <span class="title">Thread</span> </span>&#123;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            shutdown();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="Shutdown-Hook-in-Tomcat"><a href="#Shutdown-Hook-in-Tomcat" class="headerlink" title="Shutdown Hook in Tomcat"></a>Shutdown Hook in Tomcat</h2><p>Tomcat 也通过同样的原理，在 Catalina 这个类中定义了一个 hook</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">protected</span> <span class="class"><span class="keyword">class</span> <span class="title">CatalinaShutdownHook</span> <span class="keyword">extends</span> <span class="title">Thread</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (server != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                ((Lifecycle) server).stop();</span><br><span class="line">            &#125; <span class="keyword">catch</span> (LifecycleException e) &#123;</span><br><span class="line">                System.out.println(<span class="string">&quot;Catalina.stop: &quot;</span> + e);</span><br><span class="line">                e.printStackTrace(System.out);</span><br><span class="line">                <span class="keyword">if</span> (e.getThrowable() != <span class="keyword">null</span>) &#123;</span><br><span class="line">                    System.out.println(<span class="string">&quot;----- Root Cause -----&quot;</span>);</span><br><span class="line">                    e.getThrowable().printStackTrace(System.out);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>在 Catalina 运行 start() 方法的时候 attach 到 Runtime 对象中去</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Thread shutdownHook = <span class="keyword">new</span> CatalinaShutdownHook();</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">Runtime.getRuntime().addShutdownHook(shutdownHook);</span><br></pre></td></tr></table></figure>]]></content>
+]]></content>
       <categories>
         <category>Tomcat</category>
       </categories>
@@ -3150,20 +3164,6 @@
 <h2 id="The-Bootstrap-Class"><a href="#The-Bootstrap-Class" class="headerlink" title="The Bootstrap Class"></a>The Bootstrap Class</h2><p>Tomcat 通过 Bootstrap 调用 Catalina，我们平时启动用的 dot/shll 文件也是直接调用的 Bootstrap 类。其中的 main 方法创建了三个 class loader 并对 Catalina 做了实例话，最后调用了他的 process 方法启动服务器。</p>
 <p>PS: 这部分后面可以结合第八章仔细看看，应该挺有意思</p>
 <h2 id="Running-Tomcat-on-Windows-Linux"><a href="#Running-Tomcat-on-Windows-Linux" class="headerlink" title="Running Tomcat on Windows/Linux"></a>Running Tomcat on Windows/Linux</h2><p>略</p>
-]]></content>
-      <categories>
-        <category>Tomcat</category>
-      </categories>
-      <tags>
-        <tag>How Tomcat Works</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>HTW ex18</title>
-    <url>/hexo/2021/09/22/HTW-ex18/</url>
-    <content><![CDATA[<blockquote>
-<p><strong>Chapter 18</strong> presents the deployer, the component responsible for deploying and installing web applications. </p>
-</blockquote>
 ]]></content>
       <categories>
         <category>Tomcat</category>
@@ -3549,22 +3549,6 @@
       </categories>
       <tags>
         <tag>homebrew</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>How to detect consecutive integers in a list</title>
-    <url>/hexo/2021/05/10/How-to-detect-consecutive-integers-in-a-list/</url>
-    <content><![CDATA[<p>在解析文件的时候遇到一个问题，有一个 sourcegraph 的结果集合，包含一些方法，大致格式如下</p>
-<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;lineMatches&quot;</span>: [</span><br><span class="line">                &#123;</span><br><span class="line">                  <span class="attr">&quot;preview&quot;</span>: <span class="string">&quot;  public void createUserInfoElement(ECFieldConfig ecf, MDFEntityBuffer&lt;EPUserInfoConfig&gt; buffer, SyncValueObject svo,\r&quot;</span>,</span><br><span class="line">                  <span class="attr">&quot;lineNumber&quot;</span>: <span class="number">844</span></span><br><span class="line">                &#125;,</span><br><span class="line">                &#123;</span><br><span class="line">                  <span class="attr">&quot;preview&quot;</span>: <span class="string">&quot;      List&lt;EPUserInfoElementHrisSyncMappingConfig&gt; userInfoMappingList, SuccessionDataModelDelegate sdmBean)\r&quot;</span>,</span><br><span class="line">                  <span class="attr">&quot;lineNumber&quot;</span>: <span class="number">845</span></span><br><span class="line">                &#125;,</span><br><span class="line">                &#123;</span><br><span class="line">                  <span class="attr">&quot;preview&quot;</span>: <span class="string">&quot;    public boolean syncData(IHrisElementField hf, List&lt;Locale&gt; supportedLocales, List&lt;SyncValueObject&gt; svoList, SuccessionDataModelDelegate sdm) &#123;\r&quot;</span>,</span><br><span class="line">                  <span class="attr">&quot;lineNumber&quot;</span>: <span class="number">2277</span></span><br><span class="line">                &#125;</span><br><span class="line">              ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>我想要的处理效果是，将 lineNumber 连续的对象整合在一起，需要怎么做？</p>
-]]></content>
-      <categories>
-        <category>python</category>
-        <category>java</category>
-      </categories>
-      <tags>
-        <tag>查找</tag>
       </tags>
   </entry>
   <entry>
@@ -4130,10 +4114,11 @@
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line">response.setContentType(<span class="string">&quot;text/html;charset=UTF-8&quot;</span>);</span><br><span class="line">pageContext = _jspxFactory.getPageContext(<span class="keyword">this</span>, request, response,</span><br><span class="line">        <span class="keyword">null</span>, <span class="keyword">true</span>, <span class="number">8192</span>, <span class="keyword">true</span>);</span><br><span class="line">_jspx_page_context = pageContext;</span><br><span class="line">application = pageContext.getServletContext();</span><br><span class="line">config = pageContext.getServletConfig();</span><br><span class="line">session = pageContext.getSession();</span><br><span class="line">out = pageContext.getOut();</span><br><span class="line">_jspx_out = out;</span><br><span class="line"></span><br><span class="line">out.write(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">out.write(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">out.write(<span class="string">&quot;&lt;html&gt;\n&quot;</span>);</span><br><span class="line">out.write(<span class="string">&quot;&lt;head&gt;\n&quot;</span>);</span><br><span class="line">out.write(<span class="string">&quot;    &lt;title&gt;Title&lt;/title&gt;\n&quot;</span>);</span><br><span class="line">out.write(<span class="string">&quot;&lt;/head&gt;\n&quot;</span>);</span><br><span class="line">out.write(<span class="string">&quot;&lt;body&gt;\n&quot;</span>);</span><br><span class="line">out.write(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">String myname = (String)request.getAttribute(<span class="string">&quot;name&quot;</span>);</span><br><span class="line"></span><br><span class="line">out.write(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">out.write(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">out.write(<span class="string">&quot;&lt;hr&gt;\n&quot;</span>);</span><br><span class="line">out.write(<span class="string">&quot;&lt;h1&gt; include jspf file &lt;/h1&gt;\n&quot;</span>); <span class="comment">// &lt;---------- sub.jsp part</span></span><br><span class="line">out.write(<span class="string">&#x27;\n&#x27;</span>);</span><br><span class="line">out.write(<span class="string">&#x27;\n&#x27;</span>);</span><br><span class="line">out.write(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">out.write(<span class="string">&quot;&lt;h2&gt; Name: &quot;</span>);</span><br><span class="line">out.print( myname);</span><br><span class="line">out.write(<span class="string">&quot; &lt;h2/&gt;&quot;</span>);</span><br><span class="line">out.write(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">out.write(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">out.write(<span class="string">&quot;&lt;hr&gt;\n&quot;</span>);</span><br><span class="line">out.write(<span class="string">&quot;&lt;h1&gt; include jsp file &lt;/h1&gt;\n&quot;</span>); <span class="comment">// &lt;---------- sub2.jsp part</span></span><br><span class="line">out.write(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">out.write(<span class="string">&quot;&lt;h2&gt; Name: &quot;</span>);</span><br><span class="line">out.print(myname);</span><br><span class="line">out.write(<span class="string">&quot; &lt;/h2&gt;\n&quot;</span>);</span><br><span class="line">out.write(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">out.write(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">out.write(<span class="string">&quot;&lt;hr&gt;\n&quot;</span>);</span><br><span class="line">out.write(<span class="string">&quot;&lt;h1&gt; jsp:include jsp file &lt;/h1&gt;\n&quot;</span>); <span class="comment">// &lt;---------- sub3.jsp part</span></span><br><span class="line">org.apache.jasper.runtime.JspRuntimeLibrary.include(request, response, <span class="string">&quot;sub3.jsp&quot;</span>, out, <span class="keyword">false</span>);</span><br><span class="line">out.write(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">out.write(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">out.write(<span class="string">&quot;&lt;/body&gt;\n&quot;</span>);</span><br><span class="line">out.write(<span class="string">&quot;&lt;/html&gt;\n&quot;</span>);</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>java</category>
-        <category>[object Object]</category>
-        <category>jsp</category>
-        <category>jspf</category>
       </categories>
+      <tags>
+        <tag>jsp</tag>
+        <tag>jspf</tag>
+      </tags>
   </entry>
   <entry>
     <title>JSP 页面中 include 的自页面是否能访问父业页面的 request</title>
@@ -4165,10 +4150,11 @@
 ]]></content>
       <categories>
         <category>java</category>
-        <category>[object Object]</category>
-        <category>servlet</category>
-        <category>jsp</category>
       </categories>
+      <tags>
+        <tag>jsp</tag>
+        <tag>servlet</tag>
+      </tags>
   </entry>
   <entry>
     <title>Lambda 使用时遇到的一些奇奇怪怪的问题</title>
@@ -4555,6 +4541,28 @@
       </tags>
   </entry>
   <entry>
+    <title>变量赋值，跌进了坑中</title>
+    <url>/hexo/2021/03/19/Java-variable-assignment/</url>
+    <content><![CDATA[<p>今天在修一个 feature 的时候，掉进了一个很初级的坑中而不自觉，debug 了好久才发现的，汗颜</p>
+<h2 id="问题简化"><a href="#问题简化" class="headerlink" title="问题简化"></a>问题简化</h2><p>求解</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Map&lt;String , Integer&gt; map;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Map&lt;String, Integer&gt; <span class="title">getMap</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> map;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestScope</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Person person = <span class="keyword">new</span> Person();</span><br><span class="line"></span><br><span class="line">        Map&lt;String, Integer&gt; tmp = person.getMap();</span><br><span class="line">        System.out.println(tmp); <span class="comment">// null</span></span><br><span class="line">        System.out.println(person.getMap()); <span class="comment">// null</span></span><br><span class="line"></span><br><span class="line">        tmp = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">        tmp.put(<span class="string">&quot;jack&quot;</span>, <span class="number">31</span>);</span><br><span class="line"></span><br><span class="line">        System.out.println(tmp); <span class="comment">// &#123;jack=31&#125;</span></span><br><span class="line">        System.out.println(person.getMap()); <span class="comment">// null</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>debug 的时候还一直纳闷，怎么 person 引用没有被赋值。。。作为对比看下面的例子应该就很清楚了</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Map&lt;String , Integer&gt; map = <span class="keyword">new</span> HashMap&lt;&gt;(); <span class="comment">// 带初始化引用类型的</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Map&lt;String, Integer&gt; <span class="title">getMap</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> map;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestScope</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Person person = <span class="keyword">new</span> Person();</span><br><span class="line"></span><br><span class="line">        Map&lt;String, Integer&gt; tmp = person.getMap();</span><br><span class="line">        System.out.println(tmp); <span class="comment">// &#123;&#125;</span></span><br><span class="line">        System.out.println(person.getMap()); <span class="comment">// &#123;&#125;</span></span><br><span class="line"></span><br><span class="line">        tmp.put(<span class="string">&quot;jack&quot;</span>, <span class="number">31</span>);</span><br><span class="line"></span><br><span class="line">        System.out.println(tmp); <span class="comment">// &#123;jack=31&#125;</span></span><br><span class="line">        System.out.println(person.getMap()); <span class="comment">// &#123;jack=31&#125;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在特殊化一下</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestScope</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Person person = <span class="keyword">new</span> Person();</span><br><span class="line"></span><br><span class="line">        Map&lt;String, Integer&gt; tmp = person.getMap();</span><br><span class="line">        System.out.println(tmp); <span class="comment">// &#123;&#125;</span></span><br><span class="line">        System.out.println(person.getMap()); <span class="comment">// &#123;&#125;</span></span><br><span class="line"></span><br><span class="line">        tmp.put(<span class="string">&quot;jack&quot;</span>, <span class="number">31</span>);</span><br><span class="line">        tmp = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">        tmp.put(<span class="string">&quot;jerry&quot;</span>, <span class="number">21</span>);</span><br><span class="line"></span><br><span class="line">        System.out.println(tmp); <span class="comment">// &#123;jack=21&#125;</span></span><br><span class="line">        System.out.println(person.getMap()); <span class="comment">// &#123;jack=31&#125;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>总结一下就是，改变引用类型的值没什么问题，但是如果一开始是 null 的话它就不会随着一起改了</p>
+]]></content>
+      <categories>
+        <category>java</category>
+      </categories>
+      <tags>
+        <tag>bug</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>使用 SAX 解析 XM</title>
     <url>/hexo/2020/11/03/Java-use-SAX-parse-xml/</url>
     <content><![CDATA[<p>简单记录一下 Java 解析 xml 的例子。</p>
@@ -4623,28 +4631,6 @@
       <tags>
         <tag>xml</tag>
         <tag>sax</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>变量赋值，跌进了坑中</title>
-    <url>/hexo/2021/03/19/Java-variable-assignment/</url>
-    <content><![CDATA[<p>今天在修一个 feature 的时候，掉进了一个很初级的坑中而不自觉，debug 了好久才发现的，汗颜</p>
-<h2 id="问题简化"><a href="#问题简化" class="headerlink" title="问题简化"></a>问题简化</h2><p>求解</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Map&lt;String , Integer&gt; map;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Map&lt;String, Integer&gt; <span class="title">getMap</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> map;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestScope</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Person person = <span class="keyword">new</span> Person();</span><br><span class="line"></span><br><span class="line">        Map&lt;String, Integer&gt; tmp = person.getMap();</span><br><span class="line">        System.out.println(tmp); <span class="comment">// null</span></span><br><span class="line">        System.out.println(person.getMap()); <span class="comment">// null</span></span><br><span class="line"></span><br><span class="line">        tmp = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">        tmp.put(<span class="string">&quot;jack&quot;</span>, <span class="number">31</span>);</span><br><span class="line"></span><br><span class="line">        System.out.println(tmp); <span class="comment">// &#123;jack=31&#125;</span></span><br><span class="line">        System.out.println(person.getMap()); <span class="comment">// null</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>debug 的时候还一直纳闷，怎么 person 引用没有被赋值。。。作为对比看下面的例子应该就很清楚了</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Map&lt;String , Integer&gt; map = <span class="keyword">new</span> HashMap&lt;&gt;(); <span class="comment">// 带初始化引用类型的</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Map&lt;String, Integer&gt; <span class="title">getMap</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> map;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestScope</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Person person = <span class="keyword">new</span> Person();</span><br><span class="line"></span><br><span class="line">        Map&lt;String, Integer&gt; tmp = person.getMap();</span><br><span class="line">        System.out.println(tmp); <span class="comment">// &#123;&#125;</span></span><br><span class="line">        System.out.println(person.getMap()); <span class="comment">// &#123;&#125;</span></span><br><span class="line"></span><br><span class="line">        tmp.put(<span class="string">&quot;jack&quot;</span>, <span class="number">31</span>);</span><br><span class="line"></span><br><span class="line">        System.out.println(tmp); <span class="comment">// &#123;jack=31&#125;</span></span><br><span class="line">        System.out.println(person.getMap()); <span class="comment">// &#123;jack=31&#125;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>在特殊化一下</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestScope</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Person person = <span class="keyword">new</span> Person();</span><br><span class="line"></span><br><span class="line">        Map&lt;String, Integer&gt; tmp = person.getMap();</span><br><span class="line">        System.out.println(tmp); <span class="comment">// &#123;&#125;</span></span><br><span class="line">        System.out.println(person.getMap()); <span class="comment">// &#123;&#125;</span></span><br><span class="line"></span><br><span class="line">        tmp.put(<span class="string">&quot;jack&quot;</span>, <span class="number">31</span>);</span><br><span class="line">        tmp = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">        tmp.put(<span class="string">&quot;jerry&quot;</span>, <span class="number">21</span>);</span><br><span class="line"></span><br><span class="line">        System.out.println(tmp); <span class="comment">// &#123;jack=21&#125;</span></span><br><span class="line">        System.out.println(person.getMap()); <span class="comment">// &#123;jack=31&#125;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>总结一下就是，改变引用类型的值没什么问题，但是如果一开始是 null 的话它就不会随着一起改了</p>
-]]></content>
-      <categories>
-        <category>java</category>
-      </categories>
-      <tags>
-        <tag>bug</tag>
       </tags>
   </entry>
   <entry>
@@ -5314,6 +5300,21 @@
       </tags>
   </entry>
   <entry>
+    <title>Python 优雅的换行</title>
+    <url>/hexo/2020/07/08/Python-switch-line-pythnic/</url>
+    <content><![CDATA[<p>记录一下查了无数遍的换行方法备用，总结一下就是使用 ‘’ + \ + ‘’ 类似的语法做链接，只可使用 ‘xxxx\xxx’ 的话会出现空格</p>
+<h2 id="无缝连接"><a href="#无缝连接" class="headerlink" title="无缝连接"></a>无缝连接</h2><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">a = <span class="string">&#x27;1111111&#x27;</span>\</span><br><span class="line">    <span class="string">&#x27;2222222&#x27;</span>\</span><br><span class="line">    <span class="string">&#x27;3333333&#x27;</span></span><br><span class="line"></span><br><span class="line">print(a)</span><br><span class="line"><span class="comment"># &#x27;111111122222223333333&#x27;</span></span><br><span class="line"></span><br><span class="line">print(<span class="string">&#x27;aaaaaaaaa&#x27;</span></span><br><span class="line">    <span class="string">&#x27;bbbbbbbbb&#x27;</span></span><br><span class="line">    <span class="string">&#x27;ccccccccc&#x27;</span>)</span><br><span class="line"><span class="comment"># aaaaaaaaabbbbbbbbbccccccccc</span></span><br><span class="line"></span><br><span class="line">print(<span class="string">&#x27;aaaaaaaaa&#x27;</span>\</span><br><span class="line">        <span class="string">&#x27;bbbbbbbbb&#x27;</span>\</span><br><span class="line">        <span class="string">&#x27;ccccccccc&#x27;</span>)</span><br><span class="line"><span class="comment"># aaaaaaaaabbbbbbbbbccccccccc</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="有缝连接"><a href="#有缝连接" class="headerlink" title="有缝连接"></a>有缝连接</h2><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">a = <span class="string">&#x27;&#x27;&#x27;11111111</span></span><br><span class="line"><span class="string">       22222222</span></span><br><span class="line"><span class="string">       33333333&#x27;&#x27;&#x27;</span></span><br><span class="line">print(a)</span><br><span class="line"><span class="comment"># &#x27;11111111\n       22222222\n       33333333&#x27;</span></span><br><span class="line"></span><br><span class="line">a = <span class="string">&#x27;11111111\</span></span><br><span class="line"><span class="string">     22222222\</span></span><br><span class="line"><span class="string">     33333333&#x27;</span></span><br><span class="line">print(a)</span><br><span class="line"><span class="comment"># &#x27;11111111     22222222     33333333&#x27;</span></span><br><span class="line"></span><br><span class="line">print(<span class="string">&#x27;&#x27;&#x27;55555555555</span></span><br><span class="line"><span class="string">        66666666666</span></span><br><span class="line"><span class="string">        77777777777&#x27;&#x27;&#x27;</span>)</span><br><span class="line"><span class="comment"># 55555555555</span></span><br><span class="line"><span class="comment">#                66666666666</span></span><br><span class="line"><span class="comment">#                77777777777</span></span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>python</category>
+      </categories>
+      <tags>
+        <tag>换行</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Python 使用 json 序列化</title>
     <url>/hexo/2020/06/13/Python-serialization-data-to-json/</url>
     <content><![CDATA[<h2 id="dump-Vs-dumps"><a href="#dump-Vs-dumps" class="headerlink" title="dump Vs dumps"></a>dump Vs dumps</h2><p>这两个函数都可以用来做序列化，唯一的区别是 dump 需要指定一个 io，比如打开的文件作为输出的地方，而 dumps 默认是以 stdout 做为输出端的，也就是打印在终端</p>
@@ -5344,21 +5345,6 @@
       </categories>
       <tags>
         <tag>序列化</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Python 优雅的换行</title>
-    <url>/hexo/2020/07/08/Python-switch-line-pythnic/</url>
-    <content><![CDATA[<p>记录一下查了无数遍的换行方法备用，总结一下就是使用 ‘’ + \ + ‘’ 类似的语法做链接，只可使用 ‘xxxx\xxx’ 的话会出现空格</p>
-<h2 id="无缝连接"><a href="#无缝连接" class="headerlink" title="无缝连接"></a>无缝连接</h2><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">a = <span class="string">&#x27;1111111&#x27;</span>\</span><br><span class="line">    <span class="string">&#x27;2222222&#x27;</span>\</span><br><span class="line">    <span class="string">&#x27;3333333&#x27;</span></span><br><span class="line"></span><br><span class="line">print(a)</span><br><span class="line"><span class="comment"># &#x27;111111122222223333333&#x27;</span></span><br><span class="line"></span><br><span class="line">print(<span class="string">&#x27;aaaaaaaaa&#x27;</span></span><br><span class="line">    <span class="string">&#x27;bbbbbbbbb&#x27;</span></span><br><span class="line">    <span class="string">&#x27;ccccccccc&#x27;</span>)</span><br><span class="line"><span class="comment"># aaaaaaaaabbbbbbbbbccccccccc</span></span><br><span class="line"></span><br><span class="line">print(<span class="string">&#x27;aaaaaaaaa&#x27;</span>\</span><br><span class="line">        <span class="string">&#x27;bbbbbbbbb&#x27;</span>\</span><br><span class="line">        <span class="string">&#x27;ccccccccc&#x27;</span>)</span><br><span class="line"><span class="comment"># aaaaaaaaabbbbbbbbbccccccccc</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="有缝连接"><a href="#有缝连接" class="headerlink" title="有缝连接"></a>有缝连接</h2><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">a = <span class="string">&#x27;&#x27;&#x27;11111111</span></span><br><span class="line"><span class="string">       22222222</span></span><br><span class="line"><span class="string">       33333333&#x27;&#x27;&#x27;</span></span><br><span class="line">print(a)</span><br><span class="line"><span class="comment"># &#x27;11111111\n       22222222\n       33333333&#x27;</span></span><br><span class="line"></span><br><span class="line">a = <span class="string">&#x27;11111111\</span></span><br><span class="line"><span class="string">     22222222\</span></span><br><span class="line"><span class="string">     33333333&#x27;</span></span><br><span class="line">print(a)</span><br><span class="line"><span class="comment"># &#x27;11111111     22222222     33333333&#x27;</span></span><br><span class="line"></span><br><span class="line">print(<span class="string">&#x27;&#x27;&#x27;55555555555</span></span><br><span class="line"><span class="string">        66666666666</span></span><br><span class="line"><span class="string">        77777777777&#x27;&#x27;&#x27;</span>)</span><br><span class="line"><span class="comment"># 55555555555</span></span><br><span class="line"><span class="comment">#                66666666666</span></span><br><span class="line"><span class="comment">#                77777777777</span></span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>python</category>
-      </categories>
-      <tags>
-        <tag>换行</tag>
       </tags>
   </entry>
   <entry>
@@ -5991,7 +5977,7 @@
       </tags>
   </entry>
   <entry>
-    <title>Spring jiemi IoC</title>
+    <title>Ioc 笔记</title>
     <url>/hexo/2021/10/13/Spring-jiemi-IoC/</url>
     <content><![CDATA[<p>从广义上讲，不管 Spring 框架自发布到现在经过多少次迭代，其本质是始终不变的，都是为了提供各种服务，以帮助我们简化基于 POJO 的 Java 应用程序开发。</p>
 <p>Spring 框架为 POJO 提供的各种服务组成的生命树如下</p>
@@ -7351,28 +7337,6 @@
       </tags>
   </entry>
   <entry>
-    <title>为什么我们要在打印 log 之前进行 isInfoEnabled 判断？</title>
-    <url>/hexo/2020/12/08/Why-we-should-call-isInfoEnabled-before-print-log/</url>
-    <content><![CDATA[<p>平时我们在代码中打印 log 基本都是直接调用 <code>logger.info()</code> 方法，官方推荐在外面再包一层 <code>if (logger.isInfoEnabled())</code> 判断，Why?</p>
-<p>以 log4j 为例：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = Logger.getLogger(ExampleBeanWithSetter.class);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (logger.isInfoEnabled()) &#123;</span><br><span class="line">    logger.info(<span class="string">&quot;Hello world...&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>如果没有加外层的 <code>isInfoEnabled</code> 判断，那个将会直接执行 <code>logger.info(String)</code> 方法， 相对于有判断的形式，多了一步拼接字符串的步骤。换句话说，最大的区别有两点：</p>
-<ol>
-<li>拼接字符串耗时</li>
-<li>这些字符串也会消耗内存空间</li>
-</ol>
-<p>对一般的小系统当然是没什么影响，如果是高并发或者 log 很多的系统，可以作为一个优化的方向。</p>
-]]></content>
-      <categories>
-        <category>编程</category>
-      </categories>
-      <tags>
-        <tag>java</tag>
-        <tag>logger</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Win10 安装 WSL 并集成 VSCode</title>
     <url>/hexo/2019/12/02/Win10%20%E5%AE%89%E8%A3%85%20WSL%20%E5%B9%B6%E9%9B%86%E6%88%90%20VSCode/</url>
     <content><![CDATA[<p>在 Win10 下用 VSCode + WSL 开发，体验还是不错的，一开始看了下官方文档，好长，好复杂。但是实际操作下来，其实很简单，赶紧搞起来，甚香( •̀ ω •́ )✧</p>
@@ -7399,6 +7363,28 @@
       <tags>
         <tag>vscode</tag>
         <tag>WSL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>为什么我们要在打印 log 之前进行 isInfoEnabled 判断？</title>
+    <url>/hexo/2020/12/08/Why-we-should-call-isInfoEnabled-before-print-log/</url>
+    <content><![CDATA[<p>平时我们在代码中打印 log 基本都是直接调用 <code>logger.info()</code> 方法，官方推荐在外面再包一层 <code>if (logger.isInfoEnabled())</code> 判断，Why?</p>
+<p>以 log4j 为例：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = Logger.getLogger(ExampleBeanWithSetter.class);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (logger.isInfoEnabled()) &#123;</span><br><span class="line">    logger.info(<span class="string">&quot;Hello world...&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果没有加外层的 <code>isInfoEnabled</code> 判断，那个将会直接执行 <code>logger.info(String)</code> 方法， 相对于有判断的形式，多了一步拼接字符串的步骤。换句话说，最大的区别有两点：</p>
+<ol>
+<li>拼接字符串耗时</li>
+<li>这些字符串也会消耗内存空间</li>
+</ol>
+<p>对一般的小系统当然是没什么影响，如果是高并发或者 log 很多的系统，可以作为一个优化的方向。</p>
+]]></content>
+      <categories>
+        <category>编程</category>
+      </categories>
+      <tags>
+        <tag>java</tag>
+        <tag>logger</tag>
       </tags>
   </entry>
   <entry>
@@ -8402,8 +8388,8 @@
 <p>好嘛，原来基类加完 fly() 方法之后忘了重写橡皮鸭子这个子类了，还能咋整，要不重写一下 fly() 呗</p>
 <figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">+-------------------------+                                                                                                                           </span><br><span class="line">|    RubberDuck           |                                                                                                                           </span><br><span class="line">| ----------------------  |                                                                                                                           </span><br><span class="line">|                         |                                                                                                                           </span><br><span class="line">| display()               |                                                                                                                           </span><br><span class="line">| quack()&#123;// rubber quck &#125;|                                                                                                                           </span><br><span class="line">| fly()&#123; // do nothing &#125;  |                                                                                                                           </span><br><span class="line">|                         |                                                                                                                           </span><br><span class="line">+-------------------------+ </span><br></pre></td></tr></table></figure>
 
-<p>不过转念一下，这也不是办法啊，不然哪天要新加一个什么木头鸭子，不是还得和相比鸭子一样再来一遍？于是小码农就寻思着，把 quack 和 fly 整成接口？</p>
-<p>把这个想法和同事小美一说，小美立马就不乐意了，这个那个产品老几十个类，把这两个玩意儿整成接口，你不得在这几十个类里面都改一遍，你改啊？！</p>
+<p>不过转念一下，这也不是办法啊，不然哪天要新加一个什么木头鸭子，不是还得和橡皮鸭子一样再来一遍？于是小码农就寻思着，把 quack 和 fly 整成接口？</p>
+<p>把这个想法和同事小美一说，小美立马就不乐意了，这个产品有几十个类，把这两个玩意儿整成接口，你不得在这几十个类里面都改一遍，你改啊？！</p>
 <p>小码农想也是，但是没什么法子，就去问自己的师傅大能耐了。小码农把情况和大能耐说了一遍。</p>
 <p>‘耐哥，就上面的情况，听说你精通设计模式，这种情况，有法儿吗’</p>
 <p>‘咱先不说设计模式的事儿，写代码最起码得掌握一个原则：先把频繁变动的代码和不变的拆分开了后我们再说事儿’</p>
@@ -9892,8 +9878,8 @@
       </categories>
       <tags>
         <tag>java</tag>
-        <tag>servlet</tag>
         <tag>jsp</tag>
+        <tag>servlet</tag>
       </tags>
   </entry>
   <entry>
