@@ -92,3 +92,9 @@ Spring 提供了两种容器类型
 ![ioc container relationship](beanfactory_applicationcontext.png)
 
 BeanFactory 顾名思义就是一个工厂，你提供原料然后他给你成品，至于中间过程，作为用户，你并不需要知道，这是框架的职责范围。
+
+## 问题
+
+Q: Spring 的 容器 怎么体现的
+
+A: 容器即装东西的地方，项目中的 Bean 都是通过他保管的(存在 map 中)，所以还是很贴切的

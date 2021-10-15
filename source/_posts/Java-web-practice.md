@@ -85,7 +85,7 @@ webapps 下面的每一个文件夹都是一个 project，可以再地址后面�
 1. 建立起基本的实验架构
 2. 运行第一个程序
 
-创建一个 Maven 项目作为综合项目 javaweb，将 src 文件夹删掉，后续的实验通过创建 module 的形式进行。这是一个空的项目，在父母目录的 pom 文件中加入基本依赖
+创建一个 Maven 项目作为综合项目 javaweb，将 src 文件夹删掉，后续的实验通过创建 module 的形式进行。这是一个空的项目，在父目录的 pom 文件中加入基本依赖
 
 ```xml
 <dependencies>
@@ -123,7 +123,7 @@ main
 
 创建完成后观察父子项目的 pom 文件可以发现，两个文件中有互相的引用
 
-再 java 文件夹下创建 HelloServlet 并继承自 `HttpServlet`, 重写 doGet 方法
+在 java 文件夹下创建 HelloServlet 并继承自 `HttpServlet`, 重写 doGet 方法
 
 ```java
  @Override
@@ -407,7 +407,7 @@ public class PropertiesServlet extends HttpServlet {
 
 #### prop 不能提取的问题
 
-如果 properties 是卸载 Java class 同目录下的，那么，编译的时候，并不会被提取到 WEB-INF 文件夹中去。需要在 module2 的 pom 中添加配置修复
+如果 properties 是写在 Java class 同目录下的，那么，编译的时候，并不会被提取到 WEB-INF 文件夹中去。需要在 module2 的 pom 中添加配置修复
 
 ```xml
 <build>
