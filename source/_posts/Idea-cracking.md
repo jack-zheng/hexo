@@ -22,4 +22,5 @@ tags:
 
 ## Refer
 
+* [历史版本](https://www.jetbrains.com/idea/download/other.html)
 * [感谢给出资源和解决方案的 - AlgerFan](https://www.algerfan.cn/articles/2019/03/06/1551868940012.html)
