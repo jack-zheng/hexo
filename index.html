@@ -206,6 +206,247 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/10/25/Spring-post-processor/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/10/25/Spring-post-processor/" class="post-title-link" itemprop="url">Spring post processor</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-10-25 13:34:38 / 修改时间：19:18:31" itemprop="dateCreated datePublished" datetime="2021-10-25T13:34:38+08:00">2021-10-25</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/Spring/" itemprop="url" rel="index">
+                    <span itemprop="name">Spring</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>10k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>9 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>Spring 中有两种 post processor，一种是 BeanFactoryPostProcessor, 另一种是 BeanPostProcessor. BeanFactoryPostProcessor 执行时机为：bean definition 加载完成之后，bean 实例化之前。而 BeanPostProcessor 则是 bean 初始化的后置处理器，包含两个方法，可以分别在初始化之前和之后执行。</p>
+<p>总结各个扩展点的执行顺序：@PostConstruct -&gt; InitializingBean -&gt; initMethod -&gt; @PreDestory -&gt; DisposableBean -&gt; destoryMethod</p>
+<h2 id="BeanFactoryPostProcessor-使用案例"><a href="#BeanFactoryPostProcessor-使用案例" class="headerlink" title="BeanFactoryPostProcessor 使用案例"></a>BeanFactoryPostProcessor 使用案例</h2><h3 id="Xml-配置的方式"><a href="#Xml-配置的方式" class="headerlink" title="Xml 配置的方式"></a>Xml 配置的方式</h3><p>不需要添加额外的注解，新建测试 bean 和 BeanFactoryPostProcessor 之后，通过 xml 关联，并在测试代码中通过 ClassPathXmlApplicationContext 加载配置即可。示例说明，测试 bean 中包含 name, age 属性，我们通过 BeanFactoryPostProcessor 在 bean definition 加载完之后修改 age 的值并将 scope type 修改为 prototype</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyBeanFactoryPostProcessor</span> <span class="keyword">implements</span> <span class="title">BeanFactoryPostProcessor</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">postProcessBeanFactory</span><span class="params">(ConfigurableListableBeanFactory beanFactory)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;------- BeanFactoryPostProcessor::postProcessBeanFactory&quot;</span>);</span><br><span class="line">        BeanDefinition bd = beanFactory.getBeanDefinition(<span class="string">&quot;postProcessorTestBean&quot;</span>);</span><br><span class="line"></span><br><span class="line">        MutablePropertyValues propertyValues = bd.getPropertyValues();</span><br><span class="line">        <span class="keyword">if</span> (propertyValues.contains(<span class="string">&quot;age&quot;</span>)) &#123;</span><br><span class="line">            propertyValues.addPropertyValue(<span class="string">&quot;age&quot;</span>, <span class="number">24</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        bd.setScope(BeanDefinition.SCOPE_PROTOTYPE);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PostProcessorTestBean</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line">    <span class="keyword">private</span> Integer age;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// getter + setter + toString</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">beans</span> <span class="attr">xmlns</span>=<span class="string">&quot;http://www.springframework.org/schema/beans&quot;</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:xsi</span>=<span class="string">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xsi:schemaLocation</span>=<span class="string">&quot;http://www.springframework.org/schema/beans</span></span></span><br><span class="line"><span class="tag"><span class="string">        https://www.springframework.org/schema/beans/spring-beans.xsd&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;postProcessorTestBean&quot;</span> <span class="attr">class</span>=<span class="string">&quot;com.bin.postprocessor.PostProcessorTestBean&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;name&quot;</span> <span class="attr">value</span>=<span class="string">&quot;Tom&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;age&quot;</span> <span class="attr">value</span>=<span class="string">&quot;12&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;myBeanFactoryPostProcessor&quot;</span> <span class="attr">class</span>=<span class="string">&quot;com.bin.postprocessor.MyBeanFactoryPostProcessor&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>测试用例</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test_config_with_xml</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    ApplicationContext ctx2 = <span class="keyword">new</span> ClassPathXmlApplicationContext(<span class="string">&quot;postprocessor/bean_with_bean_factory.xml&quot;</span>);</span><br><span class="line">    PostProcessorTestBean bean2 = (PostProcessorTestBean) ctx2.getBean(<span class="string">&quot;postProcessorTestBean&quot;</span>);</span><br><span class="line">    System.out.println(bean2);</span><br><span class="line">    System.out.println(<span class="string">&quot;------- Is singleton: &quot;</span> + ctx2.isSingleton(<span class="string">&quot;postProcessorTestBean&quot;</span>));</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// ------- BeanFactoryPostProcessor::postProcessBeanFactory</span></span><br><span class="line"><span class="comment">// PostProcessorTestBean&#123;name=&#x27;Tom&#x27;, age=24&#125;</span></span><br><span class="line"><span class="comment">// ------- Is singleton: false</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Annotation-配置的方式"><a href="#Annotation-配置的方式" class="headerlink" title="Annotation 配置的方式"></a>Annotation 配置的方式</h3><p>沿用之前的 bean 和 processor 代码，分别为他们添加 @Component 和 @Value 注解并设置值，通过 AnnotationConfigApplicationContext 加载配置执行测试</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test_config_with_annotation</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    ApplicationContext ctx = <span class="keyword">new</span> AnnotationConfigApplicationContext(<span class="string">&quot;com.bin.postprocessor&quot;</span>);</span><br><span class="line">    PostProcessorTestBean bean = (PostProcessorTestBean) ctx.getBean(<span class="string">&quot;postProcessorTestBean&quot;</span>);</span><br><span class="line">    System.out.println(bean);</span><br><span class="line">    System.out.println(<span class="string">&quot;------- Is singleton; &quot;</span> + ctx.isSingleton(<span class="string">&quot;postProcessorTestBean&quot;</span>));</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// ------- BeanFactoryPostProcessor::postProcessBeanFactory</span></span><br><span class="line"><span class="comment">// PostProcessorTestBean&#123;name=&#x27;Jack&#x27;, age=22&#125;</span></span><br><span class="line"><span class="comment">// ------- Is singleton; false</span></span><br></pre></td></tr></table></figure>
+
+<p>PS: 这里需要注意的是，value 并没有改变，因为完成 bean definition 加载的时候，@Value 并没有完成解析，所以修改时无效的。这一点可以看看对应的源码，后面再完善一下。从 BeanFactoryPostProcessor 的定义来说，这种用法才正确，之前的用法反而有点邪道的意思了。</p>
+<h2 id="BeanPostProcessor-使用案例"><a href="#BeanPostProcessor-使用案例" class="headerlink" title="BeanPostProcessor 使用案例"></a>BeanPostProcessor 使用案例</h2><p>和之前的 BeanFactoryPostProcessor 使用基本是一样的套路</p>
+<h3 id="Xml-配置的方式-1"><a href="#Xml-配置的方式-1" class="headerlink" title="Xml 配置的方式"></a>Xml 配置的方式</h3><p>bean 沿用之前的, BeanPostProcess 如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyBeanPostProcessor</span> <span class="keyword">implements</span> <span class="title">BeanPostProcessor</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">postProcessBeforeInitialization</span><span class="params">(Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;------- BeanPostProcessor::postProcessBeforeInitialization&quot;</span>);</span><br><span class="line">        <span class="keyword">if</span> (beanName.endsWith(<span class="string">&quot;postProcessorTestBean&quot;</span>)) &#123;</span><br><span class="line">            ((PostProcessorTestBean) bean).setAge(<span class="number">100</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> bean;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">postProcessAfterInitialization</span><span class="params">(Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;------- BeanPostProcessor::postProcessAfterInitialization&quot;</span>);</span><br><span class="line">        <span class="keyword">if</span> (beanName.endsWith(<span class="string">&quot;postProcessorTestBean&quot;</span>)) &#123;</span><br><span class="line">            ((PostProcessorTestBean) bean).setName(<span class="string">&quot;Updated&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> bean;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">beans</span> <span class="attr">xmlns</span>=<span class="string">&quot;http://www.springframework.org/schema/beans&quot;</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:xsi</span>=<span class="string">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xsi:schemaLocation</span>=<span class="string">&quot;http://www.springframework.org/schema/beans</span></span></span><br><span class="line"><span class="tag"><span class="string">        https://www.springframework.org/schema/beans/spring-beans.xsd&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;postProcessorTestBean&quot;</span> <span class="attr">class</span>=<span class="string">&quot;com.bin.postprocessor.PostProcessorTestBean&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;name&quot;</span> <span class="attr">value</span>=<span class="string">&quot;Tom&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;age&quot;</span> <span class="attr">value</span>=<span class="string">&quot;12&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;myBeanPostProcessor&quot;</span> <span class="attr">class</span>=<span class="string">&quot;com.bin.postprocessor.MyBeanPostProcessor&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>测试用例</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test_bean_post_processor_xml</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    ApplicationContext ctx = <span class="keyword">new</span> ClassPathXmlApplicationContext(<span class="string">&quot;postprocessor/bean_post_processor.xml&quot;</span>);</span><br><span class="line">    System.out.println(ctx.getBean(<span class="string">&quot;postProcessorTestBean&quot;</span>));</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// ------- PostProcessorTestBean::constructor</span></span><br><span class="line"><span class="comment">// ------- BeanPostProcessor::postProcessBeforeInitialization</span></span><br><span class="line"><span class="comment">// ------- BeanPostProcessor::postProcessAfterInitialization</span></span><br><span class="line"><span class="comment">// ------- print in test: PostProcessorTestBean&#123;name=&#x27;Updated&#x27;, age=100&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Annotation-配置的方式-1"><a href="#Annotation-配置的方式-1" class="headerlink" title="Annotation 配置的方式"></a>Annotation 配置的方式</h3><p>为前面的 processor 类添加 Component 注解并通过 AnnotationConfigApplicationContext 加载即可</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test_bean_post_processor_annotation</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    ApplicationContext ctx = <span class="keyword">new</span> AnnotationConfigApplicationContext(<span class="string">&quot;com.bin.postprocessor&quot;</span>);</span><br><span class="line">    System.out.println(ctx.getBean(<span class="string">&quot;postProcessorTestBean&quot;</span>));</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// ------- PostProcessorTestBean::constructor</span></span><br><span class="line"><span class="comment">// ------- BeanPostProcessor::postProcessBeforeInitialization</span></span><br><span class="line"><span class="comment">// ------- BeanPostProcessor::postProcessAfterInitialization</span></span><br><span class="line"><span class="comment">// PostProcessorTestBean&#123;name=&#x27;Updated&#x27;, age=100&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>由此可见 initialization 和属性设置是两个概念，属性设置应该是在实例化之后，BeanPostProcessor 之前的操作，不然 age 就会改变了</p>
+<h2 id="顺便加介绍一下-initialization-的方法"><a href="#顺便加介绍一下-initialization-的方法" class="headerlink" title="顺便加介绍一下 initialization 的方法"></a>顺便加介绍一下 initialization 的方法</h2><h3 id="Xml-配置的方式-2"><a href="#Xml-配置的方式-2" class="headerlink" title="Xml 配置的方式"></a>Xml 配置的方式</h3><p>之前说过 BeanPostProcessor 是初始化阶段的后置处理器，初始化可以通过在 xml 中配置 init-method 实现，对应的还有销毁方法 destory-method</p>
+<p>在之前的测试 bean 中新加方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;------- initMethod&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">cleanUp</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;------- destroyMethod&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在 xml 中 bean 声明部分指定对应的方法，再结合 processor 查看执行顺序</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">beans</span> <span class="attr">xmlns</span>=<span class="string">&quot;http://www.springframework.org/schema/beans&quot;</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:xsi</span>=<span class="string">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xsi:schemaLocation</span>=<span class="string">&quot;http://www.springframework.org/schema/beans</span></span></span><br><span class="line"><span class="tag"><span class="string">        https://www.springframework.org/schema/beans/spring-beans.xsd&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;postProcessorTestBean&quot;</span> <span class="attr">class</span>=<span class="string">&quot;com.bin.postprocessor.PostProcessorTestBean&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;name&quot;</span> <span class="attr">value</span>=<span class="string">&quot;Tom&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;age&quot;</span> <span class="attr">value</span>=<span class="string">&quot;12&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;myBeanPostProcessor&quot;</span> <span class="attr">class</span>=<span class="string">&quot;com.bin.postprocessor.MyBeanPostProcessor&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>测试如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test_init_cleanup</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    ConfigurableApplicationContext ctx = <span class="keyword">new</span> ClassPathXmlApplicationContext(<span class="string">&quot;postprocessor/bean_init_cleanup.xml&quot;</span>);</span><br><span class="line">    System.out.println(ctx.getBean(<span class="string">&quot;postProcessorTestBean&quot;</span>));</span><br><span class="line">    ctx.close();</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// ------- PostProcessorTestBean::constructor</span></span><br><span class="line"><span class="comment">// ------- BeanPostProcessor::postProcessBeforeInitialization</span></span><br><span class="line"><span class="comment">// ------- initMethod</span></span><br><span class="line"><span class="comment">// ------- BeanPostProcessor::postProcessAfterInitialization</span></span><br><span class="line"><span class="comment">// PostProcessorTestBean&#123;name=&#x27;Updated&#x27;, age=100&#125;</span></span><br><span class="line"><span class="comment">// ------- destroyMethod</span></span><br></pre></td></tr></table></figure>
+
+<p>PS: close() 是 ConfigurableApplicationContext 中添加的接口，再上层就不具备这个能力了</p>
+<h3 id="Annotation-配置的方式-2"><a href="#Annotation-配置的方式-2" class="headerlink" title="Annotation 配置的方式"></a>Annotation 配置的方式</h3><p>上面的功能我们可以通过创建一个 @Configuration 类达到同样的效果。 这时，原来 bean 上的 @Component 标签需要去掉</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LifecycleConfig</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Bean(initMethod = &quot;init&quot;, destroyMethod = &quot;cleanUp&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> PostProcessorTestBean <span class="title">getBean</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;------- init LifecycleConfig&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> PostProcessorTestBean();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test_config</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    ConfigurableApplicationContext ctx = <span class="keyword">new</span> AnnotationConfigApplicationContext(<span class="string">&quot;com.bin.postprocessor&quot;</span>);</span><br><span class="line">    System.out.println(ctx.getBean(<span class="string">&quot;postProcessorTestBean&quot;</span>));</span><br><span class="line">    ctx.close();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ------- PostProcessorTestBean::constructor</span></span><br><span class="line"><span class="comment">// ------- BeanPostProcessor::postProcessBeforeInitialization</span></span><br><span class="line"><span class="comment">// ------- initMethod</span></span><br><span class="line"><span class="comment">// ------- BeanPostProcessor::postProcessAfterInitialization</span></span><br><span class="line"><span class="comment">// ------- print in test: PostProcessorTestBean&#123;name=&#x27;Updated&#x27;, age=100&#125;</span></span><br><span class="line"><span class="comment">// ------- destroyMethod</span></span><br></pre></td></tr></table></figure>
+
+<p>类似的还有 @PostConstruct/@PreDestory，我们为之前的测试 bean 新增两个测试方法并在此运行测试</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@PostConstruct</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">postConstruct</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;------- invoke postConstruct&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@PreDestroy</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">PreDestroy</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;------- invoke PreDestroy&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ------- PostProcessorTestBean::constructor</span></span><br><span class="line"><span class="comment">// ------- BeanPostProcessor::postProcessBeforeInitialization</span></span><br><span class="line"><span class="comment">// ------- @PostConstruct</span></span><br><span class="line"><span class="comment">// ------- initMethod</span></span><br><span class="line"><span class="comment">// ------- BeanPostProcessor::postProcessAfterInitialization</span></span><br><span class="line"><span class="comment">// ------- print in test: PostProcessorTestBean&#123;name=&#x27;Updated&#x27;, age=100&#125;</span></span><br><span class="line"><span class="comment">// ------- @PreDestroy</span></span><br><span class="line"><span class="comment">// ------- destroyMethod</span></span><br></pre></td></tr></table></figure>
+
+<p>可以看到 postConstruct 和 PreDestroy 是包在 initialization 最外层的</p>
+<h3 id="接口方式"><a href="#接口方式" class="headerlink" title="接口方式"></a>接口方式</h3><p>除此之外还有一种通过实现接口来扩展的方式</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PostProcessorTestBean</span> <span class="keyword">implements</span> <span class="title">InitializingBean</span>, <span class="title">DisposableBean</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">afterPropertiesSet</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;------- InitializingBean::afterPropertiesSet&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">destroy</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;------- DisposableBean::destroy&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ------- PostProcessorTestBean::constructor</span></span><br><span class="line"><span class="comment">// ------- BeanPostProcessor::postProcessBeforeInitialization</span></span><br><span class="line"><span class="comment">// ------- @PostConstruct</span></span><br><span class="line"><span class="comment">// ------- InitializingBean::afterPropertiesSet</span></span><br><span class="line"><span class="comment">// ------- initMethod</span></span><br><span class="line"><span class="comment">// ------- BeanPostProcessor::postProcessAfterInitialization</span></span><br><span class="line"><span class="comment">// ------- print in test: PostProcessorTestBean&#123;name=&#x27;Updated&#x27;, age=100&#125;</span></span><br><span class="line"><span class="comment">// ------- @PreDestroy</span></span><br><span class="line"><span class="comment">// ------- DisposableBean::destroy</span></span><br><span class="line"><span class="comment">// ------- destroyMethod</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/10/21/Spring-compile-spring-framework-in-your-local/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/10/21/Spring-compile-spring-framework-in-your-local/" class="post-title-link" itemprop="url">Spring compile spring framework in your local</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-10-21 15:27:12" itemprop="dateCreated datePublished" datetime="2021-10-21T15:27:12+08:00">2021-10-21</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-10-25 19:18:31" itemprop="dateModified" datetime="2021-10-25T19:18:31+08:00">2021-10-25</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/Spring/" itemprop="url" rel="index">
+                    <span itemprop="name">Spring</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>最近看的 Spring 课程上面，那些讲师都会把 Spring 源码下载到本地然后在上面写 demo, 做笔记什么的，感觉这个方式很棒，实践一下。</p>
+<p>spring-framework 有自己的官方 <a href="git@github.com:spring-projects/spring-framework.git">git</a> 地址的，而且 readme 上也将本地编译的步骤写的很清楚了，再参考一下其他人的博客，难度应该不大。</p>
+<h2 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h2><ol>
+<li>下载 v5.2.x 源码进行编译(看 Supported Versions 里的信息，这个版本是支持 JDK8 的)</li>
+<li>cd spring-framework 修改 gradle.build 文件配置，默认用的官方源会很慢</li>
+<li><code>./gradlew build</code> 构建，这个命令会下载 gradle.properties 中指定的 gradle 版本用于构建</li>
+<li>文章的末尾有说怎么导入 Idea, 先 <code>./gradlew :spring-oxm:compileTestJava</code></li>
+<li>在 Idea 中新建项目，从 existing 的 code 中导入，选择 Gradle project，其他就依此点下去就行了，本地导入成功</li>
+<li>新建一个 gralde module: spring-debug 写一个简单的 Spring demo, 测试项目是否构建成功</li>
+<li>在 module 的 gradle 文件中 dependencies 下添加 spring-context 的依赖</li>
+<li>测试通过，删掉 .git 文件，重新上传到自己账户下做为笔记源文件</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">compile(project(&quot;:spring-context&quot;))</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">; -- gradle.build 修改 repo 信息如下 --</span><br><span class="line"></span><br><span class="line">repositories &#123;</span><br><span class="line">            mavenCentral()</span><br><span class="line">            maven &#123; url &quot;https:&#x2F;&#x2F;repo.spring.io&#x2F;libs-spring-framework-build&quot; &#125;</span><br><span class="line">            maven &#123; url &quot;https:&#x2F;&#x2F;repo.spring.io&#x2F;snapshot&quot; &#125; &#x2F;&#x2F; Reactor</span><br><span class="line">            maven &#123;url &#39;https:&#x2F;&#x2F;maven.aliyun.com&#x2F;nexus&#x2F;content&#x2F;groups&#x2F;public&#x2F;&#39;&#125; &#x2F;&#x2F;阿里云</span><br><span class="line">            maven &#123;url &#39;https:&#x2F;&#x2F;maven.aliyun.com&#x2F;nexus&#x2F;content&#x2F;repositories&#x2F;jcenter&#39;&#125;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Issues"><a href="#Issues" class="headerlink" title="Issues"></a>Issues</h2><ol>
+<li>使用 JDK8 编译 v5.3.12 的 code 有三个 module 编译失败，”Execution failed for task ‘:spring-instrument:compileJava’. &gt; invalid source release: 17”。将源码切换到 v5.2.18 成功，但是有几个 UT 挂了，直接删掉</li>
+<li>lombok 不 work, 添加 @Data 之后对应的方法并没有生产，手写 getter/setter 可以 work</li>
+</ol>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/java_lyvee/article/details/107300648">CSDN</a></li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/10/13/Spring-jiemi-IoC/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +478,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-10-15 14:46:22" itemprop="dateModified" datetime="2021-10-15T14:46:22+08:00">2021-10-15</time>
+                <time title="修改时间：2021-10-25 19:18:31" itemprop="dateModified" datetime="2021-10-25T19:18:31+08:00">2021-10-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -371,7 +612,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-10-15 14:46:21" itemprop="dateModified" datetime="2021-10-15T14:46:21+08:00">2021-10-15</time>
+                <time title="修改时间：2021-10-25 19:18:31" itemprop="dateModified" datetime="2021-10-25T19:18:31+08:00">2021-10-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -472,7 +713,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-10-15 14:46:21" itemprop="dateModified" datetime="2021-10-15T14:46:21+08:00">2021-10-15</time>
+                <time title="修改时间：2021-10-25 19:18:31" itemprop="dateModified" datetime="2021-10-25T19:18:31+08:00">2021-10-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -569,7 +810,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-10-15 14:46:22" itemprop="dateModified" datetime="2021-10-15T14:46:22+08:00">2021-10-15</time>
+                <time title="修改时间：2021-10-25 19:18:31" itemprop="dateModified" datetime="2021-10-25T19:18:31+08:00">2021-10-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -670,7 +911,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-10-15 14:46:22" itemprop="dateModified" datetime="2021-10-15T14:46:22+08:00">2021-10-15</time>
+                <time title="修改时间：2021-10-25 19:18:31" itemprop="dateModified" datetime="2021-10-25T19:18:31+08:00">2021-10-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -771,7 +1012,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-10-15 14:46:21" itemprop="dateModified" datetime="2021-10-15T14:46:21+08:00">2021-10-15</time>
+                <time title="修改时间：2021-10-25 19:18:31" itemprop="dateModified" datetime="2021-10-25T19:18:31+08:00">2021-10-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -863,7 +1104,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-10-15 14:46:21" itemprop="dateModified" datetime="2021-10-15T14:46:21+08:00">2021-10-15</time>
+                <time title="修改时间：2021-10-25 19:18:31" itemprop="dateModified" datetime="2021-10-25T19:18:31+08:00">2021-10-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -973,7 +1214,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-10-15 14:46:21" itemprop="dateModified" datetime="2021-10-15T14:46:21+08:00">2021-10-15</time>
+                <time title="修改时间：2021-10-25 19:18:31" itemprop="dateModified" datetime="2021-10-25T19:18:31+08:00">2021-10-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1062,264 +1303,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/09/17/HTW-ex15/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/09/17/HTW-ex15/" class="post-title-link" itemprop="url">Ex15 Digester</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-09-17 15:24:45" itemprop="dateCreated datePublished" datetime="2021-09-17T15:24:45+08:00">2021-09-17</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-10-15 14:46:21" itemprop="dateModified" datetime="2021-10-15T14:46:21+08:00">2021-10-15</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/Tomcat/" itemprop="url" rel="index">
-                    <span itemprop="name">Tomcat</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>11k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>10 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <blockquote>
-<p><strong>Chapter 15</strong> explains the configuration of a web application through Digester, an exciting open source project from the Apache Software Foundation. For those not initiated, this chapter presents a section that gently introduces the digester library<br>and how to use it to convert the nodes in an XML document to Java objects. It then explains the ContextConfig object that configures a StandardContext instance.</p>
-</blockquote>
-<p>PS: 创建完 project 后将 lib 添加到项目的 classpath 中, 不然会缺少依赖</p>
-<p>本章先介绍一个 xml 解析工具包 Digester，它是给予 SAX 的解析工具，然后介绍了 Tomcat 中解析配置文件的类 StandardContext 和 ContextConfig。最后实验部分，可以看到主函数中我们并没有声明 StandardWrapper 但是通过解析 xml 程序还是能正常运行。</p>
-<h2 id="Digester"><a href="#Digester" class="headerlink" title="Digester"></a>Digester</h2><p>Digester 是 Apache 的 Jakarta 项目的一个子项目，是对 SAX 的封装和抽象，使用起来挺简单的，下面是几个小例子.</p>
-<p>比如我们有一下 xml 文件并切想要将它解析成 employee 对象</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;ISO-8859-1&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">employee</span> <span class="attr">firstName</span>=<span class="string">&quot;Brian&quot;</span> <span class="attr">lastName</span>=<span class="string">&quot;May&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">employee</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>我们可以使用如下代码, 先定义好 employee 的结构</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Employee</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> String firstName;</span><br><span class="line">    <span class="keyword">private</span> String lastName;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Employee</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Creating Employee&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getFirstName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> firstName;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setFirstName</span><span class="params">(String firstName)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Setting firstName : &quot;</span> + firstName);</span><br><span class="line">        <span class="keyword">this</span>.firstName = firstName;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getLastName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> lastName;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setLastName</span><span class="params">(String lastName)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Setting lastName : &quot;</span> + lastName);</span><br><span class="line">        <span class="keyword">this</span>.lastName = lastName;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">printName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;My name is &quot;</span> + firstName + <span class="string">&quot; &quot;</span> + lastName);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>然后调用 Digester 方法解析，主要方法解释如下</p>
-<ul>
-<li>addObjectCreate: 添加一条创建对象的 rule，应该就是创建指定 element 的对象的意思</li>
-<li>addSetProperties: 添加一条 set properties 的 rule，应该就是将属性 set 到对象里的意思</li>
-<li>addCallMethod: 添加一条调用方法的 rule</li>
-<li>parse: 使用定制好的 rule 解析文件流</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test01</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        String path = System.getProperty(<span class="string">&quot;user.dir&quot;</span>) + File.separator  + <span class="string">&quot;etc&quot;</span>;</span><br><span class="line">        File file = <span class="keyword">new</span> File(path, <span class="string">&quot;employee1.xml&quot;</span>);</span><br><span class="line">        Digester digester = <span class="keyword">new</span> Digester();</span><br><span class="line">        <span class="comment">// add rules</span></span><br><span class="line">        digester.addObjectCreate(<span class="string">&quot;employee&quot;</span>, <span class="string">&quot;com.jzheng.digestertest.Employee&quot;</span>);</span><br><span class="line">        digester.addSetProperties(<span class="string">&quot;employee&quot;</span>);</span><br><span class="line">        digester.addCallMethod(<span class="string">&quot;employee&quot;</span>, <span class="string">&quot;printName&quot;</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            Employee employee = (Employee) digester.parse(file);</span><br><span class="line">            System.out.println(<span class="string">&quot;First name : &quot;</span> + employee.getFirstName());</span><br><span class="line">            System.out.println(<span class="string">&quot;Last name : &quot;</span> + employee.getLastName());</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span>(Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Creating Employee</span></span><br><span class="line"><span class="comment">// Setting firstName : Brian</span></span><br><span class="line"><span class="comment">// Setting lastName : May</span></span><br><span class="line"><span class="comment">// My name is Brian May</span></span><br><span class="line"><span class="comment">// First name : Brian</span></span><br><span class="line"><span class="comment">// Last name : May</span></span><br></pre></td></tr></table></figure>
-
-<p>上面的例子是单个 node 的情况，如果 xml 是嵌套的话，可以如下处理</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;ISO-8859-1&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">employee</span> <span class="attr">firstName</span>=<span class="string">&quot;Freddie&quot;</span> <span class="attr">lastName</span>=<span class="string">&quot;Mercury&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">office</span> <span class="attr">description</span>=<span class="string">&quot;Headquarters&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">address</span> <span class="attr">streetName</span>=<span class="string">&quot;Wellington Avenue&quot;</span> <span class="attr">streetNumber</span>=<span class="string">&quot;223&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">office</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">office</span> <span class="attr">description</span>=<span class="string">&quot;Client site&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">address</span> <span class="attr">streetName</span>=<span class="string">&quot;Downing Street&quot;</span> <span class="attr">streetNumber</span>=<span class="string">&quot;10&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">office</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">employee</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>根据实际情况，将对应的 Office 和 address 的定义写出来</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Office</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Address address;</span><br><span class="line">    <span class="keyword">private</span> String description;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Office</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;..Creating Office&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getDescription</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> description;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setDescription</span><span class="params">(String description)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;..Setting office description : &quot;</span> + description);</span><br><span class="line">        <span class="keyword">this</span>.description = description;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Address <span class="title">getAddress</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> address;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setAddress</span><span class="params">(Address address)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;..Setting office address : &quot;</span> + address);</span><br><span class="line">        <span class="keyword">this</span>.address = address;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Address</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> String streetName;</span><br><span class="line">    <span class="keyword">private</span> String streetNumber;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Address</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;....Creating Address&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getStreetName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> streetName;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setStreetName</span><span class="params">(String streetName)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;....Setting streetName : &quot;</span> + streetName);</span><br><span class="line">        <span class="keyword">this</span>.streetName = streetName;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getStreetNumber</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> streetNumber;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setStreetNumber</span><span class="params">(String streetNumber)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;....Setting streetNumber : &quot;</span> + streetNumber);</span><br><span class="line">        <span class="keyword">this</span>.streetNumber = streetNumber;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;....&quot;</span> + streetNumber + <span class="string">&quot; &quot;</span> + streetName;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>主体部分唯一的区别就是在嵌套对象的表示和 addSetNext 方法。当元素是嵌套在内部的元素时，通过斜杠(/)表示自元素</p>
-<ul>
-<li>addSetNext(String pattern, String method): pattern 表示处理的对象类型，method 表示触发的方法。如 <code>digester.addSetNext(&quot;employee/office&quot;, &quot;addOffice&quot;);</code> 就表示当遇到 addOffice(Office office) 时，将两个对象关联起来</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test02</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        String path = System.getProperty(<span class="string">&quot;user.dir&quot;</span>) + File.separator  + <span class="string">&quot;etc&quot;</span>;</span><br><span class="line">        File file = <span class="keyword">new</span> File(path, <span class="string">&quot;employee2.xml&quot;</span>);</span><br><span class="line">        Digester digester = <span class="keyword">new</span> Digester();</span><br><span class="line">        <span class="comment">// add rules</span></span><br><span class="line">        digester.addObjectCreate(<span class="string">&quot;employee&quot;</span>, <span class="string">&quot;com.jzheng.digestertest.Employee&quot;</span>);</span><br><span class="line">        digester.addSetProperties(<span class="string">&quot;employee&quot;</span>);</span><br><span class="line">        digester.addObjectCreate(<span class="string">&quot;employee/office&quot;</span>, <span class="string">&quot;com.jzheng.digestertest.Office&quot;</span>);</span><br><span class="line">        digester.addSetProperties(<span class="string">&quot;employee/office&quot;</span>);</span><br><span class="line">        digester.addSetNext(<span class="string">&quot;employee/office&quot;</span>, <span class="string">&quot;addOffice&quot;</span>);</span><br><span class="line">        digester.addObjectCreate(<span class="string">&quot;employee/office/address&quot;</span>, <span class="string">&quot;com.jzheng.digestertest.Address&quot;</span>);</span><br><span class="line">        digester.addSetProperties(<span class="string">&quot;employee/office/address&quot;</span>);</span><br><span class="line">        digester.addSetNext(<span class="string">&quot;employee/office/address&quot;</span>, <span class="string">&quot;setAddress&quot;</span>);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            Employee employee = (Employee) digester.parse(file);</span><br><span class="line">            ArrayList offices = employee.getOffices();</span><br><span class="line">            Iterator iterator = offices.iterator();</span><br><span class="line">            System.out.println(<span class="string">&quot;-------------------------------------------------&quot;</span>);</span><br><span class="line">            <span class="keyword">while</span> (iterator.hasNext()) &#123;</span><br><span class="line">                Office office = (Office) iterator.next();</span><br><span class="line">                Address address = office.getAddress();</span><br><span class="line">                System.out.println(office.getDescription());</span><br><span class="line">                System.out.println(<span class="string">&quot;Address : &quot;</span> +</span><br><span class="line">                        address.getStreetNumber() + <span class="string">&quot; &quot;</span> + address.getStreetName());</span><br><span class="line">                System.out.println(<span class="string">&quot;--------------------------------&quot;</span>);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span>(Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Creating Employee</span></span><br><span class="line"><span class="comment">// Setting firstName : Freddie</span></span><br><span class="line"><span class="comment">// Setting lastName : Mercury</span></span><br><span class="line"><span class="comment">// ..Creating Office</span></span><br><span class="line"><span class="comment">// ..Setting office description : Headquarters</span></span><br><span class="line"><span class="comment">// ....Creating Address</span></span><br><span class="line"><span class="comment">// ....Setting streetName : Wellington Avenue</span></span><br><span class="line"><span class="comment">// ....Setting streetNumber : 223</span></span><br><span class="line"><span class="comment">// ..Setting office address : ....223 Wellington Avenue</span></span><br><span class="line"><span class="comment">// Adding Office to this employee</span></span><br><span class="line"><span class="comment">// ..Creating Office</span></span><br><span class="line"><span class="comment">// ..Setting office description : Client site</span></span><br><span class="line"><span class="comment">// ....Creating Address</span></span><br><span class="line"><span class="comment">// ....Setting streetName : Downing Street</span></span><br><span class="line"><span class="comment">// ....Setting streetNumber : 10</span></span><br><span class="line"><span class="comment">// ..Setting office address : ....10 Downing Street</span></span><br><span class="line"><span class="comment">// Adding Office to this employee</span></span><br><span class="line"><span class="comment">// -------------------------------------------------</span></span><br><span class="line"><span class="comment">// Headquarters</span></span><br><span class="line"><span class="comment">// Address : 223 Wellington Avenue</span></span><br><span class="line"><span class="comment">// --------------------------------</span></span><br><span class="line"><span class="comment">// Client site</span></span><br><span class="line"><span class="comment">// Address : 10 Downing Street</span></span><br><span class="line"><span class="comment">// --------------------------------</span></span><br></pre></td></tr></table></figure>
-
-<p>当 rule 很多时，还可以将这些 rule 封装到一个类中</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">EmployeeRuleSet</span> <span class="keyword">extends</span> <span class="title">RuleSetBase</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addRuleInstances</span><span class="params">(Digester digester)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// add rules</span></span><br><span class="line">        digester.addObjectCreate(<span class="string">&quot;employee&quot;</span>, <span class="string">&quot;com.jzheng.digestertest.Employee&quot;</span>);</span><br><span class="line">        digester.addSetProperties(<span class="string">&quot;employee&quot;</span>);</span><br><span class="line">        digester.addObjectCreate(<span class="string">&quot;employee/office&quot;</span>, <span class="string">&quot;com.jzheng.digestertest.Office&quot;</span>);</span><br><span class="line">        digester.addSetProperties(<span class="string">&quot;employee/office&quot;</span>);</span><br><span class="line">        digester.addSetNext(<span class="string">&quot;employee/office&quot;</span>, <span class="string">&quot;addOffice&quot;</span>);</span><br><span class="line">        digester.addObjectCreate(<span class="string">&quot;employee/office/address&quot;</span>, <span class="string">&quot;com.jzheng.digestertest.Address&quot;</span>);</span><br><span class="line">        digester.addSetProperties(<span class="string">&quot;employee/office/address&quot;</span>);</span><br><span class="line">        digester.addSetNext(<span class="string">&quot;employee/office/address&quot;</span>, <span class="string">&quot;setAddress&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>对应的主体简化为</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test03</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        String path = System.getProperty(<span class="string">&quot;user.dir&quot;</span>) + File.separator  + <span class="string">&quot;etc&quot;</span>;</span><br><span class="line">        File file = <span class="keyword">new</span> File(path, <span class="string">&quot;employee2.xml&quot;</span>);</span><br><span class="line">        Digester digester = <span class="keyword">new</span> Digester();</span><br><span class="line">        digester.addRuleSet(<span class="keyword">new</span> EmployeeRuleSet());</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            Employee employee = (Employee) digester.parse(file);</span><br><span class="line">            ArrayList offices = employee.getOffices();</span><br><span class="line">            Iterator iterator = offices.iterator();</span><br><span class="line">            System.out.println(<span class="string">&quot;-------------------------------------------------&quot;</span>);</span><br><span class="line">            <span class="keyword">while</span> (iterator.hasNext()) &#123;</span><br><span class="line">                Office office = (Office) iterator.next();</span><br><span class="line">                Address address = office.getAddress();</span><br><span class="line">                System.out.println(office.getDescription());</span><br><span class="line">                System.out.println(<span class="string">&quot;Address : &quot;</span> + address.getStreetNumber() + <span class="string">&quot; &quot;</span> + address.getStreetName());</span><br><span class="line">                System.out.println(<span class="string">&quot;--------------------------------&quot;</span>);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span>(Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="ContextConfig"><a href="#ContextConfig" class="headerlink" title="ContextConfig"></a>ContextConfig</h2><p>StandardContext 必须要设置一个 ContextConfig 才能正常工作，它只要干几件事，设置 flag，设置 valve，解析 xml. ContextConfig 是以 listener 的形式出现的，监听 start/stop 事件。加载 xml 的逻辑在 defaultConig() 和 applicationConfig() 中。</p>
-<h3 id="defaultConfig"><a href="#defaultConfig" class="headerlink" title="defaultConfig"></a>defaultConfig</h3><p>解析 conf/web.xml 的内容</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">defaultConfig</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Open the default web.xml file, if it exists</span></span><br><span class="line">    File file = <span class="keyword">new</span> File(Constants.DefaultWebXml);</span><br><span class="line">    <span class="keyword">if</span> (!file.isAbsolute())</span><br><span class="line">        file = <span class="keyword">new</span> File(System.getProperty(<span class="string">&quot;catalina.base&quot;</span>),</span><br><span class="line">                        Constants.DefaultWebXml);</span><br><span class="line">    FileInputStream stream = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        stream = <span class="keyword">new</span> FileInputStream(file.getCanonicalPath());</span><br><span class="line">        stream.close();</span><br><span class="line">        stream = <span class="keyword">null</span>;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (FileNotFoundException e) &#123;</span><br><span class="line">        log(sm.getString(<span class="string">&quot;contextConfig.defaultMissing&quot;</span>));</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">        log(sm.getString(<span class="string">&quot;contextConfig.defaultMissing&quot;</span>), e);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Process the default web.xml file</span></span><br><span class="line">    <span class="keyword">synchronized</span> (webDigester) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            InputSource is =</span><br><span class="line">                <span class="keyword">new</span> InputSource(<span class="string">&quot;file://&quot;</span> + file.getAbsolutePath());</span><br><span class="line">            stream = <span class="keyword">new</span> FileInputStream(file);</span><br><span class="line">            is.setByteStream(stream);</span><br><span class="line">            webDigester.setDebug(getDebug());</span><br><span class="line">            <span class="keyword">if</span> (context <span class="keyword">instanceof</span> StandardContext)</span><br><span class="line">                ((StandardContext) context).setReplaceWelcomeFiles(<span class="keyword">true</span>);</span><br><span class="line">            webDigester.clear();</span><br><span class="line">            webDigester.push(context);</span><br><span class="line">            webDigester.parse(is);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (SAXParseException e) &#123;</span><br><span class="line">            log(sm.getString(<span class="string">&quot;contextConfig.defaultParse&quot;</span>), e);</span><br><span class="line">            log(sm.getString(<span class="string">&quot;contextConfig.defaultPosition&quot;</span>,</span><br><span class="line">                                <span class="string">&quot;&quot;</span> + e.getLineNumber(),</span><br><span class="line">                                <span class="string">&quot;&quot;</span> + e.getColumnNumber()));</span><br><span class="line">            ok = <span class="keyword">false</span>;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            log(sm.getString(<span class="string">&quot;contextConfig.defaultParse&quot;</span>), e);</span><br><span class="line">            ok = <span class="keyword">false</span>;</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="keyword">if</span> (stream != <span class="keyword">null</span>) &#123;</span><br><span class="line">                    stream.close();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">                log(sm.getString(<span class="string">&quot;contextConfig.defaultClose&quot;</span>), e);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="The-applicationConfig-Method"><a href="#The-applicationConfig-Method" class="headerlink" title="The applicationConfig Method"></a>The applicationConfig Method</h3><p>applicationConfig 的逻辑和 defaultConfig 基本一致，只是将解析的路径改了, 解析的路径为 <code>/WEB-INF/web.xml</code></p>
-<h3 id="Creating-Web-Digester"><a href="#Creating-Web-Digester" class="headerlink" title="Creating Web Digester"></a>Creating Web Digester</h3><p>创建解析用的 digester</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> Digester <span class="title">createWebDigester</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    URL url = <span class="keyword">null</span>;</span><br><span class="line">    Digester webDigester = <span class="keyword">new</span> Digester();</span><br><span class="line">    webDigester.setValidating(<span class="keyword">true</span>);</span><br><span class="line">    url = ContextConfig.class.getResource(Constants.WebDtdResourcePath_22);</span><br><span class="line">    webDigester.register(Constants.WebDtdPublicId_22,</span><br><span class="line">                            url.toString());</span><br><span class="line">    url = ContextConfig.class.getResource(Constants.WebDtdResourcePath_23);</span><br><span class="line">    webDigester.register(Constants.WebDtdPublicId_23,</span><br><span class="line">                            url.toString());</span><br><span class="line">    webDigester.addRuleSet(<span class="keyword">new</span> WebRuleSet());</span><br><span class="line">    <span class="keyword">return</span> (webDigester);</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>WebRuleSet 中就是解析的规则，比如下面这些是用来解析 filter 的规则</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">digester.addObjectCreate(prefix + <span class="string">&quot;web-app/filter&quot;</span>, <span class="string">&quot;org.apache.catalina.deploy.FilterDef&quot;</span>);</span><br><span class="line">digester.addSetNext(prefix + <span class="string">&quot;web-app/filter&quot;</span>, <span class="string">&quot;addFilterDef&quot;</span>, <span class="string">&quot;org.apache.catalina.deploy.FilterDef&quot;</span>);</span><br></pre></td></tr></table></figure>
-
-<p>整个程序段应该是解析之前，通过 digester.push(context) 将要解析的对象塞进去，然后通过 parse(is) 关联起来的</p>
-<p>PS: Digester 和 SAX 的整合关系分析，有兴趣可以做一做</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/09/17/HTW-ex14/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/09/17/HTW-ex14/" class="post-title-link" itemprop="url">Ex14 Server & Service</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-09-17 10:27:14" itemprop="dateCreated datePublished" datetime="2021-09-17T10:27:14+08:00">2021-09-17</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-10-15 14:46:21" itemprop="dateModified" datetime="2021-10-15T14:46:21+08:00">2021-10-15</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/Tomcat/" itemprop="url" rel="index">
-                    <span itemprop="name">Tomcat</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>3.7k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>3 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <blockquote>
-<p><strong>Chapter 14</strong> offers the server and service components. A server provides an elegant start and stop mechanism for the whole servlet container, a service serves as a holder for a container and one or more connectors. The application accompanying this chapter shows how to use a server and a service.</p>
-</blockquote>
-<p>前面的实验中，一个 container 只能和一个 connector 关联，并且启动和停止时通过多条指令完成的，Server + Service 可以帮助你更优雅的管理这些服务。</p>
-<h2 id="Server-amp-Implementation"><a href="#Server-amp-Implementation" class="headerlink" title="Server &amp; Implementation"></a>Server &amp; Implementation</h2><p>Server 表示的是 Catalina servlet container 以及所属的所有子 component。它提供了一种优雅的方式管理所有服务的开启和停止。</p>
-<p>官方定义如下：A Server element represents the entire Catalina servlet container. </p>
-<p>对应的是现实 org.apache.catalina.core.StandardServer，同时还实现了 Lifecycle 接口(start/stop 方法)，以 initialize 方法为例</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Invoke a pre-startup initialization. This is used to allow connectors</span></span><br><span class="line"><span class="comment">* to bind to restricted ports under Unix operating environments.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">initialize</span><span class="params">()</span></span></span><br><span class="line"><span class="function"><span class="keyword">throws</span> LifecycleException </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (initialized)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> LifecycleException (</span><br><span class="line">            sm.getString(<span class="string">&quot;standardServer.initialize.initialized&quot;</span>));</span><br><span class="line">    initialized = <span class="keyword">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Initialize our defined Services</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; services.length; i++) &#123;</span><br><span class="line">        services[i].initialize();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>类似的还有 start, stop 方法，处理的逻辑都是类似的，先发送对应的 event，然后 for 循环调用 service 对应的方法</p>
-<h3 id="The-await-Method"><a href="#The-await-Method" class="headerlink" title="The await Method"></a>The await Method</h3><p>这个方法用来监听停止信号，当条件达成时跳出循环，这个方法是用来代替原来例子中的 <code>System.in.read()</code> 方法的</p>
-<h2 id="Service-amp-Implementation"><a href="#Service-amp-Implementation" class="headerlink" title="Service &amp; Implementation"></a>Service &amp; Implementation</h2><blockquote>
-<p>A Service is a group of one or more Connectors that share a single Container to process their incoming requests.</p>
-</blockquote>
-<p>Service 可以持有多个 connector 和一个 container。多个 connector 可以用来匹配多种 protocol，比如 http 和 https。实现类为 org.apache.catalina.core.StandardService.</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> Connector connectors[] = <span class="keyword">new</span> Connector[<span class="number">0</span>];</span><br><span class="line"><span class="keyword">private</span> Container container = <span class="keyword">null</span>;</span><br></pre></td></tr></table></figure>
-
-<p>service 在 setContainer 时会调用 container 的 start() 方法，并将它关联到 connector</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setContainer</span><span class="params">(Container container)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    Container oldContainer = <span class="keyword">this</span>.container;</span><br><span class="line">    <span class="keyword">if</span> ((oldContainer != <span class="keyword">null</span>) &amp;&amp; (oldContainer <span class="keyword">instanceof</span> Engine))</span><br><span class="line">        ((Engine) oldContainer).setService(<span class="keyword">null</span>);</span><br><span class="line">    <span class="keyword">this</span>.container = container;</span><br><span class="line">    <span class="keyword">if</span> ((<span class="keyword">this</span>.container != <span class="keyword">null</span>) &amp;&amp; (<span class="keyword">this</span>.container <span class="keyword">instanceof</span> Engine))</span><br><span class="line">        ((Engine) <span class="keyword">this</span>.container).setService(<span class="keyword">this</span>);</span><br><span class="line">    <span class="keyword">if</span> (started &amp;&amp; (<span class="keyword">this</span>.container != <span class="keyword">null</span>) &amp;&amp;</span><br><span class="line">        (<span class="keyword">this</span>.container <span class="keyword">instanceof</span> Lifecycle)) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            ((Lifecycle) <span class="keyword">this</span>.container).start();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (LifecycleException e) &#123;</span><br><span class="line">            ;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">synchronized</span> (connectors) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; connectors.length; i++)</span><br><span class="line">            connectors[i].setContainer(<span class="keyword">this</span>.container);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (started &amp;&amp; (oldContainer != <span class="keyword">null</span>) &amp;&amp;</span><br><span class="line">        (oldContainer <span class="keyword">instanceof</span> Lifecycle)) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            ((Lifecycle) oldContainer).stop();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (LifecycleException e) &#123;</span><br><span class="line">            ;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Report this property change to interested listeners</span></span><br><span class="line">    support.firePropertyChange(<span class="string">&quot;container&quot;</span>, oldContainer, <span class="keyword">this</span>.container);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>同样的，在 addConnector() 的时候，会将它和 container 关联起来</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addConnector</span><span class="params">(Connector connector)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">synchronized</span> (connectors) &#123;</span><br><span class="line">        connector.setContainer(<span class="keyword">this</span>.container);</span><br><span class="line">        connector.setService(<span class="keyword">this</span>);</span><br><span class="line">        Connector results[] = <span class="keyword">new</span> Connector[connectors.length + <span class="number">1</span>];</span><br><span class="line">        System.arraycopy(connectors, <span class="number">0</span>, results, <span class="number">0</span>, connectors.length);</span><br><span class="line">        results[connectors.length] = connector;</span><br><span class="line">        connectors = results;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (initialized) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                connector.initialize();</span><br><span class="line">            &#125; <span class="keyword">catch</span> (LifecycleException e) &#123;</span><br><span class="line">                e.printStackTrace(System.err);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (started &amp;&amp; (connector <span class="keyword">instanceof</span> Lifecycle)) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                ((Lifecycle) connector).start();</span><br><span class="line">            &#125; <span class="keyword">catch</span> (LifecycleException e) &#123;</span><br><span class="line">                ;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Report this property change to interested listeners</span></span><br><span class="line">        support.firePropertyChange(<span class="string">&quot;connector&quot;</span>, <span class="keyword">null</span>, connector);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>Service 也实现了 Lifecycle 接口，在 initialize() 和 start() 方法中会调用 connector 和 container 对应的方法。</p>
-<h2 id="The-Application"><a href="#The-Application" class="headerlink" title="The Application"></a>The Application</h2><p>Bootstrap 实现和前面基本一致，最大的区别是在 Engine 声明之后，声明了这节介绍的 Server 和 Service 作为管理 Engine 的容器</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Service service = <span class="keyword">new</span> StandardService();</span><br><span class="line">service.setName(<span class="string">&quot;Stand-alone Service&quot;</span>);</span><br><span class="line">Server server = <span class="keyword">new</span> StandardServer();</span><br><span class="line">server.addService(service);</span><br><span class="line">service.addConnector(connector);</span><br></pre></td></tr></table></figure>
-
-<p>并且使用 await 代替 <code>System.in.read();</code></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1370,7 +1353,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">196</span>
+          <span class="site-state-item-count">198</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1383,7 +1366,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">178</span>
+        <span class="site-state-item-count">180</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1417,12 +1400,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">1m</span>
+    <span title="站点总字数">1.1m</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">15:50</span>
+    <span title="站点阅读时长">16:01</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
