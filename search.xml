@@ -4066,6 +4066,30 @@
       </tags>
   </entry>
   <entry>
+    <title>创建可运行 jar 应用</title>
+    <url>/hexo/2021/11/11/Java-create-jar-application/</url>
+    <content><![CDATA[<p>gradle, maven 都提供了现成的打 jar 功能</p>
+<h2 id="Maven"><a href="#Maven" class="headerlink" title="Maven"></a>Maven</h2><p>这里以 maven 为例，创建工程如下</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">.</span><br><span class="line">├── java</span><br><span class="line">│   └── com</span><br><span class="line">│       └── jk</span><br><span class="line">│           └── Main.java</span><br><span class="line">└── resources</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.jk;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; args.length; i++) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Index: &quot;</span> + i + <span class="string">&quot;, Value: &quot;</span> + args[i]);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在 pom 文件中添加配置</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">plugins</span>&gt;</span></span><br><span class="line"></span><br><span class="line">        <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-assembly-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.5.5<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">archive</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">manifest</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">mainClass</span>&gt;</span>com.jk.Main<span class="tag">&lt;/<span class="name">mainClass</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">manifest</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">archive</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">descriptorRefs</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">descriptorRef</span>&gt;</span>jar-with-dependencies<span class="tag">&lt;/<span class="name">descriptorRef</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">descriptorRefs</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">build</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>终端输入命令：<code>mvn package assembly:single</code>, 运行后在 src 同级目录下会生产 target 文件夹，其中包含了对应的 jar 包, 选择带 with-dependencies 的那个</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">java -jar app-jar-1.0-SNAPSHOT-jar-with-dependencies.jar hello world </span><br><span class="line">Index: 0, Value: hello</span><br><span class="line">Index: 1, Value: world</span><br></pre></td></tr></table></figure>
+
+<p>PS: 直接选 plugins -&gt; assembly -&gt; assembly:single 不 work，不是很了解为啥，需要系统学一下 maven 才知道</p>
+]]></content>
+      <categories>
+        <category>java</category>
+      </categories>
+      <tags>
+        <tag>jar</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Class 类下的 getEnclosingClass() 方法使用案例</title>
     <url>/hexo/2021/05/06/Java-getEnclosingClass-in-Class/</url>
     <content><![CDATA[<p>今天在查找某个 bug 的 root cause 的时候，发现一个 Class.getEnclosingClass() 的调用。从来没有用个这玩意儿，做下笔记。</p>
@@ -5963,19 +5987,32 @@
       </tags>
   </entry>
   <entry>
-    <title>Spring 如何注入 bean</title>
-    <url>/hexo/2021/05/20/Spring-bean-injection/</url>
-    <content><![CDATA[<h2 id="通过工长方法-注解注入-bean"><a href="#通过工长方法-注解注入-bean" class="headerlink" title="通过工长方法 + 注解注入 bean"></a>通过工长方法 + 注解注入 bean</h2><p>今天接到一个任务，需要通过工厂方法注入一个 bean 到 context 中，抄了别人的代码，但是还是不生效，再三测试，发现是类型赋错了。简化后，示例如下</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">person</span><br><span class="line"></span><br><span class="line">student -&gt; person</span><br><span class="line"></span><br><span class="line">factory::getStudent<span class="meta">@Bean</span>, <span class="keyword">return</span> Person</span><br><span class="line"></span><br><span class="line">返回值错了，导致注入失败</span><br></pre></td></tr></table></figure>
-
-<h2 id="spring-如何加载-bean？"><a href="#spring-如何加载-bean？" class="headerlink" title="spring 如何加载 bean？"></a>spring 如何加载 bean？</h2><p>对于公司这个老项目，它又是如何加载的？</p>
+    <title>Spring bean factory post processor workflow</title>
+    <url>/hexo/2021/10/27/Spring-bean-factory-post-processor-workflow/</url>
+    <content><![CDATA[<p>Spring 中 BeanFactoryPostProcessor 相关代码的源码解析，涉及到的主要 class 整理如下</p>
+<ul>
+<li>BeanFactory: bean 工厂，生产单个 bean,  典型方法 getBean/containsBean/isSingleton/getType etc</li>
+<li>ListableBeanFactory: 继承自 BeanFactory，额外拥有枚举 bean 的能力，即批量返回</li>
+<li>HierarchicalBeanFactory: 继承自 BeanFactory，额外拥<strong>父子</strong>容器的概念</li>
+<li>AutowireCapableBeanFactory: 继承自 BeanFactory, 额外提供管理非自动装配 bean 的能力</li>
+<li>SingletonBeanRegistry: 保证单例的注册器</li>
+<li>ConfigurableBeanFactory: 继承自 HierarchicalBeanFactory + SingletonBeanRegistry, 额外的配置能力</li>
+<li>ConfigurableListableBeanFactory: 整合 listale, hierarch 和 autowire 的能力，额外提供分析修改 bean definition 的能力，还有 pre-instantiate singletons 的能力</li>
+<li>AliasRegistry: alias 管理接口，典型方法 registerAlias/removeAlias etc</li>
+<li>BeanDefinitionRegistry: 继承自 AliasRegistry，增加了持有 bean definition 的功能，是 Spring factory 包下唯一一个有这种能力的接口</li>
+<li>SimpleAliasRegistry: AliasRegistry 的简单实现<strong>类</strong>，内部通过 map 存储 name 和 alias 的对应关系</li>
+<li>DefaultSingletonBeanRegistry: 类实现，强调 registry 和 singleton 属性，不包含任何 bean definition 的概念</li>
+<li>FactoryBean: 不是普通的 bean, 这个 bean 的作用类似工厂，用来生产其他 bean 的. 通常用在 infrastructure code 中</li>
+<li>FactoryBeanRegistrySupport: FactoryBeanRegistrySupport 派生类, 专门处理 FactoryBean 的 instance</li>
+<li>AbstractBeanFactory: BeanFactory 抽象实现，并不具备 Listable 的功能，具备从 resource 中提取 bean definition 的功能，核心方法 getBeanDefinition</li>
+<li>AbstractAutowireCapableBeanFactory: 实现了默认的 bean 创建逻辑，没有 bean definition 注册能力</li>
+</ul>
 ]]></content>
       <categories>
         <category>Spring</category>
       </categories>
       <tags>
-        <tag>Spring</tag>
-        <tag>bean</tag>
+        <tag>BeanFactoryPostProcessor</tag>
       </tags>
   </entry>
   <entry>
@@ -6065,8 +6102,8 @@
         <category>Spring 揭秘</category>
       </categories>
       <tags>
-        <tag>Spring</tag>
         <tag>IoC</tag>
+        <tag>Spring</tag>
       </tags>
   </entry>
   <entry>
@@ -7498,11 +7535,11 @@
   </entry>
   <entry>
     <title>function 包简介</title>
-    <url>/hexo/2020/06/03/function-%E5%8C%85%E7%AE%80%E4%BB%8B/</url>
-    <content><![CDATA[<p>对 java 的 lang 包下的 function 包做一下简要的总结， 写本篇文章时参考的 java 11 的源代码。是实话，我中觉得函数接口的定义，语义上很奇葩，不怎么读的懂，比如源码中 Predicate 的 isEquals 方法是这样定义的</p>
+    <url>/hexo/2020/06/03/function-package-introduce/</url>
+    <content><![CDATA[<p>对 java 的 lang 包下的 function 包做一下简要的总结， 写本篇文章时参考的 java 11 的源代码。说实话，我总觉得函数接口的定义，语义上很奇葩，不怎么读的懂，比如源码中 Predicate 的 isEquals 方法是这样定义的</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">static</span> &lt;T&gt; <span class="function">Predicate&lt;T&gt; <span class="title">isEqual</span><span class="params">(Object targetRef)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (<span class="keyword">null</span> == targetRef)</span><br><span class="line">            ? Objects::isNull</span><br><span class="line">            : object -&gt; targetRef.equals(object);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>简直是看的我一脸的黑人问好啊 ？？？ 这 TM 什么鬼，有空再研究一下怎么自定义函数接口。</p>
+<p>简直是看的我一脸的黑人问号啊 ？？？ 这 TM 什么鬼，有空再研究一下怎么自定义函数接口。</p>
 <h2 id="概况"><a href="#概况" class="headerlink" title="概况"></a>概况</h2><p>function 包是函数接口的集合，包路径为： <code>java.util.function.*</code>， 接口可以大致分为 5 类</p>
 <table>
 <thead>
@@ -7645,7 +7682,7 @@
 <p>Function 和 BiFunction 还有一个相同的 <code>andThen()</code> 方法，他会再前一个返回值的基础上再做计算</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 对 Stream 中的数进行 x 100 -10 操作</span></span><br><span class="line">Function&lt;Integer, Integer&gt; funcx100 = val -&gt; val * <span class="number">100</span>;</span><br><span class="line">Function&lt;Integer, Integer&gt; funcMinus10 = val -&gt; val - <span class="number">10</span>;</span><br><span class="line">List&lt;Integer&gt; ret = Stream.of(<span class="number">1</span>, <span class="number">2</span>).map(funcx100.andThen(funcMinus10)).collect(Collectors.toList());</span><br><span class="line">ret.forEach(System.out::println);</span><br><span class="line"><span class="comment">// output:</span></span><br><span class="line"><span class="comment">// 90</span></span><br><span class="line"><span class="comment">// 190</span></span><br></pre></td></tr></table></figure>
 
-<p>初此之外 Function 还有几个特殊的方法， compose() 他是再 apply() 之前执行的，注意泛型返回值的承接</p>
+<p>初此之外 Function 还有几个特殊的方法， compose() 他是在 apply() 之前执行的，注意泛型返回值的承接</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 设计两个 lambda 函数，将测试字符串中的数字部分抽出来，并格式化</span></span><br><span class="line">Function&lt;String, Integer&gt; funcComp = val -&gt; &#123;String intVal = val.split(<span class="string">&quot;:&quot;</span>)[<span class="number">1</span>];</span><br><span class="line"><span class="keyword">return</span> Integer.valueOf(intVal);&#125;;</span><br><span class="line">Function&lt;Integer, String&gt; func = val -&gt; <span class="string">&quot;[&quot;</span> + val + <span class="string">&quot;]&quot;</span>;</span><br><span class="line">List&lt;String&gt; ret = Stream.of(<span class="string">&quot;Jack:30&quot;</span>, <span class="string">&quot;Jerry:18&quot;</span>).map(func.compose(funcComp)).collect(Collectors.toList());</span><br><span class="line">ret.forEach(System.out::println);</span><br></pre></td></tr></table></figure>
 
 <p>Function 还有一个 identity() 方法，传入什么返回什么，完全不能领会它有什么用，到是网上一些例子中，可以用来快速生成 map 的用法让人挺印象深刻的</p>
@@ -7655,7 +7692,7 @@
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line">UnaryOperator&lt;Integer&gt; operator = val -&gt; val ^ <span class="number">2</span>;</span><br><span class="line">System.out.println(operator.apply(<span class="number">4</span>));</span><br><span class="line"><span class="comment">// output: 6</span></span><br></pre></td></tr></table></figure>
 <p>与之类似的还有 LongUnaryOperator 表示 long 类型的一元运算， 同理推至 IntUnaryOperator， DoubleUnaryOperator。</p>
 <p>DoubleBinaryOperator 两个 Double 类型数据的运算，同理推至 IntBinaryOperator 和 LongBinaryOperator。</p>
-<p>再 *Operator 一族中，比较特殊的是 BinaryOperator, 再他的方法中有两个计算最值的方法 <code>minBy()</code> 和 <code>maxBy()</code></p>
+<p>在 Operator 一族中，比较特殊的是 BinaryOperator, 他的方法中有两个计算最值的方法 <code>minBy()</code> 和 <code>maxBy()</code></p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line">BinaryOperator&lt;Integer&gt; max = BinaryOperator.maxBy(Comparator.naturalOrder());</span><br><span class="line">System.out.println(max.apply(<span class="number">1</span>,<span class="number">2</span>));</span><br><span class="line"></span><br><span class="line">BinaryOperator&lt;Integer&gt; min = BinaryOperator.minBy(Comparator.naturalOrder());</span><br><span class="line">System.out.println(min.apply(<span class="number">1</span>, <span class="number">2</span>));</span><br><span class="line"><span class="comment">//output: 2 1</span></span><br></pre></td></tr></table></figure>
 
 

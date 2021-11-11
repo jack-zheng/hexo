@@ -206,6 +206,209 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/11/11/Java-create-jar-application/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/11/11/Java-create-jar-application/" class="post-title-link" itemprop="url">创建可运行 jar 应用</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-11-11 15:15:50 / 修改时间：15:18:08" itemprop="dateCreated datePublished" datetime="2021-11-11T15:15:50+08:00">2021-11-11</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>gradle, maven 都提供了现成的打 jar 功能</p>
+<h2 id="Maven"><a href="#Maven" class="headerlink" title="Maven"></a>Maven</h2><p>这里以 maven 为例，创建工程如下</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── java</span><br><span class="line">│   └── com</span><br><span class="line">│       └── jk</span><br><span class="line">│           └── Main.java</span><br><span class="line">└── resources</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.jk;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; args.length; i++) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Index: &quot;</span> + i + <span class="string">&quot;, Value: &quot;</span> + args[i]);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在 pom 文件中添加配置</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">plugins</span>&gt;</span></span><br><span class="line"></span><br><span class="line">        <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-assembly-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.5.5<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">archive</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">manifest</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">mainClass</span>&gt;</span>com.jk.Main<span class="tag">&lt;/<span class="name">mainClass</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">manifest</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">archive</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">descriptorRefs</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">descriptorRef</span>&gt;</span>jar-with-dependencies<span class="tag">&lt;/<span class="name">descriptorRef</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">descriptorRefs</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">build</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>终端输入命令：<code>mvn package assembly:single</code>, 运行后在 src 同级目录下会生产 target 文件夹，其中包含了对应的 jar 包, 选择带 with-dependencies 的那个</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">java -jar app-jar-1.0-SNAPSHOT-jar-with-dependencies.jar hello world </span><br><span class="line">Index: 0, Value: hello</span><br><span class="line">Index: 1, Value: world</span><br></pre></td></tr></table></figure>
+
+<p>PS: 直接选 plugins -&gt; assembly -&gt; assembly:single 不 work，不是很了解为啥，需要系统学一下 maven 才知道</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/10/27/Spring-bean-factory-post-processor-workflow/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/10/27/Spring-bean-factory-post-processor-workflow/" class="post-title-link" itemprop="url">Spring bean factory post processor workflow</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-10-27 13:50:47" itemprop="dateCreated datePublished" datetime="2021-10-27T13:50:47+08:00">2021-10-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-11-11 15:18:08" itemprop="dateModified" datetime="2021-11-11T15:18:08+08:00">2021-11-11</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/Spring/" itemprop="url" rel="index">
+                    <span itemprop="name">Spring</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>Spring 中 BeanFactoryPostProcessor 相关代码的源码解析，涉及到的主要 class 整理如下</p>
+<ul>
+<li>BeanFactory: bean 工厂，生产单个 bean,  典型方法 getBean/containsBean/isSingleton/getType etc</li>
+<li>ListableBeanFactory: 继承自 BeanFactory，额外拥有枚举 bean 的能力，即批量返回</li>
+<li>HierarchicalBeanFactory: 继承自 BeanFactory，额外拥<strong>父子</strong>容器的概念</li>
+<li>AutowireCapableBeanFactory: 继承自 BeanFactory, 额外提供管理非自动装配 bean 的能力</li>
+<li>SingletonBeanRegistry: 保证单例的注册器</li>
+<li>ConfigurableBeanFactory: 继承自 HierarchicalBeanFactory + SingletonBeanRegistry, 额外的配置能力</li>
+<li>ConfigurableListableBeanFactory: 整合 listale, hierarch 和 autowire 的能力，额外提供分析修改 bean definition 的能力，还有 pre-instantiate singletons 的能力</li>
+<li>AliasRegistry: alias 管理接口，典型方法 registerAlias/removeAlias etc</li>
+<li>BeanDefinitionRegistry: 继承自 AliasRegistry，增加了持有 bean definition 的功能，是 Spring factory 包下唯一一个有这种能力的接口</li>
+<li>SimpleAliasRegistry: AliasRegistry 的简单实现<strong>类</strong>，内部通过 map 存储 name 和 alias 的对应关系</li>
+<li>DefaultSingletonBeanRegistry: 类实现，强调 registry 和 singleton 属性，不包含任何 bean definition 的概念</li>
+<li>FactoryBean: 不是普通的 bean, 这个 bean 的作用类似工厂，用来生产其他 bean 的. 通常用在 infrastructure code 中</li>
+<li>FactoryBeanRegistrySupport: FactoryBeanRegistrySupport 派生类, 专门处理 FactoryBean 的 instance</li>
+<li>AbstractBeanFactory: BeanFactory 抽象实现，并不具备 Listable 的功能，具备从 resource 中提取 bean definition 的功能，核心方法 getBeanDefinition</li>
+<li>AbstractAutowireCapableBeanFactory: 实现了默认的 bean 创建逻辑，没有 bean definition 注册能力</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/10/25/Spring-post-processor/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -229,10 +432,16 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2021-10-25 13:34:38 / 修改时间：19:18:31" itemprop="dateCreated datePublished" datetime="2021-10-25T13:34:38+08:00">2021-10-25</time>
+              <time title="创建时间：2021-10-25 13:34:38" itemprop="dateCreated datePublished" datetime="2021-10-25T13:34:38+08:00">2021-10-25</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-11-11 15:18:08" itemprop="dateModified" datetime="2021-11-11T15:18:08+08:00">2021-11-11</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
@@ -366,7 +575,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-10-25 19:18:31" itemprop="dateModified" datetime="2021-10-25T19:18:31+08:00">2021-10-25</time>
+                <time title="修改时间：2021-11-11 15:18:08" itemprop="dateModified" datetime="2021-11-11T15:18:08+08:00">2021-11-11</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -478,7 +687,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-10-25 19:18:31" itemprop="dateModified" datetime="2021-10-25T19:18:31+08:00">2021-10-25</time>
+                <time title="修改时间：2021-11-11 15:18:08" itemprop="dateModified" datetime="2021-11-11T15:18:08+08:00">2021-11-11</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -612,7 +821,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-10-25 19:18:31" itemprop="dateModified" datetime="2021-10-25T19:18:31+08:00">2021-10-25</time>
+                <time title="修改时间：2021-11-11 15:18:08" itemprop="dateModified" datetime="2021-11-11T15:18:08+08:00">2021-11-11</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -713,7 +922,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-10-25 19:18:31" itemprop="dateModified" datetime="2021-10-25T19:18:31+08:00">2021-10-25</time>
+                <time title="修改时间：2021-11-11 15:18:08" itemprop="dateModified" datetime="2021-11-11T15:18:08+08:00">2021-11-11</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -810,7 +1019,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-10-25 19:18:31" itemprop="dateModified" datetime="2021-10-25T19:18:31+08:00">2021-10-25</time>
+                <time title="修改时间：2021-11-11 15:18:08" itemprop="dateModified" datetime="2021-11-11T15:18:08+08:00">2021-11-11</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -911,7 +1120,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-10-25 19:18:31" itemprop="dateModified" datetime="2021-10-25T19:18:31+08:00">2021-10-25</time>
+                <time title="修改时间：2021-11-11 15:18:08" itemprop="dateModified" datetime="2021-11-11T15:18:08+08:00">2021-11-11</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1012,7 +1221,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-10-25 19:18:31" itemprop="dateModified" datetime="2021-10-25T19:18:31+08:00">2021-10-25</time>
+                <time title="修改时间：2021-11-11 15:18:08" itemprop="dateModified" datetime="2021-11-11T15:18:08+08:00">2021-11-11</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1055,240 +1264,6 @@
 <p><strong>Chapter 18</strong> presents the deployer, the component responsible for deploying and installing web applications. </p>
 </blockquote>
 
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/09/20/HTW-ex17/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/09/20/HTW-ex17/" class="post-title-link" itemprop="url">Ex17 Tomcat Startup</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-09-20 16:28:19" itemprop="dateCreated datePublished" datetime="2021-09-20T16:28:19+08:00">2021-09-20</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-10-25 19:18:31" itemprop="dateModified" datetime="2021-10-25T19:18:31+08:00">2021-10-25</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/Tomcat/" itemprop="url" rel="index">
-                    <span itemprop="name">Tomcat</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>984</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <blockquote>
-<p><strong>Chapter 17</strong> discusses the starting and stopping of Tomcat through the use of batch files and shell scripts. </p>
-</blockquote>
-<p>Tomcat 中通过两个 class 管理容器的启动分别是 Catalina 和 Bootstrap。Catalina 用来管理服务器的开启和停止，同时负责解析 server.xml 配置文件。 Bootstrap 用来创建 Catalina 实体并运行。理论上来说，这两个类可以合并，但是为了支持多模式运行，还是分开了。</p>
-<p>这章先介绍了 Catalina 和 Bootstrap，然后介绍了管理 Tomcat 的 dot 和 shell 文件的编写</p>
-<h2 id="The-Catalina-Class"><a href="#The-Catalina-Class" class="headerlink" title="The Catalina Class"></a>The Catalina Class</h2><p>管理主入口为 process 方法，通过 Bootstrap 管理，但其实它本身就包含一个 main() 函数，调用方式和 Bootstrap 一样</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">process</span><span class="params">(String args[])</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    setCatalinaHome();</span><br><span class="line">    setCatalinaBase();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (arguments(args))</span><br><span class="line">            execute();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        e.printStackTrace(System.out);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="The-start-Mehtod"><a href="#The-start-Mehtod" class="headerlink" title="The start Mehtod"></a>The start Mehtod</h3><p>start 方法中，会做如下事情</p>
-<ol>
-<li>创建对应的 digester 对象处理 server.xml</li>
-<li>调用解析得到的 server 容器的 start 方法</li>
-<li>注册 shutdown hook</li>
-<li>卡在 await 等待结束信号</li>
-<li>正常结束时会先移掉 hook 避免重复执行</li>
-</ol>
-<h3 id="The-stop-Mehtod"><a href="#The-stop-Mehtod" class="headerlink" title="The stop Mehtod"></a>The stop Mehtod</h3><p>执行原理和逻辑和 start 一致，跳过。</p>
-<h3 id="Start-Stop-Digester"><a href="#Start-Stop-Digester" class="headerlink" title="Start/Stop Digester"></a>Start/Stop Digester</h3><p>逻辑一致，创建了一个 Digester 对象，主要的逻辑都在 rule set 那一部分，很直观</p>
-<h2 id="The-Bootstrap-Class"><a href="#The-Bootstrap-Class" class="headerlink" title="The Bootstrap Class"></a>The Bootstrap Class</h2><p>Tomcat 通过 Bootstrap 调用 Catalina，我们平时启动用的 dot/shll 文件也是直接调用的 Bootstrap 类。其中的 main 方法创建了三个 class loader 并对 Catalina 做了实例话，最后调用了他的 process 方法启动服务器。</p>
-<p>PS: 这部分后面可以结合第八章仔细看看，应该挺有意思</p>
-<h2 id="Running-Tomcat-on-Windows-Linux"><a href="#Running-Tomcat-on-Windows-Linux" class="headerlink" title="Running Tomcat on Windows/Linux"></a>Running Tomcat on Windows/Linux</h2><p>略</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/09/20/HTW-ex16/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/09/20/HTW-ex16/" class="post-title-link" itemprop="url">Ex16 Shutdown Hook</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-09-20 14:56:16" itemprop="dateCreated datePublished" datetime="2021-09-20T14:56:16+08:00">2021-09-20</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-10-25 19:18:31" itemprop="dateModified" datetime="2021-10-25T19:18:31+08:00">2021-10-25</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/Tomcat/" itemprop="url" rel="index">
-                    <span itemprop="name">Tomcat</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>5.1k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>5 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <blockquote>
-<p><strong>Chapter 16</strong> explains the shutdown hook that Tomcat uses to always get a chance to do clean-up regardless how the user stops it (i.e. either appropriately by sending a shutdown command or inappropriately by simply closing the console.)</p>
-</blockquote>
-<p>本章介绍了 Tomcat 如何优雅的执行 stop 方法，前面先通过两个例子介绍实现原理，后面分析 Tomcat 的实现方式</p>
-<p>java 中，虚拟机可以通过两种方式 shut down</p>
-<ul>
-<li>调用 System.exit 结束</li>
-<li>非正常结束，比如 CTRL+C，直接关闭终端等</li>
-</ul>
-<p>当虚拟机结束时，会一次执行下面两个步骤</p>
-<ul>
-<li>jvm 会执行所有注册的 shutdown hook. 这些 hook 被 attach 在 Runtime 对象中，结束时并行执行</li>
-<li>jvm 执行所有没有被调用的 finalizers 方法</li>
-</ul>
-<p>本章中的例子都是针对第一点做实现的</p>
-<p>创建一个 shutdown hook 的方式很简单，分一下几步</p>
-<ul>
-<li>创建 class 继承 Thread</li>
-<li>run 方法中实现定制的逻辑</li>
-<li>在目标应用中，实例话你的 hook class</li>
-<li>注册 hook 到 Runtime</li>
-</ul>
-<p>下面是一个示例程序, 不管怎么结束程序，ShutdownHook 的 run() 方法都会被调用到</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ShutdownHookDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">start</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Demo&quot;</span>);</span><br><span class="line">        ShutdownHook shutdownHook = <span class="keyword">new</span> ShutdownHook();</span><br><span class="line">        Runtime.getRuntime().addShutdownHook(shutdownHook);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ShutdownHookDemo demo = <span class="keyword">new</span> ShutdownHookDemo();</span><br><span class="line">        demo.start();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            System.in.read();</span><br><span class="line">        &#125;<span class="keyword">catch</span> (Exception e) &#123;&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ShutdownHook</span> <span class="keyword">extends</span> <span class="title">Thread</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Shutting down...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Demo</span></span><br><span class="line"><span class="comment">// Shutting down...</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="A-Shutdown-Hook-Example"><a href="#A-Shutdown-Hook-Example" class="headerlink" title="A Shutdown Hook Example"></a>A Shutdown Hook Example</h2><p>这里通过一个 UI 组件做例子，应用启动时会创建一个临时文件，我们的目标是，推出后，这个文件必须被删除。原始实现如下，当点击 Exit 推出时，文件可以被删除，但是如果通过点击 x 按钮推出，则文件还会保留。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MySwingApp</span> <span class="keyword">extends</span> <span class="title">JFrame</span> </span>&#123;</span><br><span class="line">    JButton exitButton = <span class="keyword">new</span> JButton();</span><br><span class="line">    JTextArea jTextArea1 = <span class="keyword">new</span> JTextArea();</span><br><span class="line">    String dir = System.getProperty(<span class="string">&quot;user.dir&quot;</span>);</span><br><span class="line">    String filename = <span class="string">&quot;temp.txt&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MySwingApp</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        exitButton.setText(<span class="string">&quot;Exit&quot;</span>);</span><br><span class="line">        exitButton.setBounds(<span class="keyword">new</span> Rectangle(<span class="number">304</span>, <span class="number">248</span>, <span class="number">76</span>, <span class="number">37</span>));</span><br><span class="line">        exitButton.addActionListener(e -&gt; exitButton_actionPerformed(e));</span><br><span class="line">        <span class="keyword">this</span>.getContentPane().setLayout(<span class="keyword">null</span>);</span><br><span class="line">        jTextArea1.setText(<span class="string">&quot;Click the Exit button to quit&quot;</span>);</span><br><span class="line">        jTextArea1.setBounds(<span class="keyword">new</span> Rectangle(<span class="number">9</span>, <span class="number">7</span>, <span class="number">371</span>, <span class="number">235</span>));</span><br><span class="line">        <span class="keyword">this</span>.getContentPane().add(exitButton, <span class="keyword">null</span>);</span><br><span class="line">        <span class="keyword">this</span>.getContentPane().add(jTextArea1, <span class="keyword">null</span>);</span><br><span class="line">        <span class="keyword">this</span>.setDefaultCloseOperation(EXIT_ON_CLOSE);</span><br><span class="line">        <span class="keyword">this</span>.setBounds(<span class="number">0</span>, <span class="number">0</span>, <span class="number">400</span>, <span class="number">330</span>);</span><br><span class="line">        <span class="keyword">this</span>.setVisible(<span class="keyword">true</span>);</span><br><span class="line">        initialize();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initialize</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// create a temp file</span></span><br><span class="line">        File file = <span class="keyword">new</span> File(dir, filename);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Creating temporary file&quot;</span>);</span><br><span class="line">            file.createNewFile();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Failed creating temporary file.&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">shutdown</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// delete the temp file</span></span><br><span class="line">        File file = <span class="keyword">new</span> File(dir, filename);</span><br><span class="line">        <span class="keyword">if</span> (file.exists()) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Deleting temporary file.&quot;</span>);</span><br><span class="line">            file.delete();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">exitButton_actionPerformed</span><span class="params">(ActionEvent e)</span> </span>&#123;</span><br><span class="line">        shutdown();</span><br><span class="line">        System.exit(<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        MySwingApp mySwingApp = <span class="keyword">new</span> MySwingApp();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>改进方案是，将 shutdown() 的内容包装到单独的内部类中并实现 Thread 接口。在应用启动时，在 initialize() 方法中通过 hook 的方式注册到 Runtime。这样不管怎么退出，都能保证 shutdown() 方法会被执行</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MySwingAppWithShutdownHook</span> <span class="keyword">extends</span> <span class="title">JFrame</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    JButton exitButton = <span class="keyword">new</span> JButton();</span><br><span class="line">    JTextArea jTextArea1 = <span class="keyword">new</span> JTextArea();</span><br><span class="line">    String dir = System.getProperty(<span class="string">&quot;user.dir&quot;</span>);</span><br><span class="line">    String filename = <span class="string">&quot;temp.txt&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MySwingAppWithShutdownHook</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        exitButton.setText(<span class="string">&quot;Exit&quot;</span>);</span><br><span class="line">        exitButton.setBounds(<span class="keyword">new</span> Rectangle(<span class="number">304</span>, <span class="number">248</span>, <span class="number">76</span>, <span class="number">37</span>));</span><br><span class="line">        exitButton.addActionListener(e -&gt; exitButton_actionPerformed(e));</span><br><span class="line">        <span class="keyword">this</span>.getContentPane().setLayout(<span class="keyword">null</span>);</span><br><span class="line">        jTextArea1.setText(<span class="string">&quot;Click the Exit button to quit&quot;</span>);</span><br><span class="line">        jTextArea1.setBounds(<span class="keyword">new</span> Rectangle(<span class="number">9</span>, <span class="number">7</span>, <span class="number">371</span>, <span class="number">235</span>));</span><br><span class="line">        <span class="keyword">this</span>.getContentPane().add(exitButton, <span class="keyword">null</span>);</span><br><span class="line">        <span class="keyword">this</span>.getContentPane().add(jTextArea1, <span class="keyword">null</span>);</span><br><span class="line">        <span class="keyword">this</span>.setDefaultCloseOperation(EXIT_ON_CLOSE);</span><br><span class="line">        <span class="keyword">this</span>.setBounds(<span class="number">0</span>, <span class="number">0</span>, <span class="number">400</span>, <span class="number">330</span>);</span><br><span class="line">        <span class="keyword">this</span>.setVisible(<span class="keyword">true</span>);</span><br><span class="line">        initialize();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initialize</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// add shutdown hook</span></span><br><span class="line">        MyShutdownHook shutdownHook = <span class="keyword">new</span> MyShutdownHook();</span><br><span class="line">        Runtime.getRuntime().addShutdownHook(shutdownHook);</span><br><span class="line">        <span class="comment">// create a temp file</span></span><br><span class="line">        File file = <span class="keyword">new</span> File(dir, filename);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Creating temporary file&quot;</span>);</span><br><span class="line">            file.createNewFile();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Failed creating temporary file.&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">shutdown</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// delete the temp file</span></span><br><span class="line">        File file = <span class="keyword">new</span> File(dir, filename);</span><br><span class="line">        <span class="keyword">if</span> (file.exists()) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Deleting temporary file.&quot;</span>);</span><br><span class="line">            file.delete();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">exitButton_actionPerformed</span><span class="params">(ActionEvent e)</span> </span>&#123;</span><br><span class="line">        shutdown();</span><br><span class="line">        System.exit(<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        MySwingAppWithShutdownHook mySwingApp = <span class="keyword">new</span> MySwingAppWithShutdownHook();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">MyShutdownHook</span> <span class="keyword">extends</span> <span class="title">Thread</span> </span>&#123;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            shutdown();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="Shutdown-Hook-in-Tomcat"><a href="#Shutdown-Hook-in-Tomcat" class="headerlink" title="Shutdown Hook in Tomcat"></a>Shutdown Hook in Tomcat</h2><p>Tomcat 也通过同样的原理，在 Catalina 这个类中定义了一个 hook</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">protected</span> <span class="class"><span class="keyword">class</span> <span class="title">CatalinaShutdownHook</span> <span class="keyword">extends</span> <span class="title">Thread</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (server != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                ((Lifecycle) server).stop();</span><br><span class="line">            &#125; <span class="keyword">catch</span> (LifecycleException e) &#123;</span><br><span class="line">                System.out.println(<span class="string">&quot;Catalina.stop: &quot;</span> + e);</span><br><span class="line">                e.printStackTrace(System.out);</span><br><span class="line">                <span class="keyword">if</span> (e.getThrowable() != <span class="keyword">null</span>) &#123;</span><br><span class="line">                    System.out.println(<span class="string">&quot;----- Root Cause -----&quot;</span>);</span><br><span class="line">                    e.getThrowable().printStackTrace(System.out);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>在 Catalina 运行 start() 方法的时候 attach 到 Runtime 对象中去</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Thread shutdownHook = <span class="keyword">new</span> CatalinaShutdownHook();</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">Runtime.getRuntime().addShutdownHook(shutdownHook);</span><br></pre></td></tr></table></figure>
       
     </div>
 
@@ -1353,7 +1328,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">198</span>
+          <span class="site-state-item-count">199</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1405,7 +1380,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">16:01</span>
+    <span title="站点阅读时长">16:02</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
