@@ -7,7 +7,7 @@ tags:
 - java
 - lambda
 ---
-对 java 的 lang 包下的 function 包做一下简要的总结， 写本篇文章时参考的 java 11 的源代码。是实话，我中觉得函数接口的定义，语义上很奇葩，不怎么读的懂，比如源码中 Predicate 的 isEquals 方法是这样定义的
+对 java 的 lang 包下的 function 包做一下简要的总结， 写本篇文章时参考的 java 11 的源代码。说实话，我总觉得函数接口的定义，语义上很奇葩，不怎么读的懂，比如源码中 Predicate 的 isEquals 方法是这样定义的
 
 ```java
 static <T> Predicate<T> isEqual(Object targetRef) {
@@ -17,7 +17,7 @@ static <T> Predicate<T> isEqual(Object targetRef) {
 }
 ```
 
-简直是看的我一脸的黑人问好啊 ？？？ 这 TM 什么鬼，有空再研究一下怎么自定义函数接口。
+简直是看的我一脸的黑人问号啊 ？？？ 这 TM 什么鬼，有空再研究一下怎么自定义函数接口。
 
 ## 概况
 
@@ -218,7 +218,7 @@ ret.forEach(System.out::println);
 // 190
 ```
 
-初此之外 Function 还有几个特殊的方法， compose() 他是再 apply() 之前执行的，注意泛型返回值的承接
+初此之外 Function 还有几个特殊的方法， compose() 他是在 apply() 之前执行的，注意泛型返回值的承接
 
 ```java
 // 设计两个 lambda 函数，将测试字符串中的数字部分抽出来，并格式化
@@ -251,7 +251,7 @@ System.out.println(operator.apply(4));
 
 DoubleBinaryOperator 两个 Double 类型数据的运算，同理推至 IntBinaryOperator 和 LongBinaryOperator。
 
-再 *Operator 一族中，比较特殊的是 BinaryOperator, 再他的方法中有两个计算最值的方法 `minBy()` 和 `maxBy()`
+在 Operator 一族中，比较特殊的是 BinaryOperator, 他的方法中有两个计算最值的方法 `minBy()` 和 `maxBy()`
 
 ```java
 BinaryOperator<Integer> max = BinaryOperator.maxBy(Comparator.naturalOrder());
