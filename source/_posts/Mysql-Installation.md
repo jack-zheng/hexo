@@ -7,6 +7,32 @@ tags:
 - mysql
 ---
 
+## Docker 安装
+
+直接跟着官方文档走就行了
+
+```bash
+docker pull mysql
+
+# -e MYSQL_ROOT_PASSWORD=my-secret-pw           # 按官方镜像文档提示，启动容器时设置密码
+docker run -d -p 3000:3306 -v /Users/id/tmp/mysql/conf:/etc/mysql/conf.d -v /Users/id/tmp/mysql/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 --name=mysql01 mysql
+
+# 启动 DBeaver，链接数据库，报错：`Unable to load authentication plugin 'caching_sha2_password'.`
+# 搜索之后，发现是 mysql 驱动有跟新，需要修稿客户端的 pom, 升级到 8.x 就行。DBeaver 直接就在创建选项里给了方案，选 8.x 那个就行 [GitIssue](https://github.com/dbeaver/dbeaver/issues/4691)
+# 使用高版本的 Mysql connection 还是有问题，不过 msg 变了：`Public Key Retrieval is not allowed`
+# 搜索之后，发现还要改配置, connection setting -> Driver properties -> 'allowPlblicKeyRetrieval' 改为 true
+# 还有问题。。。继续抛错：`Access denied for user 'root'@'localhost' (using password: YES)`
+docker exec -it mysql01 /bin/bash               # 进去容器，输入 `mysql -u root -p` 尝试登陆，成功。推测是链接客户端的问题
+ps -ef | grep mysql                             # 查看了一下，突然想起来，本地我也有安装 mysql 可能有冲突。果断将之前安装的 docker mysql 删除，重新指定一个新的端口，用 DBeaver 链接，成功！
+
+# 通过客户端创建一个新的数据库 new_test, 在本地映射的 data 目录下 ls 一下，可以看到新数据库文件可以同步创建
+# > ~/tmp/mydb/data ls
+# auto.cnf           ca.pem             client-key.pem     ib_logfile0        ibdata1            mysql              performance_schema public_key.pem     server-key.pem
+# ca-key.pem         client-cert.pem    ib_buffer_pool     ib_logfile1        ibtmp1             new_test           private_key.pem    server-cert.pem    sys
+
+# 删除容器，本地文件依然存在！
+```
+
 ## Windows 版本安装
 
 1. 下载安装包 [官方地址](https://dev.mysql.com/downloads/mysql/) 下载比较小的，不到测试套件的版本即可
