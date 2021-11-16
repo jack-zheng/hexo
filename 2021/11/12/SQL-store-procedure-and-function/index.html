@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/hexo/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/hexo/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/hexo/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/hexo/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="UgODgWVmvTsdD--vjodDR3tPUZRWM3i7JpHzbYejxUM">
+
+<link rel="stylesheet" href="/hexo/css/main.css">
+
+
+<link rel="stylesheet" href="/hexo/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/hexo/',
+    scheme: 'Muse',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="看了视屏，过了一个周末，只剩一个大概的映像，其他都忘了，果然还是要实际操作一下印象才会深刻。mysql 使用 docker 版本的，参考 mysql 安装那篇教程 数据准别视屏下方留言区有对应的 SQL 文件可以下载，按照上面的教程，安装完 docker 版本的 mysql 之后，默认会在 tmp 文件夹下创建共享文件。将 sql 文件复制到共享文件中，然后运行一下命令倒入数据 123456doc">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SQL store procedure and function">
+<meta property="og:url" content="https://jack-zheng.github.io/hexo/2021/11/12/SQL-store-procedure-and-function/index.html">
+<meta property="og:site_name" content="Jackpot">
+<meta property="og:description" content="看了视屏，过了一个周末，只剩一个大概的映像，其他都忘了，果然还是要实际操作一下印象才会深刻。mysql 使用 docker 版本的，参考 mysql 安装那篇教程 数据准别视屏下方留言区有对应的 SQL 文件可以下载，按照上面的教程，安装完 docker 版本的 mysql 之后，默认会在 tmp 文件夹下创建共享文件。将 sql 文件复制到共享文件中，然后运行一下命令倒入数据 123456doc">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-11-12T10:49:15.000Z">
+<meta property="article:modified_time" content="2021-11-16T02:28:11.749Z">
+<meta property="article:author" content="Jack Zheng">
+<meta property="article:tag" content="store procedure">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://jack-zheng.github.io/hexo/2021/11/12/SQL-store-procedure-and-function/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>SQL store procedure and function | Jackpot</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/hexo/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jackpot</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-tags">
+
+    <a href="/hexo/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/hexo/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/hexo/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/jack-zheng" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/11/12/SQL-store-procedure-and-function/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SQL store procedure and function
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-11-12 18:49:15" itemprop="dateCreated datePublished" datetime="2021-11-12T18:49:15+08:00">2021-11-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-11-16 10:28:11" itemprop="dateModified" datetime="2021-11-16T10:28:11+08:00">2021-11-16</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/SQL/" itemprop="url" rel="index">
+                    <span itemprop="name">SQL</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>6.4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>6 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>看了视屏，过了一个周末，只剩一个大概的映像，其他都忘了，果然还是要实际操作一下印象才会深刻。mysql 使用 docker 版本的，参考 mysql 安装那篇教程</p>
+<h2 id="数据准别"><a href="#数据准别" class="headerlink" title="数据准别"></a>数据准别</h2><p>视屏下方留言区有对应的 SQL 文件可以下载，按照上面的教程，安装完 docker 版本的 mysql 之后，默认会在 tmp 文件夹下创建共享文件。将 sql 文件复制到共享文件中，然后运行一下命令倒入数据</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">docker <span class="built_in">exec</span> -it mysql-test /bin/bash</span><br><span class="line"><span class="comment"># 登陆 docker 中的 mysql 终端</span></span><br><span class="line">mysql -h localhost -P 2999 -u root -p</span><br><span class="line"><span class="comment"># 导入数据</span></span><br><span class="line"><span class="built_in">source</span> /etc/mysql/conf.d/employees.sql</span><br><span class="line"><span class="built_in">source</span> /etc/mysql/conf.d/girls.sql</span><br></pre></td></tr></table></figure>
+
+<h2 id="变量声明"><a href="#变量声明" class="headerlink" title="变量声明"></a>变量声明</h2><ul>
+<li>系统变量<ul>
+<li>全局变量 - 系统级别的改动，跨会话有效，重启重置</li>
+<li>回话变量 - 新建回话(链接)会重置</li>
+</ul>
+</li>
+<li>自定义变量<ul>
+<li>用户变量</li>
+<li>局部变量</li>
+</ul>
+</li>
+</ul>
+<p>系统变量</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 查看所有的系统变量</span></span><br><span class="line"><span class="keyword">SHOW</span> <span class="keyword">GLOBAL</span> | [<span class="keyword">SESSION</span>] <span class="keyword">VARIABLES</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 查看满足条件的部分系统变量</span></span><br><span class="line"><span class="keyword">show</span> <span class="keyword">global</span> | [<span class="keyword">session</span>] <span class="keyword">variables</span> <span class="keyword">like</span> <span class="string">&#x27;%char%&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 查看置顶的某个系统变量的值</span></span><br><span class="line"><span class="keyword">select</span> @@<span class="keyword">global</span> | [<span class="keyword">session</span>].系统变量名;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 赋值</span></span><br><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> | [<span class="keyword">session</span>] 系统变量名 = 值;</span><br><span class="line"><span class="keyword">set</span> @@<span class="keyword">global</span> | [<span class="keyword">session</span>] .系统变量名 = 值;</span><br></pre></td></tr></table></figure>
+
+<p>自定义变量</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 使用方式：声明，赋值，使用</span></span><br><span class="line"><span class="comment">-- 用户变量：</span></span><br><span class="line">    <span class="comment">-- 作用域： 针对于当前会话有效，同会话变量作用域。可以放在任何地方，begin/end 内部或外部</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 声明并初始化</span></span><br><span class="line"><span class="keyword">SET</span> @VARIABLE_NAME=<span class="keyword">VALUE</span>;</span><br><span class="line"><span class="keyword">SET</span> @VARIABLE_NAME:=<span class="keyword">VALUE</span>;</span><br><span class="line"><span class="keyword">SELECT</span> @VARIABLE_NAME:=<span class="keyword">VALUE</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 赋值</span></span><br><span class="line">    <span class="comment">-- 方式一，同声明</span></span><br><span class="line">    <span class="comment">-- 方式二， select into, 要求必须是**一个**值，不能是一组</span></span><br><span class="line"><span class="keyword">select</span> 字段 <span class="keyword">into</span> 变量名 <span class="keyword">from</span> 表;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 使用(查看用户变量值)</span></span><br><span class="line"><span class="keyword">select</span> @VARIABLE_NAME;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- e.g.</span></span><br><span class="line"><span class="keyword">set</span> @<span class="keyword">count</span>=<span class="number">1</span>;</span><br><span class="line"><span class="keyword">select</span> <span class="keyword">count</span>(*) <span class="keyword">into</span> @<span class="keyword">count</span> <span class="keyword">from</span> employees;</span><br><span class="line"><span class="keyword">SELECT</span> @<span class="keyword">count</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 局部变量，作用域：仅仅在定义他的 begin/end 内部, 并且必须为第一句话</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 声明</span></span><br><span class="line">declear 变量名 类型;</span><br><span class="line">declear 变量名 类型 default 值;</span><br><span class="line"><span class="comment">-- 赋值</span></span><br><span class="line">    <span class="comment">-- 方式一</span></span><br><span class="line">    <span class="keyword">set</span> 局部变量名=值;</span><br><span class="line">    <span class="keyword">set</span> 局部变量名:=值;</span><br><span class="line">    <span class="keyword">select</span> @局部变量名:=值;</span><br><span class="line">    <span class="comment">-- 方式二：select into</span></span><br><span class="line">    <span class="keyword">select</span> 字段 <span class="keyword">into</span> 局部变量 <span class="keyword">from</span> 表;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 使用</span></span><br><span class="line"><span class="keyword">select</span> 局部变量名;</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th align="left">类型</th>
+<th align="left">作用域</th>
+<th align="left">定义和使用位置</th>
+<th align="left">语法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">用户变量</td>
+<td align="left">当前回话</td>
+<td align="left">会话中的任意位置</td>
+<td align="left">必须加@，不限定类型</td>
+</tr>
+<tr>
+<td align="left">局部变量</td>
+<td align="left">begin/end中</td>
+<td align="left">必须在 begin/end中，且为第一句</td>
+<td align="left">一般不用@，除了 select 语句，需要限定类型</td>
+</tr>
+</tbody></table>
+<h2 id="Store-Procedure"><a href="#Store-Procedure" class="headerlink" title="Store Procedure"></a>Store Procedure</h2><p>存储过程优点：</p>
+<ul>
+<li>代码重用</li>
+<li>简化操作</li>
+<li>预编译，减少联接次数</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">PROCEDURE</span> 存储过程(参数列表)</span><br><span class="line"><span class="keyword">BEGIN</span></span><br><span class="line">    存储过程体(一组合法的 <span class="keyword">SQL</span> 语句)</span><br><span class="line"><span class="keyword">END</span></span><br></pre></td></tr></table></figure>
+
+<p>参数列表包含三部分：参数模式，参数名，参数类型, e.g. IN stuname VARCHAR(20)</p>
+<p>参数模式：</p>
+<ul>
+<li>IN: 该参数作为输入</li>
+<li>OUT: 该参数作为输出</li>
+<li>INOUT: 该参数即作为输入又可以作为输出</li>
+</ul>
+<p>存储过程体如果仅含有一句话，BEGIN END 可以省略</p>
+<p>存储过程体中的每条 SQL 语句的结尾要求必须加分好</p>
+<p>存储过程的结尾可以使用 DELIMITER 重新设置，<code>DELIMITER 结束标志</code>: e.g. DELIMITER $</p>
+<p>调用：CALL 存储过程名(实参列表);</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 1. 空参列表</span></span><br><span class="line"><span class="comment">-- 貌似只能在终端执行</span></span><br><span class="line">DELIMITER $</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">PROCEDURE</span> myp1()</span><br><span class="line"><span class="keyword">BEGIN</span> </span><br><span class="line">    <span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="keyword">ADMIN</span> (USERNAME, <span class="string">`PASSWORD`</span>)</span><br><span class="line">    <span class="keyword">VALUES</span> (<span class="string">&#x27;john1&#x27;</span>, <span class="number">0000</span>), (<span class="string">&#x27;rose&#x27;</span>, <span class="number">0001</span>), (<span class="string">&#x27;jack&#x27;</span>, <span class="number">0002</span>), (<span class="string">&#x27;tom&#x27;</span>, <span class="number">0003</span>), (<span class="string">&#x27;lin&#x27;</span>, <span class="number">0004</span>);</span><br><span class="line"><span class="keyword">END</span> $</span><br><span class="line"></span><br><span class="line"><span class="keyword">CALL</span> myp1()$</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 2. 创建带 in 模式参数的存储过程</span></span><br><span class="line"><span class="comment">-- 根据女神名查询对应的男神信息</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">PROCEDURE</span> myp2(<span class="keyword">IN</span> beautyName <span class="built_in">VARCHAR</span>(<span class="number">20</span>))</span><br><span class="line"><span class="keyword">BEGIN</span> </span><br><span class="line">    <span class="keyword">SELECT</span> bo.*</span><br><span class="line">    <span class="keyword">FROM</span> boys bo</span><br><span class="line">    <span class="keyword">RIGHT</span> <span class="keyword">JOIN</span> beauty b <span class="keyword">ON</span> bo.id = b.boyfriend_id</span><br><span class="line">    <span class="keyword">WHERE</span> b.name = beautyName;</span><br><span class="line"><span class="keyword">END</span> $</span><br><span class="line"></span><br><span class="line"><span class="keyword">CALL</span> myp2(<span class="string">&#x27;小昭&#x27;</span>)$</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 传入双参数，验证登陆</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">PROCEDURE</span> myp4(<span class="keyword">IN</span> username <span class="built_in">VARCHAR</span>(<span class="number">20</span>), <span class="keyword">IN</span> <span class="keyword">PASSWORD</span> <span class="built_in">VARCHAR</span>(<span class="number">20</span>))</span><br><span class="line"><span class="keyword">BEGIN</span> </span><br><span class="line">    <span class="keyword">DECLARE</span> <span class="keyword">result</span> <span class="built_in">VARCHAR</span>(<span class="number">20</span>) <span class="keyword">DEFAULT</span> <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">SELECT</span> <span class="keyword">COUNT</span>(*) <span class="keyword">INTO</span> <span class="keyword">result</span></span><br><span class="line">    <span class="keyword">FROM</span> <span class="keyword">admin</span></span><br><span class="line">    <span class="keyword">WHERE</span> admin.username = username</span><br><span class="line">    <span class="keyword">AND</span> admin.password = <span class="keyword">PASSWORD</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">-- SELECT result;</span></span><br><span class="line">    <span class="keyword">SELECT</span> <span class="keyword">IF</span>(<span class="keyword">result</span>&gt;<span class="number">0</span>, <span class="string">&#x27;success&#x27;</span>, <span class="string">&#x27;failed&#x27;</span>);</span><br><span class="line"><span class="keyword">END</span> $</span><br><span class="line"></span><br><span class="line"><span class="keyword">CALL</span> myp4(<span class="string">&#x27;lin&#x27;</span>, <span class="number">4</span>)$</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 3. 创建带 out 模式的存储过程</span></span><br><span class="line"><span class="comment">-- 根据女神名返回男神名</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">PROCEDURE</span> myp5(<span class="keyword">IN</span> beautyName <span class="built_in">VARCHAR</span>(<span class="number">20</span>), <span class="keyword">OUT</span> boyName <span class="built_in">VARCHAR</span>(<span class="number">20</span>))</span><br><span class="line"><span class="keyword">BEGIN</span> </span><br><span class="line">    <span class="keyword">SELECT</span> bo.boyname <span class="keyword">INTO</span> boyName</span><br><span class="line">    <span class="keyword">FROM</span> boys bo</span><br><span class="line">    <span class="keyword">INNER</span> <span class="keyword">JOIN</span> beauty b <span class="keyword">ON</span> bo.id = b.boyfriend_id</span><br><span class="line">    <span class="keyword">WHERE</span> b.name=beautyName;</span><br><span class="line"><span class="keyword">END</span> $</span><br><span class="line"></span><br><span class="line"><span class="comment"># 调用</span></span><br><span class="line"><span class="keyword">CALL</span> myp5(<span class="string">&#x27;小昭&#x27;</span>, @bName)$</span><br><span class="line"><span class="keyword">SELECT</span> @bName$</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 根据女神名返回对应男神名和魅力值</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">PROCEDURE</span> myp6(<span class="keyword">IN</span> beautyName <span class="built_in">VARCHAR</span>(<span class="number">20</span>), <span class="keyword">OUT</span> boyName <span class="built_in">VARCHAR</span>(<span class="number">20</span>), <span class="keyword">OUT</span> userCP <span class="built_in">INT</span>)</span><br><span class="line"><span class="keyword">BEGIN</span> </span><br><span class="line">    <span class="keyword">SELECT</span> bo.boyname, bo.userCP <span class="keyword">INTO</span> boyName, userCP</span><br><span class="line">    <span class="keyword">FROM</span> boys bo</span><br><span class="line">    <span class="keyword">INNER</span> <span class="keyword">JOIN</span> beauty b <span class="keyword">ON</span> bo.id = b.boyfriend_id</span><br><span class="line">    <span class="keyword">WHERE</span> b.name=beautyName;</span><br><span class="line"><span class="keyword">END</span> $</span><br><span class="line"></span><br><span class="line"><span class="comment"># 调用</span></span><br><span class="line"><span class="keyword">CALL</span> myp6(<span class="string">&#x27;小昭&#x27;</span>, @bName, @usercp)$</span><br><span class="line"><span class="keyword">SELECT</span> @bName$, @userCP$</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 4. 带 inout 模式的存储过程</span></span><br><span class="line"><span class="comment">-- 传入 a,b 返回对应的翻倍值</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">PROCEDURE</span> myp7(INOUT a <span class="built_in">INT</span>, INOUT b <span class="built_in">INT</span>)</span><br><span class="line"><span class="keyword">BEGIN</span> </span><br><span class="line">    <span class="keyword">SET</span> a=a*<span class="number">2</span>;</span><br><span class="line">    <span class="keyword">SET</span> b=b*<span class="number">2</span>;</span><br><span class="line"><span class="keyword">END</span> $</span><br><span class="line"></span><br><span class="line"><span class="keyword">SET</span> @m=<span class="number">10</span>$</span><br><span class="line"><span class="keyword">SET</span> @n=<span class="number">20</span>$</span><br><span class="line"><span class="keyword">call</span> myp7(@m, @n)$</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 删除</span></span><br><span class="line"><span class="keyword">DROP</span> <span class="keyword">PROCEDURE</span> 存储过程名称;</span><br><span class="line"><span class="comment">-- 查看</span></span><br><span class="line"><span class="keyword">SHOW</span> <span class="keyword">CREATE</span> <span class="keyword">PROCEDURE</span> myp2;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 传入日期，返回日期字符串</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">PROCEDURE</span> test_pro4(<span class="keyword">IN</span> mydata DATETIME, <span class="keyword">OUT</span> strDate <span class="built_in">VARCHAR</span>(<span class="number">20</span>))</span><br><span class="line"><span class="keyword">BEGIN</span> </span><br><span class="line">    <span class="keyword">SELECT</span> <span class="keyword">DATE_FORMAT</span>(mydata, <span class="string">&#x27;%y-%m-%d&#x27;</span>) <span class="keyword">INTO</span> strDate;</span><br><span class="line"><span class="keyword">END</span> $</span><br><span class="line"></span><br><span class="line"><span class="keyword">CALL</span> test_pro4(<span class="keyword">now</span>(), @strDate)$</span><br><span class="line"><span class="keyword">SELECT</span> @strDate$</span><br></pre></td></tr></table></figure>
+
+<h2 id="Function"><a href="#Function" class="headerlink" title="Function"></a>Function</h2><p>区别：存储过程可以有任意个返回，函数有且仅有一个返回</p>
+<p>创建语法：</p>
+<p>CREATE FUNCTION 函数名(参数列表) RETURENS 返回类型<br>BEGIN<br>    函数体<br>END</p>
+<p>参数列表：参数名 参数类型</p>
+<p>函数体：肯定有 return，没有报错，可以不放在最后，但是不建议</p>
+<p>函数体为空，可以省略 begin end</p>
+<p>使用 delimiter 语句设置结束标记</p>
+<p>调用语法： SELECT 函数名(参数列表)</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 1. 无参有返回</span></span><br><span class="line"><span class="comment">-- 返回公司员工个数</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">FUNCTION</span> myf1() <span class="keyword">RETURNS</span> <span class="built_in">INT</span></span><br><span class="line"><span class="keyword">BEGIN</span></span><br><span class="line">    <span class="keyword">DECLARE</span> c <span class="built_in">INT</span> <span class="keyword">DEFAULT</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">SELECT</span> <span class="keyword">COUNT</span>(*) <span class="keyword">INTO</span> c</span><br><span class="line">    <span class="keyword">FROM</span> employees;</span><br><span class="line">    RETURN c;</span><br><span class="line"><span class="keyword">END</span>$</span><br><span class="line"><span class="keyword">SELECT</span> myf1()$</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 报错：ERROR 1418 (HY000): This function has none of DETERMINISTIC, NO SQL</span></span><br><span class="line"><span class="comment">-- 设置：SET global log_bin_trust_function_creators=TRUE;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 2. 有参数返回</span></span><br><span class="line"><span class="comment">-- 根据员工名返回工资</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">FUNCTION</span> myf2(empName <span class="built_in">VARCHAR</span>(<span class="number">20</span>)) <span class="keyword">RETURNS</span> <span class="keyword">DOUBLE</span></span><br><span class="line"><span class="keyword">BEGIN</span></span><br><span class="line">    <span class="keyword">SET</span> @sal=<span class="number">0</span>;</span><br><span class="line">    <span class="keyword">SELECT</span> salary <span class="keyword">INTO</span> @sal</span><br><span class="line">    <span class="keyword">FROM</span> employees</span><br><span class="line">    <span class="keyword">WHERE</span> last_name = empName;</span><br><span class="line"></span><br><span class="line">    RETURN @sal;</span><br><span class="line"><span class="keyword">END</span>$</span><br><span class="line"><span class="keyword">select</span> myf2(<span class="string">&#x27;Kochhar&#x27;</span>) $</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 根据部门名返回平均工资</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">FUNCTION</span> myf3(deptName <span class="built_in">VARCHAR</span>(<span class="number">20</span>)) <span class="keyword">RETURNS</span> <span class="keyword">DOUBLE</span></span><br><span class="line"><span class="keyword">BEGIN</span></span><br><span class="line">    <span class="keyword">DECLARE</span> sal <span class="keyword">DOUBLE</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">SELECT</span> <span class="keyword">AVG</span>(salary) <span class="keyword">INTO</span> sal</span><br><span class="line">    <span class="keyword">FROM</span> employees e</span><br><span class="line">    <span class="keyword">JOIN</span> departments d <span class="keyword">ON</span> e.department_id = d.department_id</span><br><span class="line">    <span class="keyword">WHERE</span> d.department_name=deptName;</span><br><span class="line"></span><br><span class="line">    RETURN sal;</span><br><span class="line"><span class="keyword">END</span>$</span><br><span class="line"><span class="keyword">select</span> myf2(<span class="string">&#x27;Kochhar&#x27;</span>) $</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 查看和删除，同存储过程</span></span><br><span class="line"><span class="keyword">SHOW</span> <span class="keyword">CREATE</span> <span class="keyword">FUNCTION</span> myf3();</span><br><span class="line"><span class="keyword">DROP</span> <span class="keyword">FUNCTION</span> myf3;</span><br></pre></td></tr></table></figure>
+
+<h2 id="流程控制"><a href="#流程控制" class="headerlink" title="流程控制"></a>流程控制</h2><p>分支结构：</p>
+<h3 id="if-函数"><a href="#if-函数" class="headerlink" title="if 函数"></a>if 函数</h3><p>select if(expr1, expr2, expr3). expr1 成立则返回 expr2 否则 expr3</p>
+<h3 id="case-结构"><a href="#case-结构" class="headerlink" title="case 结构"></a>case 结构</h3><p>方式一：</p>
+<p>CASE 变量|表达式|字段<br>WHEN 要判断的值 THEN 返回值 1 或语句 1;<br>WHEN 要判断的值 THEN 返回值 2 或语句 2;<br>…<br>ELSE 要返回的值 n 或语句 2;<br>END CASE;</p>
+<p>方式二：</p>
+<p>CASE<br>WHEN 要判断的条件1 THEN 返回值 1<br>WHEN 要判断的条件2 THEN 返回值 2<br>…<br>ELSE 要返回的值 n<br>END</p>
+<p>可以作为表达式，嵌套在其他语句中使用，比如 BEGIN END 中/外</p>
+<p>可以作为独立的语句去使用，只能放在 BEGIN/END 中</p>
+<p>如果 WHEN 中条件成立，则执行 THEN 然后结束，如果都不满足，执行 ELSE。ELSE 可以省略。如果没有 ELSE 并且 WHEN 都不满足，返回 NULL</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 存储过程，显示成绩</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">PROCEDURE</span> test_case(<span class="keyword">IN</span> score <span class="built_in">INT</span>)</span><br><span class="line"><span class="keyword">BEGIN</span></span><br><span class="line">    <span class="keyword">CASE</span></span><br><span class="line">    <span class="keyword">WHEN</span> score &gt;= <span class="number">90</span> <span class="keyword">AND</span> score &lt;= <span class="number">100</span> <span class="keyword">THEN</span> <span class="keyword">SELECT</span> <span class="string">&#x27;A&#x27;</span>;</span><br><span class="line">    WHEN score &gt;=80 THEN SELECT &#x27;B&#x27;;</span><br><span class="line">    WHEN score &gt;=60 THEN SELECT &#x27;C&#x27;;</span><br><span class="line">    ELSE <span class="keyword">SELECT</span> <span class="string">&#x27;D&#x27;</span>;</span><br><span class="line">    <span class="keyword">END</span> <span class="keyword">CASE</span>;</span><br><span class="line"><span class="keyword">END</span>$</span><br><span class="line"></span><br><span class="line"><span class="keyword">CALL</span> test_case(<span class="number">95</span>)$</span><br></pre></td></tr></table></figure>
+
+<h2 id="if-结构"><a href="#if-结构" class="headerlink" title="if 结构"></a>if 结构</h2><p>if 条件1 then 语句1;<br>elseif 条件2 then 语句2;<br>…<br>[else 语句n;]<br>end if;</p>
+<p>只能放在 begin/end 中</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 根据传入成绩返回等级</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">FUNCTION</span> test_if(score <span class="built_in">INT</span>) <span class="keyword">RETURNS</span> <span class="built_in">CHAR</span></span><br><span class="line"><span class="keyword">BEGIN</span></span><br><span class="line">    <span class="keyword">IF</span> score &gt;= <span class="number">90</span> <span class="keyword">AND</span> score &lt;=<span class="number">100</span> <span class="keyword">THEN</span> <span class="keyword">RETURN</span> <span class="string">&#x27;A&#x27;</span>;</span><br><span class="line">    ELSEIF score &gt;= 80 THEN RETURN &#x27;B&#x27;;</span><br><span class="line">    ELSEIF score &gt;= 60 THEN RETURN &#x27;C&#x27;;</span><br><span class="line">    ELSE RETURN &#x27;D&#x27;;</span><br><span class="line">    <span class="keyword">END</span> <span class="keyword">IF</span>;</span><br><span class="line"><span class="keyword">END</span> $</span><br></pre></td></tr></table></figure>
+
+<h3 id="循环"><a href="#循环" class="headerlink" title="循环"></a>循环</h3><p>分类：while, loop, repeat</p>
+<p>循环控制：iterate, 对应 continue; leave 对应 break;</p>
+<p>[标签:] loop 循环条件 do<br>    循环体<br>end while [标签];</p>
+<p>[标签:] loop<br>    循环体<br>end loop [标签];</p>
+<p>可用于模拟死循环</p>
+<p>[标签:] repeat<br>    循环体<br>until 结束循环条件 [标签];</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 批量插入 admin</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">PROCEDURE</span> pro_while2(<span class="keyword">IN</span> insertCount <span class="built_in">INT</span>)</span><br><span class="line"><span class="keyword">BEGIN</span></span><br><span class="line">    <span class="keyword">DECLARE</span> i <span class="built_in">INT</span> <span class="keyword">DEFAULT</span> <span class="number">1</span>;</span><br><span class="line">    WHILE i&lt;insertCount DO</span><br><span class="line">        <span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="keyword">admin</span> (username, <span class="string">`password`</span>) <span class="keyword">VALUES</span> (<span class="keyword">CONCAT</span>(<span class="string">&#x27;jjjj&#x27;</span>, i), <span class="string">&#x27;666&#x27;</span>);</span><br><span class="line">        <span class="keyword">SET</span> i=i+<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">END</span> <span class="keyword">WHILE</span>;</span><br><span class="line"><span class="keyword">END</span> $</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 添加 leave 控制</span></span><br><span class="line"><span class="comment">-- 清空并重置 index</span></span><br><span class="line"><span class="keyword">TRUNCATE</span> <span class="keyword">TABLE</span> <span class="keyword">admin</span>$</span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">PROCEDURE</span> pro_while3(<span class="keyword">IN</span> insertCount <span class="built_in">INT</span>)</span><br><span class="line"><span class="keyword">BEGIN</span></span><br><span class="line">    <span class="keyword">DECLARE</span> i <span class="built_in">INT</span> <span class="keyword">DEFAULT</span> <span class="number">1</span>;</span><br><span class="line">    a: WHILE i&lt;insertCount DO</span><br><span class="line">        <span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="keyword">admin</span> (username, <span class="string">`password`</span>) <span class="keyword">VALUES</span> (<span class="keyword">CONCAT</span>(<span class="string">&#x27;jjjj&#x27;</span>, i), <span class="string">&#x27;666&#x27;</span>);</span><br><span class="line">        IF</span><br><span class="line">            i&gt;= 20 THEN LEAVE a;</span><br><span class="line">        <span class="keyword">END</span> <span class="keyword">IF</span>;</span><br><span class="line">        <span class="keyword">SET</span> i=i+<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">END</span> <span class="keyword">WHILE</span> a;</span><br><span class="line"><span class="keyword">END</span> $</span><br><span class="line"><span class="keyword">call</span> pro_while3(<span class="number">100</span>)$</span><br><span class="line"></span><br><span class="line"><span class="comment">-- iterate, 只插入偶数次</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">PROCEDURE</span> pro_while4(<span class="keyword">IN</span> insertCount <span class="built_in">INT</span>)</span><br><span class="line"><span class="keyword">BEGIN</span></span><br><span class="line">    <span class="keyword">DECLARE</span> i <span class="built_in">INT</span> <span class="keyword">DEFAULT</span> <span class="number">1</span>;</span><br><span class="line">    a: WHILE i&lt;insertCount DO</span><br><span class="line">        <span class="keyword">SET</span> i=i+<span class="number">1</span>;</span><br><span class="line">        IF</span><br><span class="line">          MOD(i, 2) != 0 THEN ITETATE a;</span><br><span class="line">        <span class="keyword">END</span> <span class="keyword">IF</span>;</span><br><span class="line">        <span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="keyword">admin</span> (username, <span class="string">`password`</span>) <span class="keyword">VALUES</span> (<span class="keyword">CONCAT</span>(<span class="string">&#x27;jjjj&#x27;</span>, i), <span class="string">&#x27;666&#x27;</span>);</span><br><span class="line">    <span class="keyword">END</span> <span class="keyword">WHILE</span> a;</span><br><span class="line"><span class="keyword">END</span> $</span><br><span class="line"><span class="keyword">call</span> pro_while3(<span class="number">100</span>)$</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Jack Zheng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://jack-zheng.github.io/hexo/2021/11/12/SQL-store-procedure-and-function/" title="SQL store procedure and function">https://jack-zheng.github.io/hexo/2021/11/12/SQL-store-procedure-and-function/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/null" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/hexo/tags/store-procedure/" rel="tag"># store procedure</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+                <a href="/hexo/2021/11/11/Java-create-jar-application/" rel="next" title="创建可运行 jar 应用">
+                  <i class="fa fa-chevron-left"></i> 创建可运行 jar 应用
+                </a>
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+            </div>
+          </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%87%86%E5%88%AB"><span class="nav-number">1.</span> <span class="nav-text">数据准别</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%98%E9%87%8F%E5%A3%B0%E6%98%8E"><span class="nav-number">2.</span> <span class="nav-text">变量声明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Store-Procedure"><span class="nav-number">3.</span> <span class="nav-text">Store Procedure</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Function"><span class="nav-number">4.</span> <span class="nav-text">Function</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B5%81%E7%A8%8B%E6%8E%A7%E5%88%B6"><span class="nav-number">5.</span> <span class="nav-text">流程控制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#if-%E5%87%BD%E6%95%B0"><span class="nav-number">5.1.</span> <span class="nav-text">if 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#case-%E7%BB%93%E6%9E%84"><span class="nav-number">5.2.</span> <span class="nav-text">case 结构</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#if-%E7%BB%93%E6%9E%84"><span class="nav-number">6.</span> <span class="nav-text">if 结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BE%AA%E7%8E%AF"><span class="nav-number">6.1.</span> <span class="nav-text">循环</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Jack Zheng"
+      src="/hexo/images/jack.jpg">
+  <p class="site-author-name" itemprop="name">Jack Zheng</p>
+  <div class="site-description" itemprop="description">我是张江搬砖小码农, 知识搬运工</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/hexo/archives/">
+        
+          <span class="site-state-item-count">200</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/hexo/categories/">
+          
+        <span class="site-state-item-count">29</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/hexo/tags/">
+          
+        <span class="site-state-item-count">181</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jack Zheng</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">1.1m</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">16:09</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.5.0
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/hexo/lib/anime.min.js"></script>
+  <script src="/hexo/lib/velocity/velocity.min.js"></script>
+  <script src="/hexo/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/hexo/js/utils.js"></script>
+
+<script src="/hexo/js/motion.js"></script>
+
+
+<script src="/hexo/js/schemes/muse.js"></script>
+
+
+<script src="/hexo/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/hexo/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'd444c814810f7e73ee3a',
+      clientSecret: '9b3c417a0c1076887b3cf583c7d7a27456b708ef',
+      repo: 'hexo-comments',
+      owner: 'jack-zheng',
+      admin: ['jack-zheng'],
+      id: '1c3681d7797bda77a152057faa1d99d9',
+        language: '',
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

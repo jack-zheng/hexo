@@ -206,6 +206,120 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/09/10/JVM-c9-class-loader-and-sub-system-execution-samples/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/09/10/JVM-c9-class-loader-and-sub-system-execution-samples/" class="post-title-link" itemprop="url">JVM c9 class loader and sub system execution samples</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-09-10 10:32:15" itemprop="dateCreated datePublished" datetime="2021-09-10T10:32:15+08:00">2021-09-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-11-16 10:28:11" itemprop="dateModified" datetime="2021-11-16T10:28:11+08:00">2021-11-16</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/JVM/" itemprop="url" rel="index">
+                    <span itemprop="name">JVM</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>代码编译的结果从本地机器码转为字节码，是存储格式发展的一小步，却是编程语言发展的一大步。</p>
+<h2 id="9-1-概述"><a href="#9-1-概述" class="headerlink" title="9.1 概述"></a>9.1 概述</h2><p>在 Class 文件格式与执行引擎这部分里，用户的程序能直接参与的内容并不多，Class 以何种格式存储，类型和施加在，如何连接，以及虚拟机如何执行字节码指令等都是由虚拟机直接控制的行为，用户程序无法对其进行改变。能操作的，主要是字节码生成与类加载两个部分的功能，但仅仅在如何处理这两点上，就已经出现了许多值得欣赏借鉴的思路，这些思路后来成为很多常用功能和程序实现的基础。</p>
+<h2 id="9-2-案例分析"><a href="#9-2-案例分析" class="headerlink" title="9.2 案例分析"></a>9.2 案例分析</h2><p>四个案例，关于类加载和字节码各两个。</p>
+<h3 id="9-2-1-Tomcat-正统的类加载架构"><a href="#9-2-1-Tomcat-正统的类加载架构" class="headerlink" title="9.2.1 Tomcat: 正统的类加载架构"></a>9.2.1 Tomcat: 正统的类加载架构</h3><p>主流的 Java Web 服务器，如 Tomcat, Jetty 等都实现了自己定义的类加载器，而且还不止一个。因为一个功能健全的 Web 服务器，都要解决如下这些问题：</p>
+<ul>
+<li>部署在同一个服务器上的两个 web 应用程序所使用的 Java 类库可以实现互相隔离。两个不同应用可能依赖同一个第三方类库的不同版本，不能要求每个类库在一个服务器中只能有一份，服务器应该能够保证两个独立应用程序的类库可以互相独立使用。</li>
+<li>部署在同一个服务器上的两个 web 应用所使用的 Java 类库可以互相共享。与前一个相反，但很常见，如用户可能有 10 个使用 Spring 的应用部署在统一台服务器，如果把 10 份 Spring 分别存在应用的隔离目录，将会很大的浪费资源。磁盘空间是其次，主要是良妃内存，很容易造成方法去过度膨胀的风险。</li>
+<li>服务器需要尽可能保证自身的安全不受部署的 Web 应用程序的影响。一般来说，给予安全考虑，服务器所使用的类库应该与程序类库相互独立。</li>
+<li>只是 JSP 应用的 Web 服务器，十有八九都需要支持 HotSwap 功能。JSP 由于其纯文本特性，修改几率远大于第三方类库和自己的 Class 文件。ASP，PHP 和 JSP 这些网页应用也将修改后无需重启作为优势来看待，因此，主流 Web 服务器都会支持 JSP 生成类的热替换。</li>
+</ul>
+<p>由于以上问题，不是 web 应用时，单独一个 ClassPath 就不能满足要求了，所以各种 web 服务器不约而同的提供了好几个不同还以的 ClassPath 路径供用户存放第三方类库。一般这些路径都以 lib 或 classes 命名。不同路径中的类库，具备不同的访问范围和服务对象，通常每个目录都会对应一个自定义类加载器去加载防止在里面的 Java 类库。下面以 Tomcat 为例，分析其规划。</p>
+<p>Tomcat 目录结构中，有三组目录可以设置，一组默认，供4组。分别是</p>
+<ul>
+<li>/common 目录，类库可被 Tomcat 和所有 Web 应用共同使用</li>
+<li>/server 目录，类库可被 Tomcat 使用，对所有 Web 应用不可见</li>
+<li>/shared 目录，类库可以被所有 Web 应用共同使用，对 Tomcat 不可见</li>
+<li>/WebApp/WEB-INF 目录，仅被该 Web 应用使用，对 Tomcat 和其他应用不可见</li>
+</ul>
+<img  src=http://www.plantuml.com/plantuml/svg/bPAnJiCm54LtVuKbvl81b0Kg5iG64WDYU8cVH91ZH_53z0Ew40c9eGmWLC5M9jI50TJFSS9du2HE98imPFEzyRt7yJCb996VwJG6Ab_kRV5cdzRLywBQVDlYzMUxBLUVvMh1cD82UHHBVi7imuSjrlqE5s27MfEX738-as0CFz4WC6UNFeTDhhnxjvl787Sq9rGcqMeu1otlQrajGzv1bid47VdVPEoIE-3sO2HlS2eJXNlzQbTe8XHJmZarheFCT9fg5K1QgwdlsdbN3-JA5Ooc-5p8yURmdvYnZDCho544XDOQxh_52B9iBEGS8pU30D9Qmv1hCvfmRC9wfp7_qrw_oFt9f7vX3FtQJOKny2AkHTo9VcozPUhlnelkBbX_ARNR7FuN>
+
+<p>实线节点是 JDK 自带加载起，虚线是 Tomcat 自建的加载器。Common类加载器，Catalina类加载器(也称为Server类加载器)，Shared类加载器和Webapp类加载器则是 Tomcat 自定义的类加载器，分别加载 /common/<em>, /server/</em>, shared/* 和 /WebApp/WEB-INF/* 中的 Java 类库。WebApp 类加载器和 JSP 类加载器通常还会有多个实例，每个 Web 应用对应一个 WebApp 类加载器，每个 JSP 文件对应一个 JasperLoader 类加载器。</p>
+<p>从图可以看出，Common 类加载器能加载的类都可以被 Catalina 类加载器和 Shared 类加载器使用，而 Catalina 类加载器和 Shared 类加载器自己能加载的类则与对方相互隔离。WebApp类加载器可以使用Shared类加载器加载到的类，但各个WebApp类加载器实例之间相互隔离。而JasperLoader的加载范围仅仅是这个JSP文件所编译出来的那一个Class文件，它存在的目的就是为了被丢弃：当服务器检测到JSP文件被修改时，会替换掉目前的JasperLoader的实例，并通过再建立一个新的JSP类加载器来实现JSP文件的HotSwap功能。</p>
+<p>上面讲的是 Tomcat6 之前的加载器架构，Tomcat6 之后对默认的目录结构做了简化，只有指定 tomcat/conf/catalina.properties 的 server.loader 和 share.loader 后才会真正建立 Catalina类加载器和Shared类加载器实例，否则用到的地方都会用 Common 类加载器实例代替，而默认的配置文件中没有设置这两项，所以 Tomcat6 之后顺理成章的把 /common, /server 和 /shared 三个目录合并在一起变成 /lib 目录，相当于之前的 /common 目录的作用，是 Tomcat 团队简化部署的一项改动。</p>
+<h3 id="9-2-2-OSGi：灵活的类加载器架构"><a href="#9-2-2-OSGi：灵活的类加载器架构" class="headerlink" title="9.2.2 OSGi：灵活的类加载器架构"></a>9.2.2 OSGi：灵活的类加载器架构</h3><p>没兴趣，用到再看</p>
+<h3 id="9-2-3-字节码生成技术与动态代理的实现"><a href="#9-2-3-字节码生成技术与动态代理的实现" class="headerlink" title="9.2.3 字节码生成技术与动态代理的实现"></a>9.2.3 字节码生成技术与动态代理的实现</h3><p>有兴趣，等 Tomcat 完结了再看，不过应该要先看完第八章的内容才行</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/09/03/JVM-c7-class-loader/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +351,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-11-11 15:18:08" itemprop="dateModified" datetime="2021-11-11T15:18:08+08:00">2021-11-11</time>
+                <time title="修改时间：2021-11-16 10:28:11" itemprop="dateModified" datetime="2021-11-16T10:28:11+08:00">2021-11-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -501,7 +615,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-11-11 15:18:08" itemprop="dateModified" datetime="2021-11-11T15:18:08+08:00">2021-11-11</time>
+                <time title="修改时间：2021-11-16 10:28:11" itemprop="dateModified" datetime="2021-11-16T10:28:11+08:00">2021-11-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -939,7 +1053,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-11-11 15:18:08" itemprop="dateModified" datetime="2021-11-11T15:18:08+08:00">2021-11-11</time>
+                <time title="修改时间：2021-11-16 10:28:11" itemprop="dateModified" datetime="2021-11-16T10:28:11+08:00">2021-11-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1050,7 +1164,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-11-11 15:18:08" itemprop="dateModified" datetime="2021-11-11T15:18:08+08:00">2021-11-11</time>
+                <time title="修改时间：2021-11-16 10:28:11" itemprop="dateModified" datetime="2021-11-16T10:28:11+08:00">2021-11-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1169,7 +1283,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-11-11 15:18:08" itemprop="dateModified" datetime="2021-11-11T15:18:08+08:00">2021-11-11</time>
+                <time title="修改时间：2021-11-16 10:28:11" itemprop="dateModified" datetime="2021-11-16T10:28:11+08:00">2021-11-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1294,7 +1408,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-11-11 15:18:08" itemprop="dateModified" datetime="2021-11-11T15:18:08+08:00">2021-11-11</time>
+                <time title="修改时间：2021-11-16 10:28:11" itemprop="dateModified" datetime="2021-11-16T10:28:11+08:00">2021-11-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1465,7 +1579,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-11-11 15:18:08" itemprop="dateModified" datetime="2021-11-11T15:18:08+08:00">2021-11-11</time>
+                <time title="修改时间：2021-11-16 10:28:11" itemprop="dateModified" datetime="2021-11-16T10:28:11+08:00">2021-11-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1609,7 +1723,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-11-11 15:18:08" itemprop="dateModified" datetime="2021-11-11T15:18:08+08:00">2021-11-11</time>
+                <time title="修改时间：2021-11-16 10:28:11" itemprop="dateModified" datetime="2021-11-16T10:28:11+08:00">2021-11-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1751,7 +1865,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-11-11 15:18:08" itemprop="dateModified" datetime="2021-11-11T15:18:08+08:00">2021-11-11</time>
+                <time title="修改时间：2021-11-16 10:28:11" itemprop="dateModified" datetime="2021-11-16T10:28:11+08:00">2021-11-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1835,115 +1949,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/07/23/Design-pattern-chain-of-responsibility/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/07/23/Design-pattern-chain-of-responsibility/" class="post-title-link" itemprop="url">责任链模式</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-07-23 13:47:46" itemprop="dateCreated datePublished" datetime="2021-07-23T13:47:46+08:00">2021-07-23</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-11-11 15:18:08" itemprop="dateModified" datetime="2021-11-11T15:18:08+08:00">2021-11-11</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index">
-                    <span itemprop="name">设计模式</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>5.5k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>5 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <blockquote>
-<p>避免请求发送者和接受者的耦合，让多个对象都有可能接受请求，将这些对象连成一条链，并且沿着这条链传递请求，直到有对象处理它为止</p>
-</blockquote>
-<p>典型应用：</p>
-<ul>
-<li>JS 中的冒泡事件</li>
-<li>tomcat 中对 Encoding 的处理</li>
-<li>servlet 的 filter</li>
-</ul>
-<img  src=http://www.plantuml.com/plantuml/svg/Iyv9B2vMy4ZCIyb9BLAevkBKXR6BIvEJKukByuku5810EmCi79HQM9fQNAAXoLNBnUMSavcQLwAWPmVJpmNJgmJNhAIGhukGXokmgT7LLN3EpqikIaqiIOMAEkANTW80>
-
-<ul>
-<li>Handler(抽象处理者): 定义一个处理请求的接口，提供对后续处理者的引用</li>
-<li>ConcreteHandler(具体处理者): 抽象处理者的子类，处理用户请求，可选择将请求处理掉或者传给下家；在具体处理者中可以访问链中的下一个对象，以便请求的转发。</li>
-</ul>
-<h2 id="Handler-示例"><a href="#Handler-示例" class="headerlink" title="Handler 示例"></a>Handler 示例</h2><p>示例描述：定义一个 handler 的抽象类以及三个对应的实现类。抽象类中定义 handleRequest() 方法作为统一的处理入口，最后创建一个 ChainClient 建立处理链并测试</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">AbstractHandler</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> AbstractHandler handler;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">handleRequest</span><span class="params">(String condition)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> AbstractHandler <span class="title">getHandler</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> handler;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setHandler</span><span class="params">(AbstractHandler handler)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.handler = handler;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ConcreteHandlerA</span> <span class="keyword">extends</span> <span class="title">AbstractHandler</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handleRequest</span><span class="params">(String condition)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (condition.equals(<span class="string">&quot;A&quot;</span>)) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Concrete Handler A processed...&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Concrete Handler A can&#x27;t process, call other handler...&quot;</span>);</span><br><span class="line">            getHandler().handleRequest(condition);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ConcreteHandlerB</span> <span class="keyword">extends</span> <span class="title">AbstractHandler</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handleRequest</span><span class="params">(String condition)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (condition.equals(<span class="string">&quot;B&quot;</span>)) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Concrete Handler B processed...&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Concrete Handler B can&#x27;t process, call other handler...&quot;</span>);</span><br><span class="line">            getHandler().handleRequest(condition);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ConcreteHandlerZ</span> <span class="keyword">extends</span> <span class="title">AbstractHandler</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handleRequest</span><span class="params">(String condition)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 一般就是最后一个处理器</span></span><br><span class="line">        System.out.println(<span class="string">&quot;Concrete handler z processed...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ChainClient</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        AbstractHandler handlerA = <span class="keyword">new</span> ConcreteHandlerA();</span><br><span class="line">        AbstractHandler handlerB = <span class="keyword">new</span> ConcreteHandlerB();</span><br><span class="line">        AbstractHandler handlerZ = <span class="keyword">new</span> ConcreteHandlerZ();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 设置链顺序</span></span><br><span class="line">        handlerA.setHandler(handlerB);</span><br><span class="line">        handlerB.setHandler(handlerZ);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;--------------- handle A ---------------&quot;</span>);</span><br><span class="line">        handlerA.handleRequest(<span class="string">&quot;A&quot;</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;--------------- handle B ---------------&quot;</span>);</span><br><span class="line">        handlerA.handleRequest(<span class="string">&quot;B&quot;</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;--------------- handle Z ---------------&quot;</span>);</span><br><span class="line">        handlerA.handleRequest(<span class="string">&quot;Z&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 执行结果</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">// --------------- handle A ---------------</span></span><br><span class="line"><span class="comment">// Concrete Handler A processed...</span></span><br><span class="line"><span class="comment">// --------------- handle B ---------------</span></span><br><span class="line"><span class="comment">// Concrete Handler A can&#x27;t process, call other handler...</span></span><br><span class="line"><span class="comment">// Concrete Handler B processed...</span></span><br><span class="line"><span class="comment">// --------------- handle Z ---------------</span></span><br><span class="line"><span class="comment">// Concrete Handler A can&#x27;t process, call other handler...</span></span><br><span class="line"><span class="comment">// Concrete Handler B can&#x27;t process, call other handler...</span></span><br><span class="line"><span class="comment">// Concrete handler z processed...</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="Log-示例"><a href="#Log-示例" class="headerlink" title="Log 示例"></a>Log 示例</h2><p>目标：实现一个 log 机制，当 log level 比当前 log 类的 level 高是，记录它</p>
-<p>这个示例的套路和上一个很类似，但是它把处理逻辑固定了，在抽象类中做了实现，每个具体的类只定制自己的 write 行为即可，和上一个在思路上有些许的不同</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">AbstractLogger</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> INFO = <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> DEBUG = <span class="number">2</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> ERROR = <span class="number">3</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">int</span> level;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//责任链中的下一个元素</span></span><br><span class="line">    <span class="keyword">protected</span> AbstractLogger nextLogger;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setNextLogger</span><span class="params">(AbstractLogger nextLogger)</span></span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.nextLogger = nextLogger;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">logMessage</span><span class="params">(<span class="keyword">int</span> level, String message)</span></span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(<span class="keyword">this</span>.level &lt;= level)&#123;</span><br><span class="line">            write(message);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(nextLogger !=<span class="keyword">null</span>)&#123;</span><br><span class="line">            nextLogger.logMessage(level, message);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">abstract</span> <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">write</span><span class="params">(String message)</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ConsoleLogger</span> <span class="keyword">extends</span> <span class="title">AbstractLogger</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ConsoleLogger</span><span class="params">(<span class="keyword">int</span> level)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.level = level;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">write</span><span class="params">(String message)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Standard Console::Logger: &quot;</span> + message);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ErrorLogger</span>  <span class="keyword">extends</span> <span class="title">AbstractLogger</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ErrorLogger</span><span class="params">(<span class="keyword">int</span> level)</span></span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.level = level;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">write</span><span class="params">(String message)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Error Console::Logger: &quot;</span> + message);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FileLogger</span> <span class="keyword">extends</span> <span class="title">AbstractLogger</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">FileLogger</span><span class="params">(<span class="keyword">int</span> level)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.level = level;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">write</span><span class="params">(String message)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;File::Logger: &quot;</span> + message);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ChainPatternDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> AbstractLogger <span class="title">getChainOfLoggers</span><span class="params">()</span></span>&#123;</span><br><span class="line"></span><br><span class="line">        AbstractLogger errorLogger = <span class="keyword">new</span> ErrorLogger(AbstractLogger.ERROR);</span><br><span class="line">        AbstractLogger fileLogger = <span class="keyword">new</span> FileLogger(AbstractLogger.DEBUG);</span><br><span class="line">        AbstractLogger consoleLogger = <span class="keyword">new</span> ConsoleLogger(AbstractLogger.INFO);</span><br><span class="line"></span><br><span class="line">        errorLogger.setNextLogger(fileLogger);</span><br><span class="line">        fileLogger.setNextLogger(consoleLogger);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> errorLogger;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        AbstractLogger loggerChain = getChainOfLoggers();</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;--------------- handle info ---------------&quot;</span>);</span><br><span class="line">        loggerChain.logMessage(AbstractLogger.INFO, <span class="string">&quot;This is an information.&quot;</span>);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;--------------- handle debug ---------------&quot;</span>);</span><br><span class="line">        loggerChain.logMessage(AbstractLogger.DEBUG, <span class="string">&quot;This is a debug level information.&quot;</span>);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;--------------- handle Error ---------------&quot;</span>);</span><br><span class="line">        loggerChain.logMessage(AbstractLogger.ERROR, <span class="string">&quot;This is an error information.&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// --------------- handle info ---------------</span></span><br><span class="line"><span class="comment">// Standard Console::Logger: This is an information.</span></span><br><span class="line"><span class="comment">// --------------- handle debug ---------------</span></span><br><span class="line"><span class="comment">// File::Logger: This is a debug level information.</span></span><br><span class="line"><span class="comment">// Standard Console::Logger: This is a debug level information.</span></span><br><span class="line"><span class="comment">// --------------- handle Error ---------------</span></span><br><span class="line"><span class="comment">// Error Console::Logger: This is an error information.</span></span><br><span class="line"><span class="comment">// File::Logger: This is an error information.</span></span><br><span class="line"><span class="comment">// Standard Console::Logger: This is an error information.</span></span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1994,20 +1999,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">199</span>
+          <span class="site-state-item-count">200</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/hexo/categories/">
           
-        <span class="site-state-item-count">28</span>
+        <span class="site-state-item-count">29</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">180</span>
+        <span class="site-state-item-count">181</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -2046,7 +2051,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">16:02</span>
+    <span title="站点阅读时长">16:09</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>

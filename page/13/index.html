@@ -206,6 +206,154 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/11/03/Java-use-SAX-parse-xml/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2020/11/03/Java-use-SAX-parse-xml/" class="post-title-link" itemprop="url">使用 SAX 解析 XM</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-11-03 18:57:40" itemprop="dateCreated datePublished" datetime="2020-11-03T18:57:40+08:00">2020-11-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-11-16 10:28:11" itemprop="dateModified" datetime="2021-11-16T10:28:11+08:00">2021-11-16</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>13k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>12 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>简单记录一下 Java 解析 xml 的例子。</p>
+<h2 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h2><ul>
+<li>DefaulHandler: 为了简化代码将几个常用的 handler 合并为这个 DefaultHandler</li>
+<li>EntityResolver: 提供获取外部文件的方法， Spring 在介些 xml 的时候也定义过这哥方法，可以参考下</li>
+<li>DTDHandler: 这个类都没有使用例子，是不是一个很冷门的类啊 （；￣ェ￣） 以后有机会看到再记录把</li>
+<li>ContentHandler: 负责处理 xml 节点的逻辑</li>
+<li>ErrorHandler: 结合 DTD 处理异常</li>
+<li>systemId: 外部资源(多半是DTD)的URI，比如本地文件 <code>file:///usr/share/dtd/somefile.dtd</code> 或者网络某个地址的文件 <code>http://www.w3.org/somefile.dtd</code></li>
+<li>publicId: 和 systemId 类似，区别在于<strong>间接性</strong><ul>
+<li>publicID 就相当于一个名字，这个名字代表了一个外部资源。比如，我们规定 <code>W3C HTML 4.01</code> 这个字符串对应 <code>http://www.w3.org/somedir/somefile.dtd</code> 这个资源。那么，<code>publicID=&quot;W3C HTML 4.01&quot;</code> 和 <code>systemID=&quot;http://www.w3.org/somedir/somefile.dtd&quot;</code> 是一样的，二者都引用了 <code>http://www.w3.org/somedir/somefile.dtd</code> 作为该文档的外部DTD。</li>
+</ul>
+</li>
+<li>xmlReader.setFeature(url, flag): 用来表示某个特定的验证规则是否打开了</li>
+<li>XML schema, 就是我们在 Spring 项目中经常能看到的 <code>.xsd</code> 文件，他是 DTD 的替代品，支持的验证功能更多，格式和 XML 一致</li>
+</ul>
+<p>基本套路：</p>
+<ol>
+<li>自定义一个 hander 继承 DefaultHandler, 重写其中的解析逻辑</li>
+<li>客户端代码中通过 SAXParserFactory 拿到 parser</li>
+<li>parser 中传入要解析的文件和自定义 handler</li>
+<li>parse 是 handler 中定义的 bean 被解析</li>
+<li>parse 完成后重 handler 中拿到解析结果</li>
+</ol>
+<p>下面展示的例子都存在 mybatis 的 repo 的</p>
+<h2 id="TODO"><a href="#TODO" class="headerlink" title="TODO"></a>TODO</h2><ul>
+<li>add URL here</li>
+<li>SAX 是怎么做到事件触发的，光想想找不到思路。。。得看看源码</li>
+</ul>
+<h2 id="资源"><a href="#资源" class="headerlink" title="资源"></a>资源</h2><ul>
+<li><a target="_blank" rel="noopener" href="http://www.saxproject.org/quickstart.html">官方文档</a></li>
+<li><a target="_blank" rel="noopener" href="https://docstore.mik.ua/orelly/xml/sax2/index.htm">Orelly 书集</a></li>
+</ul>
+<h2 id="Parse-xml-并生成对应的实体类"><a href="#Parse-xml-并生成对应的实体类" class="headerlink" title="Parse xml 并生成对应的实体类"></a>Parse xml 并生成对应的实体类</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Employee</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> id;</span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line">    <span class="keyword">private</span> String gender;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> age;</span><br><span class="line">    <span class="keyword">private</span> String role;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 自定义 handler，解析 element 并被 emp bean 赋值</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyHandler</span> <span class="keyword">extends</span> <span class="title">DefaultHandler</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// List to hold Employees object</span></span><br><span class="line">    <span class="keyword">private</span> List&lt;Employee&gt; empList = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">private</span> Employee emp = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">private</span> StringBuilder data = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// getter method for employee list</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> List&lt;Employee&gt; <span class="title">getEmpList</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> empList;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">boolean</span> bAge = <span class="keyword">false</span>;</span><br><span class="line">    <span class="keyword">boolean</span> bName = <span class="keyword">false</span>;</span><br><span class="line">    <span class="keyword">boolean</span> bGender = <span class="keyword">false</span>;</span><br><span class="line">    <span class="keyword">boolean</span> bRole = <span class="keyword">false</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">startElement</span><span class="params">(String uri, String localName, String qName, Attributes attributes)</span> <span class="keyword">throws</span> SAXException </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (qName.equalsIgnoreCase(<span class="string">&quot;Employee&quot;</span>)) &#123;</span><br><span class="line">            <span class="comment">// create a new Employee and put it in Map</span></span><br><span class="line">            String id = attributes.getValue(<span class="string">&quot;id&quot;</span>);</span><br><span class="line">            <span class="comment">// initialize Employee object and set id attribute</span></span><br><span class="line">            emp = <span class="keyword">new</span> Employee();</span><br><span class="line">            emp.setId(Integer.parseInt(id));</span><br><span class="line">            <span class="comment">// initialize list</span></span><br><span class="line">            <span class="keyword">if</span> (empList == <span class="keyword">null</span>)</span><br><span class="line">                empList = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (qName.equalsIgnoreCase(<span class="string">&quot;name&quot;</span>)) &#123;</span><br><span class="line">            <span class="comment">// set boolean values for fields, will be used in setting Employee variables</span></span><br><span class="line">            bName = <span class="keyword">true</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (qName.equalsIgnoreCase(<span class="string">&quot;age&quot;</span>)) &#123;</span><br><span class="line">            bAge = <span class="keyword">true</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (qName.equalsIgnoreCase(<span class="string">&quot;gender&quot;</span>)) &#123;</span><br><span class="line">            bGender = <span class="keyword">true</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (qName.equalsIgnoreCase(<span class="string">&quot;role&quot;</span>)) &#123;</span><br><span class="line">            bRole = <span class="keyword">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// create the data container</span></span><br><span class="line">        data = <span class="keyword">new</span> StringBuilder();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">endElement</span><span class="params">(String uri, String localName, String qName)</span> <span class="keyword">throws</span> SAXException </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (bAge) &#123;</span><br><span class="line">            <span class="comment">// age element, set Employee age</span></span><br><span class="line">            emp.setAge(Integer.parseInt(data.toString()));</span><br><span class="line">            bAge = <span class="keyword">false</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (bName) &#123;</span><br><span class="line">            emp.setName(data.toString());</span><br><span class="line">            bName = <span class="keyword">false</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (bRole) &#123;</span><br><span class="line">            emp.setRole(data.toString());</span><br><span class="line">            bRole = <span class="keyword">false</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (bGender) &#123;</span><br><span class="line">            emp.setGender(data.toString());</span><br><span class="line">            bGender = <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (qName.equalsIgnoreCase(<span class="string">&quot;Employee&quot;</span>)) &#123;</span><br><span class="line">            <span class="comment">// add Employee object to list</span></span><br><span class="line">            empList.add(emp);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">characters</span><span class="params">(<span class="keyword">char</span> ch[], <span class="keyword">int</span> start, <span class="keyword">int</span> length)</span> <span class="keyword">throws</span> SAXException </span>&#123;</span><br><span class="line">        data.append(<span class="keyword">new</span> String(ch, start, length));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 测试用例</span></span><br><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test_myhandler</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        SAXParser saxParser = saxParserFactory.newSAXParser();</span><br><span class="line">        MyHandler handler = <span class="keyword">new</span> MyHandler();</span><br><span class="line"></span><br><span class="line">        ClassLoader classLoader = getClass().getClassLoader();</span><br><span class="line">        File file = <span class="keyword">new</span> File(Objects.requireNonNull(classLoader.getResource(<span class="string">&quot;employees.xml&quot;</span>)).getFile());</span><br><span class="line"></span><br><span class="line">        saxParser.parse(file, handler);</span><br><span class="line">        <span class="comment">//Get Employees list</span></span><br><span class="line">        List&lt;Employee&gt; empList = handler.getEmpList();</span><br><span class="line">        <span class="comment">//print employee information</span></span><br><span class="line">        <span class="keyword">for</span> (Employee emp : empList)</span><br><span class="line">            System.out.println(emp);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (ParserConfigurationException | SAXException | IOException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>测试用 employees.xml</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">Employees</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">Employee</span> <span class="attr">id</span>=<span class="string">&quot;1&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">age</span>&gt;</span>29<span class="tag">&lt;/<span class="name">age</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>Pankaj<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">gender</span>&gt;</span>Male<span class="tag">&lt;/<span class="name">gender</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">role</span>&gt;</span>Java Developer<span class="tag">&lt;/<span class="name">role</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">Employee</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">Employee</span> <span class="attr">id</span>=<span class="string">&quot;2&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">age</span>&gt;</span>35<span class="tag">&lt;/<span class="name">age</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>Lisa<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">gender</span>&gt;</span>Female<span class="tag">&lt;/<span class="name">gender</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">role</span>&gt;</span>CEO<span class="tag">&lt;/<span class="name">role</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">Employee</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">Employee</span> <span class="attr">id</span>=<span class="string">&quot;3&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">age</span>&gt;</span>40<span class="tag">&lt;/<span class="name">age</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>Tom<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">gender</span>&gt;</span>Male<span class="tag">&lt;/<span class="name">gender</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">role</span>&gt;</span>Manager<span class="tag">&lt;/<span class="name">role</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">Employee</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">Employee</span> <span class="attr">id</span>=<span class="string">&quot;4&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">age</span>&gt;</span>25<span class="tag">&lt;/<span class="name">age</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>Meghna<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">gender</span>&gt;</span>Female<span class="tag">&lt;/<span class="name">gender</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">role</span>&gt;</span>Manager<span class="tag">&lt;/<span class="name">role</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">Employee</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">Employees</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="SAXParser-Vs-XMLReader"><a href="#SAXParser-Vs-XMLReader" class="headerlink" title="SAXParser Vs XMLReader"></a>SAXParser Vs XMLReader</h2><p>SAXParser 和 XMLReader 的关系：SAXParser 隶属于 javax 包， XMLReader 是从 saxproject 这个项目拿过来的。他们都可以读取 xml, SAXParser 底层还是调用了 XMLReader, 前者调用简单，只提供常规用法，后者使用稍显繁琐，但是可以实现的定制化功能多。</p>
+<p>类关系上：SAXParser 继承了 AbstractSAXParser, AbstractSAXParser 实现了 XMLReader 接口</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">saxParser_vs_xmlReader</span><span class="params">()</span> <span class="keyword">throws</span> ParserConfigurationException, SAXException, IOException </span>&#123;</span><br><span class="line">    String emp =</span><br><span class="line">            <span class="string">&quot;&lt;Employee id=\&quot;1\&quot;&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;        &lt;age&gt;29&lt;/age&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;        &lt;name&gt;Pankaj&lt;/name&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;        &lt;gender&gt;Male&lt;/gender&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;        &lt;role&gt;Java Developer&lt;/role&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;    &lt;/Employee&gt;&quot;</span>;</span><br><span class="line"></span><br><span class="line">    MyHandler handler = <span class="keyword">new</span> MyHandler();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Parse with sax parser</span></span><br><span class="line">    System.out.println(<span class="string">&quot;SaxParser result: &quot;</span>);</span><br><span class="line">    SAXParserFactory factory = SAXParserFactory.newInstance();</span><br><span class="line">    SAXParser saxParser= factory.newSAXParser();</span><br><span class="line">    saxParser.parse(<span class="keyword">new</span> InputSource(<span class="keyword">new</span> StringReader(emp)), handler);</span><br><span class="line">    System.out.println(handler.getEmpList());</span><br><span class="line"></span><br><span class="line">    System.out.println(<span class="string">&quot;XMLReader result: &quot;</span>);</span><br><span class="line">    XMLReader xmlReader = SAXParserFactory.newInstance().newSAXParser().getXMLReader();</span><br><span class="line">    xmlReader.setContentHandler(handler);</span><br><span class="line">    xmlReader.parse(<span class="keyword">new</span> InputSource(<span class="keyword">new</span> StringReader(emp)));</span><br><span class="line">    System.out.println(handler.getEmpList());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//output, 第二次打印的时候</span></span><br><span class="line"><span class="comment">// SaxParser result: </span></span><br><span class="line"><span class="comment">// [Employee(id=1, name=Pankaj, gender=Male, age=29, role=Java Developer)]</span></span><br><span class="line"><span class="comment">// XMLReader result: </span></span><br><span class="line"><span class="comment">// [Employee(id=1, name=Pankaj, gender=Male, age=29, role=Java Developer), Employee(id=1, name=Pankaj, gender=Male, age=29, role=Java Developer)]</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="ErrorHandler-DTD-验证-XML"><a href="#ErrorHandler-DTD-验证-XML" class="headerlink" title="ErrorHandler + DTD 验证 XML"></a>ErrorHandler + DTD 验证 XML</h2><p>在原来的基础上，我们想要在解析 xml 的时候添加一些限制，比如 Employee 元素必须包含 gender 不然抛错。这种功能可以通过添加 DTD 规则并且打开 xml 验证功能来实现。</p>
+<p>定义 DTD 文件，DTD 中会包含 xml 各个 element 的从属关系，可以设置的属性值，属性数量等信息。如下方的例子中我们就规定 Employee 元素必须有至少一个的 gender 信息， 并且 Employee 必须包含 id 属性</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyErrorHandler</span> <span class="keyword">implements</span> <span class="title">ErrorHandler</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">warning</span><span class="params">(SAXParseException exception)</span> <span class="keyword">throws</span> SAXException </span>&#123;</span><br><span class="line">        show(<span class="string">&quot;--Warning--&quot;</span>, exception);</span><br><span class="line">        <span class="keyword">throw</span> (exception);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">error</span><span class="params">(SAXParseException exception)</span> <span class="keyword">throws</span> SAXException </span>&#123;</span><br><span class="line">        show(<span class="string">&quot;--Error--&quot;</span>, exception);</span><br><span class="line">        <span class="keyword">throw</span> (exception);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">fatalError</span><span class="params">(SAXParseException exception)</span> <span class="keyword">throws</span> SAXException </span>&#123;</span><br><span class="line">        show(<span class="string">&quot;--Fatal Error--&quot;</span>, exception);</span><br><span class="line">        <span class="keyword">throw</span> (exception);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">show</span><span class="params">(String type, SAXParseException e)</span> </span>&#123;</span><br><span class="line">        System.out.println(type + <span class="string">&quot;: &quot;</span> + e.getMessage());</span><br><span class="line">        System.out.println(<span class="string">&quot;Line &quot;</span> + e.getLineNumber() + <span class="string">&quot; Column &quot;</span> + e.getColumnNumber());</span><br><span class="line">        System.out.println(<span class="string">&quot;System ID: &quot;</span> + e.getSystemId());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test</span><span class="params">()</span> <span class="keyword">throws</span> ParserConfigurationException, SAXException, IOException </span>&#123;</span><br><span class="line">    String str_with_dtd =</span><br><span class="line">            <span class="string">&quot;&lt;?xml version=\&quot;1.0\&quot; encoding=\&quot;UTF-8\&quot;?&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;&lt;!DOCTYPE Employees [\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;        &lt;!ELEMENT Employees (Employee)*&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;        &lt;!ELEMENT Employee (age?, name?, gender+, role*)&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;        &lt;!ATTLIST Employee\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;                id CDATA #REQUIRED\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;                &gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;        &lt;!ELEMENT age (#PCDATA)&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;        &lt;!ELEMENT name (#PCDATA)&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;        &lt;!ELEMENT gender (#PCDATA)&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;        &lt;!ELEMENT role (#PCDATA)&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;        ]&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;&lt;Employees&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;    &lt;Employee id=\&quot;1\&quot;&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;        &lt;age&gt;29&lt;/age&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;        &lt;name&gt;Pankaj&lt;/name&gt;\n&quot;</span> +</span><br><span class="line"><span class="comment">//                &quot;        &lt;gender&gt;Male&lt;/gender&gt;\n&quot; +</span></span><br><span class="line">            <span class="string">&quot;        &lt;role&gt;Java Developer&lt;/role&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;    &lt;/Employee&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;&lt;/Employees&gt;&quot;</span>;</span><br><span class="line"></span><br><span class="line">    XMLReader xmlReader = SAXParserFactory.newInstance().newSAXParser().getXMLReader();</span><br><span class="line">    xmlReader.setFeature(<span class="string">&quot;http://xml.org/sax/features/validation&quot;</span>, <span class="keyword">true</span>);</span><br><span class="line">    xmlReader.setErrorHandler(<span class="keyword">new</span> MyErrorHandler());</span><br><span class="line">    xmlReader.parse(<span class="keyword">new</span> InputSource(<span class="keyword">new</span> StringReader(str_with_dtd)));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// output:</span></span><br><span class="line"><span class="comment">// --Error--: The content of element type &quot;Employee&quot; must match &quot;(age?,name?,gender+,role*)&quot;.</span></span><br><span class="line"><span class="comment">// Line 18 Column 16</span></span><br><span class="line"><span class="comment">// System ID: null</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// org.xml.sax.SAXParseException; lineNumber: 18; columnNumber: 16; The content of element type &quot;Employee&quot; must match &quot;(age?,name?,gender+,role*)&quot;.</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Note:</strong> 在这个例子中我们只能用 XMLReader, 应为我们只实现了 ErrorHandler 接口。SaxParser 只能处理继承了 DefaultHandler 的类</p>
+<h2 id="EntityResolver-samples"><a href="#EntityResolver-samples" class="headerlink" title="EntityResolver samples"></a>EntityResolver samples</h2><p>Spring中使用DelegatingEntityResolver 类为 EntityResolver的实现类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> InputSource <span class="title">resolveEntity</span><span class="params">(String publicId, String systemId)</span> <span class="keyword">throws</span> SAXException, IOException </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (systemId != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="comment">// 如果是DTD从这里开始</span></span><br><span class="line">        <span class="keyword">if</span> (systemId.endsWith(DTD_SUFFIX)) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>.dtdResolver.resolveEntity(publicId, systemId);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 如果是XSD从这里开始</span></span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (systemId.endsWith(XSD_SUFFIX)) &#123;</span><br><span class="line">            <span class="comment">// 通过调用META-INF/Spring.schemas解析</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>.schemaResolver.resolveEntity(publicId, systemId);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>例二:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyEntityResolver</span> <span class="keyword">implements</span> <span class="title">EntityResolver</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> InputSource <span class="title">resolveEntity</span><span class="params">(String publicId, String systemId)</span> </span>&#123;</span><br><span class="line">        System.out.println(String.format(<span class="string">&quot;----- Call MyEntityResolver, PID: %s + SID: + %s&quot;</span>, publicId, systemId));</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test</span><span class="params">()</span> <span class="keyword">throws</span> ParserConfigurationException, SAXException, IOException </span>&#123;</span><br><span class="line">    String str_with_dtd = <span class="string">&quot;&lt;?xml version=\&quot;1.0\&quot; encoding=\&quot;UTF-8\&quot;?&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;&lt;!DOCTYPE succession-data-model PUBLIC \&quot;Self_defined_plublic_name\&quot; \&quot;http://self/defined/public/name\&quot;&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;&lt;succession-data-model&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;&lt;/succession-data-model&gt;&quot;</span>;</span><br><span class="line"></span><br><span class="line">    XMLReader xmlReader = XMLReaderFactory.createXMLReader();</span><br><span class="line">    xmlReader.setEntityResolver(<span class="keyword">new</span> MyEntityResolver());</span><br><span class="line">    xmlReader.parse(<span class="keyword">new</span> InputSource(<span class="keyword">new</span> StringReader(str_with_dtd)));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//output:</span></span><br><span class="line"><span class="comment">// ----- Call MyEntityResolver, PID: Self_defined_plublic_name + SID: + http://self/defined/public/name</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// java.net.UnknownHostException: self</span></span><br><span class="line"><span class="comment">// at java.net.AbstractPlainSocketImpl.connect(AbstractPlainSocketImpl.java:196)</span></span><br><span class="line"><span class="comment">// ...</span></span><br></pre></td></tr></table></figure>
+
+<p>在输出了 publicId 和 systemId 之后，他会试图通过 http 拿到 inputStream 中指定的文件数据，但是我随便写的，所以报错了，但是实验目的已经达到了</p>
+<h2 id="External-DTD-XSD-sample"><a href="#External-DTD-XSD-sample" class="headerlink" title="External DTD/XSD sample"></a>External DTD/XSD sample</h2><p>这部分我们可以等到以后看 spring 或者 mybatis 解析 xml 的时候看，直接是现成的例子， 他是通过 EntityResolver 指定的解析规则</p>
+<h2 id="XMLFilter-使用案例"><a href="#XMLFilter-使用案例" class="headerlink" title="XMLFilter 使用案例"></a>XMLFilter 使用案例</h2><p>解析 XML 时如果需要过滤某些节点，可以使用该技术，优点：避免修改原有逻辑，使得逻辑更清晰，分层</p>
+<p>Scenario: 解析 Employee 只处理 deptid = 3 的节点</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FemaleFilter</span> <span class="keyword">extends</span> <span class="title">XMLFilterImpl</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">FemaleFilter</span> <span class="params">(XMLReader parent)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(parent);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">startElement</span><span class="params">(String uri, String localName, String qName, Attributes atts)</span> <span class="keyword">throws</span> SAXException </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="string">&quot;employee&quot;</span>.equals(qName) &amp;&amp; atts.getValue(<span class="string">&quot;deptid&quot;</span>).equals(<span class="string">&quot;3&quot;</span>)) &#123;</span><br><span class="line">            <span class="keyword">super</span>.startElement(uri, localName, qName, atts);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FemaleHandler</span> <span class="keyword">extends</span> <span class="title">DefaultHandler</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">startElement</span><span class="params">(String uri, String localName, String qName, Attributes attributes)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="string">&quot;employee&quot;</span>.equals(qName)) &#123;</span><br><span class="line">            System.out.printf(<span class="string">&quot;QName: %s, id: %s, deptid: %s %n&quot;</span>, qName, attributes.getValue(<span class="string">&quot;empid&quot;</span>), attributes.getValue(<span class="string">&quot;deptid&quot;</span>));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test</span><span class="params">()</span> <span class="keyword">throws</span> SAXException, IOException </span>&#123;</span><br><span class="line">    String xml = <span class="string">&quot;&lt;?xml version=\&quot;1.0\&quot;?&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;&lt;personnel&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;  &lt;employee empid=\&quot;332\&quot; deptid=\&quot;24\&quot; shift=\&quot;night\&quot;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;         status=\&quot;contact\&quot;&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;    JennyBerman\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;  &lt;/employee&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;  &lt;employee empid=\&quot;994\&quot; deptid=\&quot;24\&quot; shift=\&quot;day\&quot;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;         status=\&quot;donotcontact\&quot;&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;    AndrewFule\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;  &lt;/employee&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;  &lt;employee empid=\&quot;948\&quot; deptid=\&quot;3\&quot; shift=\&quot;night\&quot;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;         status=\&quot;contact\&quot;&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;    AnnaBangle\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;  &lt;/employee&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;  &lt;employee empid=\&quot;1032\&quot; deptid=\&quot;3\&quot; shift=\&quot;day\&quot;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;         status=\&quot;contact\&quot;&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;    DavidBaines\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;  &lt;/employee&gt;\n&quot;</span> +</span><br><span class="line">            <span class="string">&quot;&lt;/personnel&gt;&quot;</span>;</span><br><span class="line"></span><br><span class="line">    XMLReader reader = XMLReaderFactory.createXMLReader();</span><br><span class="line">    XMLFilter femaleFilter = <span class="keyword">new</span> FemaleFilter(reader);</span><br><span class="line">    femaleFilter.setContentHandler(<span class="keyword">new</span> FemaleHandler());</span><br><span class="line">    femaleFilter.parse(<span class="keyword">new</span> InputSource(<span class="keyword">new</span> StringReader(xml)));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// output:</span></span><br><span class="line"><span class="comment">// QName: employee, id: 948, deptid: 3</span></span><br><span class="line"><span class="comment">// QName: employee, id: 1032, deptid: 3</span></span><br></pre></td></tr></table></figure>
+
+<p>例子里面的示例比较简单，如果判断条件分散在好几个 node 里面，可能解析起来就不方便了，不过得具体问题具体分析</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/11/02/Idea-tomcat-terminal-garbled/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +385,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-11-11 15:18:08" itemprop="dateModified" datetime="2021-11-11T15:18:08+08:00">2021-11-11</time>
+                <time title="修改时间：2021-11-16 10:28:11" itemprop="dateModified" datetime="2021-11-16T10:28:11+08:00">2021-11-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -335,7 +483,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-11-11 15:18:08" itemprop="dateModified" datetime="2021-11-11T15:18:08+08:00">2021-11-11</time>
+                <time title="修改时间：2021-11-16 10:28:11" itemprop="dateModified" datetime="2021-11-16T10:28:11+08:00">2021-11-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -437,7 +585,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-11-11 15:18:08" itemprop="dateModified" datetime="2021-11-11T15:18:08+08:00">2021-11-11</time>
+                <time title="修改时间：2021-11-16 10:28:11" itemprop="dateModified" datetime="2021-11-16T10:28:11+08:00">2021-11-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -595,7 +743,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-11-11 15:18:08" itemprop="dateModified" datetime="2021-11-11T15:18:08+08:00">2021-11-11</time>
+                <time title="修改时间：2021-11-16 10:28:11" itemprop="dateModified" datetime="2021-11-16T10:28:11+08:00">2021-11-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -727,7 +875,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-11-11 15:18:08" itemprop="dateModified" datetime="2021-11-11T15:18:08+08:00">2021-11-11</time>
+                <time title="修改时间：2021-11-16 10:28:11" itemprop="dateModified" datetime="2021-11-16T10:28:11+08:00">2021-11-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -945,7 +1093,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-11-11 15:18:08" itemprop="dateModified" datetime="2021-11-11T15:18:08+08:00">2021-11-11</time>
+                <time title="修改时间：2021-11-16 10:28:11" itemprop="dateModified" datetime="2021-11-16T10:28:11+08:00">2021-11-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1056,7 +1204,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-11-11 15:18:08" itemprop="dateModified" datetime="2021-11-11T15:18:08+08:00">2021-11-11</time>
+                <time title="修改时间：2021-11-16 10:28:11" itemprop="dateModified" datetime="2021-11-16T10:28:11+08:00">2021-11-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1191,7 +1339,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-11-11 15:18:08" itemprop="dateModified" datetime="2021-11-11T15:18:08+08:00">2021-11-11</time>
+                <time title="修改时间：2021-11-16 10:28:11" itemprop="dateModified" datetime="2021-11-16T10:28:11+08:00">2021-11-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1316,7 +1464,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-11-11 15:18:08" itemprop="dateModified" datetime="2021-11-11T15:18:08+08:00">2021-11-11</time>
+                <time title="修改时间：2021-11-16 10:28:11" itemprop="dateModified" datetime="2021-11-16T10:28:11+08:00">2021-11-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1405,102 +1553,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/09/25/How-to-give-PR-to-the-repo-you-like/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2020/09/25/How-to-give-PR-to-the-repo-you-like/" class="post-title-link" itemprop="url">如何给心仪的项目提交 PR</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-09-25 14:50:47" itemprop="dateCreated datePublished" datetime="2020-09-25T14:50:47+08:00">2020-09-25</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-11-11 15:18:08" itemprop="dateModified" datetime="2021-11-11T15:18:08+08:00">2021-11-11</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E5%B0%8F%E5%B7%A5%E5%85%B7/" itemprop="url" rel="index">
-                    <span itemprop="name">小工具</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>82</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <ol>
-<li>fork 项目，下载到本地</li>
-<li>新建分支，修改代码</li>
-<li>命令行提交改动，push 到远端</li>
-<li>登陆到 github，查看 fork 的项目，手动选择将改动作为一个 PR 推送到你原始项目</li>
-</ol>
-<p>打完收工～</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1551,20 +1603,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">199</span>
+          <span class="site-state-item-count">200</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/hexo/categories/">
           
-        <span class="site-state-item-count">28</span>
+        <span class="site-state-item-count">29</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">180</span>
+        <span class="site-state-item-count">181</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1603,7 +1655,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">16:02</span>
+    <span title="站点阅读时长">16:09</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
