@@ -408,16 +408,17 @@ END $
 call pro_while3(100)$
 
 -- iterate, 只插入偶数次
+TRUNCATE TABLE admin$
 CREATE PROCEDURE pro_while4(IN insertCount INT)
 BEGIN
     DECLARE i INT DEFAULT 1;
     a: WHILE i<insertCount DO
         SET i=i+1;
         IF
-          MOD(i, 2) != 0 THEN ITETATE a;
+          MOD(i, 2) != 0 THEN ITERATE a;
         END IF;
         INSERT INTO admin (username, `password`) VALUES (CONCAT('jjjj', i), '666');
     END WHILE a;
 END $
-call pro_while3(100)$
+call pro_while4(100)$
 ```
