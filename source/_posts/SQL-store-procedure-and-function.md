@@ -422,3 +422,28 @@ BEGIN
 END $
 call pro_while4(100)$
 ```
+
+## 其他 SQL
+
+```sql
+-- 创建备份表
+CREATE TABLE <schema>.USER_ACCOUNT_BAK LIKE <schema>.USER_ACCOUNT;
+-- 复制行
+INSERT
+	INTO
+	<schema>.USER_ACCOUNT_BAK uab (uab.ACCOUNT_ID ,
+	uab.ACCOUNT_STATUS,
+	uab.PERSON_ID ,
+	uab.USERNAME ,
+	uab.ACCOUNT_TYPE,
+	uab.VISIBILITY)
+SELECT
+	ua.ACCOUNT_ID ,
+	ua.ACCOUNT_STATUS,
+	ua.PERSON_ID ,
+	ua.USERNAME ,
+	ua.ACCOUNT_TYPE,
+	ua.VISIBILITY
+FROM
+	<schema>.USER_ACCOUNT ua;
+```
