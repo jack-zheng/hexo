@@ -274,3 +274,90 @@ app.listen(3000, function() {
 // 方便的公开指定目录
 app.use('/public', express.static('./public/'))
 ```
+
+### 热部署
+
+nodemon, 代码修改完立刻生效 `npm install --global nodemon`, 使用时使用 `nodemon app.js` 即可
+
+### 基本路由
+
+当
+
+```js
+app.get('/', function(req, res){
+    res.send('..')
+})
+
+app.post('/', function(req, res){
+    res.send('..')
+})
+```
+
+### 静态文件
+
+通过 `app.use('/public', express.static('./public/'))` 的方式公开资源访问。第一个参数为别名，可以为任何表达式，同文件夹名更容易辨识
+
+### Express 中配置使用 art-template 模版引擎
+
+```js
+npm install --save art-template
+npm install --save express-art-template
+```
+
+配置
+
+```js
+app.engine('art', require('express-art-template'))
+```
+
+使用
+
+```js
+app.get('/', function(req, res){
+    // express 默认回去项目中的 views 目录找 index.html
+    res.render('index.html', {
+        title: 'hello world'
+    })
+})
+```
+
+如果要改默认 views 试图渲染存储目录，可以
+
+```js
+app.set('views', 目录路径)
+```
+
+### express 获取表单 post 请求
+
+安装：`npm install --save body-parser`, 貌似新版的已经自动集成了，不需要自己下载
+
+使用案例
+
+```js
+var express = require('express')
+var bodyParser = require('body-parser')
+
+var app = express()
+
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }))
+
+// parse application/json
+app.use(bodyParser.json())
+
+app.use(function (req, res) {
+  res.setHeader('Content-Type', 'text/plain')
+  res.write('you posted:\n')
+  res.end(JSON.stringify(req.body, null, 2))
+})
+```
+
+PS: 对于 get 请求，内置了 req.query 对象作为 body 的容器
+
+### crud demo
+
+```bash
+npm init -y
+npm i -S express
+npm i -S bootstrap@3
+```
