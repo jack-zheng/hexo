@@ -361,3 +361,43 @@ npm init -y
 npm i -S express
 npm i -S bootstrap@3
 ```
+
+### MongoDB
+
+```bash
+mongo # 启动终端
+
+exit # 退出
+
+show dbs # 显示数据库
+
+db # 当前数据库
+
+use xxx # 切换指定数据库
+
+db.students.insertOne({ "name": "Jack" }) # 插入数据
+
+db.students.find() # 查询
+
+show collections # 显示表
+```
+
+基本概念
+
+* 数据库
+* 集合 - 表
+* 文档 - 一条记录
+* 文档结构没有任何限制
+* 灵活，不需要建表，直接使用
+
+### Mongoose
+
+基于官方包的再封装
+
+```bash
+npm init -y
+npm i mongoose
+```
+
+跟着官方文档跑了一个 demo
+
