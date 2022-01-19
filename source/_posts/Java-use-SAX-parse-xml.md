@@ -13,7 +13,7 @@ tags:
 ## 基本概念
 
 * DefaulHandler: 为了简化代码将几个常用的 handler 合并为这个 DefaultHandler
-* EntityResolver: 提供获取外部文件的方法， Spring 在介些 xml 的时候也定义过这哥方法，可以参考下
+* EntityResolver: 提供获取外部文件的方法， Spring 在介些 xml 的时候也定义过这个方法，可以参考下
 * DTDHandler: 这个类都没有使用例子，是不是一个很冷门的类啊 （；￣ェ￣） 以后有机会看到再记录把
 * ContentHandler: 负责处理 xml 节点的逻辑
 * ErrorHandler: 结合 DTD 处理异常
@@ -297,7 +297,7 @@ public void test() throws ParserConfigurationException, SAXException, IOExceptio
 
 ## EntityResolver samples
 
-Spring中使用DelegatingEntityResolver 类为 EntityResolver的实现类
+Spring中使用DelegatingEntityResolver 类作为 EntityResolver 的实现类
 
 ```java
 @Override

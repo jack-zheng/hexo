@@ -401,3 +401,19 @@ npm i mongoose
 
 跟着官方文档跑了一个 demo
 
+### Promise
+
+为了解决 回调地狱 引入 Promise 语法
+
+例子中用的 json-server， hp-server 工具挺有意思
+
+### Node 中的其他成员
+
+每个模块中除了 require, exports 外，还默认带有两个字打的变量
+
+* __dirname
+* __filename
+
+文件相对路径是针对 node 执行命令来说的。同时结合 path.join() 拼接路径
+
+模块加载路径不受影响
