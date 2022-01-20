@@ -102,7 +102,7 @@ fs.readFile() 之后可以通过指定 Content-type 来指定返回数据，专�
 
 浏览器中使用 art-tempalte, 新建 html 文本，写入内容. 打开 browser 可以看到 console 中有对应的 'hello Jack' log.
 
-{{}} 被称为 mustach 语法
+`{{}}` 被称为 mustach 语法
 
 ```html
 <!DOCTYPE html>
