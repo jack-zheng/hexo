@@ -206,6 +206,104 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/01/24/Redis-Docker/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2022/01/24/Redis-Docker/" class="post-title-link" itemprop="url">Redis + Docker 搭建方案</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-01-24 18:35:10" itemprop="dateCreated datePublished" datetime="2022-01-24T18:35:10+08:00">2022-01-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-01-25 20:51:14" itemprop="dateModified" datetime="2022-01-25T20:51:14+08:00">2022-01-25</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/Redis/" itemprop="url" rel="index">
+                    <span itemprop="name">Redis</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>通过 Redis 搭建 docker 实验环境</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">docker pull redis</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建容器</span></span><br><span class="line">docker run -itd --name redis-test -p 6379:6379 redis</span><br><span class="line"></span><br><span class="line"><span class="comment"># 进入容器</span></span><br><span class="line">docker <span class="built_in">exec</span> -it redis-test /bin/bash</span><br><span class="line"></span><br><span class="line"><span class="comment"># 开启客户端</span></span><br><span class="line">redis-cli</span><br><span class="line"><span class="comment"># 启动远程客户端</span></span><br><span class="line"><span class="comment"># redis-cli -h host -p port -a password</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 测试</span></span><br><span class="line">ping</span><br><span class="line"><span class="comment"># PONG</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 默认有 16 个数据库，默认用第 0 个</span></span><br><span class="line">select 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 显示当前库下所有的键</span></span><br><span class="line">keys *</span><br><span class="line"></span><br><span class="line"><span class="comment"># 清空当前 DB</span></span><br><span class="line">flushdb</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除所有数据库，危</span></span><br><span class="line">flushall</span><br></pre></td></tr></table></figure>
+
+<h3 id="Issues"><a href="#Issues" class="headerlink" title="Issues"></a>Issues</h3><p>清空的时候抛错，我估计是我的 docker redis 没有配置本地存储信息，并不能进行本地化相关操作，创建的时候挂在到本地可能就行了</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">flushdb </span><br><span class="line">(error) MISCONF Redis is configured to save RDB snapshots, but it is currently not able to persist on disk. Commands that may modify the data <span class="built_in">set</span> are disabled, because this instance is configured to report errors during writes <span class="keyword">if</span> RDB snapshotting fails (stop-writes-on-bgsave-error option). Please check the Redis logs <span class="keyword">for</span> details about the RDB error.</span><br></pre></td></tr></table></figure>
+
+<p>猜测失败，是配置问题，关闭了快找功能，导致保存失败，可以在客户端使用 <code>config set stop-writes-on-bgsave-error no</code> 解决问题</p>
+<h2 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 单个值最大能存储 512M</span></span><br><span class="line"><span class="built_in">set</span> name <span class="string">&quot;Jack&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 拿值</span></span><br><span class="line">get name</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看类型</span></span><br><span class="line"><span class="built_in">type</span> name</span><br><span class="line"></span><br><span class="line"><span class="comment"># 存储 hash</span></span><br><span class="line">HMSET runoob field1 <span class="string">&quot;Hello&quot;</span> field2 <span class="string">&quot;World&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># hash 取值</span></span><br><span class="line">HGET runoob field1</span><br><span class="line"><span class="comment">#&quot;Hello&quot;</span></span><br><span class="line">HGET runoob field2</span><br><span class="line"><span class="comment">#&quot;World&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># list 列表，左序存入</span></span><br><span class="line">lpush runoob redis</span><br><span class="line">lpush runoob mongodb</span><br><span class="line">lpush runoob rabbitmq</span><br><span class="line"></span><br><span class="line">lrange runoob 0 10</span><br><span class="line"><span class="comment"># 1) &quot;rabbitmq&quot;</span></span><br><span class="line"><span class="comment"># 2) &quot;mongodb&quot;</span></span><br><span class="line"><span class="comment"># 3) &quot;redis&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看列表大小</span></span><br><span class="line">llen runoob</span><br><span class="line"></span><br><span class="line"><span class="comment"># Set 无序集合</span></span><br><span class="line">sadd members jack</span><br><span class="line">sadd members tom</span><br><span class="line">sadd members tom</span><br><span class="line">smembers members</span><br><span class="line"><span class="comment"># 1) &quot;tom&quot;</span></span><br><span class="line"><span class="comment"># 2) &quot;jack&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看大小</span></span><br><span class="line">scard members</span><br><span class="line"></span><br><span class="line"><span class="comment"># zset 有序集合</span></span><br><span class="line">zadd dbs 0  mongodb</span><br><span class="line">zadd dbs 0  redis</span><br><span class="line">zadd dbs 0  rabit</span><br><span class="line"></span><br><span class="line">ZRANGEBYSCORE dbs 0 10000</span><br><span class="line"><span class="comment"># 1) &quot;mongodb&quot;</span></span><br><span class="line"><span class="comment"># 2) &quot;rabit&quot;</span></span><br><span class="line"><span class="comment"># 3) &quot;redis&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看大小</span></span><br><span class="line">zcard dbs</span><br></pre></td></tr></table></figure>
+
+<h2 id="Using-Redis-in-Python"><a href="#Using-Redis-in-Python" class="headerlink" title="Using Redis in Python"></a>Using Redis in Python</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装依赖</span></span><br><span class="line">pip install redis</span><br><span class="line"></span><br><span class="line"><span class="comment"># ipython 操作</span></span><br><span class="line">import redis</span><br><span class="line">r = redis.StrictRedis(host=<span class="string">&#x27;localhost&#x27;</span>, port=6379, db=0)</span><br><span class="line">r.set(<span class="string">&#x27;foo&#x27;</span>, <span class="string">&#x27;bar&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(r[<span class="string">&#x27;foo&#x27;</span>])</span><br><span class="line"><span class="comment"># b&#x27;bar&#x27;</span></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">type</span>(r.get(<span class="string">&#x27;foo&#x27;</span>)))</span><br><span class="line"><span class="comment"># &lt;class &#x27;bytes&#x27;&gt;</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/01/18/MongoDB-Python/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +335,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-01-20 15:21:24" itemprop="dateModified" datetime="2022-01-20T15:21:24+08:00">2022-01-20</time>
+                <time title="修改时间：2022-01-25 20:51:14" itemprop="dateModified" datetime="2022-01-25T20:51:14+08:00">2022-01-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -363,7 +461,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-01-20 15:21:24" itemprop="dateModified" datetime="2022-01-20T15:21:24+08:00">2022-01-20</time>
+                <time title="修改时间：2022-01-25 20:51:14" itemprop="dateModified" datetime="2022-01-25T20:51:14+08:00">2022-01-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -454,7 +552,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-01-20 15:21:24" itemprop="dateModified" datetime="2022-01-20T15:21:24+08:00">2022-01-20</time>
+                <time title="修改时间：2022-01-25 20:51:14" itemprop="dateModified" datetime="2022-01-25T20:51:14+08:00">2022-01-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -559,7 +657,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-01-20 15:21:24" itemprop="dateModified" datetime="2022-01-20T15:21:24+08:00">2022-01-20</time>
+                <time title="修改时间：2022-01-25 20:51:14" itemprop="dateModified" datetime="2022-01-25T20:51:14+08:00">2022-01-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -656,7 +754,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-01-20 15:21:24" itemprop="dateModified" datetime="2022-01-20T15:21:24+08:00">2022-01-20</time>
+                <time title="修改时间：2022-01-25 20:51:14" itemprop="dateModified" datetime="2022-01-25T20:51:14+08:00">2022-01-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -758,7 +856,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-01-20 15:21:24" itemprop="dateModified" datetime="2022-01-20T15:21:24+08:00">2022-01-20</time>
+                <time title="修改时间：2022-01-25 20:51:14" itemprop="dateModified" datetime="2022-01-25T20:51:14+08:00">2022-01-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -849,7 +947,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-01-20 15:21:24" itemprop="dateModified" datetime="2022-01-20T15:21:24+08:00">2022-01-20</time>
+                <time title="修改时间：2022-01-25 20:51:14" itemprop="dateModified" datetime="2022-01-25T20:51:14+08:00">2022-01-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -957,7 +1055,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-01-20 15:21:24" itemprop="dateModified" datetime="2022-01-20T15:21:24+08:00">2022-01-20</time>
+                <time title="修改时间：2022-01-25 20:51:14" itemprop="dateModified" datetime="2022-01-25T20:51:14+08:00">2022-01-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1047,7 +1145,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-01-20 15:21:24" itemprop="dateModified" datetime="2022-01-20T15:21:24+08:00">2022-01-20</time>
+                <time title="修改时间：2022-01-25 20:51:14" itemprop="dateModified" datetime="2022-01-25T20:51:14+08:00">2022-01-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1243,102 +1341,11 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/11/17/Java-comparator-interface/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/11/17/Java-comparator-interface/" class="post-title-link" itemprop="url">Comparator 比较器</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-11-17 17:20:45" itemprop="dateCreated datePublished" datetime="2021-11-17T17:20:45+08:00">2021-11-17</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-01-20 15:21:24" itemprop="dateModified" datetime="2022-01-20T15:21:24+08:00">2022-01-20</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/java/" itemprop="url" rel="index">
-                    <span itemprop="name">java</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.2k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>看 Spring 的 BeanFactoryProcessor 部分的时候，看到 sort processor 方法中用了 Comparator 做比较依据， 已经忘的差不多了，复习一下</p>
-<p>创建一个简单的对象，有 name 和 age 属性，分别新建两个比较器，一个是 name 字母顺序，一个是 age 大小逆序。自定义的比较器实现 Comparator 接口并重写 compare 方法即可</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ComparatorTest</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        A a1 = <span class="keyword">new</span> A(<span class="string">&quot;a&quot;</span>, <span class="number">1</span>);</span><br><span class="line">        A a2 = <span class="keyword">new</span> A(<span class="string">&quot;b&quot;</span>, <span class="number">2</span>);</span><br><span class="line">        List&lt;A&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        list.add(a1);</span><br><span class="line">        list.add(a2);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;before sort: &quot;</span> + list);</span><br><span class="line">        list.sort(<span class="keyword">new</span> AgeSort());</span><br><span class="line">        System.out.println(<span class="string">&quot;after sort age: &quot;</span> + list);</span><br><span class="line">        list.sort(<span class="keyword">new</span> NameSort());</span><br><span class="line">        System.out.println(<span class="string">&quot;after sort name: &quot;</span> + list);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// before sort: [A(name=a, age=1), A(name=b, age=2)]</span></span><br><span class="line"><span class="comment">// after sort age: [A(name=b, age=2), A(name=a, age=1)]</span></span><br><span class="line"><span class="comment">// after sort name: [A(name=a, age=1), A(name=b, age=2)]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * age 逆序</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AgeSort</span> <span class="keyword">implements</span> <span class="title">Comparator</span>&lt;<span class="title">A</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compare</span><span class="params">(A o1, A o2)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> o2.getAge() - o1.getAge();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * name 顺序</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">NameSort</span> <span class="keyword">implements</span> <span class="title">Comparator</span>&lt;<span class="title">A</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compare</span><span class="params">(A o1, A o2)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> o1.getName().compareTo(o2.getName());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="meta">@AllArgsConstructor</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> age;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/hexo/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/hexo/page/21/">21</a><a class="extend next" rel="next" href="/hexo/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/hexo/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/hexo/page/22/">22</a><a class="extend next" rel="next" href="/hexo/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1384,14 +1391,14 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">210</span>
+          <span class="site-state-item-count">211</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/hexo/categories/">
           
-        <span class="site-state-item-count">33</span>
+        <span class="site-state-item-count">34</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
@@ -1436,7 +1443,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">16:25</span>
+    <span title="站点阅读时长">16:26</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
