@@ -2084,7 +2084,9 @@
   <entry>
     <title>Git 小贴士</title>
     <url>/hexo/2019/11/15/Git-Tips/</url>
-    <content><![CDATA[<h2 id="怎么查看一个月之前的版本信息"><a href="#怎么查看一个月之前的版本信息" class="headerlink" title="怎么查看一个月之前的版本信息"></a>怎么查看一个月之前的版本信息</h2><p>最近发现一个 bug 不知道是不是自己的代码改出来的，由于是一些 context 的改动不好查。打算直接一点，使用一个月之前(我的改动还没有进去的节点)的 build 起一个服务测试一下, git 支持类似的查找</p>
+    <content><![CDATA[<h2 id="怎么更新-fork-repo"><a href="#怎么更新-fork-repo" class="headerlink" title="怎么更新 fork repo"></a>怎么更新 fork repo</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 检查 repo 状态</span></span><br><span class="line">git remote -v</span><br><span class="line">origin    git@github.corp:jack/vault.git (fetch)</span><br><span class="line">origin    git@github.corp:jack/vault.git (push)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 关联到原项目</span></span><br><span class="line">git remote add upstream git@github.corp:platform-core/vault.git</span><br><span class="line"><span class="comment"># 检查 repo 状态</span></span><br><span class="line">git remote -v</span><br><span class="line">origin    git@github.corp:jack/vault.git (fetch)</span><br><span class="line">origin    git@github.corp:jack/vault.git (push)</span><br><span class="line">upstream    git@github.corp:platform-core/vault.git (fetch)</span><br><span class="line">upstream    git@github.corp:platform-core/vault.git (push)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将原项目改动 sync 到本地</span></span><br><span class="line">git fetch upstream</span><br><span class="line"><span class="comment"># 更新本地分支</span></span><br><span class="line">git merge upstream/master</span><br><span class="line"><span class="comment"># 推送到本地分支的 remote，打完收工</span></span><br><span class="line">git push</span><br></pre></td></tr></table></figure>
+
+<h2 id="怎么查看一个月之前的版本信息"><a href="#怎么查看一个月之前的版本信息" class="headerlink" title="怎么查看一个月之前的版本信息"></a>怎么查看一个月之前的版本信息</h2><p>最近发现一个 bug 不知道是不是自己的代码改出来的，由于是一些 context 的改动不好查。打算直接一点，使用一个月之前(我的改动还没有进去的节点)的 build 起一个服务测试一下, git 支持类似的查找</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git <span class="built_in">log</span> --after=<span class="string">&quot;2014-02-12T16:36:00-07:00&quot;</span></span><br><span class="line">git <span class="built_in">log</span> --before=<span class="string">&quot;2014-02-12T16:36:00-07:00&quot;</span></span><br><span class="line">git <span class="built_in">log</span> --since=<span class="string">&quot;1 month ago&quot;</span></span><br><span class="line">git <span class="built_in">log</span> --since=<span class="string">&quot;2 weeks 3 days 2 hours 30 minutes 59 seconds ago&quot;</span></span><br></pre></td></tr></table></figure>
 
 <p>结合 reverse 使用效果更佳 <code>git log --since=&quot;1 month ago&quot; --reverse</code></p>
@@ -5108,6 +5110,53 @@
       <tags>
         <tag>java</tag>
         <tag>exception</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Nodejs + gitbook</title>
+    <url>/hexo/2022/01/31/Nodejs-gitbook/</url>
+    <content><![CDATA[<p>基于 Nodejs 的 gitbook， 感觉和 hexo 大同小意，不过还有额外的制作 pdf 和 ebook 等功能，值得一试</p>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p>最终各软件版本信息如下</p>
+<ul>
+<li>node: v13.14.0</li>
+<li>CLI version: 2.3.2</li>
+<li>GitBook version: 3.2.3</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 安装</span></span><br><span class="line">npm install -g gitbook-cli</span><br><span class="line"><span class="comment"># 检测</span></span><br><span class="line">gitbook-cli -V</span><br></pre></td></tr></table></figure>
+
+<p>安装抛错</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">No receipt <span class="keyword">for</span> <span class="string">&#x27;com.apple.pkg.CLTools_Executables&#x27;</span> found at <span class="string">&#x27;/&#x27;</span>.</span><br><span class="line"></span><br><span class="line">No receipt <span class="keyword">for</span> <span class="string">&#x27;com.apple.pkg.DeveloperToolsCLILeo&#x27;</span> found at <span class="string">&#x27;/&#x27;</span>.</span><br><span class="line"></span><br><span class="line">No receipt <span class="keyword">for</span> <span class="string">&#x27;com.apple.pkg.DeveloperToolsCLI&#x27;</span> found at <span class="string">&#x27;/&#x27;</span>.</span><br><span class="line"></span><br><span class="line">gyp: No Xcode or CLT version detected!</span><br><span class="line">/usr/<span class="built_in">local</span>/lib/node_modules/gitbook-cli/node_modules/npm/node_modules/graceful-fs/polyfills.js:287</span><br><span class="line">      <span class="keyword">if</span> (cb) cb.apply(this, arguments)</span><br><span class="line">                 ^</span><br></pre></td></tr></table></figure>
+
+<p>重新安装 xcode-select, 去 app store 中搜索 xcode 并安装，挺花时间的，后年还要重新签一下协议。。。</p>
+<p>折腾一阵子还是失败了，最后搜了下谁是 gitbook 使用的 polyfills.js 还是旧版的，没有跟新，可以直接去这个文件中，将饮用的语句删掉，或者更新对用的库文件即可，我用了后者</p>
+<p>根据提示，打开文件，将该文件中的引用语句注释掉, 再试运行，正常</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// fs.stat = statFix(fs.stat)</span></span><br><span class="line"><span class="comment">// fs.fstat = statFix(fs.fstat)</span></span><br><span class="line"><span class="comment">// fs.lstat = statFix(fs.lstat)</span></span><br></pre></td></tr></table></figure>
+
+<p><code>gitbook init</code> 又报错了</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">TypeError [ERR_INVALID_ARG_TYPE]: The <span class="string">&quot;data&quot;</span> argument must be of <span class="built_in">type</span> string or an instance of Buffer, TypedArray, or DataView. Received an instance of Promise</span><br></pre></td></tr></table></figure>
+
+<p>说是版本过高。。。。草了, 打算使用 nvm 降一下</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 然而 DNS 被污染了，并不能拿到对应的文件，直接下载过到本地就行了, 然后 bash install.sh 即可</span></span><br><span class="line">curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash</span><br><span class="line"></span><br><span class="line"><span class="built_in">source</span> ~/.zshrc</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看安装结果，nvm 提示很完善</span></span><br><span class="line">nvm --version </span><br><span class="line"></span><br><span class="line">nvm ls-remote</span><br><span class="line"></span><br><span class="line">nvm install v13.14.0</span><br><span class="line"></span><br><span class="line">nvm use v13.14.0</span><br></pre></td></tr></table></figure>
+
+<p>切换版本之后，运行正常, 我估计可能 nvm 之后前面的那些改 js 文件的操作都可以省了</p>
+<h2 id="gitbook-使用"><a href="#gitbook-使用" class="headerlink" title="gitbook 使用"></a>gitbook 使用</h2><ul>
+<li><a href="https://chrisniael.gitbooks.io/gitbook-documentation/content/">中文版</a></li>
+</ul>
+<ol>
+<li>创建书本文件并 <code>gitbook init</code> 生成目录</li>
+<li><code>gitbook serve</code> 生成本地版电子书，访问 4000 端口阅读</li>
+</ol>
+<p>常用规则</p>
+<p>常用插件</p>
+<ul>
+<li>gitbook-plugin-summary 可以更具文件夹目录帮你自动生成对应的 summary 文件内容，安装完后输入 <code>book sm</code> 自动更新</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Nodejs</category>
+      </categories>
+      <tags>
+        <tag>gitbook</tag>
       </tags>
   </entry>
   <entry>

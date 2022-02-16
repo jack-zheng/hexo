@@ -206,6 +206,148 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/07/29/HTW-ex06/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/07/29/HTW-ex06/" class="post-title-link" itemprop="url">Ex06 生命周期</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-07-29 16:36:06" itemprop="dateCreated datePublished" datetime="2021-07-29T16:36:06+08:00">2021-07-29</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-02-16 13:29:44" itemprop="dateModified" datetime="2022-02-16T13:29:44+08:00">2022-02-16</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/Tomcat/" itemprop="url" rel="index">
+                    <span itemprop="name">Tomcat</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p><strong>Chapter 6</strong> explains the Lifecycle interface.<br>This interface defines the lifecycle of a Catalina component and provides an elegant way of notifying other components of events that occur in that component.<br>In addition, the Lifecycle interface provides an elegant mechanism for starting and stopping all the components in Catalina by one single start/stop.</p>
+</blockquote>
+<p>Catalina 是由多个模块组成的，当 Catalina 启动时，这些模块也要一起启动，停止时也是。比如 destroy 所有的 servlet，将 session 存到二级缓存等。Catalina 通过 Lifecycle 接口管理这些事件。</p>
+<p>实现了 Lifecycle 的组件可以出发以下事件</p>
+<ul>
+<li>BEFORE_START_EVENT</li>
+<li>START_EVENT</li>
+<li>AFTER_START_EVENT</li>
+<li>BEFORE_STOP_EVENT</li>
+<li>STOP_EVENT</li>
+<li>AFTER_STOP_EVENT</li>
+</ul>
+<p>LifecycleEvent 这个接口表示上面这些事件。这些事件可以由 LifecycleListener 监听。本章会介绍上面这些类，介绍 LifecycleSupport，他可以帮助组件处理事件和监听器。</p>
+<p>理解本章的关键点是理解如下概念</p>
+<p>Lifecycle: 实现这个接口的 component 可以发送 event</p>
+<p>LifecycleEvent: 代表具体的 event 事件，比如 开始，停止之类的</p>
+<p>LifecycleListener: 监听事件的类</p>
+<p>LifecycleSupport: Util 类，提供简化处理事件的方法. 一个实现了 Lifecycle 的 class 如果要添加 Listener 就得内部创建一些容器，比如 ArrayList 管理这些 Listener。LifecycleSupport 就是用来代替这些容器的。</p>
+<h2 id="The-Lifecycle-Interface"><a href="#The-Lifecycle-Interface" class="headerlink" title="The Lifecycle Interface"></a>The Lifecycle Interface</h2><p>Catalina 允许一个 component 包含另一个 component。比如 container 可以包含 loader，manager 等。父组件需要管理子组件的起止。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Lifecycle</span> </span>&#123;</span><br><span class="line">    String START_EVENT = <span class="string">&quot;start&quot;</span>;</span><br><span class="line">    String BEFORE_START_EVENT = <span class="string">&quot;before_start&quot;</span>;</span><br><span class="line">    String AFTER_START_EVENT = <span class="string">&quot;after_start&quot;</span>;</span><br><span class="line">    String STOP_EVENT = <span class="string">&quot;stop&quot;</span>;</span><br><span class="line">    String BEFORE_STOP_EVENT = <span class="string">&quot;before_stop&quot;</span>;</span><br><span class="line">    String AFTER_STOP_EVENT = <span class="string">&quot;after_stop&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">addLifecycleListener</span><span class="params">(LifecycleListener var1)</span></span>;</span><br><span class="line"></span><br><span class="line">    LifecycleListener[] findLifecycleListeners();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">removeLifecycleListener</span><span class="params">(LifecycleListener var1)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">start</span><span class="params">()</span> <span class="keyword">throws</span> LifecycleException</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">stop</span><span class="params">()</span> <span class="keyword">throws</span> LifecycleException</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>start 和 stop 是其中的核心方法，component 提供对应的实现，parent component 可以 调用start/stop 方法。其他三个方法是用来监听事件的。</p>
+<h2 id="The-LifecycleEvent-Class"><a href="#The-LifecycleEvent-Class" class="headerlink" title="The LifecycleEvent Class"></a>The LifecycleEvent Class</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">LifecycleEvent</span> <span class="keyword">extends</span> <span class="title">EventObject</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">LifecycleEvent</span><span class="params">(Lifecycle lifecycle, String type)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>(lifecycle, type, <span class="keyword">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">LifecycleEvent</span><span class="params">(Lifecycle lifecycle, String type, Object data)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(lifecycle);</span><br><span class="line">        <span class="keyword">this</span>.lifecycle = lifecycle;</span><br><span class="line">        <span class="keyword">this</span>.type = type;</span><br><span class="line">        <span class="keyword">this</span>.data = data;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Object data = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Lifecycle lifecycle = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String type = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">getData</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (<span class="keyword">this</span>.data);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Lifecycle <span class="title">getLifecycle</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (<span class="keyword">this</span>.lifecycle);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getType</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (<span class="keyword">this</span>.type);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="The-LifecycleListener-Interface"><a href="#The-LifecycleListener-Interface" class="headerlink" title="The LifecycleListener Interface"></a>The LifecycleListener Interface</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">LifecycleListener</span> </span>&#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Acknowledge the occurrence of the specified event.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> event LifecycleEvent that has occurred</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">lifecycleEvent</span><span class="params">(LifecycleEvent event)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="The-LifecycleSupport-Class"><a href="#The-LifecycleSupport-Class" class="headerlink" title="The LifecycleSupport Class"></a>The LifecycleSupport Class</h2><p>这个 support 类内部声明了一个 Array 变量存储要操作的 Listener: <code>private LifecycleListener listeners[] = new LifecycleListener[0];</code>. 主就三个方法:</p>
+<ul>
+<li>addLifecycleListener</li>
+<li>findLifecycleListeners</li>
+<li>fireLifecycleEvent</li>
+<li>removeLifecycleListener</li>
+</ul>
+<p>addLifecycleListener(LifecycleListener listener) 被调用时，老的 listener list size + 1， 老的 listener 被拷贝，最后再加上新的这个 listener。</p>
+<p>removeLifecycleListener(LifecycleListener listener): 遍历所有的 listener 如果有则删除，最后新建一个 size - 1 的 list，将原来的 list 拷贝进去</p>
+<h2 id="The-Application"><a href="#The-Application" class="headerlink" title="The Application"></a>The Application</h2><p>实验环境是在 ex05 之上，删掉了额外 valves，context 实现了 Lifecycle 和 listener 接口。</p>
+<img  src=http://www.plantuml.com/plantuml/svg/Iyv9B2vMyCbCIqskJCv93IujACWlAk7Ap2j9BKfBJ4v5I64JyyaiBadDIotYua8tGS56Jqz1gRGujLX98JWpjo0drJaVgB-YX0YLuKM91GKeXYhOr00LuJ07MHAc5QjaG6P1QavcNYfsMP_yn1HSEg5s-gAx2-P_B6hnXP62dXrc6080>
+
+<p>启动项目可以看到如下 log</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">HttpConnector Opening server socket on all host IP addresses</span><br><span class="line">HttpConnector[8080] Starting background thread</span><br><span class="line">SimpleContextLifecycleListener&#x27;s event before_start</span><br><span class="line">Starting SimpleLoader</span><br><span class="line">Starting Wrapper Primitive</span><br><span class="line">Starting Wrapper Modern</span><br><span class="line">SimpleContextLifecycleListener&#x27;s event start</span><br><span class="line">Starting context.</span><br><span class="line">SimpleContextLifecycleListener&#x27;s event after_start</span><br><span class="line"></span><br><span class="line">SimpleContextLifecycleListener&#x27;s event before_stop</span><br><span class="line">SimpleContextLifecycleListener&#x27;s event stop</span><br><span class="line">Stopping context.</span><br><span class="line">Stopping wrapper Primitive</span><br><span class="line">Stopping wrapper Modern</span><br><span class="line">SimpleContextLifecycleListener&#x27;s event after_stop</span><br></pre></td></tr></table></figure>
+
+<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>Q: SimpleContext 中 fire 的 event 是什么时候被 listener 执行的，代码在哪里</p>
+<p>A: 在 SimpleContext 的 start() 里。但是和我臆想的事件处理不同，感觉这最多是个伪事件。我本以为他会有一个多线程之类的东西。<br>实际处理的时候，start() 方法一开始就通过 support 发出了一个 before 的 event，support 发送的时候会调用 listener 实现对应的逻辑。说到底还是串行操作。</p>
+<p>Q: 这个 event 和 listener 是不是用了观察这模式啊，复习一下</p>
+<p>A: 貌似没有，没看出来</p>
+<h2 id="解构"><a href="#解构" class="headerlink" title="解构"></a>解构</h2><p>复盘一下这个 Lifecycle 的原理。Tomcat 提供了一个机制，通过套娃的方式，让所有相关的组件知道某个事件发生了，并让他可以采取相应的动作。</p>
+<p>PS: 解构的时候才注意到，start() 和 stop() 方法中操作的 component 对象，顺序上是相反的，666</p>
+<p>这里当 event 发生时，有两种对象需要进行操作，一种是 Component，代表 Tomcat 里的 service 组件。另一种是 Listener，我的理解是，独立于 Tomcat 之外的一些 service，比如 log 之类的东西。</p>
+<p>Listener 说白了就是定义了一个接口，接受 event 作为参数，实现中通过 if-else 判断 event 类型并采取对应的行为</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">LifecycleListener</span> </span>&#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Acknowledge the occurrence of the specified event.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> event LifecycleEvent that has occurred</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">lifecycleEvent</span><span class="params">(LifecycleEvent event)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>没有理解透彻，不能很顺利的重构出这个模型，但是理解层面的话已经做到了。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/07/28/What-is-IPv6/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +379,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-01-25 20:51:14" itemprop="dateModified" datetime="2022-01-25T20:51:14+08:00">2022-01-25</time>
+                <time title="修改时间：2022-02-16 13:29:44" itemprop="dateModified" datetime="2022-02-16T13:29:44+08:00">2022-02-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -356,7 +498,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-01-25 20:51:14" itemprop="dateModified" datetime="2022-01-25T20:51:14+08:00">2022-01-25</time>
+                <time title="修改时间：2022-02-16 13:29:44" itemprop="dateModified" datetime="2022-02-16T13:29:44+08:00">2022-02-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -465,7 +607,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-01-25 20:51:14" itemprop="dateModified" datetime="2022-01-25T20:51:14+08:00">2022-01-25</time>
+                <time title="修改时间：2022-02-16 13:29:44" itemprop="dateModified" datetime="2022-02-16T13:29:44+08:00">2022-02-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -657,7 +799,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-01-25 20:51:14" itemprop="dateModified" datetime="2022-01-25T20:51:14+08:00">2022-01-25</time>
+                <time title="修改时间：2022-02-16 13:29:44" itemprop="dateModified" datetime="2022-02-16T13:29:44+08:00">2022-02-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -903,7 +1045,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-01-25 20:51:14" itemprop="dateModified" datetime="2022-01-25T20:51:14+08:00">2022-01-25</time>
+                <time title="修改时间：2022-02-16 13:29:44" itemprop="dateModified" datetime="2022-02-16T13:29:44+08:00">2022-02-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1110,7 +1252,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-01-25 20:51:14" itemprop="dateModified" datetime="2022-01-25T20:51:14+08:00">2022-01-25</time>
+                <time title="修改时间：2022-02-16 13:29:44" itemprop="dateModified" datetime="2022-02-16T13:29:44+08:00">2022-02-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1264,7 +1406,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-01-25 20:51:14" itemprop="dateModified" datetime="2022-01-25T20:51:14+08:00">2022-01-25</time>
+                <time title="修改时间：2022-02-16 13:29:44" itemprop="dateModified" datetime="2022-02-16T13:29:44+08:00">2022-02-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1377,7 +1519,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-01-25 20:51:14" itemprop="dateModified" datetime="2022-01-25T20:51:14+08:00">2022-01-25</time>
+                <time title="修改时间：2022-02-16 13:29:44" itemprop="dateModified" datetime="2022-02-16T13:29:44+08:00">2022-02-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1490,7 +1632,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-01-25 20:51:14" itemprop="dateModified" datetime="2022-01-25T20:51:14+08:00">2022-01-25</time>
+                <time title="修改时间：2022-02-16 13:29:44" itemprop="dateModified" datetime="2022-02-16T13:29:44+08:00">2022-02-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1562,130 +1704,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/07/08/VSCode-with-Hexo-and-PlantUML/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/07/08/VSCode-with-Hexo-and-PlantUML/" class="post-title-link" itemprop="url">VSCode 中配置 Hexo 集成 PlantUML 插件</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-07-08 13:33:40" itemprop="dateCreated datePublished" datetime="2021-07-08T13:33:40+08:00">2021-07-08</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-01-25 20:51:14" itemprop="dateModified" datetime="2022-01-25T20:51:14+08:00">2022-01-25</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E5%B0%8F%E5%B7%A5%E5%85%B7/" itemprop="url" rel="index">
-                    <span itemprop="name">小工具</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>866</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>本地使用 VSCode 作为文本编辑器，集成 Hexo 和 PlantUML 在写博客的时候可以插入 UML 图。</p>
-<h2 id="安装插件"><a href="#安装插件" class="headerlink" title="安装插件"></a>安装插件</h2><ol>
-<li>安装插件 <code>npm install hexo-tag-plantuml --save</code>, <a target="_blank" rel="noopener" href="https://github.com/two/hexo-tag-plantuml">插件 git 地址</a></li>
-<li><code>_config.yml</code> 中添加配置</li>
-</ol>
-<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">tag_plantuml:</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">static</span></span><br></pre></td></tr></table></figure>
-
-<p>UML 测试</p>
-<img  src=http://www.plantuml.com/plantuml/svg/SyfFqhLppCbCJbMmKiX8pSd91m00>
-
-<p>提交到 remote repo, 等 hexo deploy 之后可以看到 UML 图</p>
-<h2 id="VSCode-中显示-UML"><a href="#VSCode-中显示-UML" class="headerlink" title="VSCode 中显示 UML"></a>VSCode 中显示 UML</h2><p>上面的方式虽然远端可以显示了，但是本地查看的时候并不方便。VSCode 有提供插件可以在编辑器中显示对应的 UML</p>
-<h3 id="默认官方服务器生成-UML"><a href="#默认官方服务器生成-UML" class="headerlink" title="默认官方服务器生成 UML"></a>默认官方服务器生成 UML</h3><p>打开 VSCode, 在插件列表中搜索 PlantUML 并安装即可，使用 <code>@startuml</code> 和 <code>@enduml</code> 包裹 UML 代码</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">@startuml</span><br><span class="line">Bob-&gt;Alice : hello</span><br><span class="line">@enduml</span><br></pre></td></tr></table></figure>
-
-<p>点开 preview mode 可以看到 UML 成功生成</p>
-<h3 id="使用-local-server-显示-UML"><a href="#使用-local-server-显示-UML" class="headerlink" title="使用 local server 显示 UML"></a>使用 local server 显示 UML</h3><p>默认情况下插件使用官方服务器生成 UML，优点是方便，缺点是要联网，可能生存有延时。我们可以配置 local server 提供这个服务。已经有现成的 docker 镜像了，配置简单</p>
-<ol>
-<li>启动 container: <code>docker run -d -p 8080:8080 plantuml/plantuml-server:jetty</code> 或者 <code>docker run -d -p 8080:8080 plantuml/plantuml-server:tomcat</code> 效果一样，只是用了不同类型的服务器实现</li>
-<li>我本地有其他服务占用了 8080, 修改端口映射 <code>-p 7999:8080</code></li>
-<li>访问 <code>http://localhost:7999</code> 查看服务是否启动</li>
-<li>修改 VSCode 中 PlantUML 插件配置</li>
-</ol>
-<ul>
-<li>cmd+shift+p 搜索 open user setting</li>
-<li>关键子搜索 plantuml</li>
-<li>Plantuml:render 设置下选择 local</li>
-<li>Plantuml:server 输入本地 server 地址 <code>http://localhost:7999</code></li>
-</ul>
-<p>截图如下</p>
-<p><img src="plantuml_setting.png" alt="uml plugin setting"></p>
-<p>点击 preview 之前的 UML 正常显示，设置完成</p>
-<ul>
-<li><a target="_blank" rel="noopener" href="https://github.com/plantuml/plantuml-server">PlantUML docker 版 git 地址</a></li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1736,7 +1754,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">211</span>
+          <span class="site-state-item-count">212</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1749,7 +1767,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">190</span>
+        <span class="site-state-item-count">191</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1788,7 +1806,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">16:26</span>
+    <span title="站点阅读时长">16:28</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
