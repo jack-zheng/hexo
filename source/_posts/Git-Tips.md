@@ -7,6 +7,31 @@ tags:
 - git
 ---
 
+## 怎么更新 fork repo
+
+```bash
+# 检查 repo 状态
+git remote -v
+origin	git@github.corp:jack/vault.git (fetch)
+origin	git@github.corp:jack/vault.git (push)
+
+# 关联到原项目
+git remote add upstream git@github.corp:platform-core/vault.git
+# 检查 repo 状态
+git remote -v
+origin	git@github.corp:jack/vault.git (fetch)
+origin	git@github.corp:jack/vault.git (push)
+upstream	git@github.corp:platform-core/vault.git (fetch)
+upstream	git@github.corp:platform-core/vault.git (push)
+
+# 将原项目改动 sync 到本地
+git fetch upstream
+# 更新本地分支
+git merge upstream/master
+# 推送到本地分支的 remote，打完收工
+git push
+```
+
 ## 怎么查看一个月之前的版本信息
 
 最近发现一个 bug 不知道是不是自己的代码改出来的，由于是一些 context 的改动不好查。打算直接一点，使用一个月之前(我的改动还没有进去的节点)的 build 起一个服务测试一下, git 支持类似的查找
