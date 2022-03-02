@@ -47,6 +47,59 @@ tags:
     }
 ```
 
+## Mock 类的静态代码块
+
+测试类结构如下
+
+```java
+public class ClientIPUtils {
+  private static String token = null;
+
+  static {
+    token = someService.getToken();
+  }
+}
+```
+
+这种类型的测试中，可以通过以下方式绕过 静态代码块 中的逻辑。
+
+```java
+@BeforeClass
+public static void before() {
+  new MockUp<VaultUtil>() {
+    @Mock
+    void $clinit() {
+    }
+  };
+}
+```
+
+如果你的测试逻辑需要不同的 token，你不应该在 case level mock 他，因为它是类级别的代码，jvm 启动的时候只执行一次，之前我像下面这样写测试，导致第二个测试一直失败
+
+```java
+@Test
+public void test1() {
+  new Expectations() {
+    {
+      someService.getToken();
+      result = "fake";
+    }
+  };
+}
+
+@Test
+public void test2() {
+  new Expectations() {
+    {
+      someService.getToken();
+      result = "fake";
+    }
+  };
+}
+```
+
+解决办法是，通过 MockUp 绕过静态代码块的初始化，当需要改变值的时候，通过 `Deencapsulation.setField(Class, field_name, field_value);` 实现
+
 ## Mocked 作用域
 
 如果是 global 参数，那么所有 class 内的 case 都会有影响，如果是 method level 的那只有对应的 case 有影响
