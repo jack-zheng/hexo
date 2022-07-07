@@ -206,6 +206,239 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/07/04/Lesson-keep-humble/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2022/07/04/Lesson-keep-humble/" class="post-title-link" itemprop="url">Lesson keep humble</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-07-04 13:24:24" itemprop="dateCreated datePublished" datetime="2022-07-04T13:24:24+08:00">2022-07-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-07-07 14:14:10" itemprop="dateModified" datetime="2022-07-07T14:14:10+08:00">2022-07-07</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E6%9D%82%E8%AE%B0/" itemprop="url" rel="index">
+                    <span itemprop="name">杂记</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>最近这个从 session 中删除 provisioner bean 的工作做的确实不细致，有点懈怠了。在项目开始之前就没有做好工作安排，导致测试环境上出了 bug, 而且被其他 team challenge 了，实力打脸。以后应该吸取这个教训，案件还原如下。</p>
+<p>某日 MCAP 的需求提上日程(MCAP 是将现有服务移到公有云上的这么一个项目，所以要减小内存开销)，突然要落地这个 remove 的项目。前期有调研过，可行性方面还是没问题的，原始业务如下：</p>
+<p>在登陆时，将 provisioner bean 塞入 session， 在后续如果需要用到这个 bean, 通过 <code>context.get(&quot;provisionerBean&quot;)</code> 或者 <code>@Inject ProvisionerBean provisionerBean</code> 的方式获取。在查看原有业务时，我们发现，在存入 bean 的时候还会将对应的 id 存入 session。 那么作为解决方案，我们可以在现有拿 bean 的地方，通过拿 id 并查 DB 拿到 user 的方式绕过去。</p>
+<p>在给 module team 实施修改方案的时候，他们提出一些 concern：多了访问 DB 的过程，有降低 performance 的风险。和 arch review 了这种风险，结合我们的实际使用场景，这个 provisioner 是后台管理人员，作为维护和系统 setup 的角色，使用频率很低，所以可以忽略这种风险。</p>
+<p>目前为止都 OK 但是改代码的时候就有点粗暴，原来使用方式</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ProvisionerBean provisionerBean = SFContext.getContext().getInstance(SessionConstants.PROVISIONER_BEAN, <span class="keyword">false</span>);</span><br><span class="line"><span class="comment">// 或者</span></span><br><span class="line"><span class="meta">@Qualifier(SessionConstants.PROVISIONER_BEAN)</span></span><br><span class="line"><span class="meta">@Inject</span></span><br><span class="line"><span class="keyword">private</span> ProvisionerBean provisionerBean;</span><br></pre></td></tr></table></figure>
+
+<p>这种使用方式是不会抛异常的，只要 get 就行了，但是用查 DB 的方式代替之后，会额外附带异常处理类似</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">String provisionerId = SFContext.getContext().getInstance(SessionConstants.PROVISIONER_ID, <span class="keyword">false</span>);</span><br><span class="line">ProvisionerDataService provisionerDataService = SFContext.getContext().getInstance(ProvisionerDataService.NAME, <span class="keyword">true</span>);</span><br><span class="line">ProvisionerBean provisionerBean = <span class="keyword">null</span>;</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    provisionerBean = provisionerDataService.findProvisionerById(provisionerId);</span><br><span class="line">&#125; <span class="keyword">catch</span> (ServiceApplicationException e) &#123;</span><br><span class="line">    LOGGER.error(<span class="string">&quot;Exception occured while getting provisionerBean&quot;</span>,e);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>module team 反馈这种改法侵入性太强，会对他们的代码结构有很大的改变，涉及到源码和大批的 UT 改动。和他们讨论之后，我们打算将这个改动封装到我们内部的类中，并通过统一的接口暴露给外部使用。接口中处理异常，module 只负责调用而不产生其他副作用</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// provisionerServiceImpl.class</span></span><br><span class="line">fetchProvisionerFromContext() &#123;</span><br><span class="line">    String provisionerId = context.get(<span class="string">&quot;provisionerId&quot;</span>);</span><br><span class="line">    ProvisionerBean provisionerBean = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">if</span> (provisionerId != empty) &#123;</span><br><span class="line">        provisionerBean = service.findProvisionerFromDB(provisionerId);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        provisionerBean = context.get(provisionerBean);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> provisionerBean</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的只是简化版，实际代码中的逻辑还包括了从 session 中拿 provisioner bean 和 db 中查询结果做比较，如果不同则返回 session 中的结果并打印 log 记录。然后我们有另外一套 Splunk 的系统，我们可以在代码部署后通过检查 log 检测是否有预期外的行为，而且这种方式不会对现有的行为产生任何影响。</p>
+<p>然而世事难料，和 Arch review 代码的时候，他提出了一种新的修改方式，由于我们要改的那些东西是在 SFContext 里面的，我们也许可以通过框架层面的修改来改变 bean 的生成方式，这种方式的侵入性是最小的。ProvisionerBean 是通过 factory bean 的方式向 context 的中注入 bean 的，我们可以 refactor 一下生成方式，改为先从 session 中拿到 id 然后调用 service 拿 DB 数据组成 bean。这样的话，所有调用点都不用改了，perfect！</p>
+<p>又经过一轮 research，大致确定了通过修改 factory bean 的方案，我们返回 prototype 类型的 bean, 使用过后通过 GC 回收。而且后续其他 module 需要修改的代码量减少了很多, 对比如下</p>
+<table>
+<thead>
+<tr>
+<th align="left">Before</th>
+<th align="left">After</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">repo:12, call: 34</td>
+<td align="left">repo: 6, call: 8</td>
+</tr>
+</tbody></table>
+<p>感觉这才是 Arch 这个角色的价值。contract, 就硬改，也不会看修改的地方是什么feature，不会想测测是不是有可能做回归。我现能达到的程度是，能够将这个 refactor 的任务条理理清楚，做改动的时候有这个 sense 去看看调用栈，看看会不会有什么没考虑到的情况并考虑如何测试改动。Arch 则是看了要改的地方，先看看系统本身是不是有地方提供了统一处理的能里，在达到目的的同时，将影响最小化，做法很优雅。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/03/23/Email-protocal/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2022/03/23/Email-protocal/" class="post-title-link" itemprop="url">Email protocal</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-03-23 15:04:08" itemprop="dateCreated datePublished" datetime="2022-03-23T15:04:08+08:00">2022-03-23</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-07-07 14:14:10" itemprop="dateModified" datetime="2022-07-07T14:14:10+08:00">2022-07-07</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E5%8D%8F%E8%AE%AE/" itemprop="url" rel="index">
+                    <span itemprop="name">协议</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>947</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <table>
+<thead>
+<tr>
+<th align="left">Name</th>
+<th align="left">Usage</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">SMTP</td>
+<td align="left">simple mail transfer protocal, 相当于中转站，将邮件发送到客户端</td>
+</tr>
+<tr>
+<td align="left">POP3</td>
+<td align="left">Post Office Protocol 3，将邮件从服务器下载到本地，同时删除邮件。是接收邮件的协。</td>
+</tr>
+<tr>
+<td align="left">IMAP</td>
+<td align="left">Internet Mail Access Protocol, 支持文件夹功能</td>
+</tr>
+<tr>
+<td align="left">Exchange server</td>
+<td align="left">微软提供的邮件服务</td>
+</tr>
+</tbody></table>
+<h2 id="python-案例"><a href="#python-案例" class="headerlink" title="python 案例"></a>python 案例</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> smtplib</span><br><span class="line"></span><br><span class="line">smtp = smtplib.SMTP(<span class="string">&quot;mail.sap.corp&quot;</span>, <span class="number">587</span>)</span><br><span class="line">smtp.starttls() <span class="comment"># this seting is required</span></span><br><span class="line">smtp.login(<span class="string">&quot;sf-pla-usermanagement-authentication-mails&quot;</span>,<span class="string">&quot;Authentication1&quot;</span>)</span><br><span class="line">smtp.sendmail(<span class="string">&#x27;noreply+sf_pla_usermanagement_authentication@sap.corp&#x27;</span>, <span class="string">&#x27;jiabin.zheng01@sap.com&#x27;</span>, message)</span><br><span class="line">smtp.quit()</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">spring.mail.host&#x3D;mail.sap.corp</span><br><span class="line">spring.mail.port&#x3D;587</span><br><span class="line">spring.mail.username&#x3D;sf-pla-usermanagement-authentication-mails</span><br><span class="line">spring.mail.password&#x3D;Authentication1</span><br><span class="line">spring.mail.properties.mail.smtp.auth&#x3D;true</span><br><span class="line">spring.mail.properties.mail.smtp.starttls.enable&#x3D;true</span><br><span class="line">spring.mail.properties.mail.smtp.starttls.required&#x3D;true</span><br><span class="line">spring.mail.properties.mail.smtp.from&#x3D;noreply+sf_pla_usermanagement_authentication@sap.corp</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/02/21/Java-exception/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +470,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-03-02 16:18:44" itemprop="dateModified" datetime="2022-03-02T16:18:44+08:00">2022-03-02</time>
+                <time title="修改时间：2022-07-07 14:14:10" itemprop="dateModified" datetime="2022-07-07T14:14:10+08:00">2022-07-07</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -333,7 +566,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-03-02 16:18:44" itemprop="dateModified" datetime="2022-03-02T16:18:44+08:00">2022-03-02</time>
+                <time title="修改时间：2022-07-07 14:14:10" itemprop="dateModified" datetime="2022-07-07T14:14:10+08:00">2022-07-07</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -458,7 +691,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-03-02 16:18:44" itemprop="dateModified" datetime="2022-03-02T16:18:44+08:00">2022-03-02</time>
+                <time title="修改时间：2022-07-07 14:14:10" itemprop="dateModified" datetime="2022-07-07T14:14:10+08:00">2022-07-07</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -556,7 +789,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-03-02 16:18:44" itemprop="dateModified" datetime="2022-03-02T16:18:44+08:00">2022-03-02</time>
+                <time title="修改时间：2022-07-07 14:14:10" itemprop="dateModified" datetime="2022-07-07T14:14:10+08:00">2022-07-07</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -682,7 +915,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-03-02 16:18:44" itemprop="dateModified" datetime="2022-03-02T16:18:44+08:00">2022-03-02</time>
+                <time title="修改时间：2022-07-07 14:14:10" itemprop="dateModified" datetime="2022-07-07T14:14:10+08:00">2022-07-07</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -773,7 +1006,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-03-02 16:18:44" itemprop="dateModified" datetime="2022-03-02T16:18:44+08:00">2022-03-02</time>
+                <time title="修改时间：2022-07-07 14:14:10" itemprop="dateModified" datetime="2022-07-07T14:14:10+08:00">2022-07-07</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -878,7 +1111,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-03-02 16:18:44" itemprop="dateModified" datetime="2022-03-02T16:18:44+08:00">2022-03-02</time>
+                <time title="修改时间：2022-07-07 14:14:10" itemprop="dateModified" datetime="2022-07-07T14:14:10+08:00">2022-07-07</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -975,7 +1208,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-03-02 16:18:44" itemprop="dateModified" datetime="2022-03-02T16:18:44+08:00">2022-03-02</time>
+                <time title="修改时间：2022-07-07 14:14:10" itemprop="dateModified" datetime="2022-07-07T14:14:10+08:00">2022-07-07</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1042,205 +1275,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/12/02/Java-try-with-resources/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/12/02/Java-try-with-resources/" class="post-title-link" itemprop="url">try-catch-with-resources 语法中各分支的执行顺序</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-12-02 15:23:58" itemprop="dateCreated datePublished" datetime="2021-12-02T15:23:58+08:00">2021-12-02</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-03-02 16:18:44" itemprop="dateModified" datetime="2022-03-02T16:18:44+08:00">2022-03-02</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/java/" itemprop="url" rel="index">
-                    <span itemprop="name">java</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>590</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>Refer: <a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/24129088/are-resources-closed-before-or-after-the-finally">StackOverflow</a></p>
-<p>结论：先执行 try 中内容，再执行关闭资源的行为，然后是 catch 最后再 finally</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CloseableDummy</span> <span class="keyword">implements</span> <span class="title">Closeable</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">close</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;closing&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CloseableDemo</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> (CloseableDummy closableDummy = <span class="keyword">new</span> CloseableDummy()) &#123;</span><br><span class="line">      System.out.println(<span class="string">&quot;try exit&quot;</span>);</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> Exception();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception ex) &#123;</span><br><span class="line">      System.out.println(<span class="string">&quot;catch&quot;</span>);</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">      System.out.println(<span class="string">&quot;finally&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// try exit</span></span><br><span class="line"><span class="comment">// closing</span></span><br><span class="line"><span class="comment">// catch</span></span><br><span class="line"><span class="comment">// finally</span></span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/11/30/Spring-bean-definition/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/11/30/Spring-bean-definition/" class="post-title-link" itemprop="url">Spring bean definition</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-11-30 13:13:05" itemprop="dateCreated datePublished" datetime="2021-11-30T13:13:05+08:00">2021-11-30</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-03-02 16:18:44" itemprop="dateModified" datetime="2022-03-02T16:18:44+08:00">2022-03-02</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/Spring/" itemprop="url" rel="index">
-                    <span itemprop="name">Spring</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>896</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>根据<a target="_blank" rel="noopener" href="https://docs.spring.io/spring-framework/docs/current/reference/html/core.html#bean-overview">官方</a>定义, 简单来说，bean definition 就是一个 bean 的定义</p>
-<p>A Spring IoC container manages one or more beans. These beans are created with the configuration metadata that you supply to the container (for example, in the form of XML <bean/> definitions).</p>
-<p>Within the container itself, these bean definitions are represented as BeanDefinition objects, which contain (among other information) the following metadata:</p>
-<ul>
-<li>A package-qualified class name: typically, the actual implementation class of the bean being defined.</li>
-<li>Bean behavioral configuration elements, which state how the bean should behave in the container (scope, lifecycle callbacks, and so forth).</li>
-<li>References to other beans that are needed for the bean to do its work. These references are also called collaborators or dependencies.</li>
-<li>Other configuration settings to set in the newly created object — for example, the size limit of the pool or the number of connections to use in a bean that manages a connection pool.</li>
-</ul>
-<p>bean definition 包含：</p>
-<ul>
-<li>全名限定，通常是实现类的全名限定</li>
-<li>bean 相关配置，包括 scope, lifecycle 等</li>
-<li>bean 的依赖</li>
-<li>实例化的属性，比如 pool size 之类的</li>
-</ul>
-<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/189896257">Zhihu</a></li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1291,20 +1325,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">213</span>
+          <span class="site-state-item-count">215</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/hexo/categories/">
           
-        <span class="site-state-item-count">34</span>
+        <span class="site-state-item-count">35</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">191</span>
+        <span class="site-state-item-count">193</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1343,7 +1377,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">16:29</span>
+    <span title="站点阅读时长">16:32</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
