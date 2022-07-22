@@ -1,5 +1,5 @@
 ---
-title: Lesson keep humble
+title: 学徒的心
 date: 2022-07-04 13:24:24
 categories:
 - 杂记
@@ -64,7 +64,9 @@ fetchProvisionerFromContext() {
 
 | Before            | After            |
 | :---------------- | :--------------- |
-| repo:12, call: 34 | repo: 6, call: 8 |
+| repo:13, call: 34 | repo: 6, call: 9 |
+
+如果修改点比较多，还需要专门建立一个文档记录修改做追踪用
 
 感觉这才是 Arch 这个角色的价值。contract, 就硬改，也不会看修改的地方是什么feature，不会想测测是不是有可能做回归。我现能达到的程度是，能够将这个 refactor 的任务条理理清楚，做改动的时候有这个 sense 去看看调用栈，看看会不会有什么没考虑到的情况并考虑如何测试改动。Arch 则是看了要改的地方，先看看系统本身是不是有地方提供了统一处理的能里，在达到目的的同时，将影响最小化，做法很优雅。
 
