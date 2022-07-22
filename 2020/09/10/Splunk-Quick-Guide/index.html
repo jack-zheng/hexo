@@ -51,18 +51,18 @@
   };
 </script>
 
-  <meta name="description" content="常用 Query1234-- event 出现的次数search&#x3D;index | stats sum(linecount) as Total-- orsearch&#x3D;index | stats count as Total  查询 event 的日均量1234eventtype&#x3D;&quot;searchAccountLocked&quot; | timechart span&#x3D;1d count | s">
+  <meta name="description" content="常用 Query1234-- event 出现的次数search&#x3D;index | stats sum(linecount) as Total-- orsearch&#x3D;index | stats count as Total  makeresults发现一个很有意思的函数，可以用它创建简单的测试数据，使用之前最好对照官方文档看看例子，新版有支持 format 为 json, csv 的数据，旧版不行">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Splunk 快速入门">
 <meta property="og:url" content="https://jack-zheng.github.io/hexo/2020/09/10/Splunk-Quick-Guide/index.html">
 <meta property="og:site_name" content="Jackpot">
-<meta property="og:description" content="常用 Query1234-- event 出现的次数search&#x3D;index | stats sum(linecount) as Total-- orsearch&#x3D;index | stats count as Total  查询 event 的日均量1234eventtype&#x3D;&quot;searchAccountLocked&quot; | timechart span&#x3D;1d count | s">
+<meta property="og:description" content="常用 Query1234-- event 出现的次数search&#x3D;index | stats sum(linecount) as Total-- orsearch&#x3D;index | stats count as Total  makeresults发现一个很有意思的函数，可以用它创建简单的测试数据，使用之前最好对照官方文档看看例子，新版有支持 format 为 json, csv 的数据，旧版不行">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://jack-zheng.github.io/hexo/2020/09/10/Splunk-Quick-Guide/pie.png">
 <meta property="og:image" content="https://jack-zheng.github.io/hexo/2020/09/10/Splunk-Quick-Guide/bar.png">
 <meta property="og:image" content="https://jack-zheng.github.io/hexo/2020/09/10/Splunk-Quick-Guide/regex.png">
 <meta property="article:published_time" content="2020-09-10T07:43:42.000Z">
-<meta property="article:modified_time" content="2022-07-07T06:14:10.404Z">
+<meta property="article:modified_time" content="2022-07-22T10:13:11.760Z">
 <meta property="article:author" content="Jack Zheng">
 <meta property="article:tag" content="splunk">
 <meta name="twitter:card" content="summary">
@@ -243,7 +243,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-07 14:14:10" itemprop="dateModified" datetime="2022-07-07T14:14:10+08:00">2022-07-07</time>
+                <time title="修改时间：2022-07-22 18:13:11" itemprop="dateModified" datetime="2022-07-22T18:13:11+08:00">2022-07-22</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -270,14 +270,14 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>3k</span>
+              <span>5.1k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>3 分钟</span>
+              <span>5 分钟</span>
             </span>
 
         </div>
@@ -291,8 +291,54 @@
       
         <h2 id="常用-Query"><a href="#常用-Query" class="headerlink" title="常用 Query"></a>常用 Query</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- event 出现的次数</span></span><br><span class="line">search=index | stats sum(linecount) as Total</span><br><span class="line"><span class="comment">-- or</span></span><br><span class="line">search=index | stats count as Total</span><br></pre></td></tr></table></figure>
 
-<h3 id="查询-event-的日均量"><a href="#查询-event-的日均量" class="headerlink" title="查询 event 的日均量"></a>查询 event 的日均量</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">eventtype=<span class="string">&quot;searchAccountLocked&quot;</span> | timechart span=1d count | stats avg(count)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在此基础上，计算 7 天的平均值</span></span><br><span class="line">eventtype=<span class="string">&quot;searchAccountLocked&quot;</span> | timechart span=1d count | stats avg(count) as avgc ｜ <span class="built_in">eval</span> n=exact(1 * avgc)</span><br></pre></td></tr></table></figure>
+<h2 id="makeresults"><a href="#makeresults" class="headerlink" title="makeresults"></a>makeresults</h2><p>发现一个很有意思的函数，可以用它创建简单的测试数据，使用之前最好对照官方文档看看例子，新版有支持 format 为 json, csv 的数据，旧版不行</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://docs.splunk.com/Documentation/Splunk/8.1.4/SearchReference/Makeresults">makeresults</a></li>
+</ul>
+<h2 id="行转列-transpose"><a href="#行转列-transpose" class="headerlink" title="行转列 transpose"></a>行转列 transpose</h2><p>如果统计结果为</p>
+<table>
+<thead>
+<tr>
+<th align="left">A</th>
+<th align="left">B</th>
+<th align="left">C</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">1</td>
+<td align="left">2</td>
+<td align="left">3</td>
+</tr>
+</tbody></table>
+<p>转化为饼图的时候，只会显示 A 类型的数据，因为 Splunk 默认使用 X 轴作为分类标的。这时可以使用 <code>search cmd | transpose</code> 达到行专列的效果</p>
+<h2 id="stats-vs-eventstats-vs-streamstats"><a href="#stats-vs-eventstats-vs-streamstats" class="headerlink" title="stats vs eventstats vs streamstats"></a>stats vs eventstats vs streamstats</h2><p>stats 类似 sql 中的聚合函数，计算之后，只会产出一行数据</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">| makeresults count&#x3D;4 </span><br><span class="line">| streamstats count </span><br><span class="line">| eval age &#x3D; case(count&#x3D;1, 25, count&#x3D;2, 39, count&#x3D;3, 31, count&#x3D;4, null())</span><br><span class="line">| eval city &#x3D; case(count&#x3D;1 OR count&#x3D;3, &quot;San Francisco&quot;, count&#x3D;2 OR count&#x3D;4, &quot;Seattle&quot;) </span><br><span class="line">| stats sum(age)</span><br></pre></td></tr></table></figure>
 
+<p>eventstats 工作时并不会改变原始数据，而是在原有的 raw 数据外新增一列数据</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">| makeresults count&#x3D;4 </span><br><span class="line">| streamstats count </span><br><span class="line">| eval age &#x3D; case(count&#x3D;1, 25, count&#x3D;2, 39, count&#x3D;3, 31, count&#x3D;4, null())</span><br><span class="line">| eval city &#x3D; case(count&#x3D;1 OR count&#x3D;3, &quot;San Francisco&quot;, count&#x3D;2 OR count&#x3D;4, &quot;Seattle&quot;)</span><br><span class="line">| eventstats avg(age) by city</span><br></pre></td></tr></table></figure>
+
+<p>streamstats 和 eventstats 很像，也是不改变原数据去新增一列的操作，区别就在 stream 这个关键字，它是用流的方式处理。只在每条数据出现的节点做计算</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">| makeresults count&#x3D;4 </span><br><span class="line">| streamstats count </span><br><span class="line">| eval age &#x3D; case(count&#x3D;1, 25, count&#x3D;2, 39, count&#x3D;3, 31, count&#x3D;4, null())</span><br><span class="line">| eval city &#x3D; case(count&#x3D;1 OR count&#x3D;3, &quot;San Francisco&quot;, count&#x3D;2 OR count&#x3D;4, &quot;Seattle&quot;)</span><br><span class="line">| streamstats  avg(age) by city</span><br></pre></td></tr></table></figure>
+
+<p>还是相同的案例，用 streamstats 计算平均值时，第一个 San Francisco 均值为自身，第二个则为两个之和做平均了，很神奇。</p>
+<p>此外 streamstats count 还可以用来显示<strong>序号</strong></p>
+<h2 id="去重"><a href="#去重" class="headerlink" title="去重"></a>去重</h2><p>可以使用 dedup</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">| makeresults count&#x3D;4 </span><br><span class="line">| streamstats count </span><br><span class="line">| eval age &#x3D; case(count&#x3D;1, 25, count&#x3D;2, 39, count&#x3D;3, 31, count&#x3D;4, null())</span><br><span class="line">| eval city &#x3D; case(count&#x3D;1 OR count&#x3D;3, &quot;San Francisco&quot;, count&#x3D;2 OR count&#x3D;4, &quot;Seattle&quot;)</span><br><span class="line">| dedup city</span><br></pre></td></tr></table></figure>
+
+<p>当然也可以使用 stats 计算 count 达到曲线救国的效果</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">search result </span><br><span class="line">| stats count by city</span><br><span class="line"></span><br><span class="line">或者</span><br><span class="line">| stats values(city)</span><br></pre></td></tr></table></figure>
+
+<h2 id="eval"><a href="#eval" class="headerlink" title="eval"></a>eval</h2><p>通过 eval 可以在原有数据的基础上，通过计算新增一列数据，是 stream 类型的 command。比如我们想要添加 flag 列，条件为 responseTime &gt; 5000 的值为 1 否则为 0. search 语句可以这样写 <code>search command | eval Status=if(responseTime &gt; 10000, 1, 0)</code></p>
+<h2 id="查询-event-的日均量"><a href="#查询-event-的日均量" class="headerlink" title="查询 event 的日均量"></a>查询 event 的日均量</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">eventtype=<span class="string">&quot;searchAccountLocked&quot;</span> | timechart span=1d count | stats avg(count)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在此基础上，计算 7 天的平均值</span></span><br><span class="line">eventtype=<span class="string">&quot;searchAccountLocked&quot;</span> | timechart span=1d count | stats avg(count) as avgc ｜ <span class="built_in">eval</span> n=exact(1 * avgc)</span><br></pre></td></tr></table></figure>
+
+<h2 id="table-where-达到-filter-的效果"><a href="#table-where-达到-filter-的效果" class="headerlink" title="table + where 达到 filter 的效果"></a>table + where 达到 filter 的效果</h2><p>pipeline 后面接 where 语句可以起到 filter 的效果，和 SQL 一样</p>
+<h2 id="收集分散在多个-event-中的数据"><a href="#收集分散在多个-event-中的数据" class="headerlink" title="收集分散在多个 event 中的数据"></a>收集分散在多个 event 中的数据</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://community.splunk.com/t5/Splunk-Search/Joining-data-from-multiple-events-with-stats/m-p/526162">join form multi events</a></li>
+</ul>
+<p>看到一个从多条分散的 event 中收集数据的例子，刚好是我现在需要的。核心思路是通过 eventstats 为每个 event 计算一个新的 field 做跳板</p>
+<p>这里还有一个很神奇的语法，通过 values 统计出来的结果，在 if 条件中，我们可以直接通过使用 field=values 的语法达到类似 in 的效果。找了半天文档，没发现有这种个语法说明 （；￣ェ￣）</p>
+<p>想过相似的还有一个 command 叫做 <a target="_blank" rel="noopener" href="https://docs.splunk.com/Documentation/Splunk/9.0.0/Search/Aboutsubsearches">subsearch</a>，通过自查询缩小范围，然后进一步查询</p>
+<p>就我处理的案例来说，subsearch performance 要小很多，通过子查询可以很快的缩小处理范围</p>
 <h2 id="通过-Regex-匹配得到目标百分比"><a href="#通过-Regex-匹配得到目标百分比" class="headerlink" title="通过 Regex 匹配得到目标百分比"></a>通过 Regex 匹配得到目标百分比</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://community.splunk.com/t5/Splunk-Search/Get-percentage-of-matchin-to-all-events/td-p/39113">社区类似问题</a></li>
 </ul>
@@ -419,7 +465,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8-Query"><span class="nav-number">1.</span> <span class="nav-text">常用 Query</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2-event-%E7%9A%84%E6%97%A5%E5%9D%87%E9%87%8F"><span class="nav-number">1.1.</span> <span class="nav-text">查询 event 的日均量</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%9A%E8%BF%87-Regex-%E5%8C%B9%E9%85%8D%E5%BE%97%E5%88%B0%E7%9B%AE%E6%A0%87%E7%99%BE%E5%88%86%E6%AF%94"><span class="nav-number">2.</span> <span class="nav-text">通过 Regex 匹配得到目标百分比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%96%E4%B8%A4%E4%BD%8D%E5%B0%8F%E6%95%B0"><span class="nav-number">3.</span> <span class="nav-text">取两位小数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%9A%E8%BF%87%E6%AD%A3%E5%88%99%E5%88%9B%E5%BB%BA%E6%96%B0-field"><span class="nav-number">4.</span> <span class="nav-text">通过正则创建新 field</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#stats-%E5%92%8C-eval-%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">5.</span> <span class="nav-text">stats 和 eval 的区别</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Splunk-SDK"><span class="nav-number">6.</span> <span class="nav-text">Splunk SDK</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E4%B8%AA%E5%B0%8F%E4%BE%8B%E5%AD%90%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8"><span class="nav-number">7.</span> <span class="nav-text">三个小例子快速入门</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%90%9C%E7%B4%A2-event-%E5%B9%B6%E9%80%9A%E8%BF%87%E9%A5%BC%E5%9B%BE%E5%B1%95%E7%A4%BA"><span class="nav-number">7.1.</span> <span class="nav-text">搜索 event 并通过饼图展示</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%98%BE%E7%A4%BA%E6%AF%8F%E5%A4%A9%E7%9A%84-event-%E9%87%8F"><span class="nav-number">7.2.</span> <span class="nav-text">显示每天的 event 量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%9A%E8%BF%87%E6%AD%A3%E5%88%99%E5%88%A0%E9%80%89-event-%E5%B9%B6%E8%AE%A1%E7%AE%97%E7%99%BE%E5%88%86%E6%AF%94"><span class="nav-number">7.3.</span> <span class="nav-text">通过正则删选 event 并计算百分比</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8-Query"><span class="nav-number">1.</span> <span class="nav-text">常用 Query</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#makeresults"><span class="nav-number">2.</span> <span class="nav-text">makeresults</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%8C%E8%BD%AC%E5%88%97-transpose"><span class="nav-number">3.</span> <span class="nav-text">行转列 transpose</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#stats-vs-eventstats-vs-streamstats"><span class="nav-number">4.</span> <span class="nav-text">stats vs eventstats vs streamstats</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%BB%E9%87%8D"><span class="nav-number">5.</span> <span class="nav-text">去重</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#eval"><span class="nav-number">6.</span> <span class="nav-text">eval</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2-event-%E7%9A%84%E6%97%A5%E5%9D%87%E9%87%8F"><span class="nav-number">7.</span> <span class="nav-text">查询 event 的日均量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#table-where-%E8%BE%BE%E5%88%B0-filter-%E7%9A%84%E6%95%88%E6%9E%9C"><span class="nav-number">8.</span> <span class="nav-text">table + where 达到 filter 的效果</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%94%B6%E9%9B%86%E5%88%86%E6%95%A3%E5%9C%A8%E5%A4%9A%E4%B8%AA-event-%E4%B8%AD%E7%9A%84%E6%95%B0%E6%8D%AE"><span class="nav-number">9.</span> <span class="nav-text">收集分散在多个 event 中的数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%9A%E8%BF%87-Regex-%E5%8C%B9%E9%85%8D%E5%BE%97%E5%88%B0%E7%9B%AE%E6%A0%87%E7%99%BE%E5%88%86%E6%AF%94"><span class="nav-number">10.</span> <span class="nav-text">通过 Regex 匹配得到目标百分比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%96%E4%B8%A4%E4%BD%8D%E5%B0%8F%E6%95%B0"><span class="nav-number">11.</span> <span class="nav-text">取两位小数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%9A%E8%BF%87%E6%AD%A3%E5%88%99%E5%88%9B%E5%BB%BA%E6%96%B0-field"><span class="nav-number">12.</span> <span class="nav-text">通过正则创建新 field</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#stats-%E5%92%8C-eval-%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">13.</span> <span class="nav-text">stats 和 eval 的区别</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Splunk-SDK"><span class="nav-number">14.</span> <span class="nav-text">Splunk SDK</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E4%B8%AA%E5%B0%8F%E4%BE%8B%E5%AD%90%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8"><span class="nav-number">15.</span> <span class="nav-text">三个小例子快速入门</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%90%9C%E7%B4%A2-event-%E5%B9%B6%E9%80%9A%E8%BF%87%E9%A5%BC%E5%9B%BE%E5%B1%95%E7%A4%BA"><span class="nav-number">15.1.</span> <span class="nav-text">搜索 event 并通过饼图展示</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%98%BE%E7%A4%BA%E6%AF%8F%E5%A4%A9%E7%9A%84-event-%E9%87%8F"><span class="nav-number">15.2.</span> <span class="nav-text">显示每天的 event 量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%9A%E8%BF%87%E6%AD%A3%E5%88%99%E5%88%A0%E9%80%89-event-%E5%B9%B6%E8%AE%A1%E7%AE%97%E7%99%BE%E5%88%86%E6%AF%94"><span class="nav-number">15.3.</span> <span class="nav-text">通过正则删选 event 并计算百分比</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -435,20 +481,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">215</span>
+          <span class="site-state-item-count">219</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/hexo/categories/">
           
-        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-count">36</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">193</span>
+        <span class="site-state-item-count">197</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -487,7 +533,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">16:32</span>
+    <span title="站点阅读时长">16:39</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>

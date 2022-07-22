@@ -3961,6 +3961,23 @@
       </tags>
   </entry>
   <entry>
+    <title>Java Autocloseable</title>
+    <url>/hexo/2022/07/22/Java-Autocloseable/</url>
+    <content><![CDATA[<p>最近在看其他 team 的代码时，看到一个在 Filter 中添加 AutoCloseable 的方式来达到记录 perf log 的目的，听新颖的，记录一下并熟悉一下 AutoCloseable 接口的用法</p>
+<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><p>在这之前，我一直以为，想要在方法(request)执行前后记录执行时间，只能通过新建一个 拦截器 或者使用类似 Aspect 的技术。API team 的这个实现着实让我对 AutoCloseable 的使用有了新认识，之前对这个接口只是看到过的程度，哈哈。大致模型如下</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// perf 类实现 AutoCloseable 接口，在 close</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SimpleAutoCloseable</span> <span class="keyword">implements</span> <span class="title">AutoCloseable</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">SimpleAutoCloseable</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Start to record time cost for scope: &quot;</span> + name);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">close</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Stop record, print time cost: xx ms&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doFilter</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">try</span>(SimpleAutoCloseable auto = <span class="keyword">new</span> SimpleAutoCloseable(<span class="string">&quot;Request&quot;</span>)) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;special filter logic...&quot;</span>);</span><br><span class="line">            System.out.println(<span class="string">&quot;filterChain.doFilter(request, response)&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>测试类中，我们调用 client 的方法触发 try-with-resource 流程，查看 console log, 可以看到当 chain 的 doFilter 整体执行结束之后，自动打印了 perf 信息，666</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test_AutoCloseable_class_will_execute_close_after_try_block</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    Client client = <span class="keyword">new</span> Client();</span><br><span class="line">    client.doFilter();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Start to record time cost for scope: Request</span></span><br><span class="line"><span class="comment">// special filter logic...</span></span><br><span class="line"><span class="comment">// filterChain.doFilter(request, response)</span></span><br><span class="line"><span class="comment">// Stop record, print time cost: xx ms</span></span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>java</category>
+      </categories>
+      <tags>
+        <tag>AutoCloseable</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Java 中 C 语言风格的参数声明</title>
     <url>/hexo/2020/08/13/Java-C-Style-Declaration/</url>
     <content><![CDATA[<p>最近在调查一个 build issue 的时候发现有一段函数声明大致如下</p>
@@ -4187,9 +4204,18 @@
       </tags>
   </entry>
   <entry>
-    <title>Java 异常处理流程</title>
+    <title>Java 异常处理</title>
     <url>/hexo/2022/02/21/Java-exception/</url>
-    <content><![CDATA[<p>今天在写一段补偿代码的时候突然想到一个问题，当异常发生时，后续代码是否还会被执行的问题。测试前根据主管猜测，感觉如果有 try-catch, 那么会继续执行；没有则直接跳出了，相当于 return.</p>
+    <content><![CDATA[<h2 id="记录-log-并附带-stack-trace"><a href="#记录-log-并附带-stack-trace" class="headerlink" title="记录 log 并附带 stack trace"></a>记录 log 并附带 stack trace</h2><p>今天看到同事给我代码 review 的时候推荐使用 log.info(e.getMessage()) 时，不太清楚推荐的原因，特意 Google 了一下几种 log 记录方式</p>
+<ul>
+<li>info(ex)</li>
+<li>info(ex.getMessage())</li>
+<li>info(“msg”, ex)</li>
+</ul>
+<p>总的来说，第三种最好，前两种只会记录当前类的异常抛出记录，之前的信息都 miss 掉了</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExpTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">testMethod</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span> / <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExpClient</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = Logger.getLogger(ExpClient.class);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            ExpTest.testMethod();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;------------------------------&gt; msg, e &lt;------------------------------&quot;</span>);</span><br><span class="line">            logger.info(<span class="string">&quot;err...&quot;</span>, e);</span><br><span class="line">            System.out.println(<span class="string">&quot;------------------------------&gt; e &lt;------------------------------&quot;</span>);</span><br><span class="line">            logger.info(e);</span><br><span class="line">            System.out.println(<span class="string">&quot;------------------------------&gt; msg &lt;------------------------------&quot;</span>);</span><br><span class="line">            logger.info(e.getMessage());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 终端输出如下：</span></span><br><span class="line"><span class="comment">// ------------------------------&gt; msg, e &lt;------------------------------</span></span><br><span class="line"><span class="comment">//  INFO [main] (ExpClient.java:14) - err...</span></span><br><span class="line"><span class="comment">// java.lang.ArithmeticException: / by zero</span></span><br><span class="line"><span class="comment">//     at sementic.ExpTest.testMethod(ExpTest.java:5)</span></span><br><span class="line"><span class="comment">//     at sementic.ExpClient.main(ExpClient.java:11)</span></span><br><span class="line"><span class="comment">// ------------------------------&gt; e &lt;------------------------------</span></span><br><span class="line"><span class="comment">//  INFO [main] (ExpClient.java:16) - java.lang.ArithmeticException: / by zero</span></span><br><span class="line"><span class="comment">// ------------------------------&gt; msg &lt;------------------------------</span></span><br><span class="line"><span class="comment">//  INFO [main] (ExpClient.java:18) - / by zero</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="try-catch-执行流程"><a href="#try-catch-执行流程" class="headerlink" title="try-catch 执行流程"></a>try-catch 执行流程</h2><p>今天在写一段补偿代码的时候突然想到一个问题，当异常发生时，后续代码是否还会被执行的问题。测试前根据主观猜测，感觉如果有 try-catch, 那么会继续执行；没有则直接跳出了，相当于 return.</p>
 <h2 id="Scenario-1"><a href="#Scenario-1" class="headerlink" title="Scenario 1"></a>Scenario 1</h2><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test1</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">int</span> a = <span class="number">1</span>/<span class="number">0</span>;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(<span class="string">&quot;Log after exception&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// &gt; Task :idl-sfutil:idl-sfutil-service:Test1.main()</span></span><br><span class="line"><span class="comment">// Log after exception</span></span><br></pre></td></tr></table></figure>
 
 <p>抛错后继续执行</p>
@@ -4837,7 +4863,7 @@
       </tags>
   </entry>
   <entry>
-    <title>Lesson keep humble</title>
+    <title>学徒的心</title>
     <url>/hexo/2022/07/04/Lesson-keep-humble/</url>
     <content><![CDATA[<p>最近这个从 session 中删除 provisioner bean 的工作做的确实不细致，有点懈怠了。在项目开始之前就没有做好工作安排，导致测试环境上出了 bug, 而且被其他 team challenge 了，实力打脸。以后应该吸取这个教训，案件还原如下。</p>
 <p>某日 MCAP 的需求提上日程(MCAP 是将现有服务移到公有云上的这么一个项目，所以要减小内存开销)，突然要落地这个 remove 的项目。前期有调研过，可行性方面还是没问题的，原始业务如下：</p>
@@ -4863,10 +4889,11 @@
 </tr>
 </thead>
 <tbody><tr>
-<td align="left">repo:12, call: 34</td>
-<td align="left">repo: 6, call: 8</td>
+<td align="left">repo:13, call: 34</td>
+<td align="left">repo: 6, call: 9</td>
 </tr>
 </tbody></table>
+<p>如果修改点比较多，还需要专门建立一个文档记录修改做追踪用</p>
 <p>感觉这才是 Arch 这个角色的价值。contract, 就硬改，也不会看修改的地方是什么feature，不会想测测是不是有可能做回归。我现能达到的程度是，能够将这个 refactor 的任务条理理清楚，做改动的时候有这个 sense 去看看调用栈，看看会不会有什么没考虑到的情况并考虑如何测试改动。Arch 则是看了要改的地方，先看看系统本身是不是有地方提供了统一处理的能里，在达到目的的同时，将影响最小化，做法很优雅。</p>
 ]]></content>
       <categories>
@@ -5471,6 +5498,25 @@
       </categories>
       <tags>
         <tag>规范</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Python Superset install</title>
+    <url>/hexo/2022/07/22/Python-Superset-quick-start/</url>
+    <content><![CDATA[<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><p>docker 方式安装 Superset 的步骤中有一步是 load_example, 这步的过程中会去 github 上下载案例。不过由于 GFW 的问题，下载会失败。解决方案为，手动下载这个 repo 并在本地起一个服务器挂载这些资源，然后修改 docker 中下载 sample 脚本的配置即可。以下是下载资源，起服务部分配置</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget https://github.com/apache-superset/examples-data/archive/refs/heads/master.zip</span><br><span class="line">unzip master.zip</span><br><span class="line"><span class="comment"># 或者</span></span><br><span class="line">git <span class="built_in">clone</span> https://github.com/apache-superset/examples-data.git</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果是 zip 包方式，输入 cd examples-data-master</span></span><br><span class="line"><span class="built_in">cd</span> examples-data </span><br><span class="line"><span class="comment"># 启动服务器，这是你通过访问 localhost:9999 就能看到这个网站服务了</span></span><br><span class="line">python -m http.server 9999 </span><br><span class="line"><span class="comment"># 查看本机 ip 用于后续修改下载地址</span></span><br><span class="line"><span class="comment"># 显示结果中有一行格式类似 inet xx.xx.xx.xx netmask 0xffffe000 broadcast xx.xx.xx.xx</span></span><br><span class="line"><span class="comment"># 第一个 ip 段就是我们想要的</span></span><br><span class="line">ifconfig | grep inet</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="安装-Superset"><a href="#安装-Superset" class="headerlink" title="安装 Superset"></a>安装 Superset</h2><p>访问 <a href="https://hub.docker.com/r/apache/superset">dockerhub</a> 查看安装文档，其实就是跟着指导 CV 一遍指令</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 拉镜像并启动服务，通过 -p 参数修改外部暴露的端口 -p port_you_want:8088</span></span><br><span class="line">docker run -d -p 8080:8088 --name superset apache/superset</span><br><span class="line"><span class="comment"># 创建账户</span></span><br><span class="line">docker <span class="built_in">exec</span> -it superset superset fab create-admin \</span><br><span class="line">              --username admin \</span><br><span class="line">              --firstname Superset \</span><br><span class="line">              --lastname Admin \</span><br><span class="line">              --email admin@superset.com \</span><br><span class="line">              --password admin</span><br><span class="line"><span class="comment"># 升级 DB</span></span><br><span class="line">docker <span class="built_in">exec</span> -it superset superset db upgrade</span><br><span class="line"><span class="comment"># 修改下载地址</span></span><br><span class="line">docker <span class="built_in">exec</span> -it superset /bin/bash</span><br><span class="line">sed -i <span class="string">&#x27;s/BASE_URL = .*&quot;/BASE_URL = &quot;http:\/\/xx.xx.xx.xx:9999\/&quot;/g&#x27;</span> superset/examples/helpers.py</span><br><span class="line">sed -i <span class="string">&#x27;s/https:\/\/github.com\/apache-superset\/examples-data\/raw\/master\//http:\/\/xx.xx.xx.xx:9999\//g&#x27;</span> superset/examples/configs/datasets/examples/*.yaml</span><br><span class="line">sed -i <span class="string">&#x27;s/https:\/\/github.com\/apache-superset\/examples-data\/raw\/lowercase_columns_examples\//http:\/\/xx.xx.xx.xx:9999\//g&#x27;</span> superset/examples/configs/datasets/examples/*.yaml</span><br><span class="line">sed -i <span class="string">&#x27;s/https:\/\/raw.githubusercontent.com\/apache-superset\/examples-data\/master\//http:\/\/xx.xx.xx.xx:9999\//g&#x27;</span> superset/examples/configs/datasets/examples/*.yaml</span><br><span class="line"><span class="built_in">exit</span></span><br><span class="line"><span class="comment"># 加载案例</span></span><br><span class="line">docker <span class="built_in">exec</span> -it superset superset load_examples</span><br><span class="line"><span class="comment"># 官方说是 setup roles, 目测是账号权限之类的东西</span></span><br><span class="line">docker <span class="built_in">exec</span> -it superset superset init</span><br></pre></td></tr></table></figure>
+
+<p>到这里安装结束，通过访问 <a href="http://localhost:8080/login/">http://localhost:8080/login/</a> 查看页面，使用 admin/admin 登陆</p>
+<h2 id="画图案例"><a href="#画图案例" class="headerlink" title="画图案例"></a>画图案例</h2>]]></content>
+      <categories>
+        <category>python</category>
+      </categories>
+      <tags>
+        <tag>superset</tag>
       </tags>
   </entry>
   <entry>
@@ -6519,8 +6565,54 @@
     <url>/hexo/2020/09/10/Splunk-Quick-Guide/</url>
     <content><![CDATA[<h2 id="常用-Query"><a href="#常用-Query" class="headerlink" title="常用 Query"></a>常用 Query</h2><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="comment">-- event 出现的次数</span></span><br><span class="line">search=index | stats sum(linecount) as Total</span><br><span class="line"><span class="comment">-- or</span></span><br><span class="line">search=index | stats count as Total</span><br></pre></td></tr></table></figure>
 
-<h3 id="查询-event-的日均量"><a href="#查询-event-的日均量" class="headerlink" title="查询 event 的日均量"></a>查询 event 的日均量</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">eventtype=<span class="string">&quot;searchAccountLocked&quot;</span> | timechart span=1d count | stats avg(count)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在此基础上，计算 7 天的平均值</span></span><br><span class="line">eventtype=<span class="string">&quot;searchAccountLocked&quot;</span> | timechart span=1d count | stats avg(count) as avgc ｜ <span class="built_in">eval</span> n=exact(1 * avgc)</span><br></pre></td></tr></table></figure>
+<h2 id="makeresults"><a href="#makeresults" class="headerlink" title="makeresults"></a>makeresults</h2><p>发现一个很有意思的函数，可以用它创建简单的测试数据，使用之前最好对照官方文档看看例子，新版有支持 format 为 json, csv 的数据，旧版不行</p>
+<ul>
+<li><a href="https://docs.splunk.com/Documentation/Splunk/8.1.4/SearchReference/Makeresults">makeresults</a></li>
+</ul>
+<h2 id="行转列-transpose"><a href="#行转列-transpose" class="headerlink" title="行转列 transpose"></a>行转列 transpose</h2><p>如果统计结果为</p>
+<table>
+<thead>
+<tr>
+<th align="left">A</th>
+<th align="left">B</th>
+<th align="left">C</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">1</td>
+<td align="left">2</td>
+<td align="left">3</td>
+</tr>
+</tbody></table>
+<p>转化为饼图的时候，只会显示 A 类型的数据，因为 Splunk 默认使用 X 轴作为分类标的。这时可以使用 <code>search cmd | transpose</code> 达到行专列的效果</p>
+<h2 id="stats-vs-eventstats-vs-streamstats"><a href="#stats-vs-eventstats-vs-streamstats" class="headerlink" title="stats vs eventstats vs streamstats"></a>stats vs eventstats vs streamstats</h2><p>stats 类似 sql 中的聚合函数，计算之后，只会产出一行数据</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">| makeresults count&#x3D;4 </span><br><span class="line">| streamstats count </span><br><span class="line">| eval age &#x3D; case(count&#x3D;1, 25, count&#x3D;2, 39, count&#x3D;3, 31, count&#x3D;4, null())</span><br><span class="line">| eval city &#x3D; case(count&#x3D;1 OR count&#x3D;3, &quot;San Francisco&quot;, count&#x3D;2 OR count&#x3D;4, &quot;Seattle&quot;) </span><br><span class="line">| stats sum(age)</span><br></pre></td></tr></table></figure>
 
+<p>eventstats 工作时并不会改变原始数据，而是在原有的 raw 数据外新增一列数据</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">| makeresults count&#x3D;4 </span><br><span class="line">| streamstats count </span><br><span class="line">| eval age &#x3D; case(count&#x3D;1, 25, count&#x3D;2, 39, count&#x3D;3, 31, count&#x3D;4, null())</span><br><span class="line">| eval city &#x3D; case(count&#x3D;1 OR count&#x3D;3, &quot;San Francisco&quot;, count&#x3D;2 OR count&#x3D;4, &quot;Seattle&quot;)</span><br><span class="line">| eventstats avg(age) by city</span><br></pre></td></tr></table></figure>
+
+<p>streamstats 和 eventstats 很像，也是不改变原数据去新增一列的操作，区别就在 stream 这个关键字，它是用流的方式处理。只在每条数据出现的节点做计算</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">| makeresults count&#x3D;4 </span><br><span class="line">| streamstats count </span><br><span class="line">| eval age &#x3D; case(count&#x3D;1, 25, count&#x3D;2, 39, count&#x3D;3, 31, count&#x3D;4, null())</span><br><span class="line">| eval city &#x3D; case(count&#x3D;1 OR count&#x3D;3, &quot;San Francisco&quot;, count&#x3D;2 OR count&#x3D;4, &quot;Seattle&quot;)</span><br><span class="line">| streamstats  avg(age) by city</span><br></pre></td></tr></table></figure>
+
+<p>还是相同的案例，用 streamstats 计算平均值时，第一个 San Francisco 均值为自身，第二个则为两个之和做平均了，很神奇。</p>
+<p>此外 streamstats count 还可以用来显示<strong>序号</strong></p>
+<h2 id="去重"><a href="#去重" class="headerlink" title="去重"></a>去重</h2><p>可以使用 dedup</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">| makeresults count&#x3D;4 </span><br><span class="line">| streamstats count </span><br><span class="line">| eval age &#x3D; case(count&#x3D;1, 25, count&#x3D;2, 39, count&#x3D;3, 31, count&#x3D;4, null())</span><br><span class="line">| eval city &#x3D; case(count&#x3D;1 OR count&#x3D;3, &quot;San Francisco&quot;, count&#x3D;2 OR count&#x3D;4, &quot;Seattle&quot;)</span><br><span class="line">| dedup city</span><br></pre></td></tr></table></figure>
+
+<p>当然也可以使用 stats 计算 count 达到曲线救国的效果</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">search result </span><br><span class="line">| stats count by city</span><br><span class="line"></span><br><span class="line">或者</span><br><span class="line">| stats values(city)</span><br></pre></td></tr></table></figure>
+
+<h2 id="eval"><a href="#eval" class="headerlink" title="eval"></a>eval</h2><p>通过 eval 可以在原有数据的基础上，通过计算新增一列数据，是 stream 类型的 command。比如我们想要添加 flag 列，条件为 responseTime &gt; 5000 的值为 1 否则为 0. search 语句可以这样写 <code>search command | eval Status=if(responseTime &gt; 10000, 1, 0)</code></p>
+<h2 id="查询-event-的日均量"><a href="#查询-event-的日均量" class="headerlink" title="查询 event 的日均量"></a>查询 event 的日均量</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">eventtype=<span class="string">&quot;searchAccountLocked&quot;</span> | timechart span=1d count | stats avg(count)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在此基础上，计算 7 天的平均值</span></span><br><span class="line">eventtype=<span class="string">&quot;searchAccountLocked&quot;</span> | timechart span=1d count | stats avg(count) as avgc ｜ <span class="built_in">eval</span> n=exact(1 * avgc)</span><br></pre></td></tr></table></figure>
+
+<h2 id="table-where-达到-filter-的效果"><a href="#table-where-达到-filter-的效果" class="headerlink" title="table + where 达到 filter 的效果"></a>table + where 达到 filter 的效果</h2><p>pipeline 后面接 where 语句可以起到 filter 的效果，和 SQL 一样</p>
+<h2 id="收集分散在多个-event-中的数据"><a href="#收集分散在多个-event-中的数据" class="headerlink" title="收集分散在多个 event 中的数据"></a>收集分散在多个 event 中的数据</h2><ul>
+<li><a href="https://community.splunk.com/t5/Splunk-Search/Joining-data-from-multiple-events-with-stats/m-p/526162">join form multi events</a></li>
+</ul>
+<p>看到一个从多条分散的 event 中收集数据的例子，刚好是我现在需要的。核心思路是通过 eventstats 为每个 event 计算一个新的 field 做跳板</p>
+<p>这里还有一个很神奇的语法，通过 values 统计出来的结果，在 if 条件中，我们可以直接通过使用 field=values 的语法达到类似 in 的效果。找了半天文档，没发现有这种个语法说明 （；￣ェ￣）</p>
+<p>想过相似的还有一个 command 叫做 <a href="https://docs.splunk.com/Documentation/Splunk/9.0.0/Search/Aboutsubsearches">subsearch</a>，通过自查询缩小范围，然后进一步查询</p>
+<p>就我处理的案例来说，subsearch performance 要小很多，通过子查询可以很快的缩小处理范围</p>
 <h2 id="通过-Regex-匹配得到目标百分比"><a href="#通过-Regex-匹配得到目标百分比" class="headerlink" title="通过 Regex 匹配得到目标百分比"></a>通过 Regex 匹配得到目标百分比</h2><ul>
 <li><a href="https://community.splunk.com/t5/Splunk-Search/Get-percentage-of-matchin-to-all-events/td-p/39113">社区类似问题</a></li>
 </ul>
@@ -6570,6 +6662,26 @@
       </categories>
       <tags>
         <tag>splunk</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Spring AOP quick start</title>
+    <url>/hexo/2022/06/27/Spring-AOP-quick-start/</url>
+    <content><![CDATA[<p>快速了解 AOP 必要只是并写出 demo</p>
+<h2 id="简单概括什么是-AOP"><a href="#简单概括什么是-AOP" class="headerlink" title="简单概括什么是 AOP"></a>简单概括什么是 AOP</h2><p>不破坏代码结构的情况下，为代码添加功能，典型案例如打印方法的执行时间。</p>
+<h2 id="AOP-涉及的专有名词"><a href="#AOP-涉及的专有名词" class="headerlink" title="AOP 涉及的专有名词"></a>AOP 涉及的专有名词</h2><ul>
+<li>Joinpoint</li>
+<li>Pointcut</li>
+<li>Advice</li>
+<li>Aspect</li>
+<li>织入</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Spring</category>
+      </categories>
+      <tags>
+        <tag>AOP</tag>
       </tags>
   </entry>
   <entry>
@@ -7347,6 +7459,22 @@
       <tags>
         <tag>视频笔记</tag>
         <tag>springboot</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>统计学上的一些概念</title>
+    <url>/hexo/2022/07/20/Statistics-concept/</url>
+    <content><![CDATA[<h2 id="mean-vs-median-vs-mode"><a href="#mean-vs-median-vs-mode" class="headerlink" title="mean vs median vs mode"></a>mean vs median vs mode</h2><ul>
+<li>mean 很好理解，就是平均数，(N0 + N1 + … Nn )/n</li>
+<li>median 所有数排序，取中间那个即为 median</li>
+<li>mode, 用单词 most often 来解释好了，出现频率最高的那个数。比如有数组 1，2，3，3，5，5，5，5 那么 mode 为 5</li>
+</ul>
+]]></content>
+      <categories>
+        <category>数学</category>
+      </categories>
+      <tags>
+        <tag>统计</tag>
       </tags>
   </entry>
   <entry>

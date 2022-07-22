@@ -206,6 +206,280 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/07/22/Java-Autocloseable/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2022/07/22/Java-Autocloseable/" class="post-title-link" itemprop="url">Java Autocloseable</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-07-22 17:51:52 / 修改时间：18:13:11" itemprop="dateCreated datePublished" datetime="2022-07-22T17:51:52+08:00">2022-07-22</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>最近在看其他 team 的代码时，看到一个在 Filter 中添加 AutoCloseable 的方式来达到记录 perf log 的目的，听新颖的，记录一下并熟悉一下 AutoCloseable 接口的用法</p>
+<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><p>在这之前，我一直以为，想要在方法(request)执行前后记录执行时间，只能通过新建一个 拦截器 或者使用类似 Aspect 的技术。API team 的这个实现着实让我对 AutoCloseable 的使用有了新认识，之前对这个接口只是看到过的程度，哈哈。大致模型如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// perf 类实现 AutoCloseable 接口，在 close</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SimpleAutoCloseable</span> <span class="keyword">implements</span> <span class="title">AutoCloseable</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">SimpleAutoCloseable</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Start to record time cost for scope: &quot;</span> + name);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">close</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Stop record, print time cost: xx ms&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doFilter</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">try</span>(SimpleAutoCloseable auto = <span class="keyword">new</span> SimpleAutoCloseable(<span class="string">&quot;Request&quot;</span>)) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;special filter logic...&quot;</span>);</span><br><span class="line">            System.out.println(<span class="string">&quot;filterChain.doFilter(request, response)&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>测试类中，我们调用 client 的方法触发 try-with-resource 流程，查看 console log, 可以看到当 chain 的 doFilter 整体执行结束之后，自动打印了 perf 信息，666</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test_AutoCloseable_class_will_execute_close_after_try_block</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    Client client = <span class="keyword">new</span> Client();</span><br><span class="line">    client.doFilter();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Start to record time cost for scope: Request</span></span><br><span class="line"><span class="comment">// special filter logic...</span></span><br><span class="line"><span class="comment">// filterChain.doFilter(request, response)</span></span><br><span class="line"><span class="comment">// Stop record, print time cost: xx ms</span></span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/07/22/Python-Superset-quick-start/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2022/07/22/Python-Superset-quick-start/" class="post-title-link" itemprop="url">Python Superset install</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-07-22 11:19:30 / 修改时间：18:13:11" itemprop="dateCreated datePublished" datetime="2022-07-22T11:19:30+08:00">2022-07-22</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/python/" itemprop="url" rel="index">
+                    <span itemprop="name">python</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><p>docker 方式安装 Superset 的步骤中有一步是 load_example, 这步的过程中会去 github 上下载案例。不过由于 GFW 的问题，下载会失败。解决方案为，手动下载这个 repo 并在本地起一个服务器挂载这些资源，然后修改 docker 中下载 sample 脚本的配置即可。以下是下载资源，起服务部分配置</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">wget https://github.com/apache-superset/examples-data/archive/refs/heads/master.zip</span><br><span class="line">unzip master.zip</span><br><span class="line"><span class="comment"># 或者</span></span><br><span class="line">git <span class="built_in">clone</span> https://github.com/apache-superset/examples-data.git</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果是 zip 包方式，输入 cd examples-data-master</span></span><br><span class="line"><span class="built_in">cd</span> examples-data </span><br><span class="line"><span class="comment"># 启动服务器，这是你通过访问 localhost:9999 就能看到这个网站服务了</span></span><br><span class="line">python -m http.server 9999 </span><br><span class="line"><span class="comment"># 查看本机 ip 用于后续修改下载地址</span></span><br><span class="line"><span class="comment"># 显示结果中有一行格式类似 inet xx.xx.xx.xx netmask 0xffffe000 broadcast xx.xx.xx.xx</span></span><br><span class="line"><span class="comment"># 第一个 ip 段就是我们想要的</span></span><br><span class="line">ifconfig | grep inet</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="安装-Superset"><a href="#安装-Superset" class="headerlink" title="安装 Superset"></a>安装 Superset</h2><p>访问 <a target="_blank" rel="noopener" href="https://hub.docker.com/r/apache/superset">dockerhub</a> 查看安装文档，其实就是跟着指导 CV 一遍指令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 拉镜像并启动服务，通过 -p 参数修改外部暴露的端口 -p port_you_want:8088</span></span><br><span class="line">docker run -d -p 8080:8088 --name superset apache/superset</span><br><span class="line"><span class="comment"># 创建账户</span></span><br><span class="line">docker <span class="built_in">exec</span> -it superset superset fab create-admin \</span><br><span class="line">              --username admin \</span><br><span class="line">              --firstname Superset \</span><br><span class="line">              --lastname Admin \</span><br><span class="line">              --email admin@superset.com \</span><br><span class="line">              --password admin</span><br><span class="line"><span class="comment"># 升级 DB</span></span><br><span class="line">docker <span class="built_in">exec</span> -it superset superset db upgrade</span><br><span class="line"><span class="comment"># 修改下载地址</span></span><br><span class="line">docker <span class="built_in">exec</span> -it superset /bin/bash</span><br><span class="line">sed -i <span class="string">&#x27;s/BASE_URL = .*&quot;/BASE_URL = &quot;http:\/\/xx.xx.xx.xx:9999\/&quot;/g&#x27;</span> superset/examples/helpers.py</span><br><span class="line">sed -i <span class="string">&#x27;s/https:\/\/github.com\/apache-superset\/examples-data\/raw\/master\//http:\/\/xx.xx.xx.xx:9999\//g&#x27;</span> superset/examples/configs/datasets/examples/*.yaml</span><br><span class="line">sed -i <span class="string">&#x27;s/https:\/\/github.com\/apache-superset\/examples-data\/raw\/lowercase_columns_examples\//http:\/\/xx.xx.xx.xx:9999\//g&#x27;</span> superset/examples/configs/datasets/examples/*.yaml</span><br><span class="line">sed -i <span class="string">&#x27;s/https:\/\/raw.githubusercontent.com\/apache-superset\/examples-data\/master\//http:\/\/xx.xx.xx.xx:9999\//g&#x27;</span> superset/examples/configs/datasets/examples/*.yaml</span><br><span class="line"><span class="built_in">exit</span></span><br><span class="line"><span class="comment"># 加载案例</span></span><br><span class="line">docker <span class="built_in">exec</span> -it superset superset load_examples</span><br><span class="line"><span class="comment"># 官方说是 setup roles, 目测是账号权限之类的东西</span></span><br><span class="line">docker <span class="built_in">exec</span> -it superset superset init</span><br></pre></td></tr></table></figure>
+
+<p>到这里安装结束，通过访问 <a target="_blank" rel="noopener" href="http://localhost:8080/login/">http://localhost:8080/login/</a> 查看页面，使用 admin/admin 登陆</p>
+<h2 id="画图案例"><a href="#画图案例" class="headerlink" title="画图案例"></a>画图案例</h2>
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/07/20/Statistics-concept/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2022/07/20/Statistics-concept/" class="post-title-link" itemprop="url">统计学上的一些概念</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-07-20 14:38:06" itemprop="dateCreated datePublished" datetime="2022-07-20T14:38:06+08:00">2022-07-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-07-22 18:13:11" itemprop="dateModified" datetime="2022-07-22T18:13:11+08:00">2022-07-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E6%95%B0%E5%AD%A6/" itemprop="url" rel="index">
+                    <span itemprop="name">数学</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>133</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="mean-vs-median-vs-mode"><a href="#mean-vs-median-vs-mode" class="headerlink" title="mean vs median vs mode"></a>mean vs median vs mode</h2><ul>
+<li>mean 很好理解，就是平均数，(N0 + N1 + … Nn )/n</li>
+<li>median 所有数排序，取中间那个即为 median</li>
+<li>mode, 用单词 most often 来解释好了，出现频率最高的那个数。比如有数组 1，2，3，3，5，5，5，5 那么 mode 为 5</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/07/04/Lesson-keep-humble/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -220,7 +494,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
           
-            <a href="/hexo/2022/07/04/Lesson-keep-humble/" class="post-title-link" itemprop="url">Lesson keep humble</a>
+            <a href="/hexo/2022/07/04/Lesson-keep-humble/" class="post-title-link" itemprop="url">学徒的心</a>
         </h1>
 
         <div class="post-meta">
@@ -237,7 +511,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-07 14:14:10" itemprop="dateModified" datetime="2022-07-07T14:14:10+08:00">2022-07-07</time>
+                <time title="修改时间：2022-07-22 18:13:11" itemprop="dateModified" datetime="2022-07-22T18:13:11+08:00">2022-07-22</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -257,7 +531,7 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>2.5k</span>
+              <span>2.6k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -300,11 +574,110 @@
 </tr>
 </thead>
 <tbody><tr>
-<td align="left">repo:12, call: 34</td>
-<td align="left">repo: 6, call: 8</td>
+<td align="left">repo:13, call: 34</td>
+<td align="left">repo: 6, call: 9</td>
 </tr>
 </tbody></table>
+<p>如果修改点比较多，还需要专门建立一个文档记录修改做追踪用</p>
 <p>感觉这才是 Arch 这个角色的价值。contract, 就硬改，也不会看修改的地方是什么feature，不会想测测是不是有可能做回归。我现能达到的程度是，能够将这个 refactor 的任务条理理清楚，做改动的时候有这个 sense 去看看调用栈，看看会不会有什么没考虑到的情况并考虑如何测试改动。Arch 则是看了要改的地方，先看看系统本身是不是有地方提供了统一处理的能里，在达到目的的同时，将影响最小化，做法很优雅。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/06/27/Spring-AOP-quick-start/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2022/06/27/Spring-AOP-quick-start/" class="post-title-link" itemprop="url">Spring AOP quick start</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-06-27 14:45:45" itemprop="dateCreated datePublished" datetime="2022-06-27T14:45:45+08:00">2022-06-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-07-22 18:13:11" itemprop="dateModified" datetime="2022-07-22T18:13:11+08:00">2022-07-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/Spring/" itemprop="url" rel="index">
+                    <span itemprop="name">Spring</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>104</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>快速了解 AOP 必要只是并写出 demo</p>
+<h2 id="简单概括什么是-AOP"><a href="#简单概括什么是-AOP" class="headerlink" title="简单概括什么是 AOP"></a>简单概括什么是 AOP</h2><p>不破坏代码结构的情况下，为代码添加功能，典型案例如打印方法的执行时间。</p>
+<h2 id="AOP-涉及的专有名词"><a href="#AOP-涉及的专有名词" class="headerlink" title="AOP 涉及的专有名词"></a>AOP 涉及的专有名词</h2><ul>
+<li>Joinpoint</li>
+<li>Pointcut</li>
+<li>Advice</li>
+<li>Aspect</li>
+<li>织入</li>
+</ul>
 
       
     </div>
@@ -355,7 +728,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-07 14:14:10" itemprop="dateModified" datetime="2022-07-07T14:14:10+08:00">2022-07-07</time>
+                <time title="修改时间：2022-07-22 18:13:11" itemprop="dateModified" datetime="2022-07-22T18:13:11+08:00">2022-07-22</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -453,7 +826,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
           
-            <a href="/hexo/2022/02/21/Java-exception/" class="post-title-link" itemprop="url">Java 异常处理流程</a>
+            <a href="/hexo/2022/02/21/Java-exception/" class="post-title-link" itemprop="url">Java 异常处理</a>
         </h1>
 
         <div class="post-meta">
@@ -470,7 +843,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-07 14:14:10" itemprop="dateModified" datetime="2022-07-07T14:14:10+08:00">2022-07-07</time>
+                <time title="修改时间：2022-07-22 18:13:11" itemprop="dateModified" datetime="2022-07-22T18:13:11+08:00">2022-07-22</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -490,14 +863,14 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>673</span>
+              <span>2.1k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
+              <span>2 分钟</span>
             </span>
 
         </div>
@@ -509,7 +882,16 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>今天在写一段补偿代码的时候突然想到一个问题，当异常发生时，后续代码是否还会被执行的问题。测试前根据主管猜测，感觉如果有 try-catch, 那么会继续执行；没有则直接跳出了，相当于 return.</p>
+          <h2 id="记录-log-并附带-stack-trace"><a href="#记录-log-并附带-stack-trace" class="headerlink" title="记录 log 并附带 stack trace"></a>记录 log 并附带 stack trace</h2><p>今天看到同事给我代码 review 的时候推荐使用 log.info(e.getMessage()) 时，不太清楚推荐的原因，特意 Google 了一下几种 log 记录方式</p>
+<ul>
+<li>info(ex)</li>
+<li>info(ex.getMessage())</li>
+<li>info(“msg”, ex)</li>
+</ul>
+<p>总的来说，第三种最好，前两种只会记录当前类的异常抛出记录，之前的信息都 miss 掉了</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExpTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">testMethod</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span> / <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExpClient</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = Logger.getLogger(ExpClient.class);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            ExpTest.testMethod();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;------------------------------&gt; msg, e &lt;------------------------------&quot;</span>);</span><br><span class="line">            logger.info(<span class="string">&quot;err...&quot;</span>, e);</span><br><span class="line">            System.out.println(<span class="string">&quot;------------------------------&gt; e &lt;------------------------------&quot;</span>);</span><br><span class="line">            logger.info(e);</span><br><span class="line">            System.out.println(<span class="string">&quot;------------------------------&gt; msg &lt;------------------------------&quot;</span>);</span><br><span class="line">            logger.info(e.getMessage());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 终端输出如下：</span></span><br><span class="line"><span class="comment">// ------------------------------&gt; msg, e &lt;------------------------------</span></span><br><span class="line"><span class="comment">//  INFO [main] (ExpClient.java:14) - err...</span></span><br><span class="line"><span class="comment">// java.lang.ArithmeticException: / by zero</span></span><br><span class="line"><span class="comment">//     at sementic.ExpTest.testMethod(ExpTest.java:5)</span></span><br><span class="line"><span class="comment">//     at sementic.ExpClient.main(ExpClient.java:11)</span></span><br><span class="line"><span class="comment">// ------------------------------&gt; e &lt;------------------------------</span></span><br><span class="line"><span class="comment">//  INFO [main] (ExpClient.java:16) - java.lang.ArithmeticException: / by zero</span></span><br><span class="line"><span class="comment">// ------------------------------&gt; msg &lt;------------------------------</span></span><br><span class="line"><span class="comment">//  INFO [main] (ExpClient.java:18) - / by zero</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="try-catch-执行流程"><a href="#try-catch-执行流程" class="headerlink" title="try-catch 执行流程"></a>try-catch 执行流程</h2><p>今天在写一段补偿代码的时候突然想到一个问题，当异常发生时，后续代码是否还会被执行的问题。测试前根据主观猜测，感觉如果有 try-catch, 那么会继续执行；没有则直接跳出了，相当于 return.</p>
 <h2 id="Scenario-1"><a href="#Scenario-1" class="headerlink" title="Scenario 1"></a>Scenario 1</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test1</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">int</span> a = <span class="number">1</span>/<span class="number">0</span>;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(<span class="string">&quot;Log after exception&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// &gt; Task :idl-sfutil:idl-sfutil-service:Test1.main()</span></span><br><span class="line"><span class="comment">// Log after exception</span></span><br></pre></td></tr></table></figure>
 
 <p>抛错后继续执行</p>
@@ -566,7 +948,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-07 14:14:10" itemprop="dateModified" datetime="2022-07-07T14:14:10+08:00">2022-07-07</time>
+                <time title="修改时间：2022-07-22 18:13:11" itemprop="dateModified" datetime="2022-07-22T18:13:11+08:00">2022-07-22</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -691,7 +1073,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-07 14:14:10" itemprop="dateModified" datetime="2022-07-07T14:14:10+08:00">2022-07-07</time>
+                <time title="修改时间：2022-07-22 18:13:11" itemprop="dateModified" datetime="2022-07-22T18:13:11+08:00">2022-07-22</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -789,7 +1171,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-07 14:14:10" itemprop="dateModified" datetime="2022-07-07T14:14:10+08:00">2022-07-07</time>
+                <time title="修改时间：2022-07-22 18:13:11" itemprop="dateModified" datetime="2022-07-22T18:13:11+08:00">2022-07-22</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -880,401 +1262,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/01/04/Spring-xml-to-bean-definition/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2022/01/04/Spring-xml-to-bean-definition/" class="post-title-link" itemprop="url">Spring XML 转化为 bean definition</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2022-01-04 15:04:23" itemprop="dateCreated datePublished" datetime="2022-01-04T15:04:23+08:00">2022-01-04</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-07 14:14:10" itemprop="dateModified" datetime="2022-07-07T14:14:10+08:00">2022-07-07</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/Spring/" itemprop="url" rel="index">
-                    <span itemprop="name">Spring</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>271</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>本文主要 focus 在 xml 到 bean definition 转化的过程，即 AbstractApplicationContext 的 refresh 方法的 obtainFreshBeanFactory()。转化过程是这个方法的一部分。本文会先介绍一些这个过程中用到的一些底层类实现，最后再总的将这部分内容捋一遍。</p>
-<h2 id="Document"><a href="#Document" class="headerlink" title="Document"></a>Document</h2><h2 id="BeanDefinitionHolder"><a href="#BeanDefinitionHolder" class="headerlink" title="BeanDefinitionHolder"></a>BeanDefinitionHolder</h2><p>BeanDefinitionHolder 是解析 xml 时的一个中间类，不对外暴露。只包含了三个属性 beanDefinition, beanName 和 alias。代表一个被解析的 bean 节点。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/12/27/Algorithm-binary-tree-special/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/12/27/Algorithm-binary-tree-special/" class="post-title-link" itemprop="url">二叉树专题讲解</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-12-27 17:03:23" itemprop="dateCreated datePublished" datetime="2021-12-27T17:03:23+08:00">2021-12-27</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-07 14:14:10" itemprop="dateModified" datetime="2022-07-07T14:14:10+08:00">2022-07-07</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E7%AE%97%E6%B3%95/" itemprop="url" rel="index">
-                    <span itemprop="name">算法</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>737</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="指南"><a href="#指南" class="headerlink" title="指南"></a>指南</h2><p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MzAxODQxMDM0Mw==&mid=2247484852&idx=1&sn=85b50b8b0470bb4897e517955f4e5002&chksm=9bd7fbbcaca072aa75e2a241064a403fde1e579d57ab846cd8537a54253ceb2c8b93cc3bf38e&scene=21#wechat_redirect">数据结构和算法学习指南</a></p>
-<p>数据结构的存储方式只有两种：数组(顺序存储) 和 链表(链式存储)。其他的结构，如队列，栈，图等都是以这两种为基础演变的。</p>
-<p>数据结构的基本操作：遍历 + 访问，具体一点就是：增删改查。数据结构类型有很多，但是他们的目的都是在不同的应用场景下，尽可能高效的增删改查，这就是数据结构的使命。</p>
-<p>数组遍历是典型的线性迭代结构，链表便利兼具迭代和递归，二叉树则是典型的非线性递归。</p>
-<p>数据结构是工具，算法则是通过合适的工具解决特定问题的方法。算法刷题建议从二叉树开始。二叉树最容易培养框架思维，大部分算法技巧，本质上都是树的遍历问题。</p>
-<h2 id="刷通二叉树第一期"><a href="#刷通二叉树第一期" class="headerlink" title="刷通二叉树第一期"></a>刷通二叉树第一期</h2><p>前置的一些基本概念：深度遍历/广度遍历。深度遍历有前序，中序和后序三种遍历方式。广度便利及我们平时说的层次遍历。</p>
-<p>前序遍历: 根结点 -&gt; 左子树 -&gt; 右子树</p>
-<p>中序遍历: 左子树 -&gt; 根结点 -&gt; 右子树</p>
-<p>后序遍历: 左子树 -&gt; 右子树 -&gt; 根结点</p>
-<p>层次便利: 只需按层次遍历既可</p>
-<p>PS: 吐槽一下前中后的定义，老是搞错，抓住根本，这些形容词都是用来表述根节点的。前序就是 root 先，左右子树的顺序都是固定的。</p>
-<p>完美二叉树(Perfect Binary Tree)：也翻译为满二叉树，理解为正三角形就行</p>
-<p>完全二叉树(Complete Binary Tree)：倒数第二层为完美二叉树，最后一层不全，叶子结点左对齐</p>
-<p>完满二叉树(Full Binary Tree): 只要有孩子，就是两个</p>
-<p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MzAxODQxMDM0Mw==&mid=2247487126&idx=1&sn=4de13e66397bc35970963c5a1330ce18&chksm=9bd7f09eaca0798853c41fba05ad5fa958b31054eba18b69c785ae92f4bd8e4cc7a2179d7838&scene=178&cur_album_id=2121994699837177859#rd">第一期</a></p>
-<p>通过练习，熟悉树的遍历框架</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 二叉树遍历框架 */</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">traverse</span><span class="params">(TreeNode root)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 前序遍历</span></span><br><span class="line">    traverse(root.left)</span><br><span class="line">    <span class="comment">// 中序遍历</span></span><br><span class="line">    traverse(root.right)</span><br><span class="line">    <span class="comment">// 后序遍历</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/12/13/Webssh2-quick-start/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/12/13/Webssh2-quick-start/" class="post-title-link" itemprop="url">Webssh2 quick start</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-12-13 15:49:18" itemprop="dateCreated datePublished" datetime="2021-12-13T15:49:18+08:00">2021-12-13</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-07 14:14:10" itemprop="dateModified" datetime="2022-07-07T14:14:10+08:00">2022-07-07</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/Webssh/" itemprop="url" rel="index">
-                    <span itemprop="name">Webssh</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>699</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>搭建 Webssh2 实验平台，熟悉工具使用模式，等后期试着拆解一下这个项目的细节，用到自己的小项目上。感觉道路有点崎岖。。。。</p>
-<p>这个东西本地部分挺简单的，clone 下来之后直接启动就行了，但是作为目标对象，需要一个测试用虚拟机，打算用 docker 起一个</p>
-<h2 id="Docker-测试对象创建"><a href="#Docker-测试对象创建" class="headerlink" title="Docker 测试对象创建"></a>Docker 测试对象创建</h2><p>之前还打算用 Centos 镜像自己搞一个的，结果各种换源出问题，然后找找 Ubuntu 的资源，直接发现一个配置好的镜像资源，6 啊，直接拿来用，香</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 作者在官方镜像基础上搭建的 https://hub.docker.com/r/rastasheep/ubuntu-sshd/</span></span><br><span class="line">docker pull rastasheep/ubuntu-sshd</span><br><span class="line"></span><br><span class="line">docker run -d -P --name test_sshd rastasheep/ubuntu-sshd</span><br><span class="line"></span><br><span class="line"><span class="comment"># 显示本地映射的端口</span></span><br><span class="line">docker port test_sshd 22</span><br><span class="line"><span class="comment"># 0.0.0.0:55000</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 本地测试，默认密码 root, 成功</span></span><br><span class="line">ssh root@localhost -p 55000</span><br></pre></td></tr></table></figure>
-
-<h2 id="webssh2-测试"><a href="#webssh2-测试" class="headerlink" title="webssh2 测试"></a>webssh2 测试</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> git@github.com:billchurch/webssh2.git</span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> webssh2/app</span><br><span class="line"></span><br><span class="line">npm install --production</span><br><span class="line"></span><br><span class="line">npm start</span><br></pre></td></tr></table></figure>
-
-<p>然后开启 browser 并访问 <a target="_blank" rel="noopener" href="http://localhost:2222/ssh/host/127.0.0.1?port=55000&amp;header=My%20Header&amp;headerBackground=red">http://localhost:2222/ssh/host/127.0.0.1?port=55000&amp;header=My%20Header&amp;headerBackground=red</a> 即可访问网站。而且貌似还能记住密码，登陆一次之后就不需要再次输入了</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/12/02/Mongo-install/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/12/02/Mongo-install/" class="post-title-link" itemprop="url">Mongo DB 安装</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-12-02 20:20:53" itemprop="dateCreated datePublished" datetime="2021-12-02T20:20:53+08:00">2021-12-02</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-07 14:14:10" itemprop="dateModified" datetime="2022-07-07T14:14:10+08:00">2022-07-07</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/DB/" itemprop="url" rel="index">
-                    <span itemprop="name">DB</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.4k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>使用 Docker 的方式安装 MongoDB</p>
-<ol>
-<li>docker pull mongo</li>
-<li><code>docker run --name mymongo -d mongo</code> 使用默认设置启动</li>
-<li><code>docker exec -it mymongo bash</code> 链接控制台输入 <code>mongod --version</code> 验证安装情况</li>
-<li><code>mongo</code> 链接数据库, <code>exit</code> 退出</li>
-</ol>
-<h2 id="基本命令"><a href="#基本命令" class="headerlink" title="基本命令"></a>基本命令</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> dbs <span class="comment">-- 查看库</span></span><br><span class="line"></span><br><span class="line">db <span class="comment">-- 当前库名</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> 库名 <span class="comment">-- 使用</span></span><br><span class="line"></span><br><span class="line">&gt; db.students.insertOne(&#123;<span class="string">&quot;name&quot;</span>:<span class="string">&quot;Jack&quot;</span>&#125;) <span class="comment">-- 插入数据</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;acknowledged&quot;</span> : <span class="literal">true</span>,</span><br><span class="line">    <span class="string">&quot;insertedId&quot;</span> : ObjectId(<span class="string">&quot;61a8bfa9e0344414ad0ee1e3&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&gt; <span class="keyword">show</span> collections <span class="comment">-- 查看插入结果</span></span><br><span class="line">students</span><br><span class="line"></span><br><span class="line">&gt; db.students.find() <span class="comment">-- 查询</span></span><br><span class="line">&#123; <span class="string">&quot;_id&quot;</span> : ObjectId(<span class="string">&quot;61a8bfa9e0344414ad0ee1e3&quot;</span>), <span class="string">&quot;name&quot;</span> : <span class="string">&quot;Jack&quot;</span> &#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>Mac 上测试，启动立马停止，通过 <code>docker logs mymongo</code> 可以看到异常</p>
-<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;&quot;t&quot;:&#123;&quot;$date&quot;:&quot;2021-12-02T12:12:30.478+00:00&quot;&#125;,&quot;s&quot;:&quot;E&quot;,  &quot;c&quot;:&quot;STORAGE&quot;,  &quot;id&quot;:22312,   &quot;ctx&quot;:&quot;initandlisten&quot;,&quot;msg&quot;:&quot;Error creating journal directory&quot;,&quot;attr&quot;:&#123;&quot;directory&quot;:&quot;/data/db/journal&quot;,&quot;error&quot;:&quot;boost::filesystem::create_directory: No space left on device: \&quot;/data/db/journal\&quot;&quot;&#125;&#125;</span><br></pre></td></tr></table></figure>
-
-<p>Google 了一下，说是 Mac 才有的，docker volumn 不够了，可以通过指定挂在的 volumn 或者清理不用的 volumn 解决问题</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">docker run -d -p 3000:27017 -v /Users/user/work/m1:/data/db --name m1 --net mongo-net mongo mongod</span><br><span class="line"><span class="comment"># or</span></span><br><span class="line">docker volume prune</span><br><span class="line"><span class="comment"># 最后，上面那个 prune 没用，用了下面这个简化版的</span></span><br><span class="line">docker  run -d -p 3000:27017 -v /Users/xxxx/mongodb/data/db:/data/db --name mymongo mongo</span><br><span class="line"></span><br><span class="line">docker <span class="built_in">exec</span> -it some-mongo bash</span><br><span class="line">docker logs some-mongo</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1325,20 +1312,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">215</span>
+          <span class="site-state-item-count">219</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/hexo/categories/">
           
-        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-count">36</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">193</span>
+        <span class="site-state-item-count">197</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1377,7 +1364,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">16:32</span>
+    <span title="站点阅读时长">16:39</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
