@@ -3961,7 +3961,7 @@
       </tags>
   </entry>
   <entry>
-    <title>Java Autocloseable</title>
+    <title>Autocloseable 接口示例</title>
     <url>/hexo/2022/07/22/Java-Autocloseable/</url>
     <content><![CDATA[<p>最近在看其他 team 的代码时，看到一个在 Filter 中添加 AutoCloseable 的方式来达到记录 perf log 的目的，听新颖的，记录一下并熟悉一下 AutoCloseable 接口的用法</p>
 <h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><p>在这之前，我一直以为，想要在方法(request)执行前后记录执行时间，只能通过新建一个 拦截器 或者使用类似 Aspect 的技术。API team 的这个实现着实让我对 AutoCloseable 的使用有了新认识，之前对这个接口只是看到过的程度，哈哈。大致模型如下</p>
@@ -5503,7 +5503,8 @@
   <entry>
     <title>Python Superset install</title>
     <url>/hexo/2022/07/22/Python-Superset-quick-start/</url>
-    <content><![CDATA[<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><p>docker 方式安装 Superset 的步骤中有一步是 load_example, 这步的过程中会去 github 上下载案例。不过由于 GFW 的问题，下载会失败。解决方案为，手动下载这个 repo 并在本地起一个服务器挂载这些资源，然后修改 docker 中下载 sample 脚本的配置即可。以下是下载资源，起服务部分配置</p>
+    <content><![CDATA[<p>在同事的安利下安装完了 Superset, 然后大致浏览了一下他的功能特性，发现并不是我想要的。。。他属于一个 BI(Business Inteligence)工具，定位应该是提供了一整套数据可视化的方案。让你可以很方便的将数据展示给别人看。对于我现在的需求，我想要画一下某组数据的分布曲线，这个需求反而太原始了，用这个工具有点牛刀小用，而且效果不怎么好，可能我还是得回到 jupyter 那边去，哈哈</p>
+<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><p>docker 方式安装 Superset 的步骤中有一步是 load_example, 这步的过程中会去 github 上下载案例。不过由于 GFW 的问题，下载会失败。解决方案为，手动下载这个 repo 并在本地起一个服务器挂载这些资源，然后修改 docker 中下载 sample 脚本的配置即可。以下是下载资源，起服务部分配置</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget https://github.com/apache-superset/examples-data/archive/refs/heads/master.zip</span><br><span class="line">unzip master.zip</span><br><span class="line"><span class="comment"># 或者</span></span><br><span class="line">git <span class="built_in">clone</span> https://github.com/apache-superset/examples-data.git</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果是 zip 包方式，输入 cd examples-data-master</span></span><br><span class="line"><span class="built_in">cd</span> examples-data </span><br><span class="line"><span class="comment"># 启动服务器，这是你通过访问 localhost:9999 就能看到这个网站服务了</span></span><br><span class="line">python -m http.server 9999 </span><br><span class="line"><span class="comment"># 查看本机 ip 用于后续修改下载地址</span></span><br><span class="line"><span class="comment"># 显示结果中有一行格式类似 inet xx.xx.xx.xx netmask 0xffffe000 broadcast xx.xx.xx.xx</span></span><br><span class="line"><span class="comment"># 第一个 ip 段就是我们想要的</span></span><br><span class="line">ifconfig | grep inet</span><br></pre></td></tr></table></figure>
 
 
@@ -5511,7 +5512,7 @@
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 拉镜像并启动服务，通过 -p 参数修改外部暴露的端口 -p port_you_want:8088</span></span><br><span class="line">docker run -d -p 8080:8088 --name superset apache/superset</span><br><span class="line"><span class="comment"># 创建账户</span></span><br><span class="line">docker <span class="built_in">exec</span> -it superset superset fab create-admin \</span><br><span class="line">              --username admin \</span><br><span class="line">              --firstname Superset \</span><br><span class="line">              --lastname Admin \</span><br><span class="line">              --email admin@superset.com \</span><br><span class="line">              --password admin</span><br><span class="line"><span class="comment"># 升级 DB</span></span><br><span class="line">docker <span class="built_in">exec</span> -it superset superset db upgrade</span><br><span class="line"><span class="comment"># 修改下载地址</span></span><br><span class="line">docker <span class="built_in">exec</span> -it superset /bin/bash</span><br><span class="line">sed -i <span class="string">&#x27;s/BASE_URL = .*&quot;/BASE_URL = &quot;http:\/\/xx.xx.xx.xx:9999\/&quot;/g&#x27;</span> superset/examples/helpers.py</span><br><span class="line">sed -i <span class="string">&#x27;s/https:\/\/github.com\/apache-superset\/examples-data\/raw\/master\//http:\/\/xx.xx.xx.xx:9999\//g&#x27;</span> superset/examples/configs/datasets/examples/*.yaml</span><br><span class="line">sed -i <span class="string">&#x27;s/https:\/\/github.com\/apache-superset\/examples-data\/raw\/lowercase_columns_examples\//http:\/\/xx.xx.xx.xx:9999\//g&#x27;</span> superset/examples/configs/datasets/examples/*.yaml</span><br><span class="line">sed -i <span class="string">&#x27;s/https:\/\/raw.githubusercontent.com\/apache-superset\/examples-data\/master\//http:\/\/xx.xx.xx.xx:9999\//g&#x27;</span> superset/examples/configs/datasets/examples/*.yaml</span><br><span class="line"><span class="built_in">exit</span></span><br><span class="line"><span class="comment"># 加载案例</span></span><br><span class="line">docker <span class="built_in">exec</span> -it superset superset load_examples</span><br><span class="line"><span class="comment"># 官方说是 setup roles, 目测是账号权限之类的东西</span></span><br><span class="line">docker <span class="built_in">exec</span> -it superset superset init</span><br></pre></td></tr></table></figure>
 
 <p>到这里安装结束，通过访问 <a href="http://localhost:8080/login/">http://localhost:8080/login/</a> 查看页面，使用 admin/admin 登陆</p>
-<h2 id="画图案例"><a href="#画图案例" class="headerlink" title="画图案例"></a>画图案例</h2>]]></content>
+]]></content>
       <categories>
         <category>python</category>
       </categories>
@@ -6563,12 +6564,77 @@
   <entry>
     <title>Splunk 快速入门</title>
     <url>/hexo/2020/09/10/Splunk-Quick-Guide/</url>
-    <content><![CDATA[<h2 id="常用-Query"><a href="#常用-Query" class="headerlink" title="常用 Query"></a>常用 Query</h2><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="comment">-- event 出现的次数</span></span><br><span class="line">search=index | stats sum(linecount) as Total</span><br><span class="line"><span class="comment">-- or</span></span><br><span class="line">search=index | stats count as Total</span><br></pre></td></tr></table></figure>
+    <content><![CDATA[<h2 id="测试环境-setup"><a href="#测试环境-setup" class="headerlink" title="测试环境 setup"></a>测试环境 setup</h2><p>官方给出了 Splunk 的 docker image 我们可以通过它来创建本地测试环境 <a href="https://hub.docker.com/r/splunk/splunk/">docker hub link</a>。就两条命了，官方也给了很详细的命令解释，赞。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">docker pull splunk/splunk:latest</span><br><span class="line"></span><br><span class="line">docker run -d -p 8000:8000 -e <span class="string">&quot;SPLUNK_START_ARGS=--accept-license&quot;</span> -e <span class="string">&quot;SPLUNK_PASSWORD=&lt;password&gt;&quot;</span> --name splunk splunk/splunk:latest</span><br></pre></td></tr></table></figure>
 
-<h2 id="makeresults"><a href="#makeresults" class="headerlink" title="makeresults"></a>makeresults</h2><p>发现一个很有意思的函数，可以用它创建简单的测试数据，使用之前最好对照官方文档看看例子，新版有支持 format 为 json, csv 的数据，旧版不行</p>
+<p>PS: 如果需要测试 Splunk REST API, 还需要开放其端口 -p 8089:8089。登陆系统后 Settings -&gt; Server settings -&gt; General settings 查看端口映射</p>
+<p>本地测试环境运行测试用例体验比公司的快很多，体验很好</p>
+<h2 id="创建测试数据"><a href="#创建测试数据" class="headerlink" title="创建测试数据"></a>创建测试数据</h2><p>发现一个很有意思的函数，可以用它创建简单的测试数据，使用之前最好对照官方文档看看例子，新版有支持 format 为 json, csv 的数据，旧版不行</p>
 <ul>
 <li><a href="https://docs.splunk.com/Documentation/Splunk/8.1.4/SearchReference/Makeresults">makeresults</a></li>
 </ul>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 创建 100 条数据只显示  5% &lt; index &lt; 95%</span></span><br><span class="line">| makeresults count=100</span><br><span class="line">| <span class="built_in">eval</span> random_num=random() </span><br><span class="line">| streamstats count as index</span><br><span class="line">| eventstats max(index) as m_idx</span><br><span class="line">| <span class="built_in">where</span> index &gt; m_idx*0.05 AND index &lt; m_idx*0.95</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建多行</span></span><br><span class="line"><span class="comment"># makemv: 通过分隔符创建多个数据</span></span><br><span class="line"><span class="comment"># mvexpand: 多个数据展开成 event</span></span><br><span class="line"><span class="comment"># mv 是 multi value 的缩写</span></span><br><span class="line">| makeresults</span><br><span class="line">| <span class="built_in">eval</span> <span class="built_in">test</span>=<span class="string">&quot;buttercup rarity tenderhoof dash mcintosh fleetfoot mistmane&quot;</span></span><br><span class="line">| makemv delim=<span class="string">&quot; &quot;</span> <span class="built_in">test</span></span><br><span class="line">| mvexpand <span class="built_in">test</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># random() 会产生 0-(2^31-1) 之间的随机数</span></span><br><span class="line"><span class="comment"># 可以使用取模的方式产生 n 以内的随机数</span></span><br><span class="line">| makeresults</span><br><span class="line">| <span class="built_in">eval</span> n=(random() % 100)</span><br></pre></td></tr></table></figure>
+
+<h2 id="最常用的-case-search-with-keyword"><a href="#最常用的-case-search-with-keyword" class="headerlink" title="最常用的 case - search with keyword"></a>最常用的 case - search with keyword</h2><p>直接输入 keyword + enter</p>
+<h2 id="常用统计操作-stats"><a href="#常用统计操作-stats" class="headerlink" title="常用统计操作 stats"></a>常用统计操作 stats</h2><p>对整个数据集做统计，可以结合 average，count 和 sum 使用，支持 by 做分组</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 创建 name-core 测试集</span></span><br><span class="line">| makeresults count=5</span><br><span class="line">| <span class="built_in">eval</span> name=<span class="string">&quot;Jerry Tom&quot;</span></span><br><span class="line">| makemv delim=<span class="string">&quot; &quot;</span> name</span><br><span class="line">| mvexpand name</span><br><span class="line">| <span class="built_in">eval</span> score=(random() % 100)</span><br><span class="line"><span class="comment"># 统计每个人的 score 总和，平均值</span></span><br><span class="line">| stats sum(score) avg(score) by name</span><br></pre></td></tr></table></figure>
+
+<h2 id="stats-vs-eventstats-vs-streamstats"><a href="#stats-vs-eventstats-vs-streamstats" class="headerlink" title="stats vs eventstats vs streamstats"></a>stats vs eventstats vs streamstats</h2><p>*<a href="https://docs.splunk.com/Documentation/Splunk/8.1.4/SearchReference/Commandsbytype#Streaming_commands">Command Type</a></p>
+<ul>
+<li>stats: transforming command, 数据集会发生改变</li>
+<li>eventstats: Dataset processing command, 需要所有 event 都找出来后才能工作</li>
+<li>streamstats: streaming command, 针对每一个 event 做操作</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 创建测试集</span></span><br><span class="line">| makeresults count=4 </span><br><span class="line">| streamstats count </span><br><span class="line">| <span class="built_in">eval</span> age = <span class="keyword">case</span>(count=1, 25, count=2, 39, count=3, 31, count=4, null())</span><br><span class="line">| <span class="built_in">eval</span> city = <span class="keyword">case</span>(count=1 OR count=3, <span class="string">&quot;San Francisco&quot;</span>, count=2 OR count=4, <span class="string">&quot;Seattle&quot;</span>) </span><br><span class="line"><span class="comment"># stats 类似 sql 中的聚合函数，计算之后，只会产出一行数据</span></span><br><span class="line">| stats sum(age)</span><br><span class="line"><span class="comment"># eventstats 工作时并不会改变原始数据，而是在原有的 raw 数据外新增一列数据</span></span><br><span class="line">| eventstats avg(age) by city</span><br><span class="line"><span class="comment"># streamstats 和 eventstats 很像，也是不改变原数据去新增一列的操作。</span></span><br><span class="line"><span class="comment"># 区别就在 stream 这个关键字，它是用流的方式处理。只在每条数据出现的节点做计算</span></span><br><span class="line"><span class="comment"># 本例中第一个 San Francisco 均值为自身，第二个则为两个之和做平均了，很神奇。</span></span><br><span class="line">| streamstats  avg(age) by city</span><br></pre></td></tr></table></figure>
+
+<p>此外 streamstats count 还可以用来显示<strong>行号</strong>，很方便</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">| makeresults count=10</span><br><span class="line">| <span class="built_in">eval</span> x=random()</span><br><span class="line">| streamstats count as index</span><br><span class="line"><span class="comment"># eventstats count 可以在每一行上增加一个总计 field</span></span><br><span class="line">| eventstats count</span><br></pre></td></tr></table></figure>
+
+<h2 id="eval"><a href="#eval" class="headerlink" title="eval"></a>eval</h2><p>可以对每一行做计算，支持数学计算，字符串操作和布尔表达式</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 生产 4 条数据并对 count 列做平方操纵</span></span><br><span class="line">| makeresults count=4 </span><br><span class="line">| streamstats count</span><br><span class="line">| <span class="built_in">eval</span> pow=pow(count, 2)</span><br></pre></td></tr></table></figure>
+
+<p><strong>和 eventstats 的区别</strong></p>
+<p>总觉得 eval 和 eventstats 很相似，特意查了一下定义，还是有很明显的区别的。</p>
+<p>eval 是针对每一行做计算，比如新增 field = field1 - field2</p>
+<p>eventstats 突出以总体概念，可以做 by group 的操作，比如 sum(field1) by field2</p>
+<h2 id="Comparison-and-Conditional-functions"><a href="#Comparison-and-Conditional-functions" class="headerlink" title="Comparison and Conditional functions"></a>Comparison and Conditional functions</h2><ul>
+<li><p><a href="https://docs.splunk.com/Documentation/SCS/current/SearchReference/ConditionalFunctions">condition</a></p>
+</li>
+<li><p>case</p>
+</li>
+<li><p>cidrmath</p>
+</li>
+<li><p>coalesce</p>
+</li>
+<li><p>if</p>
+</li>
+<li><p>in</p>
+</li>
+<li><p>like</p>
+</li>
+<li><p>match</p>
+</li>
+<li><p>nullif</p>
+</li>
+<li><p>searchmatch</p>
+</li>
+<li><p>validate</p>
+</li>
+</ul>
+<p>eval 配合条件函数使用可以衍生出很多效果</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 根据 status 匹配 description 信息</span></span><br><span class="line">| makeresults</span><br><span class="line">| <span class="built_in">eval</span> status=<span class="string">&quot;400 300 500 200 200 201 404&quot;</span></span><br><span class="line">| makemv delim=<span class="string">&quot; &quot;</span> status</span><br><span class="line">| mvexpand status </span><br><span class="line">| <span class="built_in">eval</span> description=<span class="keyword">case</span>(status == 200, <span class="string">&quot;OK&quot;</span>, status ==404, <span class="string">&quot;Not found&quot;</span>, status == 500, <span class="string">&quot;Internal Server Error&quot;</span>)</span><br><span class="line"><span class="comment"># 检测 status 是否匹配 4xx 格式</span></span><br><span class="line">| <span class="built_in">eval</span> matches = <span class="keyword">if</span>(match(status,<span class="string">&quot;^4\d&#123;2&#125;&quot;</span>), 1, 0)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 根据是否包含关键字对 query type 的 log 做细分</span></span><br><span class="line">search cmd | <span class="built_in">eval</span> ReqType=<span class="keyword">if</span>(like(_raw, <span class="string">&quot;%lastModified%&quot;</span>) AND ReqType=<span class="string">&quot;query&quot;</span>, <span class="string">&quot;query - lastModified&quot;</span>, ReqType)</span><br></pre></td></tr></table></figure>
+
+<h2 id="rex-抽取特定的-field"><a href="#rex-抽取特定的-field" class="headerlink" title="rex 抽取特定的 field"></a>rex 抽取特定的 field</h2><p>splunk 支持字符串匹配，常用案例如下，需要注意的是，他只会从 _raw 中抽取信息</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">| makeresults</span><br><span class="line">| <span class="built_in">eval</span> _raw=<span class="string">&quot;[4211fb51-6ae6-41eb-a0bf-e6dd693bbdb2] [EngineX Perf] Request takes 1116 ms&quot;</span></span><br><span class="line">| rex <span class="string">&quot;Request takes (?&lt;time_cost&gt;.*) ms&quot;</span></span><br><span class="line"><span class="comment"># 我们还可以通过添加 (?i) 达到忽略大小写的效果</span></span><br><span class="line">| rex <span class="string">&quot;(?i)request takes (?&lt;time_cost&gt;.*) ms&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="收集分散在多个-event-中的数据"><a href="#收集分散在多个-event-中的数据" class="headerlink" title="收集分散在多个 event 中的数据"></a>收集分散在多个 event 中的数据</h2><p>有两种解决方案，一种是子查询，一种是 eventstats，两种方案对向能消耗都很大。</p>
+<ul>
+<li><a href="https://community.splunk.com/t5/Splunk-Search/Joining-data-from-multiple-events-with-stats/m-p/526162">join form multi events</a></li>
+</ul>
+<p>看到一个从多条分散的 event 中收集数据的例子，刚好是我现在需要的。核心思路是通过 eventstats 为每个 event 计算一个新的 field 做跳板</p>
+<p>这里还有一个很神奇的语法，通过 values 统计出来的结果，在 if 条件中，我们可以直接通过使用 field=values 的语法达到类似 in 的效果。找了半天文档，没发现有这种个语法说明 （；￣ェ￣）</p>
+<p>相似的还有一个 command 叫做 <a href="https://docs.splunk.com/Documentation/Splunk/9.0.0/Search/Aboutsubsearches">subsearch</a>，通过自查询缩小范围，然后进一步查询</p>
+<p>就我处理的案例来说，subsearch performance 要小很多，通过子查询可以很快的缩小处理范围</p>
 <h2 id="行转列-transpose"><a href="#行转列-transpose" class="headerlink" title="行转列 transpose"></a>行转列 transpose</h2><p>如果统计结果为</p>
 <table>
 <thead>
@@ -6585,49 +6651,19 @@
 </tr>
 </tbody></table>
 <p>转化为饼图的时候，只会显示 A 类型的数据，因为 Splunk 默认使用 X 轴作为分类标的。这时可以使用 <code>search cmd | transpose</code> 达到行专列的效果</p>
-<h2 id="stats-vs-eventstats-vs-streamstats"><a href="#stats-vs-eventstats-vs-streamstats" class="headerlink" title="stats vs eventstats vs streamstats"></a>stats vs eventstats vs streamstats</h2><p>stats 类似 sql 中的聚合函数，计算之后，只会产出一行数据</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">| makeresults count&#x3D;4 </span><br><span class="line">| streamstats count </span><br><span class="line">| eval age &#x3D; case(count&#x3D;1, 25, count&#x3D;2, 39, count&#x3D;3, 31, count&#x3D;4, null())</span><br><span class="line">| eval city &#x3D; case(count&#x3D;1 OR count&#x3D;3, &quot;San Francisco&quot;, count&#x3D;2 OR count&#x3D;4, &quot;Seattle&quot;) </span><br><span class="line">| stats sum(age)</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">| makeresults</span><br><span class="line">| <span class="built_in">eval</span> _raw=<span class="string">&quot;A=2,B=5,C=8,D=1&quot;</span></span><br><span class="line">| extract</span><br><span class="line">| table A B C D</span><br><span class="line">| transpose</span><br></pre></td></tr></table></figure>
 
-<p>eventstats 工作时并不会改变原始数据，而是在原有的 raw 数据外新增一列数据</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">| makeresults count&#x3D;4 </span><br><span class="line">| streamstats count </span><br><span class="line">| eval age &#x3D; case(count&#x3D;1, 25, count&#x3D;2, 39, count&#x3D;3, 31, count&#x3D;4, null())</span><br><span class="line">| eval city &#x3D; case(count&#x3D;1 OR count&#x3D;3, &quot;San Francisco&quot;, count&#x3D;2 OR count&#x3D;4, &quot;Seattle&quot;)</span><br><span class="line">| eventstats avg(age) by city</span><br></pre></td></tr></table></figure>
+<h2 id="去重"><a href="#去重" class="headerlink" title="去重"></a>去重</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">| makeresults count=4 </span><br><span class="line">| streamstats count </span><br><span class="line">| <span class="built_in">eval</span> age = <span class="keyword">case</span>(count=1, 25, count=2, 39, count=3, 31, count=4, null())</span><br><span class="line">| <span class="built_in">eval</span> city = <span class="keyword">case</span>(count=1 OR count=3, <span class="string">&quot;San Francisco&quot;</span>, count=2 OR count=4, <span class="string">&quot;Seattle&quot;</span>)</span><br><span class="line">| dedup city</span><br><span class="line"><span class="comment"># 或者使用 values</span></span><br><span class="line">| stats values(city)</span><br><span class="line"><span class="comment"># 当然也可以使用 stats 计算 count 达到曲线救国的效果</span></span><br><span class="line">| stats count by city</span><br></pre></td></tr></table></figure>
 
-<p>streamstats 和 eventstats 很像，也是不改变原数据去新增一列的操作，区别就在 stream 这个关键字，它是用流的方式处理。只在每条数据出现的节点做计算</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">| makeresults count&#x3D;4 </span><br><span class="line">| streamstats count </span><br><span class="line">| eval age &#x3D; case(count&#x3D;1, 25, count&#x3D;2, 39, count&#x3D;3, 31, count&#x3D;4, null())</span><br><span class="line">| eval city &#x3D; case(count&#x3D;1 OR count&#x3D;3, &quot;San Francisco&quot;, count&#x3D;2 OR count&#x3D;4, &quot;Seattle&quot;)</span><br><span class="line">| streamstats  avg(age) by city</span><br></pre></td></tr></table></figure>
+<h2 id="使用-where-达到-filter-的效果"><a href="#使用-where-达到-filter-的效果" class="headerlink" title="使用 where 达到 filter 的效果"></a>使用 where 达到 filter 的效果</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">| makeresults count=4 </span><br><span class="line">| streamstats count </span><br><span class="line">| <span class="built_in">eval</span> age = <span class="keyword">case</span>(count=1, 25, count=2, 39, count=3, 31, count=4, null())</span><br><span class="line">| <span class="built_in">eval</span> city = <span class="keyword">case</span>(count=1 OR count=3, <span class="string">&quot;San Francisco&quot;</span>, count=2 OR count=4, <span class="string">&quot;Seattle&quot;</span>)</span><br><span class="line">| <span class="built_in">where</span> age &gt; 31</span><br></pre></td></tr></table></figure>
 
-<p>还是相同的案例，用 streamstats 计算平均值时，第一个 San Francisco 均值为自身，第二个则为两个之和做平均了，很神奇。</p>
-<p>此外 streamstats count 还可以用来显示<strong>序号</strong></p>
-<h2 id="去重"><a href="#去重" class="headerlink" title="去重"></a>去重</h2><p>可以使用 dedup</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">| makeresults count&#x3D;4 </span><br><span class="line">| streamstats count </span><br><span class="line">| eval age &#x3D; case(count&#x3D;1, 25, count&#x3D;2, 39, count&#x3D;3, 31, count&#x3D;4, null())</span><br><span class="line">| eval city &#x3D; case(count&#x3D;1 OR count&#x3D;3, &quot;San Francisco&quot;, count&#x3D;2 OR count&#x3D;4, &quot;Seattle&quot;)</span><br><span class="line">| dedup city</span><br></pre></td></tr></table></figure>
-
-<p>当然也可以使用 stats 计算 count 达到曲线救国的效果</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">search result </span><br><span class="line">| stats count by city</span><br><span class="line"></span><br><span class="line">或者</span><br><span class="line">| stats values(city)</span><br></pre></td></tr></table></figure>
-
-<h2 id="eval"><a href="#eval" class="headerlink" title="eval"></a>eval</h2><p>通过 eval 可以在原有数据的基础上，通过计算新增一列数据，是 stream 类型的 command。比如我们想要添加 flag 列，条件为 responseTime &gt; 5000 的值为 1 否则为 0. search 语句可以这样写 <code>search command | eval Status=if(responseTime &gt; 10000, 1, 0)</code></p>
 <h2 id="查询-event-的日均量"><a href="#查询-event-的日均量" class="headerlink" title="查询 event 的日均量"></a>查询 event 的日均量</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">eventtype=<span class="string">&quot;searchAccountLocked&quot;</span> | timechart span=1d count | stats avg(count)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在此基础上，计算 7 天的平均值</span></span><br><span class="line">eventtype=<span class="string">&quot;searchAccountLocked&quot;</span> | timechart span=1d count | stats avg(count) as avgc ｜ <span class="built_in">eval</span> n=exact(1 * avgc)</span><br></pre></td></tr></table></figure>
 
-<h2 id="table-where-达到-filter-的效果"><a href="#table-where-达到-filter-的效果" class="headerlink" title="table + where 达到 filter 的效果"></a>table + where 达到 filter 的效果</h2><p>pipeline 后面接 where 语句可以起到 filter 的效果，和 SQL 一样</p>
-<h2 id="收集分散在多个-event-中的数据"><a href="#收集分散在多个-event-中的数据" class="headerlink" title="收集分散在多个 event 中的数据"></a>收集分散在多个 event 中的数据</h2><ul>
-<li><a href="https://community.splunk.com/t5/Splunk-Search/Joining-data-from-multiple-events-with-stats/m-p/526162">join form multi events</a></li>
-</ul>
-<p>看到一个从多条分散的 event 中收集数据的例子，刚好是我现在需要的。核心思路是通过 eventstats 为每个 event 计算一个新的 field 做跳板</p>
-<p>这里还有一个很神奇的语法，通过 values 统计出来的结果，在 if 条件中，我们可以直接通过使用 field=values 的语法达到类似 in 的效果。找了半天文档，没发现有这种个语法说明 （；￣ェ￣）</p>
-<p>想过相似的还有一个 command 叫做 <a href="https://docs.splunk.com/Documentation/Splunk/9.0.0/Search/Aboutsubsearches">subsearch</a>，通过自查询缩小范围，然后进一步查询</p>
-<p>就我处理的案例来说，subsearch performance 要小很多，通过子查询可以很快的缩小处理范围</p>
-<h2 id="通过-Regex-匹配得到目标百分比"><a href="#通过-Regex-匹配得到目标百分比" class="headerlink" title="通过 Regex 匹配得到目标百分比"></a>通过 Regex 匹配得到目标百分比</h2><ul>
-<li><a href="https://community.splunk.com/t5/Splunk-Search/Get-percentage-of-matchin-to-all-events/td-p/39113">社区类似问题</a></li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 搜索全部 event, 通过 regex 匹配到目标，计算百分比</span></span><br><span class="line">UserChangeEvent MessageBox | stats count(<span class="built_in">eval</span>(match(field1, <span class="string">&quot;.*updatedFields\&quot;:\[&#123;\&quot;fieldName\&quot;:\&quot;jobCode\&quot;.*&quot;</span>))) as JCEvent count as total | <span class="built_in">eval</span> JC_pct=JCEvent/total*100</span><br><span class="line"></span><br><span class="line"><span class="comment"># 升级版，计算多个百分比情况</span></span><br><span class="line"><span class="comment"># EMP_PCT 内容是空的 event 在所有 jobcode event 中的占比，和 jobcode 在所有 event 中的占比</span></span><br><span class="line">UserChangeEvent MessageBox | stats count(<span class="built_in">eval</span>(match(field1, <span class="string">&quot;.*updatedFields\&quot;:\[&#123;\&quot;fieldName\&quot;:\&quot;jobCode\&quot;.*&quot;</span>))) as totalJCEvent count(<span class="built_in">eval</span>(match(field1, <span class="string">&quot;.*updatedFields\&quot;:\[&#123;\&quot;fieldName\&quot;:\&quot;jobCode\&quot;,\&quot;fieldType\&quot;:\&quot;java.lang.String\&quot;,\&quot;afterValue\&quot;:\&quot;\&quot;&#125;\].*&quot;</span>))) as emptyEvent count as total | <span class="built_in">eval</span> EMP_PCT=emptyEvent/totalJCEvent*100, JC_PCT=totalJCEvent/total*100</span><br></pre></td></tr></table></figure>
+<h2 id="取整数"><a href="#取整数" class="headerlink" title="取整数"></a>取整数</h2><p>使用 ceil 和 round 分别达到向上和向下取整</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">| makeresults </span><br><span class="line">| <span class="built_in">eval</span> n=10.3</span><br><span class="line">| <span class="built_in">eval</span> n_round=round(n)</span><br><span class="line">| <span class="built_in">eval</span> n_ceil=ceil(n)</span><br></pre></td></tr></table></figure>
 
-<h2 id="取两位小数"><a href="#取两位小数" class="headerlink" title="取两位小数"></a>取两位小数</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">| 7xAVG=round((7*total/1), 2)</span><br></pre></td></tr></table></figure>
-
-<h2 id="通过正则创建新-field"><a href="#通过正则创建新-field" class="headerlink" title="通过正则创建新 field"></a>通过正则创建新 field</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 选出结果集，从输出信息中匹配 &#x27;Company: &#x27; 开头 &#x27;, total CommonField&#x27; 结尾的部分并命名为 cname 统计出现次数</span></span><br><span class="line"><span class="comment"># _raw 表示 record 内容</span></span><br><span class="line">search condition | rex field=_raw <span class="string">&quot;Company: (?&lt;cname&gt;.*), total CommonField&quot;</span> | stats count by cname</span><br></pre></td></tr></table></figure>
-
-<h2 id="stats-和-eval-的区别"><a href="#stats-和-eval-的区别" class="headerlink" title="stats 和 eval 的区别"></a>stats 和 eval 的区别</h2><p>stats 是对已经有的 field 的删选，而 eval 是通过已有的 field 计算出新的 field 加到结果集中进行删选，等价于新增 field</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 删选 event, 新建一个 field 名叫 is_prod, 当 host 匹配 pattern 时赋值 yes_prod</span></span><br><span class="line">search event | <span class="built_in">eval</span> is_prod=<span class="keyword">if</span>(like(host, <span class="string">&quot;pc%&quot;</span>), <span class="string">&quot;yes_prod&quot;</span>, <span class="string">&quot;not_prod&quot;</span>) | stats count by is_prod</span><br></pre></td></tr></table></figure>
-
-<p>其中 eval 还支持多种删选条件，可塑性好高</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 统计各环境的 event 数量并统计比例</span></span><br><span class="line">search event | <span class="built_in">eval</span> env=<span class="keyword">case</span>(like(host, <span class="string">&quot;pc%&quot;</span>), <span class="string">&quot;prod&quot;</span>, like(host, <span class="string">&quot;sc%&quot;</span>), <span class="string">&quot;prov&quot;</span>, like(host, <span class="string">&quot;*&quot;</span>), <span class="string">&quot;others&quot;</span>) | stats count by env</span><br></pre></td></tr></table></figure>
-
+<p>更多计算函数，参考 <a href="https://docs.splunk.com/Documentation/Splunk/8.1.4/SearchReference/MathematicalFunctions">math</a></p>
+<h2 id="fields"><a href="#fields" class="headerlink" title="fields"></a>fields</h2><p>指定显示结果 <code>search cmd | fields host, src</code>, 从结果集中 remove 某个 field <code>search cmd | fields - host, src</code></p>
 <h2 id="Splunk-SDK"><a href="#Splunk-SDK" class="headerlink" title="Splunk SDK"></a>Splunk SDK</h2><p>尝试了 python 版本的 SDK，香！</p>
 <p>参考 <a href="https://dev.splunk.com/enterprise/docs/python/sdk-python/examplespython/commandline">官方文档</a> 下载依赖，在本地配置 <code>.splunkrc</code> 文件写入连接信息方便调用。第一次用的时候密码配错了，还以为内网不可用，需要用 vlab，再测试的时候发现了这个问题。总的来说很可以。</p>
 <p>Steps:</p>
@@ -6639,6 +6675,21 @@
 <p><code>.splunkrc</code> 文件模板</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># Splunk host (default: localhost)</span><br><span class="line">host&#x3D;xxx.xxx.xxx</span><br><span class="line"># Splunk admin port (default: 8089)</span><br><span class="line">port&#x3D;8089</span><br><span class="line"># Splunk username</span><br><span class="line">username&#x3D;jack</span><br><span class="line"># Splunk password</span><br><span class="line">password&#x3D;mypwd</span><br><span class="line"># Access scheme (default: https)</span><br><span class="line">scheme&#x3D;https</span><br><span class="line"># Your version of Splunk (default: 5.0)</span><br><span class="line">version&#x3D;7.1.2</span><br></pre></td></tr></table></figure>
 
+<h2 id="Splunk-REST-API"><a href="#Splunk-REST-API" class="headerlink" title="Splunk REST API"></a>Splunk REST API</h2><p>本地测试过了，但是产品上失败，可能公司用的 Splunk 有特殊限制</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 创建搜索 job</span></span><br><span class="line">curl -u admin:Splunkpwd0001$ -k https://localhost:8089/services/search/<span class="built_in">jobs</span> -d search=<span class="string">&quot;search ScimPerformanceInterceptor&quot;</span></span><br><span class="line"><span class="comment"># 查看 job 状态</span></span><br><span class="line">curl -u admin:Splunkpwd0001$ -k https://localhost:8089/services/search/<span class="built_in">jobs</span>/1658910321.148</span><br><span class="line"><span class="comment"># 查看 job 结果</span></span><br><span class="line">curl -u admin:Splunkpwd0001$ -k https://localhost:8089/services/search/<span class="built_in">jobs</span>/1658910321.148/results --get -d output_mode=json</span><br></pre></td></tr></table></figure>
+
+<h2 id="Splunk-dashboard-sample"><a href="#Splunk-dashboard-sample" class="headerlink" title="Splunk dashboard sample"></a>Splunk dashboard sample</h2><p>官方制作了一个 dashboard 插件，里面有大量的精美 bashboard 案例 <a href="https://splunkbase.splunk.com/app/1603/">dashboard examples</a>。需要注册账号，不过是免费的，下载完成后还会给出安装步骤。</p>
+<ol>
+<li>Log into Splunk Enterprise.</li>
+<li>On the Apps menu, click Manage Apps.</li>
+<li>Click Install app from file.</li>
+<li>In the Upload app window, click Choose File.</li>
+<li>Locate the .tar.gz file you just downloaded, and then click Open or Choose.</li>
+<li>Click Upload.</li>
+<li>Click Restart Splunk, and then confirm that you want to restart.</li>
+</ol>
+<p>To install apps and add-ons directly into Splunk Enterprise<br>Put the downloaded file in the $SPLUNK_HOME/etc/apps directory.<br>Untar and ungzip your app or add-on, using a tool like tar -xvf (on *nix) or WinZip (on Windows).<br>Restart Splunk.</p>
+<p>After you install a Splunk app, you will find it on Splunk Home. If you have questions or need more information, see Manage app and add-on objects.</p>
 <h2 id="三个小例子快速入门"><a href="#三个小例子快速入门" class="headerlink" title="三个小例子快速入门"></a>三个小例子快速入门</h2><h3 id="搜索-event-并通过饼图展示"><a href="#搜索-event-并通过饼图展示" class="headerlink" title="搜索 event 并通过饼图展示"></a>搜索 event 并通过饼图展示</h3><ol>
 <li>输入时间节点和关键词：<code>MessageBox topic=com.successfactors.usermanagement.event.UserChangeEvent | stats count by servername</code></li>
 <li>选择可视化 tab</li>
@@ -6667,16 +6718,24 @@
   <entry>
     <title>Spring AOP quick start</title>
     <url>/hexo/2022/06/27/Spring-AOP-quick-start/</url>
-    <content><![CDATA[<p>快速了解 AOP 必要只是并写出 demo</p>
+    <content><![CDATA[<p>快速了解 AOP 必要只是并写出 demo。这篇文上是在我系统学了 AOP 的基本使用之后再写的，之前遇到的很多痛点都体现不出来了。花了挺多时间读官方文档的时候，很多问题都迎刃而解了，就是比较花时间。之前失败的主要原因是 pointcut 的表达式写错了，tomcat 起了，但是服务都失败了。。。。</p>
 <h2 id="简单概括什么是-AOP"><a href="#简单概括什么是-AOP" class="headerlink" title="简单概括什么是 AOP"></a>简单概括什么是 AOP</h2><p>不破坏代码结构的情况下，为代码添加功能，典型案例如打印方法的执行时间。</p>
 <h2 id="AOP-涉及的专有名词"><a href="#AOP-涉及的专有名词" class="headerlink" title="AOP 涉及的专有名词"></a>AOP 涉及的专有名词</h2><ul>
-<li>Joinpoint</li>
-<li>Pointcut</li>
-<li>Advice</li>
-<li>Aspect</li>
-<li>织入</li>
+<li>Joinpoint - 要匹配的方法</li>
+<li>Pointcut - 匹配方法的规则</li>
+<li>Advice - 检测到匹配方法的时候要执行的 额外 逻辑</li>
+<li>Aspect - 带 @Aspect 的那个类</li>
 </ul>
-]]></content>
+<h2 id="怎么写"><a href="#怎么写" class="headerlink" title="怎么写"></a>怎么写</h2><p>如果 Spring 整体环境已经搭建完成，如果你想要新建一个 Aspect 只需要做两件事</p>
+<ol>
+<li>写 Aspect 文件，最简单的方式是，写 Advice 方法，并在注解中添加 pointcut 表达式</li>
+<li>注册 Aspect, 不过如果是已经运行的系统，这步应该不用做，都是自动扫描的<ol>
+<li>Xml</li>
+<li>Annotation</li>
+</ol>
+</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Aspect</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">IssueAspect</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Before(&quot;within(issues.*)&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doBeforeLog</span><span class="params">(JoinPoint joinPoint)</span> </span>&#123;</span><br><span class="line">        String methodName = joinPoint.getSignature().getName();</span><br><span class="line">        System.out.printf(<span class="string">&quot;Before Advice of method %s is called...%n&quot;</span>, methodName);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>Spring</category>
       </categories>
@@ -7475,6 +7534,27 @@
       </categories>
       <tags>
         <tag>统计</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Statistics histogram and distribution curve</title>
+    <url>/hexo/2022/07/25/Statistics-histogram-and-distribution-curve/</url>
+    <content><![CDATA[<p>总结柱状图，分布曲线，平均值等概念</p>
+<h2 id="柱状图和分布曲线"><a href="#柱状图和分布曲线" class="headerlink" title="柱状图和分布曲线"></a>柱状图和分布曲线</h2><p>柱状图: 通过方块面积表示占比</p>
+<p>分布曲线: 是柱状图的一个大致的拟合</p>
+<p>正态分布曲线: 分布曲线的一种特殊形式</p>
+<h2 id="mean-vs-median-vs-mode"><a href="#mean-vs-median-vs-mode" class="headerlink" title="mean vs median vs mode"></a>mean vs median vs mode</h2><ul>
+<li>mean 很好理解，就是平均数，(N0 + N1 + … Nn )/n</li>
+<li>median 所有数排序，取中间那个即为 median</li>
+<li>mode, 用单词 most often 来解释好了，出现频率最高的那个数。比如有数组 1，2，3，3，5，5，5，5 那么 mode 为 5</li>
+</ul>
+]]></content>
+      <categories>
+        <category>数学</category>
+      </categories>
+      <tags>
+        <tag>柱状图</tag>
+        <tag>分布曲线</tag>
       </tags>
   </entry>
   <entry>
