@@ -7,20 +7,177 @@ tags:
 - splunk
 ---
 
-## 常用 Query
+## 测试环境 setup
 
-```sql
--- event 出现的次数
-search=index | stats sum(linecount) as Total
--- or
-search=index | stats count as Total
+官方给出了 Splunk 的 docker image 我们可以通过它来创建本地测试环境 [docker hub link](https://hub.docker.com/r/splunk/splunk/)。就两条命了，官方也给了很详细的命令解释，赞。
+
+```bash
+docker pull splunk/splunk:latest
+
+docker run -d -p 8000:8000 -e "SPLUNK_START_ARGS=--accept-license" -e "SPLUNK_PASSWORD=<password>" --name splunk splunk/splunk:latest
 ```
 
-## makeresults
+PS: 如果需要测试 Splunk REST API, 还需要开放其端口 -p 8089:8089。登陆系统后 Settings -> Server settings -> General settings 查看端口映射
+
+本地测试环境运行测试用例体验比公司的快很多，体验很好
+
+## 创建测试数据
 
 发现一个很有意思的函数，可以用它创建简单的测试数据，使用之前最好对照官方文档看看例子，新版有支持 format 为 json, csv 的数据，旧版不行
 
 * [makeresults](https://docs.splunk.com/Documentation/Splunk/8.1.4/SearchReference/Makeresults)
+
+```bash
+# 创建 100 条数据只显示  5% < index < 95%
+| makeresults count=100
+| eval random_num=random() 
+| streamstats count as index
+| eventstats max(index) as m_idx
+| where index > m_idx*0.05 AND index < m_idx*0.95
+
+# 创建多行
+# makemv: 通过分隔符创建多个数据
+# mvexpand: 多个数据展开成 event
+# mv 是 multi value 的缩写
+| makeresults
+| eval test="buttercup rarity tenderhoof dash mcintosh fleetfoot mistmane"
+| makemv delim=" " test
+| mvexpand test
+
+# random() 会产生 0-(2^31-1) 之间的随机数
+# 可以使用取模的方式产生 n 以内的随机数
+| makeresults
+| eval n=(random() % 100)
+```
+
+## 最常用的 case - search with keyword
+
+直接输入 keyword + enter
+
+## 常用统计操作 stats
+
+对整个数据集做统计，可以结合 average，count 和 sum 使用，支持 by 做分组
+
+```bash
+# 创建 name-core 测试集
+| makeresults count=5
+| eval name="Jerry Tom"
+| makemv delim=" " name
+| mvexpand name
+| eval score=(random() % 100)
+# 统计每个人的 score 总和，平均值
+| stats sum(score) avg(score) by name
+```
+
+## stats vs eventstats vs streamstats
+
+*[Command Type](https://docs.splunk.com/Documentation/Splunk/8.1.4/SearchReference/Commandsbytype#Streaming_commands)
+
+* stats: transforming command, 数据集会发生改变
+* eventstats: Dataset processing command, 需要所有 event 都找出来后才能工作
+* streamstats: streaming command, 针对每一个 event 做操作
+
+```bash
+# 创建测试集
+| makeresults count=4 
+| streamstats count 
+| eval age = case(count=1, 25, count=2, 39, count=3, 31, count=4, null())
+| eval city = case(count=1 OR count=3, "San Francisco", count=2 OR count=4, "Seattle") 
+# stats 类似 sql 中的聚合函数，计算之后，只会产出一行数据
+| stats sum(age)
+# eventstats 工作时并不会改变原始数据，而是在原有的 raw 数据外新增一列数据
+| eventstats avg(age) by city
+# streamstats 和 eventstats 很像，也是不改变原数据去新增一列的操作。
+# 区别就在 stream 这个关键字，它是用流的方式处理。只在每条数据出现的节点做计算
+# 本例中第一个 San Francisco 均值为自身，第二个则为两个之和做平均了，很神奇。
+| streamstats  avg(age) by city
+```
+
+此外 streamstats count 还可以用来显示**行号**，很方便
+
+```bash
+| makeresults count=10
+| eval x=random()
+| streamstats count as index
+# eventstats count 可以在每一行上增加一个总计 field
+| eventstats count
+```
+
+## eval
+
+可以对每一行做计算，支持数学计算，字符串操作和布尔表达式
+
+```bash
+# 生产 4 条数据并对 count 列做平方操纵
+| makeresults count=4 
+| streamstats count
+| eval pow=pow(count, 2)
+```
+
+**和 eventstats 的区别**
+
+总觉得 eval 和 eventstats 很相似，特意查了一下定义，还是有很明显的区别的。
+
+eval 是针对每一行做计算，比如新增 field = field1 - field2
+
+eventstats 突出以总体概念，可以做 by group 的操作，比如 sum(field1) by field2
+
+## Comparison and Conditional functions
+
+* [condition](https://docs.splunk.com/Documentation/SCS/current/SearchReference/ConditionalFunctions)
+
+* case
+* cidrmath
+* coalesce
+* if
+* in
+* like
+* match
+* nullif
+* searchmatch
+* validate
+
+eval 配合条件函数使用可以衍生出很多效果
+
+```bash
+# 根据 status 匹配 description 信息
+| makeresults
+| eval status="400 300 500 200 200 201 404"
+| makemv delim=" " status
+| mvexpand status 
+| eval description=case(status == 200, "OK", status ==404, "Not found", status == 500, "Internal Server Error")
+# 检测 status 是否匹配 4xx 格式
+| eval matches = if(match(status,"^4\d{2}"), 1, 0)
+
+# 根据是否包含关键字对 query type 的 log 做细分
+search cmd | eval ReqType=if(like(_raw, "%lastModified%") AND ReqType="query", "query - lastModified", ReqType)
+```
+
+## rex 抽取特定的 field
+
+splunk 支持字符串匹配，常用案例如下，需要注意的是，他只会从 _raw 中抽取信息
+
+```bash
+| makeresults
+| eval _raw="[4211fb51-6ae6-41eb-a0bf-e6dd693bbdb2] [EngineX Perf] Request takes 1116 ms"
+| rex "Request takes (?<time_cost>.*) ms"
+# 我们还可以通过添加 (?i) 达到忽略大小写的效果
+| rex "(?i)request takes (?<time_cost>.*) ms"
+```
+
+## 收集分散在多个 event 中的数据
+
+有两种解决方案，一种是子查询，一种是 eventstats，两种方案对向能消耗都很大。
+
+* [join form multi events](https://community.splunk.com/t5/Splunk-Search/Joining-data-from-multiple-events-with-stats/m-p/526162)
+
+看到一个从多条分散的 event 中收集数据的例子，刚好是我现在需要的。核心思路是通过 eventstats 为每个 event 计算一个新的 field 做跳板
+
+这里还有一个很神奇的语法，通过 values 统计出来的结果，在 if 条件中，我们可以直接通过使用 field=values 的语法达到类似 in 的效果。找了半天文档，没发现有这种个语法说明 （；￣ェ￣）
+
+相似的还有一个 command 叫做 [subsearch](https://docs.splunk.com/Documentation/Splunk/9.0.0/Search/Aboutsubsearches)，通过自查询缩小范围，然后进一步查询
+
+就我处理的案例来说，subsearch performance 要小很多，通过子查询可以很快的缩小处理范围
 
 ## 行转列 transpose
 
@@ -32,67 +189,37 @@ search=index | stats count as Total
 
 转化为饼图的时候，只会显示 A 类型的数据，因为 Splunk 默认使用 X 轴作为分类标的。这时可以使用 `search cmd | transpose` 达到行专列的效果
 
-## stats vs eventstats vs streamstats
-
-stats 类似 sql 中的聚合函数，计算之后，只会产出一行数据
-
-```search
-| makeresults count=4 
-| streamstats count 
-| eval age = case(count=1, 25, count=2, 39, count=3, 31, count=4, null())
-| eval city = case(count=1 OR count=3, "San Francisco", count=2 OR count=4, "Seattle") 
-| stats sum(age)
+```bash
+| makeresults
+| eval _raw="A=2,B=5,C=8,D=1"
+| extract
+| table A B C D
+| transpose
 ```
-
-eventstats 工作时并不会改变原始数据，而是在原有的 raw 数据外新增一列数据
-
-```search
-| makeresults count=4 
-| streamstats count 
-| eval age = case(count=1, 25, count=2, 39, count=3, 31, count=4, null())
-| eval city = case(count=1 OR count=3, "San Francisco", count=2 OR count=4, "Seattle")
-| eventstats avg(age) by city
-```
-
-streamstats 和 eventstats 很像，也是不改变原数据去新增一列的操作，区别就在 stream 这个关键字，它是用流的方式处理。只在每条数据出现的节点做计算
-
-```search
-| makeresults count=4 
-| streamstats count 
-| eval age = case(count=1, 25, count=2, 39, count=3, 31, count=4, null())
-| eval city = case(count=1 OR count=3, "San Francisco", count=2 OR count=4, "Seattle")
-| streamstats  avg(age) by city
-```
-
-还是相同的案例，用 streamstats 计算平均值时，第一个 San Francisco 均值为自身，第二个则为两个之和做平均了，很神奇。
-
-此外 streamstats count 还可以用来显示**序号**
 
 ## 去重
 
-可以使用 dedup
-
-```search
+```bash
 | makeresults count=4 
 | streamstats count 
 | eval age = case(count=1, 25, count=2, 39, count=3, 31, count=4, null())
 | eval city = case(count=1 OR count=3, "San Francisco", count=2 OR count=4, "Seattle")
 | dedup city
-```
-
-当然也可以使用 stats 计算 count 达到曲线救国的效果
-
-```search
-search result 
-| stats count by city
-
-或者
+# 或者使用 values
 | stats values(city)
+# 当然也可以使用 stats 计算 count 达到曲线救国的效果
+| stats count by city
 ```
 
-## eval
+## 使用 where 达到 filter 的效果
 
-通过 eval 可以在原有数据的基础上，通过计算新增一列数据，是 stream 类型的 command。比如我们想要添加 flag 列，条件为 responseTime > 5000 的值为 1 否则为 0. search 语句可以这样写 `search command | eval Status=if(responseTime > 10000, 1, 0)`
+```bash
+| makeresults count=4 
+| streamstats count 
+| eval age = case(count=1, 25, count=2, 39, count=3, 31, count=4, null())
+| eval city = case(count=1 OR count=3, "San Francisco", count=2 OR count=4, "Seattle")
+| where age > 31
+```
 
 ## 查询 event 的日均量
 
@@ -103,64 +230,22 @@ eventtype="searchAccountLocked" | timechart span=1d count | stats avg(count)
 eventtype="searchAccountLocked" | timechart span=1d count | stats avg(count) as avgc ｜ eval n=exact(1 * avgc)
 ```
 
-## table + where 达到 filter 的效果
+## 取整数
 
-pipeline 后面接 where 语句可以起到 filter 的效果，和 SQL 一样
-
-## 收集分散在多个 event 中的数据
-
-* [join form multi events](https://community.splunk.com/t5/Splunk-Search/Joining-data-from-multiple-events-with-stats/m-p/526162)
-
-看到一个从多条分散的 event 中收集数据的例子，刚好是我现在需要的。核心思路是通过 eventstats 为每个 event 计算一个新的 field 做跳板
-
-这里还有一个很神奇的语法，通过 values 统计出来的结果，在 if 条件中，我们可以直接通过使用 field=values 的语法达到类似 in 的效果。找了半天文档，没发现有这种个语法说明 （；￣ェ￣）
-
-想过相似的还有一个 command 叫做 [subsearch](https://docs.splunk.com/Documentation/Splunk/9.0.0/Search/Aboutsubsearches)，通过自查询缩小范围，然后进一步查询
-
-就我处理的案例来说，subsearch performance 要小很多，通过子查询可以很快的缩小处理范围
-
-## 通过 Regex 匹配得到目标百分比
-
-* [社区类似问题](https://community.splunk.com/t5/Splunk-Search/Get-percentage-of-matchin-to-all-events/td-p/39113)
+使用 ceil 和 round 分别达到向上和向下取整
 
 ```bash
-# 搜索全部 event, 通过 regex 匹配到目标，计算百分比
-UserChangeEvent MessageBox | stats count(eval(match(field1, ".*updatedFields\":\[{\"fieldName\":\"jobCode\".*"))) as JCEvent count as total | eval JC_pct=JCEvent/total*100
-
-# 升级版，计算多个百分比情况
-# EMP_PCT 内容是空的 event 在所有 jobcode event 中的占比，和 jobcode 在所有 event 中的占比
-UserChangeEvent MessageBox | stats count(eval(match(field1, ".*updatedFields\":\[{\"fieldName\":\"jobCode\".*"))) as totalJCEvent count(eval(match(field1, ".*updatedFields\":\[{\"fieldName\":\"jobCode\",\"fieldType\":\"java.lang.String\",\"afterValue\":\"\"}\].*"))) as emptyEvent count as total | eval EMP_PCT=emptyEvent/totalJCEvent*100, JC_PCT=totalJCEvent/total*100
+| makeresults 
+| eval n=10.3
+| eval n_round=round(n)
+| eval n_ceil=ceil(n)
 ```
 
-## 取两位小数
+更多计算函数，参考 [math](https://docs.splunk.com/Documentation/Splunk/8.1.4/SearchReference/MathematicalFunctions)
 
-```bash
-| 7xAVG=round((7*total/1), 2)
-```
+## fields
 
-## 通过正则创建新 field
-
-```bash
-# 选出结果集，从输出信息中匹配 'Company: ' 开头 ', total CommonField' 结尾的部分并命名为 cname 统计出现次数
-# _raw 表示 record 内容
-search condition | rex field=_raw "Company: (?<cname>.*), total CommonField" | stats count by cname
-```
-
-## stats 和 eval 的区别
-
-stats 是对已经有的 field 的删选，而 eval 是通过已有的 field 计算出新的 field 加到结果集中进行删选，等价于新增 field
-
-```bash
-# 删选 event, 新建一个 field 名叫 is_prod, 当 host 匹配 pattern 时赋值 yes_prod
-search event | eval is_prod=if(like(host, "pc%"), "yes_prod", "not_prod") | stats count by is_prod
-```
-
-其中 eval 还支持多种删选条件，可塑性好高
-
-```bash
-# 统计各环境的 event 数量并统计比例
-search event | eval env=case(like(host, "pc%"), "prod", like(host, "sc%"), "prov", like(host, "*"), "others") | stats count by env
-```
+指定显示结果 `search cmd | fields host, src`, 从结果集中 remove 某个 field `search cmd | fields - host, src`
 
 ## Splunk SDK
 
@@ -190,6 +275,38 @@ scheme=https
 # Your version of Splunk (default: 5.0)
 version=7.1.2
 ```
+
+## Splunk REST API
+
+本地测试过了，但是产品上失败，可能公司用的 Splunk 有特殊限制
+
+```bash
+# 创建搜索 job
+curl -u admin:Splunkpwd0001$ -k https://localhost:8089/services/search/jobs -d search="search ScimPerformanceInterceptor"
+# 查看 job 状态
+curl -u admin:Splunkpwd0001$ -k https://localhost:8089/services/search/jobs/1658910321.148
+# 查看 job 结果
+curl -u admin:Splunkpwd0001$ -k https://localhost:8089/services/search/jobs/1658910321.148/results --get -d output_mode=json
+```
+
+## Splunk dashboard sample
+
+官方制作了一个 dashboard 插件，里面有大量的精美 bashboard 案例 [dashboard examples](https://splunkbase.splunk.com/app/1603/)。需要注册账号，不过是免费的，下载完成后还会给出安装步骤。
+
+1. Log into Splunk Enterprise.
+2. On the Apps menu, click Manage Apps.
+3. Click Install app from file.
+4. In the Upload app window, click Choose File.
+5. Locate the .tar.gz file you just downloaded, and then click Open or Choose.
+6. Click Upload.
+7. Click Restart Splunk, and then confirm that you want to restart.
+
+To install apps and add-ons directly into Splunk Enterprise
+Put the downloaded file in the $SPLUNK_HOME/etc/apps directory.
+Untar and ungzip your app or add-on, using a tool like tar -xvf (on *nix) or WinZip (on Windows).
+Restart Splunk.
+
+After you install a Splunk app, you will find it on Splunk Home. If you have questions or need more information, see Manage app and add-on objects.
 
 ## 三个小例子快速入门
 

@@ -7,6 +7,8 @@ tags:
 - superset
 ---
 
+在同事的安利下安装完了 Superset, 然后大致浏览了一下他的功能特性，发现并不是我想要的。。。他属于一个 BI(Business Inteligence)工具，定位应该是提供了一整套数据可视化的方案。让你可以很方便的将数据展示给别人看。对于我现在的需求，我想要画一下某组数据的分布曲线，这个需求反而太原始了，用这个工具有点牛刀小用，而且效果不怎么好，可能我还是得回到 jupyter 那边去，哈哈
+
 ## 准备工作
 
 docker 方式安装 Superset 的步骤中有一步是 load_example, 这步的过程中会去 github 上下载案例。不过由于 GFW 的问题，下载会失败。解决方案为，手动下载这个 repo 并在本地起一个服务器挂载这些资源，然后修改 docker 中下载 sample 脚本的配置即可。以下是下载资源，起服务部分配置
@@ -58,6 +60,3 @@ docker exec -it superset superset init
 ```
 
 到这里安装结束，通过访问 http://localhost:8080/login/ 查看页面，使用 admin/admin 登陆
-
-## 画图案例
-
