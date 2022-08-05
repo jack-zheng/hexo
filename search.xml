@@ -1571,6 +1571,9 @@
 <li>让失败保持源字形</li>
 <li>不要忽略异常</li>
 </ul>
+<h2 id="只针对异常的情况才使用异常"><a href="#只针对异常的情况才使用异常" class="headerlink" title="只针对异常的情况才使用异常"></a>只针对异常的情况才使用异常</h2><p>展示一个产品代码中遇到的违反这条建议的的奇葩例子。底层 team 给了一个很奇葩的接口，一个 findPersonIdByPersonUUID 的方法，当找不到结果的时候，竟然会抛出 exception 而不是返回 null, 导致我这个调用方处理起来像是吃了屎一样难受。。。而且这样的逻辑把 ‘找不到’ 和 ‘代码异常’ 两中情况混在一起了，抛出了异常之后都不知道具体的 root cause，简直了。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 底层实现</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BadPracticeServiceA</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">long</span> <span class="title">getPersonIdByPersonUUID</span><span class="params">(String personUuid)</span> </span>&#123;</span><br><span class="line">        Long person = getPersonId();</span><br><span class="line">        <span class="keyword">if</span> (person == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">&quot;Can not find PersonID by PersonUUID&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> person;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 作为上层的调用者，我在调用上述方法的时候不得不显示的处理他抛出的异常</span></span><br><span class="line"><span class="keyword">try</span> &#123;   </span><br><span class="line">    <span class="keyword">long</span> target = badPracticeServiceA.getPersonIdByPersonUUID(<span class="string">&quot;uuid&quot;</span>);</span><br><span class="line">&#125; <span class="keyword">catch</span> (IllegalStateException e) &#123;</span><br><span class="line">    log.info(<span class="string">&quot;Exception when get person id by person uuid &#123;&#125;, detail log msg: &#123;&#125;&quot;</span>, <span class="string">&quot;uuid&quot;</span>, e.getMessage());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> <span class="keyword">null</span>;</span><br></pre></td></tr></table></figure>
+
 <h2 id="对可恢复的情况使用-checked-exception-不可恢复的使用-runtime-exception"><a href="#对可恢复的情况使用-checked-exception-不可恢复的使用-runtime-exception" class="headerlink" title="对可恢复的情况使用 checked exception, 不可恢复的使用 runtime exception"></a>对可恢复的情况使用 checked exception, 不可恢复的使用 runtime exception</h2><ul>
 <li>如果期望调用者能够适当的恢复，对于这种情况应该使用 checked exception</li>
 <li>runtime exception 和 error 行为上是等同的，没有捕获，当前线程停止</li>
@@ -1599,7 +1602,7 @@
         <category>Effective Java</category>
       </categories>
       <tags>
-        <tag>Exception</tag>
+        <tag>exception</tag>
       </tags>
   </entry>
   <entry>
@@ -3305,44 +3308,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Hexo 搜索</title>
-    <url>/hexo/2020/05/28/Hexo-Search-Plugin/</url>
-    <content><![CDATA[<p>Hexo 提供全区搜索功能很方便，在两个 <code>_config.yml</code> 文件下添加配置就行了，一个在 hexo 下，一个在 next 皮肤下。</p>
-<p>root -&gt; _config.yml 添加配置</p>
-<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Config for search service</span></span><br><span class="line"><span class="attr">search:</span></span><br><span class="line">    <span class="attr">path:</span> <span class="string">search.xml</span></span><br><span class="line">    <span class="attr">field:</span> <span class="string">post</span></span><br><span class="line">    <span class="attr">format:</span> <span class="string">html</span></span><br><span class="line">    <span class="attr">limit:</span> <span class="number">10000</span></span><br></pre></td></tr></table></figure>
-
-<p>root -&gt; themes -&gt; next -&gt; _config.yml</p>
-<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="attr">local_search:</span></span><br><span class="line">  <span class="attr">enable:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="Issues"><a href="#Issues" class="headerlink" title="Issues"></a>Issues</h2><p>某一天突然发现部分 Post 不能被 search 出来了。 看这个插件的配置信息，建立的索引应该是放在这个 search.xml 文件里了。排查发现是 Splunk 之后一个都失效了。继续排查，是这片文章中有个 ‘Steps:’ 的节点，在编辑器里面查看是没什么问题的，但是贴到其他工具，比如 idea 或者 browser 里面时，他会带一个 [BS] 的前缀。太神奇了。。。所以之前一直没发现。</p>
-<p>在 VSCode 里面看结构还是 <code>&lt;p&gt;Steps&lt;/p&gt;</code> 但是用 linux cat 时就变成 <code>&lt;pSteps:&lt;/p&gt;</code> 所以后面的 search 解析就出问题了。查了下 BS 代表的是退格键 0x008, 也解释了为什么 xml p 标签会少一个尖括号了 ╮(￣▽￣””)╭</p>
-<p><strong>2021-05-20</strong></p>
-<p>Docker 弹射起步的那篇文章并没有建立索引，搜索不到，只能通过 tag 导航过去。稍微检查了一下，和之前的文章里面混入了特殊字符的问题还不一样，有待查证</p>
-<p>搜索引擎使用技巧的那篇文章也不能搜索出来</p>
-<p><strong>2021-06-02</strong></p>
-<p>jmockit, testng 等关键字也没有建索引，感觉我的忍耐快要到极限了 (#ﾟДﾟ)</p>
-<p><strong>2021-06-03</strong></p>
-<p>本地启动 server，search 了一下，很多关键字都是可以找出来的。。。难道是远端的部署有问题？！</p>
-<p>通过 F12 + network 的 tab, 点击 search 看网络加载。remote 的 search.xml 位于 <code>https://jack-zheng.github.io/hexo/search.xml</code> 这路径下。加载的时候 terminal 会报错，难道我找到了华点？！！</p>
-<figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">This page contains the following errors:</span><br><span class="line">error on line 3463 at column 23: Input is not proper UTF-8, indicate encoding !</span><br><span class="line">Bytes: 0x08 0x20 0xE5 0x88</span><br><span class="line">Below is a rendering of the page up to the first error.</span><br></pre></td></tr></table></figure>
-
-<p>灯噔, 密码正确，删掉了对应的文件，search 正常了，但是我反复看了下那个文件，没看出什么问题啊。。。</p>
-<p>终于找到问题所在了！！！关键字没有设置对，害我绕了老大一圈才找到答案。如果早点用关键字 <code>Hexo search.xml Input is not proper UTF-8</code> 的话，早就出结果了。之前一直纠结在 Chrome 等主题那边</p>
-<p>用 hexo 插件等关键字发现几个和我一样的案例，很快的解决了问题。。。</p>
-<p>解决步骤：在 vscode 中打开你的项目，点搜索，点正则匹配，根据你的世纪情况搜索你要的关键字。比如我报错是 <code>0x08 0x20 0xE5 0x88</code> 就直接搜索 <code>\x08</code>, 把搜索出来的地方都改了就行。</p>
-<p>选中出问题的字段直接把它复制黏贴到终端，可以看到 <code>code, ^H如果是</code> 的显示，好神奇</p>
-<p><img src="search_issue.png" alt="Search issue"></p>
-<p>又做了一些深入调查，这种字符好像是控制字符，可能是打字的时候无意间打出来的，你可以通过 vscdoe 里面的设置，将它默认显示出来</p>
-<p>Code -&gt; Perferences -&gt; Settings -&gt; 搜索 renderControlCharacters 勾选上即可</p>
-]]></content>
-      <categories>
-        <category>Hexo</category>
-      </categories>
-      <tags>
-        <tag>search</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Hexo 博客 Setup</title>
     <url>/hexo/2019/11/12/Hexo-blog-setup/</url>
     <content><![CDATA[<p>Hexo setup 笔记。网上有好多 setup 的教程，这里就不赘述了。记录一下我 setup 时候用到的命令，作为备忘。</p>
@@ -3438,6 +3403,44 @@
       </categories>
       <tags>
         <tag>theme</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hexo 搜索</title>
+    <url>/hexo/2020/05/28/Hexo-Search-Plugin/</url>
+    <content><![CDATA[<p>Hexo 提供全区搜索功能很方便，在两个 <code>_config.yml</code> 文件下添加配置就行了，一个在 hexo 下，一个在 next 皮肤下。</p>
+<p>root -&gt; _config.yml 添加配置</p>
+<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Config for search service</span></span><br><span class="line"><span class="attr">search:</span></span><br><span class="line">    <span class="attr">path:</span> <span class="string">search.xml</span></span><br><span class="line">    <span class="attr">field:</span> <span class="string">post</span></span><br><span class="line">    <span class="attr">format:</span> <span class="string">html</span></span><br><span class="line">    <span class="attr">limit:</span> <span class="number">10000</span></span><br></pre></td></tr></table></figure>
+
+<p>root -&gt; themes -&gt; next -&gt; _config.yml</p>
+<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="attr">local_search:</span></span><br><span class="line">  <span class="attr">enable:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="Issues"><a href="#Issues" class="headerlink" title="Issues"></a>Issues</h2><p>某一天突然发现部分 Post 不能被 search 出来了。 看这个插件的配置信息，建立的索引应该是放在这个 search.xml 文件里了。排查发现是 Splunk 之后一个都失效了。继续排查，是这片文章中有个 ‘Steps:’ 的节点，在编辑器里面查看是没什么问题的，但是贴到其他工具，比如 idea 或者 browser 里面时，他会带一个 [BS] 的前缀。太神奇了。。。所以之前一直没发现。</p>
+<p>在 VSCode 里面看结构还是 <code>&lt;p&gt;Steps&lt;/p&gt;</code> 但是用 linux cat 时就变成 <code>&lt;pSteps:&lt;/p&gt;</code> 所以后面的 search 解析就出问题了。查了下 BS 代表的是退格键 0x008, 也解释了为什么 xml p 标签会少一个尖括号了 ╮(￣▽￣””)╭</p>
+<p><strong>2021-05-20</strong></p>
+<p>Docker 弹射起步的那篇文章并没有建立索引，搜索不到，只能通过 tag 导航过去。稍微检查了一下，和之前的文章里面混入了特殊字符的问题还不一样，有待查证</p>
+<p>搜索引擎使用技巧的那篇文章也不能搜索出来</p>
+<p><strong>2021-06-02</strong></p>
+<p>jmockit, testng 等关键字也没有建索引，感觉我的忍耐快要到极限了 (#ﾟДﾟ)</p>
+<p><strong>2021-06-03</strong></p>
+<p>本地启动 server，search 了一下，很多关键字都是可以找出来的。。。难道是远端的部署有问题？！</p>
+<p>通过 F12 + network 的 tab, 点击 search 看网络加载。remote 的 search.xml 位于 <code>https://jack-zheng.github.io/hexo/search.xml</code> 这路径下。加载的时候 terminal 会报错，难道我找到了华点？！！</p>
+<figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">This page contains the following errors:</span><br><span class="line">error on line 3463 at column 23: Input is not proper UTF-8, indicate encoding !</span><br><span class="line">Bytes: 0x08 0x20 0xE5 0x88</span><br><span class="line">Below is a rendering of the page up to the first error.</span><br></pre></td></tr></table></figure>
+
+<p>灯噔, 密码正确，删掉了对应的文件，search 正常了，但是我反复看了下那个文件，没看出什么问题啊。。。</p>
+<p>终于找到问题所在了！！！关键字没有设置对，害我绕了老大一圈才找到答案。如果早点用关键字 <code>Hexo search.xml Input is not proper UTF-8</code> 的话，早就出结果了。之前一直纠结在 Chrome 等主题那边</p>
+<p>用 hexo 插件等关键字发现几个和我一样的案例，很快的解决了问题。。。</p>
+<p>解决步骤：在 vscode 中打开你的项目，点搜索，点正则匹配，根据你的世纪情况搜索你要的关键字。比如我报错是 <code>0x08 0x20 0xE5 0x88</code> 就直接搜索 <code>\x08</code>, 把搜索出来的地方都改了就行。</p>
+<p>选中出问题的字段直接把它复制黏贴到终端，可以看到 <code>code, ^H如果是</code> 的显示，好神奇</p>
+<p><img src="search_issue.png" alt="Search issue"></p>
+<p>又做了一些深入调查，这种字符好像是控制字符，可能是打字的时候无意间打出来的，你可以通过 vscdoe 里面的设置，将它默认显示出来</p>
+<p>Code -&gt; Perferences -&gt; Settings -&gt; 搜索 renderControlCharacters 勾选上即可</p>
+]]></content>
+      <categories>
+        <category>Hexo</category>
+      </categories>
+      <tags>
+        <tag>search</tag>
       </tags>
   </entry>
   <entry>
@@ -4446,7 +4449,7 @@
   <entry>
     <title>Java 异常处理</title>
     <url>/hexo/2022/02/21/Java-exception/</url>
-    <content><![CDATA[<h2 id="记录-log-并附带-stack-trace"><a href="#记录-log-并附带-stack-trace" class="headerlink" title="记录 log 并附带 stack trace"></a>记录 log 并附带 stack trace</h2><p>今天看到同事给我代码 review 的时候推荐使用 log.info(e.getMessage()) 时，不太清楚推荐的原因，特意 Google 了一下几种 log 记录方式</p>
+    <content><![CDATA[<h2 id="常见的-log-使用方式"><a href="#常见的-log-使用方式" class="headerlink" title="常见的 log 使用方式"></a>常见的 log 使用方式</h2><p>今天看到同事给我代码 review 的时候推荐使用 log.info(e.getMessage()) 时，不太清楚推荐的原因，特意 Google 了一下几种 log 记录方式</p>
 <ul>
 <li>info(ex)</li>
 <li>info(ex.getMessage())</li>
@@ -4462,14 +4465,15 @@
 <p>抛错后继续执行</p>
 <h2 id="Scenario-2"><a href="#Scenario-2" class="headerlink" title="Scenario 2"></a>Scenario 2</h2><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test1</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> a = <span class="number">1</span>/<span class="number">0</span>;</span><br><span class="line">        System.out.println(<span class="string">&quot;Log after exception&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Exception in thread &quot;main&quot; java.lang.ArithmeticException: / by zero</span></span><br><span class="line"><span class="comment">//     at com.sf.sfv4.util.Test1.main(Test1.java:5)</span></span><br></pre></td></tr></table></figure>
 
-<p>抛错后没有执行</p>
+<p>抛错后没有执行。抛出异常后，相当于 return，直接结束当前方法。switch-case 中也是一样</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">swithc()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">case</span> scenario1:</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException();</span><br><span class="line">        <span class="comment">// break; break 会有编译错误</span></span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">        doSth();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 ]]></content>
       <categories>
         <category>java</category>
       </categories>
       <tags>
-        <tag>best practice</tag>
         <tag>exception</tag>
+        <tag>best practice</tag>
       </tags>
   </entry>
   <entry>
