@@ -9,7 +9,7 @@ tags:
 
 ## 测试环境 setup
 
-官方给出了 Splunk 的 docker image 我们可以通过它来创建本地测试环境 [docker hub link](https://hub.docker.com/r/splunk/splunk/)。就两条命了，官方也给了很详细的命令解释，赞。
+官方给出了 Splunk 的 docker image 我们可以通过它来创建本地测试环境 [docker hub link](https://hub.docker.com/r/splunk/splunk/)。就两条命令，官方也给了很详细的命令解释，赞。
 
 ```bash
 docker pull splunk/splunk:latest
@@ -59,7 +59,7 @@ PS: 如果需要测试 Splunk REST API, 还需要开放其端口 -p 8089:8089。
 对整个数据集做统计，可以结合 average，count 和 sum 使用，支持 by 做分组
 
 ```bash
-# 创建 name-core 测试集
+# 创建 name-score 测试集
 | makeresults count=5
 | eval name="Jerry Tom"
 | makemv delim=" " name
@@ -71,7 +71,7 @@ PS: 如果需要测试 Splunk REST API, 还需要开放其端口 -p 8089:8089。
 
 ## stats vs eventstats vs streamstats
 
-*[Command Type](https://docs.splunk.com/Documentation/Splunk/8.1.4/SearchReference/Commandsbytype#Streaming_commands)
+* [Command Type](https://docs.splunk.com/Documentation/Splunk/8.1.4/SearchReference/Commandsbytype#Streaming_commands)
 
 * stats: transforming command, 数据集会发生改变
 * eventstats: Dataset processing command, 需要所有 event 都找出来后才能工作
@@ -124,18 +124,14 @@ eventstats 突出以总体概念，可以做 by group 的操作，比如 sum(fie
 
 ## Comparison and Conditional functions
 
-* [condition](https://docs.splunk.com/Documentation/SCS/current/SearchReference/ConditionalFunctions)
+* [Comparison and Conditional functions Doc](https://docs.splunk.com/Documentation/SCS/current/SearchReference/ConditionalFunctions)
 
 * case
-* cidrmath
-* coalesce
-* if
-* in
-* like
 * match
 * nullif
 * searchmatch
 * validate
+* ...
 
 eval 配合条件函数使用可以衍生出很多效果
 

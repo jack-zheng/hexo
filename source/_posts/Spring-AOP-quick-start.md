@@ -40,3 +40,14 @@ public class IssueAspect {
     }
 }
 ```
+
+## 奇怪的 behavior
+
+最近发现产品上的 AOP 代码在两个 aspect 嵌套的情况下只会执行第一个 aspect，第二个直接跳过了，不知道是公司特有的还是 AOP 本来就有这种设定，特意检测一下
+
+> 场景重现:
+> service A 有两个 method01，method02 并且 method01 会调用 method02. 创建 Aspect 同时覆盖这两个方法，当 method01 执行时，method02 并不会被检测到。
+> 
+> 搜了一下 stackoverflow, 有人指出这个现象底层原理已经在 5.8.1 中写了。。。。proxy 之后，对自己的调用将会失效
+> Spring 4.3 之后可以通过 class 中注入本身来绕过这个问题 
+> [stackoverflow exp + solution](https://stackoverflow.com/questions/13564627/spring-aop-not-working-for-method-call-inside-another-method)

@@ -5,6 +5,7 @@ categories:
 - java
 tags:
 - exception
+- best practice
 ---
 
 ## 记录 log 并附带 stack trace
@@ -16,6 +17,8 @@ tags:
 * info("msg", ex)
 
 总的来说，第三种最好，前两种只会记录当前类的异常抛出记录，之前的信息都 miss 掉了
+
+PS: 在 SCIM API 项目中，实现也是只传了 e.getmessage() 而没有传递 ex 这个对象，导致追踪困难，引以为鉴
 
 ```java
 public class ExpTest {

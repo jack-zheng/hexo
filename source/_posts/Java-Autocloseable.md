@@ -5,6 +5,7 @@ categories:
 - java
 tags:
 - AutoCloseable
+- best practice
 ---
 
 最近在看其他 team 的代码时，看到一个在 Filter 中添加 AutoCloseable 的方式来达到记录 perf log 的目的，听新颖的，记录一下并熟悉一下 AutoCloseable 接口的用法

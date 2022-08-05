@@ -187,6 +187,12 @@ git log --full-log -- <file path>
 # 第二种会包含各种 merge 的信息， 比较全。但是一般第一种就够用了
 ```
 
+找到该文件后，可以使用 git blame 9f41d238500 -- <file path> 查看文件修改记录
+
+## 查看某个 commit 的改动
+
+git show <commit>
+
 ## 查看文件某一行删除记录
 
 ```bash

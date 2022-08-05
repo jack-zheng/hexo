@@ -1,11 +1,10 @@
 ---
-title: Effective Java chapter 2 creating and destorying objects
+title: Effective Java 对象的创建和销毁
 date: 2020-10-20 10:48:50
 categories:
-- 编程
+- Effective Java
 tags:
-- java
-- effective java
+- Object
 ---
 
 第二章 对象的生成和销毁 读书笔记
