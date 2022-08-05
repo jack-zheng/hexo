@@ -8,7 +8,7 @@ tags:
 - best practice
 ---
 
-## 记录 log 并附带 stack trace
+## 常见的 log 使用方式
 
 今天看到同事给我代码 review 的时候推荐使用 log.info(e.getMessage()) 时，不太清楚推荐的原因，特意 Google 了一下几种 log 记录方式
 
@@ -94,4 +94,15 @@ public class Test1 {
 // 	at com.sf.sfv4.util.Test1.main(Test1.java:5)
 ```
 
-抛错后没有执行
+抛错后没有执行。抛出异常后，相当于 return，直接结束当前方法。switch-case 中也是一样
+
+```java
+swithc()
+{
+    case scenario1:
+        throw new RuntimeException();
+        // break; break 会有编译错误
+    default:
+        doSth();
+}
+```

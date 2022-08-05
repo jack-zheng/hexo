@@ -4,7 +4,7 @@ date: 2022-08-05 10:44:32
 categories:
 - Effective Java
 tags:
-- Exception
+- exception
 ---
 
 异常章节摘抄
@@ -18,6 +18,32 @@ tags:
 * 异常信息中包含失败信息
 * 让失败保持源字形
 * 不要忽略异常
+
+## 只针对异常的情况才使用异常
+
+展示一个产品代码中遇到的违反这条建议的的奇葩例子。底层 team 给了一个很奇葩的接口，一个 findPersonIdByPersonUUID 的方法，当找不到结果的时候，竟然会抛出 exception 而不是返回 null, 导致我这个调用方处理起来像是吃了屎一样难受。。。而且这样的逻辑把 '找不到' 和 '代码异常' 两中情况混在一起了，抛出了异常之后都不知道具体的 root cause，简直了。
+
+```java
+// 底层实现
+public class BadPracticeServiceA {
+    public long getPersonIdByPersonUUID(String personUuid) {
+        Long person = getPersonId();
+        if (person == null) {
+            throw new IllegalStateException("Can not find PersonID by PersonUUID");
+        }
+        return person;
+    }
+}
+
+// 作为上层的调用者，我在调用上述方法的时候不得不显示的处理他抛出的异常
+try {   
+    long target = badPracticeServiceA.getPersonIdByPersonUUID("uuid");
+} catch (IllegalStateException e) {
+    log.info("Exception when get person id by person uuid {}, detail log msg: {}", "uuid", e.getMessage());
+}
+
+return null;
+```
 
 ## 对可恢复的情况使用 checked exception, 不可恢复的使用 runtime exception
 
