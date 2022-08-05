@@ -206,6 +206,394 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/08/05/Effective-Java-exception/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2022/08/05/Effective-Java-exception/" class="post-title-link" itemprop="url">Effective Java 异常</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-08-05 10:44:32 / 修改时间：14:17:15" itemprop="dateCreated datePublished" datetime="2022-08-05T10:44:32+08:00">2022-08-05</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/Effective-Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Effective Java</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>917</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>异常章节摘抄</p>
+<ul>
+<li>只针对异常的情况才使用异常</li>
+<li>对可恢复的情况使用 checked exception, 不可恢复的使用 runtime exception</li>
+<li>避免滥用 checked exception</li>
+<li>优先使用 JDK 提供的标准异常</li>
+<li>抛出与上下文匹配的异常</li>
+<li>在方法注释上，为每个抛出的异常编写文档</li>
+<li>异常信息中包含失败信息</li>
+<li>让失败保持源字形</li>
+<li>不要忽略异常</li>
+</ul>
+<h2 id="对可恢复的情况使用-checked-exception-不可恢复的使用-runtime-exception"><a href="#对可恢复的情况使用-checked-exception-不可恢复的使用-runtime-exception" class="headerlink" title="对可恢复的情况使用 checked exception, 不可恢复的使用 runtime exception"></a>对可恢复的情况使用 checked exception, 不可恢复的使用 runtime exception</h2><ul>
+<li>如果期望调用者能够适当的恢复，对于这种情况应该使用 checked exception</li>
+<li>runtime exception 和 error 行为上是等同的，没有捕获，当前线程停止</li>
+<li>runtime exception 表明程序错误</li>
+</ul>
+<h2 id="避免滥用-checked-exception"><a href="#避免滥用-checked-exception" class="headerlink" title="避免滥用 checked exception"></a>避免滥用 checked exception</h2><p>滥用 checked exception 会使你的 API 调用极其麻烦。一旦抛出 checked exception，调用者就必须 catch 他或者在方法标签中 throw，传播出去，无论哪种处理方式，都是对调用者不可忽视的负担。</p>
+<p>绕过 checked exception 的方法：</p>
+<ul>
+<li>使用 runtime exception 代替</li>
+<li>重构逻辑</li>
+</ul>
+<h2 id="优先使用-JDK-提供的标准异常"><a href="#优先使用-JDK-提供的标准异常" class="headerlink" title="优先使用 JDK 提供的标准异常"></a>优先使用 JDK 提供的标准异常</h2><p>常见的标准异常</p>
+<ul>
+<li>IllegalArgmentException</li>
+<li>IllegalStateException</li>
+<li>NullPointException</li>
+<li>IndexOutOfBoundsException</li>
+<li>ConcurrentModificationException</li>
+<li>UnsupportedOperaitonException</li>
+</ul>
+<h2 id="抛出与上下文匹配的异常"><a href="#抛出与上下文匹配的异常" class="headerlink" title="抛出与上下文匹配的异常"></a>抛出与上下文匹配的异常</h2><p>底层异常，传递到上层是可能和当前上下文不匹配，污染 API。这是需要在上层转译一下，重新抛出异常。如果异常栈对错误排查很有帮助，可以将 exception chain 一并传递给新的异常(Throwable 的 initCause 方法)</p>
+<p>异常转译比直接传递底层异常好，但更好的处理方式应该是调用底层方法之前确保他能执行成功，避免抛出一场。有时调用底层之前，先做一下参数监测可能是更好的方式。</p>
+<p>如果无法避免底层异常，次选方案是让上层悄悄绕开这些异常，从而使上层调用者和底层问题隔离开来，通常这是还会打个 log 记录，方便回溯问题。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/07/27/Java-Unified-Authorization-Architecture/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2022/07/27/Java-Unified-Authorization-Architecture/" class="post-title-link" itemprop="url">Java Unified Authorization Architecture</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-07-27 16:57:48" itemprop="dateCreated datePublished" datetime="2022-07-27T16:57:48+08:00">2022-07-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>6.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>6 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>前段时间，组内连续出了两个和 SCA 的 role/feature config 相关的 P1 issue，由于不知道它的实现原理，只能通过对比 PR 来找问题，太 low 了，特意读一下他的源码，学习一下下次再出现这种情况要怎么处理</p>
+<h2 id="Unified-Authorization-Architecture-是什么"><a href="#Unified-Authorization-Architecture-是什么" class="headerlink" title="Unified Authorization Architecture 是什么"></a>Unified Authorization Architecture 是什么</h2><p>这套框架的最终目的是阻止没有授权的用户执行某些 service command。从 MVC 分层上来说，它是在 controller 和 service 之间新加了一层逻辑，每次 service 执行之前都会检测一下，当前用户是否有权执行该 service。</p>
+<p>检测分两层，第一层是 company feature test, 第二层是 Role test</p>
+<h2 id="怎么配置"><a href="#怎么配置" class="headerlink" title="怎么配置"></a>怎么配置</h2><p>每个 repo 的 resource 文件夹中都有两个配置文件，分别叫做 featuer-access.xml 和 role-access.xml。他们就是两层检测的配置文件</p>
+<h3 id="Feature-protected-Service-Command"><a href="#Feature-protected-Service-Command" class="headerlink" title="Feature-protected Service Command"></a>Feature-protected Service Command</h3><p>feature 控制配置文件如下</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">activity-feature-map</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">module</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">activity</span> <span class="attr">id</span>=<span class="string">&quot;com.path.CreateUser&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">feature</span> <span class="attr">id</span>=<span class="string">&quot;Manage User&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">activity</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!-- ... --&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">module</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">activity-feature-map</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>他表示的意思是，对于当前 company，只有开启的 Manage User 这个 feature 才被允许执行 CreateUser 这个 service。所有可用的 feature 都存在 FeatureEnum.java 中。他位于 provisioning 文件夹下，那我估计他是和 provisioning 里的 company feature 挂钩的，之前还以为是和 RBP 的 permission 有关呢。</p>
+<p>PS: 但是当前几乎所有的 feature 配置都会默认配置 <code>&lt;feature id=&quot;*&quot;/&gt;</code>，也就是说，feature check 名存实亡</p>
+<h3 id="Role-protected-Service-Command"><a href="#Role-protected-Service-Command" class="headerlink" title="Role-protected Service Command"></a>Role-protected Service Command</h3><p>基于 role 的校验可以达到没有配置的用户不能执行 service 的效果</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">activity-permission-map</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">module</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">activity-group</span> <span class="attr">id</span>=<span class="string">&quot;myGroup01&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">activity</span> <span class="attr">id</span>=<span class="string">&quot;com.path.CreateUser&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">activity-group</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">activity-group</span> <span class="attr">id</span>=<span class="string">&quot;myGroup02&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">activity</span> <span class="attr">id</span>=<span class="string">&quot;com.path.DeleteUser&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">activity-group</span>&gt;</span></span><br><span class="line">    </span><br><span class="line">        <span class="tag">&lt;<span class="name">role</span> <span class="attr">id</span>=<span class="string">&quot;processJob&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">activity-group</span> <span class="attr">refid</span>=<span class="string">&quot;myGroup01&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">role</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">role</span> <span class="attr">id</span>=<span class="string">&quot;user&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">activity-group</span> <span class="attr">refid</span>=<span class="string">&quot;myGroup02&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">role</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">module</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">activity-permission-map</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>按照上述配置，login user 只能执行 delete user 这个 service 而不能执行 create user，如果执行了会抛出异常</p>
+<p>所有支持爹 role 定义在 PermissionBean 中，也可以去 Permission table 的 permission_type 中查看</p>
+<h3 id="特殊的-role"><a href="#特殊的-role" class="headerlink" title="特殊的 role"></a>特殊的 role</h3><p>当一个用户通过 /login, /samllogin 登陆到系统中后，对应的 permission 会存到 PermissionListBean 中。但还有其他特殊情况</p>
+<table>
+<thead>
+<tr>
+<th align="left">User type</th>
+<th align="left">Role</th>
+<th align="left">Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">Provisioners</td>
+<td align="left">provisioner</td>
+<td align="left">users authenticated via /provisioning_login.</td>
+</tr>
+<tr>
+<td align="left">SFV4 Client or Quartz Job</td>
+<td align="left">processJob</td>
+<td align="left">allows the SFV4 client/Quartz Job to execute service</td>
+</tr>
+<tr>
+<td align="left">Any Login User</td>
+<td align="left">user</td>
+<td align="left">any user authenticated via /login or /samllogin</td>
+</tr>
+</tbody></table>
+<p>还有一个很神奇的 User type, Anonymous, ParamBean 有一个方法 getAnonymousPrincipal() 注释说，这个 type 表示一个没有经过授权的 user, 猜测，比如，登陆前需要做一些测试，比如看  account 是否存在，这个时候就要用到这种类型的 user type 了。</p>
+<h2 id="工作流程"><a href="#工作流程" class="headerlink" title="工作流程"></a>工作流程</h2><p><a target="_blank" rel="noopener" href="https://confluence.successfactors.com/display/ENG/Unified+Authorization+Architecture+Technical+Specification">https://confluence.successfactors.com/display/ENG/Unified+Authorization+Architecture+Technical+Specification</a></p>
+<p>AppSec, short for application secirity. 看他的描述，是参考了 OWASP ESAPI 这个项目。</p>
+<p>This API will provide initially just two things:</p>
+<ul>
+<li>A thread local to store the current user</li>
+<li>A set of access control APIs</li>
+</ul>
+<p>The ThreadLocal principal is designed to be populated and cleared by a Servlet filter</p>
+<p>逻辑推测，server 启动的时候会加载分析 role/feature 配置文件，并存到一个静态类中，作为共用部分。后续当 SCA engine 调用 impl 之前，都会有一个 auth check 的过程。过程中会使用 AppSec 作为入口检测权限。大致过程就是这样，再细致的分析就得涉及到 RBP 那部分的内容了。最主要的参考文档应该是这个</p>
+<p><a target="_blank" rel="noopener" href="https://confluence.successfactors.com/display/ENG/Unified+Authorization+Architecture+Technical+Specification">https://confluence.successfactors.com/display/ENG/Unified+Authorization+Architecture+Technical+Specification</a></p>
+<p>他告诉这个过程的规范，涉及到的类和关系等</p>
+<p>public class AppsecConfigListener implements ServletContextListener 这个 class 被注册到 web.xml 中，看实现的接口应该是 servlet 启动结束后，到各个 module 中的加载 feature 和 role 的配置信息。</p>
+<p>ProvisioningLoginServlet.java - process() - provisionerBean.createProvisionerParamBean()</p>
+<p>  public ParamBean createProvisionerParamBean(CompanyBean cb) {<br>    ParamBean p = ParamBean.createDefaultParamBean(cb, PROVISIONER_PARAMBEAN_ROLE);<br>    p.getAppSecRoles().addAll(getAppSecRoles());<br>    return p;<br>  }</p>
+<p>ParamBean role as provisioner, 并将 sf_provisioner 中 flag 这个 column 里解析出来的 permission 加上 APP_SEC_PREFIX 添加到 role 中</p>
+<p>UiAuthenticationProcessorImpl.java - process() - start login</p>
+<p>GenericAuthorizationFilter 每次结束之后会将 appsec current user 置为 null</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">09:35:44,710 ERROR [AuditConfigExecutor] getConfigsFromDb error, company:QAAUTOCAND_RCMGoldenApp7.</span><br><span class="line">sf_class&#x3D;com.successfactors.appsec.AbstractAccessController line&#x3D;39 method&#x3D;assertAuthorizedFor depth&#x3D;1 </span><br><span class="line">AccessDeniedException&#123;user&#x3D;[RCMGoldenApp7,RCMGoldenApp7,QAAUTOCAND_RCMGoldenApp7.,dbPool1,null,null,en_US] , activity&#x3D;Activity&#123;type&#x3D;SERVICE, name&#x3D;&#39;com.successfactors.auditloggingservice.service.audit.command.AuditConfigQueryCmd&#39;, context&#x3D;null&#125;&#125;</span><br><span class="line">    at com.successfactors.appsec.AbstractAccessController.assertAuthorizedFor(AbstractAccessController.java:39)</span><br><span class="line">    at com.successfactors.appsec.AppSec.assertAuthorizedForService(AppSec.java:231)</span><br><span class="line">    at com.successfactors.sca.ServiceCommandEngine.authorizeService(ServiceCommandEngine.java:312)</span><br><span class="line">    at com.successfactors.sca.ServiceCommandEngine.execute(ServiceCommandEngine.java:238)</span><br><span class="line">    at com.successfactors.sca.service.spring.ServiceCommandProcessorSpring.execute(ServiceCommandProcessorSpring.java:451)</span><br><span class="line">    at com.successfactors.sca.service.handler.spring.SpringAppSCAHandler.execute(SpringAppSCAHandler.java:36)</span><br><span class="line">    at com.successfactors.auditloggingservice.service.audit.executor.AuditConfigExecutor.getConfigsFromDb(AuditConfigExecutor.java:85)</span><br><span class="line">    at com.successfactors.auditloggingservice.service.audit.executor.AuditConfigExecutor.getConfigValue(AuditConfigExecutor.java:55)</span><br><span class="line">    at com.successfactors.auditloggingservice.service.audit.executor.AuditConfigExecutor.getConfigValue(AuditConfigExecutor.java:49)</span><br><span class="line">    at com.successfactors.auditloggingservice.service.audit.executor.AuditKafkaSaveExecutor.needSave(AuditKafkaSaveExecutor.java:118)</span><br><span class="line">    at com.successfactors.auditloggingservice.service.audit.executor.AuditKafkaSaveExecutor.update(AuditKafkaSaveExecutor.java:80)</span><br><span class="line">    at com.successfactors.auditloggingservice.service.audit.executor.AuditKafkaSaveExecutor.lambda$0(AuditKafkaSaveExecutor.java:69)</span><br><span class="line">    at java.base&#x2F;java.util.concurrent.ThreadPoolExecutor.runWorker(Unknown Source)</span><br><span class="line">    at java.base&#x2F;java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)</span><br><span class="line">    at java.base&#x2F;java.lang.Thread.run(Unknown Source)</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="怎么测试"><a href="#怎么测试" class="headerlink" title="怎么测试"></a>怎么测试</h2><p>针对之前的两个 P1 issue 应该怎么写测试</p>
+<h2 id="市面上的同类型产品"><a href="#市面上的同类型产品" class="headerlink" title="市面上的同类型产品"></a>市面上的同类型产品</h2><p><a target="_blank" rel="noopener" href="https://confluence.successfactors.com/display/CST/12+SCA+Home">https://confluence.successfactors.com/display/CST/12+SCA+Home</a> 这个页面可以应该是 最全的 sca 文档了</p>
+<p>ESAPI</p>
+<feature id="Generic Objects"/>
+<activity-feature-map>
+    <module>
+        <activity id="com.successfactors.identityprofile.scimv2.service.pendingdata.SavePendingData">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.service.pendingdata.RemovePendingData">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.domainevent.incoming.personassignment.sca.ProcessPersonCreate">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.domainevent.incoming.personassignment.sca.SyncPersonDataAndClearPendingData">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.service.pendingdata.FindScimPendingDataEntityByAttributeNameAndValue">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.service.pendingdata.FindScimPendingDataEntitiesByUserResourceId">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.FindScimUserResourceByAccountId">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.FindScimUserResourceByPerPersonUuid">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.CreateScimUserResource">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.UpdateScimUserResource">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.DeleteScimUserResource">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.service.sca.SearchUserResourceV2">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.service.sca.CreateUserResourceV2">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.service.sca.UpdateUserResourceV2">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.service.sca.FindUserResourceV2ById">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.service.sca.DeleteUserResourceV2">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.ScimUserResourceMigration">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.realtimeidentitysync.identityconfiguration.dbmigration.CreateIdentityRealTimeSyncIgsConfiguration">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.technicaluser.service.sca.IPSRealTimeSyncTechnicalUserPermissions">
+            <feature id="*"/>
+        </activity>
+    </module>
+</activity-feature-map>
+
+
+<activity-permission-map>
+    <module>
+        <activity-group id="PendingData">
+            <activity id="com.successfactors.identityprofile.scimv2.service.pendingdata.SavePendingData"/>
+            <activity id="com.successfactors.identityprofile.scimv2.service.pendingdata.RemovePendingData"/>
+            <activity id="com.successfactors.identityprofile.scimv2.service.pendingdata.FindScimPendingDataEntityByAttributeNameAndValue"/>
+            <activity id="com.successfactors.identityprofile.scimv2.service.pendingdata.FindScimPendingDataEntitiesByUserResourceId"/>
+        </activity-group>
+        <activity-group id="personAssignmentDataHandler">
+            <activity id="com.successfactors.identityprofile.scimv2.domainevent.incoming.personassignment.sca.SyncPersonDataAndClearPendingData"/>
+            <activity id="com.successfactors.identityprofile.scimv2.domainevent.incoming.personassignment.sca.ProcessPersonCreate" />
+        </activity-group>
+        <activity-group id="ScimUserResoure">
+            <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.FindScimUserResourceByAccountId"/>
+            <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.FindScimUserResourceByPerPersonUuid"/>
+            <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.CreateScimUserResource"/>
+            <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.UpdateScimUserResource"/>
+            <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.DeleteScimUserResource"/>
+            <activity id="com.successfactors.identityprofile.scimv2.service.sca.SearchUserResourceV2"/>
+            <activity id="com.successfactors.identityprofile.scimv2.service.sca.CreateUserResourceV2"/>
+            <activity id="com.successfactors.identityprofile.scimv2.service.sca.UpdateUserResourceV2"/>
+            <activity id="com.successfactors.identityprofile.scimv2.service.sca.FindUserResourceV2ById"/>
+            <activity id="com.successfactors.identityprofile.scimv2.service.sca.DeleteUserResourceV2"/>
+            <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.ScimUserResourceMigration"/>
+        </activity-group>
+        <activity-group id="igsintegration">
+            <activity id="com.successfactors.identityprofile.realtimeidentitysync.identityconfiguration.dbmigration.CreateIdentityRealTimeSyncIgsConfiguration"/>
+            <activity id="com.successfactors.identityprofile.technicaluser.service.sca.IPSRealTimeSyncTechnicalUserPermissions"/>
+        </activity-group>
+
+<pre><code>    &lt;role id=&quot;processJob&quot;&gt;
+        &lt;activity-group refid=&quot;PendingData&quot;/&gt;
+        &lt;activity-group refid=&quot;ScimUserResoure&quot;/&gt;
+        &lt;activity-group refid=&quot;personAssignmentDataHandler&quot;/&gt;
+        &lt;activity-group refid=&quot;igsintegration&quot;/&gt;
+    &lt;/role&gt;
+    &lt;role id=&quot;user&quot;&gt;
+        &lt;activity-group refid=&quot;PendingData&quot;/&gt;
+        &lt;activity-group refid=&quot;ScimUserResoure&quot;/&gt;
+        &lt;activity-group refid=&quot;personAssignmentDataHandler&quot;/&gt;
+        &lt;activity-group refid=&quot;igsintegration&quot;/&gt;
+    &lt;/role&gt;
+    &lt;role id=&quot;anonymous&quot;&gt;
+        &lt;activity-group refid=&quot;PendingData&quot;/&gt;
+        &lt;activity-group refid=&quot;ScimUserResoure&quot;/&gt;
+        &lt;activity-group refid=&quot;personAssignmentDataHandler&quot;/&gt;
+    &lt;/role&gt;
+&lt;/module&gt;</code></pre></activity-permission-map>
+
+
+<p>a user which has not been authenticated.</p>
+<p>curl –location –request GET ‘<a target="_blank" rel="noopener" href="http://localhost:8080/rest/iam/scim/v2/Users/0bfa4ec0-a35d-4f64-881f-ed759108ff47&#39;">http://localhost:8080/rest/iam/scim/v2/Users/0bfa4ec0-a35d-4f64-881f-ed759108ff47&#39;</a></p>
+<p>AppsecConfigListener</p>
+<p>ServiceCommandEngine</p>
+<activity-group refid="DynamicGroups"/>
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/07/25/Statistics-histogram-and-distribution-curve/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +625,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -335,7 +723,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -430,7 +818,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -528,7 +916,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -622,7 +1010,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -741,7 +1129,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -761,7 +1149,7 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>693</span>
+              <span>1k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -798,6 +1186,13 @@
 </li>
 </ol>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Aspect</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">IssueAspect</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Before(&quot;within(issues.*)&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doBeforeLog</span><span class="params">(JoinPoint joinPoint)</span> </span>&#123;</span><br><span class="line">        String methodName = joinPoint.getSignature().getName();</span><br><span class="line">        System.out.printf(<span class="string">&quot;Before Advice of method %s is called...%n&quot;</span>, methodName);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="奇怪的-behavior"><a href="#奇怪的-behavior" class="headerlink" title="奇怪的 behavior"></a>奇怪的 behavior</h2><p>最近发现产品上的 AOP 代码在两个 aspect 嵌套的情况下只会执行第一个 aspect，第二个直接跳过了，不知道是公司特有的还是 AOP 本来就有这种设定，特意检测一下</p>
+<blockquote>
+<p>场景重现:<br>service A 有两个 method01，method02 并且 method01 会调用 method02. 创建 Aspect 同时覆盖这两个方法，当 method01 执行时，method02 并不会被检测到。</p>
+<p>搜了一下 stackoverflow, 有人指出这个现象底层原理已经在 5.8.1 中写了。。。。proxy 之后，对自己的调用将会失效<br>Spring 4.3 之后可以通过 class 中注入本身来绕过这个问题<br><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/13564627/spring-aop-not-working-for-method-call-inside-another-method">stackoverflow exp + solution</a></p>
+</blockquote>
+
       
     </div>
 
@@ -847,7 +1242,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -962,7 +1357,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -982,7 +1377,7 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>2.1k</span>
+              <span>2.2k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -1008,6 +1403,7 @@
 <li>info(“msg”, ex)</li>
 </ul>
 <p>总的来说，第三种最好，前两种只会记录当前类的异常抛出记录，之前的信息都 miss 掉了</p>
+<p>PS: 在 SCIM API 项目中，实现也是只传了 e.getmessage() 而没有传递 ex 这个对象，导致追踪困难，引以为鉴</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExpTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">testMethod</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span> / <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExpClient</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = Logger.getLogger(ExpClient.class);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            ExpTest.testMethod();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;------------------------------&gt; msg, e &lt;------------------------------&quot;</span>);</span><br><span class="line">            logger.info(<span class="string">&quot;err...&quot;</span>, e);</span><br><span class="line">            System.out.println(<span class="string">&quot;------------------------------&gt; e &lt;------------------------------&quot;</span>);</span><br><span class="line">            logger.info(e);</span><br><span class="line">            System.out.println(<span class="string">&quot;------------------------------&gt; msg &lt;------------------------------&quot;</span>);</span><br><span class="line">            logger.info(e.getMessage());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 终端输出如下：</span></span><br><span class="line"><span class="comment">// ------------------------------&gt; msg, e &lt;------------------------------</span></span><br><span class="line"><span class="comment">//  INFO [main] (ExpClient.java:14) - err...</span></span><br><span class="line"><span class="comment">// java.lang.ArithmeticException: / by zero</span></span><br><span class="line"><span class="comment">//     at sementic.ExpTest.testMethod(ExpTest.java:5)</span></span><br><span class="line"><span class="comment">//     at sementic.ExpClient.main(ExpClient.java:11)</span></span><br><span class="line"><span class="comment">// ------------------------------&gt; e &lt;------------------------------</span></span><br><span class="line"><span class="comment">//  INFO [main] (ExpClient.java:16) - java.lang.ArithmeticException: / by zero</span></span><br><span class="line"><span class="comment">// ------------------------------&gt; msg &lt;------------------------------</span></span><br><span class="line"><span class="comment">//  INFO [main] (ExpClient.java:18) - / by zero</span></span><br></pre></td></tr></table></figure>
 
 <h2 id="try-catch-执行流程"><a href="#try-catch-执行流程" class="headerlink" title="try-catch 执行流程"></a>try-catch 执行流程</h2><p>今天在写一段补偿代码的时候突然想到一个问题，当异常发生时，后续代码是否还会被执行的问题。测试前根据主观猜测，感觉如果有 try-catch, 那么会继续执行；没有则直接跳出了，相当于 return.</p>
@@ -1032,234 +1428,11 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/01/31/Nodejs-gitbook/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2022/01/31/Nodejs-gitbook/" class="post-title-link" itemprop="url">Nodejs + gitbook</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2022-01-31 15:26:22" itemprop="dateCreated datePublished" datetime="2022-01-31T15:26:22+08:00">2022-01-31</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/Nodejs/" itemprop="url" rel="index">
-                    <span itemprop="name">Nodejs</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.4k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>基于 Nodejs 的 gitbook， 感觉和 hexo 大同小意，不过还有额外的制作 pdf 和 ebook 等功能，值得一试</p>
-<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p>最终各软件版本信息如下</p>
-<ul>
-<li>node: v13.14.0</li>
-<li>CLI version: 2.3.2</li>
-<li>GitBook version: 3.2.3</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装</span></span><br><span class="line">npm install -g gitbook-cli</span><br><span class="line"><span class="comment"># 检测</span></span><br><span class="line">gitbook-cli -V</span><br></pre></td></tr></table></figure>
-
-<p>安装抛错</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">No receipt <span class="keyword">for</span> <span class="string">&#x27;com.apple.pkg.CLTools_Executables&#x27;</span> found at <span class="string">&#x27;/&#x27;</span>.</span><br><span class="line"></span><br><span class="line">No receipt <span class="keyword">for</span> <span class="string">&#x27;com.apple.pkg.DeveloperToolsCLILeo&#x27;</span> found at <span class="string">&#x27;/&#x27;</span>.</span><br><span class="line"></span><br><span class="line">No receipt <span class="keyword">for</span> <span class="string">&#x27;com.apple.pkg.DeveloperToolsCLI&#x27;</span> found at <span class="string">&#x27;/&#x27;</span>.</span><br><span class="line"></span><br><span class="line">gyp: No Xcode or CLT version detected!</span><br><span class="line">/usr/<span class="built_in">local</span>/lib/node_modules/gitbook-cli/node_modules/npm/node_modules/graceful-fs/polyfills.js:287</span><br><span class="line">      <span class="keyword">if</span> (cb) cb.apply(this, arguments)</span><br><span class="line">                 ^</span><br></pre></td></tr></table></figure>
-
-<p>重新安装 xcode-select, 去 app store 中搜索 xcode 并安装，挺花时间的，后年还要重新签一下协议。。。</p>
-<p>折腾一阵子还是失败了，最后搜了下谁是 gitbook 使用的 polyfills.js 还是旧版的，没有跟新，可以直接去这个文件中，将饮用的语句删掉，或者更新对用的库文件即可，我用了后者</p>
-<p>根据提示，打开文件，将该文件中的引用语句注释掉, 再试运行，正常</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// fs.stat = statFix(fs.stat)</span></span><br><span class="line"><span class="comment">// fs.fstat = statFix(fs.fstat)</span></span><br><span class="line"><span class="comment">// fs.lstat = statFix(fs.lstat)</span></span><br></pre></td></tr></table></figure>
-
-<p><code>gitbook init</code> 又报错了</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">TypeError [ERR_INVALID_ARG_TYPE]: The <span class="string">&quot;data&quot;</span> argument must be of <span class="built_in">type</span> string or an instance of Buffer, TypedArray, or DataView. Received an instance of Promise</span><br></pre></td></tr></table></figure>
-
-<p>说是版本过高。。。。草了, 打算使用 nvm 降一下</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 然而 DNS 被污染了，并不能拿到对应的文件，直接下载过到本地就行了, 然后 bash install.sh 即可</span></span><br><span class="line">curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash</span><br><span class="line"></span><br><span class="line"><span class="built_in">source</span> ~/.zshrc</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看安装结果，nvm 提示很完善</span></span><br><span class="line">nvm --version </span><br><span class="line"></span><br><span class="line">nvm ls-remote</span><br><span class="line"></span><br><span class="line">nvm install v13.14.0</span><br><span class="line"></span><br><span class="line">nvm use v13.14.0</span><br></pre></td></tr></table></figure>
-
-<p>切换版本之后，运行正常, 我估计可能 nvm 之后前面的那些改 js 文件的操作都可以省了</p>
-<h2 id="gitbook-使用"><a href="#gitbook-使用" class="headerlink" title="gitbook 使用"></a>gitbook 使用</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://chrisniael.gitbooks.io/gitbook-documentation/content/">中文版</a></li>
-</ul>
-<ol>
-<li>创建书本文件并 <code>gitbook init</code> 生成目录</li>
-<li><code>gitbook serve</code> 生成本地版电子书，访问 4000 端口阅读</li>
-</ol>
-<p>常用规则</p>
-<p>常用插件</p>
-<ul>
-<li>gitbook-plugin-summary 可以更具文件夹目录帮你自动生成对应的 summary 文件内容，安装完后输入 <code>book sm</code> 自动更新</li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/01/24/Redis-Docker/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2022/01/24/Redis-Docker/" class="post-title-link" itemprop="url">Redis + Docker 搭建方案</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2022-01-24 18:35:10" itemprop="dateCreated datePublished" datetime="2022-01-24T18:35:10+08:00">2022-01-24</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/Redis/" itemprop="url" rel="index">
-                    <span itemprop="name">Redis</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.8k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>2 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>通过 Redis 搭建 docker 实验环境</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">docker pull redis</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建容器</span></span><br><span class="line">docker run -itd --name redis-test -p 6379:6379 redis</span><br><span class="line"></span><br><span class="line"><span class="comment"># 进入容器</span></span><br><span class="line">docker <span class="built_in">exec</span> -it redis-test /bin/bash</span><br><span class="line"></span><br><span class="line"><span class="comment"># 开启客户端</span></span><br><span class="line">redis-cli</span><br><span class="line"><span class="comment"># 启动远程客户端</span></span><br><span class="line"><span class="comment"># redis-cli -h host -p port -a password</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 测试</span></span><br><span class="line">ping</span><br><span class="line"><span class="comment"># PONG</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 默认有 16 个数据库，默认用第 0 个</span></span><br><span class="line">select 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 显示当前库下所有的键</span></span><br><span class="line">keys *</span><br><span class="line"></span><br><span class="line"><span class="comment"># 清空当前 DB</span></span><br><span class="line">flushdb</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除所有数据库，危</span></span><br><span class="line">flushall</span><br></pre></td></tr></table></figure>
-
-<h3 id="Issues"><a href="#Issues" class="headerlink" title="Issues"></a>Issues</h3><p>清空的时候抛错，我估计是我的 docker redis 没有配置本地存储信息，并不能进行本地化相关操作，创建的时候挂在到本地可能就行了</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">flushdb </span><br><span class="line">(error) MISCONF Redis is configured to save RDB snapshots, but it is currently not able to persist on disk. Commands that may modify the data <span class="built_in">set</span> are disabled, because this instance is configured to report errors during writes <span class="keyword">if</span> RDB snapshotting fails (stop-writes-on-bgsave-error option). Please check the Redis logs <span class="keyword">for</span> details about the RDB error.</span><br></pre></td></tr></table></figure>
-
-<p>猜测失败，是配置问题，关闭了快找功能，导致保存失败，可以在客户端使用 <code>config set stop-writes-on-bgsave-error no</code> 解决问题</p>
-<h2 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 单个值最大能存储 512M</span></span><br><span class="line"><span class="built_in">set</span> name <span class="string">&quot;Jack&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 拿值</span></span><br><span class="line">get name</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看类型</span></span><br><span class="line"><span class="built_in">type</span> name</span><br><span class="line"></span><br><span class="line"><span class="comment"># 存储 hash</span></span><br><span class="line">HMSET runoob field1 <span class="string">&quot;Hello&quot;</span> field2 <span class="string">&quot;World&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># hash 取值</span></span><br><span class="line">HGET runoob field1</span><br><span class="line"><span class="comment">#&quot;Hello&quot;</span></span><br><span class="line">HGET runoob field2</span><br><span class="line"><span class="comment">#&quot;World&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># list 列表，左序存入</span></span><br><span class="line">lpush runoob redis</span><br><span class="line">lpush runoob mongodb</span><br><span class="line">lpush runoob rabbitmq</span><br><span class="line"></span><br><span class="line">lrange runoob 0 10</span><br><span class="line"><span class="comment"># 1) &quot;rabbitmq&quot;</span></span><br><span class="line"><span class="comment"># 2) &quot;mongodb&quot;</span></span><br><span class="line"><span class="comment"># 3) &quot;redis&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看列表大小</span></span><br><span class="line">llen runoob</span><br><span class="line"></span><br><span class="line"><span class="comment"># Set 无序集合</span></span><br><span class="line">sadd members jack</span><br><span class="line">sadd members tom</span><br><span class="line">sadd members tom</span><br><span class="line">smembers members</span><br><span class="line"><span class="comment"># 1) &quot;tom&quot;</span></span><br><span class="line"><span class="comment"># 2) &quot;jack&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看大小</span></span><br><span class="line">scard members</span><br><span class="line"></span><br><span class="line"><span class="comment"># zset 有序集合</span></span><br><span class="line">zadd dbs 0  mongodb</span><br><span class="line">zadd dbs 0  redis</span><br><span class="line">zadd dbs 0  rabit</span><br><span class="line"></span><br><span class="line">ZRANGEBYSCORE dbs 0 10000</span><br><span class="line"><span class="comment"># 1) &quot;mongodb&quot;</span></span><br><span class="line"><span class="comment"># 2) &quot;rabit&quot;</span></span><br><span class="line"><span class="comment"># 3) &quot;redis&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看大小</span></span><br><span class="line">zcard dbs</span><br></pre></td></tr></table></figure>
-
-<h2 id="Using-Redis-in-Python"><a href="#Using-Redis-in-Python" class="headerlink" title="Using Redis in Python"></a>Using Redis in Python</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装依赖</span></span><br><span class="line">pip install redis</span><br><span class="line"></span><br><span class="line"><span class="comment"># ipython 操作</span></span><br><span class="line">import redis</span><br><span class="line">r = redis.StrictRedis(host=<span class="string">&#x27;localhost&#x27;</span>, port=6379, db=0)</span><br><span class="line">r.set(<span class="string">&#x27;foo&#x27;</span>, <span class="string">&#x27;bar&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(r[<span class="string">&#x27;foo&#x27;</span>])</span><br><span class="line"><span class="comment"># b&#x27;bar&#x27;</span></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">type</span>(r.get(<span class="string">&#x27;foo&#x27;</span>)))</span><br><span class="line"><span class="comment"># &lt;class &#x27;bytes&#x27;&gt;</span></span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/hexo/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/hexo/page/22/">22</a><a class="extend next" rel="next" href="/hexo/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/hexo/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/hexo/page/23/">23</a><a class="extend next" rel="next" href="/hexo/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1305,20 +1478,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">220</span>
+          <span class="site-state-item-count">222</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/hexo/categories/">
           
-        <span class="site-state-item-count">36</span>
+        <span class="site-state-item-count">37</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">199</span>
+        <span class="site-state-item-count">203</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1357,7 +1530,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">16:41</span>
+    <span title="站点阅读时长">16:48</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>

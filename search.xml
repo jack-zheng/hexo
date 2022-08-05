@@ -857,10 +857,10 @@
 </blockquote>
 <p>优点：</p>
 <ul>
-<li>较容易的设计一个命令队列</li>
-<li>容易将命令记入日志</li>
-<li>允许请求放取消</li>
-<li>容易的实现撤销和重做</li>
+<li>易于实现一个命令队列</li>
+<li>易于整合日志</li>
+<li>允许请求方取消</li>
+<li>易于实现撤销和重做操作</li>
 <li>加入新的命令不会影响已有的实现</li>
 <li>将 command 从执行类中剥离出来，独立存在</li>
 </ul>
@@ -1503,7 +1503,7 @@
       </tags>
   </entry>
   <entry>
-    <title>Effective Java chapter 2 creating and destorying objects</title>
+    <title>Effective Java 对象的创建和销毁</title>
     <url>/hexo/2020/10/20/Effective-Java-chapter-2-creating-and-destorying-objects/</url>
     <content><![CDATA[<p>第二章 对象的生成和销毁 读书笔记</p>
 <h2 id="实体类有很多构造函数的时候，使用-Builder"><a href="#实体类有很多构造函数的时候，使用-Builder" class="headerlink" title="实体类有很多构造函数的时候，使用 Builder"></a>实体类有很多构造函数的时候，使用 Builder</h2><blockquote>
@@ -1550,11 +1550,56 @@
 </ul>
 ]]></content>
       <categories>
-        <category>编程</category>
+        <category>Effective Java</category>
       </categories>
       <tags>
-        <tag>java</tag>
-        <tag>effective java</tag>
+        <tag>Object</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Effective Java 异常</title>
+    <url>/hexo/2022/08/05/Effective-Java-exception/</url>
+    <content><![CDATA[<p>异常章节摘抄</p>
+<ul>
+<li>只针对异常的情况才使用异常</li>
+<li>对可恢复的情况使用 checked exception, 不可恢复的使用 runtime exception</li>
+<li>避免滥用 checked exception</li>
+<li>优先使用 JDK 提供的标准异常</li>
+<li>抛出与上下文匹配的异常</li>
+<li>在方法注释上，为每个抛出的异常编写文档</li>
+<li>异常信息中包含失败信息</li>
+<li>让失败保持源字形</li>
+<li>不要忽略异常</li>
+</ul>
+<h2 id="对可恢复的情况使用-checked-exception-不可恢复的使用-runtime-exception"><a href="#对可恢复的情况使用-checked-exception-不可恢复的使用-runtime-exception" class="headerlink" title="对可恢复的情况使用 checked exception, 不可恢复的使用 runtime exception"></a>对可恢复的情况使用 checked exception, 不可恢复的使用 runtime exception</h2><ul>
+<li>如果期望调用者能够适当的恢复，对于这种情况应该使用 checked exception</li>
+<li>runtime exception 和 error 行为上是等同的，没有捕获，当前线程停止</li>
+<li>runtime exception 表明程序错误</li>
+</ul>
+<h2 id="避免滥用-checked-exception"><a href="#避免滥用-checked-exception" class="headerlink" title="避免滥用 checked exception"></a>避免滥用 checked exception</h2><p>滥用 checked exception 会使你的 API 调用极其麻烦。一旦抛出 checked exception，调用者就必须 catch 他或者在方法标签中 throw，传播出去，无论哪种处理方式，都是对调用者不可忽视的负担。</p>
+<p>绕过 checked exception 的方法：</p>
+<ul>
+<li>使用 runtime exception 代替</li>
+<li>重构逻辑</li>
+</ul>
+<h2 id="优先使用-JDK-提供的标准异常"><a href="#优先使用-JDK-提供的标准异常" class="headerlink" title="优先使用 JDK 提供的标准异常"></a>优先使用 JDK 提供的标准异常</h2><p>常见的标准异常</p>
+<ul>
+<li>IllegalArgmentException</li>
+<li>IllegalStateException</li>
+<li>NullPointException</li>
+<li>IndexOutOfBoundsException</li>
+<li>ConcurrentModificationException</li>
+<li>UnsupportedOperaitonException</li>
+</ul>
+<h2 id="抛出与上下文匹配的异常"><a href="#抛出与上下文匹配的异常" class="headerlink" title="抛出与上下文匹配的异常"></a>抛出与上下文匹配的异常</h2><p>底层异常，传递到上层是可能和当前上下文不匹配，污染 API。这是需要在上层转译一下，重新抛出异常。如果异常栈对错误排查很有帮助，可以将 exception chain 一并传递给新的异常(Throwable 的 initCause 方法)</p>
+<p>异常转译比直接传递底层异常好，但更好的处理方式应该是调用底层方法之前确保他能执行成功，避免抛出一场。有时调用底层之前，先做一下参数监测可能是更好的方式。</p>
+<p>如果无法避免底层异常，次选方案是让上层悄悄绕开这些异常，从而使上层调用者和底层问题隔离开来，通常这是还会打个 log 记录，方便回溯问题。</p>
+]]></content>
+      <categories>
+        <category>Effective Java</category>
+      </categories>
+      <tags>
+        <tag>Exception</tag>
       </tags>
   </entry>
   <entry>
@@ -2197,6 +2242,8 @@
 
 <h2 id="查看被删除文件的历史记录"><a href="#查看被删除文件的历史记录" class="headerlink" title="查看被删除文件的历史记录"></a>查看被删除文件的历史记录</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git <span class="built_in">log</span> -- &lt;file path&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 或者使用</span></span><br><span class="line"></span><br><span class="line">git <span class="built_in">log</span> --full-log -- &lt;file path&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 第二种会包含各种 merge 的信息， 比较全。但是一般第一种就够用了</span></span><br></pre></td></tr></table></figure>
 
+<p>找到该文件后，可以使用 git blame 9f41d238500 – <file path> 查看文件修改记录</p>
+<h2 id="查看某个-commit-的改动"><a href="#查看某个-commit-的改动" class="headerlink" title="查看某个 commit 的改动"></a>查看某个 commit 的改动</h2><p>git show <commit></p>
 <h2 id="查看文件某一行删除记录"><a href="#查看文件某一行删除记录" class="headerlink" title="查看文件某一行删除记录"></a>查看文件某一行删除记录</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># -G 直接支持正则，-S 需要添加其他参数来支持正则</span></span><br><span class="line">git <span class="built_in">log</span> -S/G<span class="string">&#x27;key&#x27;</span> /path/to/file</span><br></pre></td></tr></table></figure>
 
 <h2 id="已经-check-in-的文件夹加入-gitignore"><a href="#已经-check-in-的文件夹加入-gitignore" class="headerlink" title="已经 check in 的文件夹加入 .gitignore"></a>已经 check in 的文件夹加入 .gitignore</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 处理文件夹</span></span><br><span class="line">git rm -r --cached /folder</span><br><span class="line"></span><br><span class="line"><span class="comment"># 处理文件</span></span><br><span class="line">git rm --cached /path/to/file</span><br></pre></td></tr></table></figure>
@@ -3975,6 +4022,7 @@
       </categories>
       <tags>
         <tag>AutoCloseable</tag>
+        <tag>best practice</tag>
       </tags>
   </entry>
   <entry>
@@ -4083,6 +4131,198 @@
       </categories>
       <tags>
         <tag>JMX</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java Unified Authorization Architecture</title>
+    <url>/hexo/2022/07/27/Java-Unified-Authorization-Architecture/</url>
+    <content><![CDATA[<p>前段时间，组内连续出了两个和 SCA 的 role/feature config 相关的 P1 issue，由于不知道它的实现原理，只能通过对比 PR 来找问题，太 low 了，特意读一下他的源码，学习一下下次再出现这种情况要怎么处理</p>
+<h2 id="Unified-Authorization-Architecture-是什么"><a href="#Unified-Authorization-Architecture-是什么" class="headerlink" title="Unified Authorization Architecture 是什么"></a>Unified Authorization Architecture 是什么</h2><p>这套框架的最终目的是阻止没有授权的用户执行某些 service command。从 MVC 分层上来说，它是在 controller 和 service 之间新加了一层逻辑，每次 service 执行之前都会检测一下，当前用户是否有权执行该 service。</p>
+<p>检测分两层，第一层是 company feature test, 第二层是 Role test</p>
+<h2 id="怎么配置"><a href="#怎么配置" class="headerlink" title="怎么配置"></a>怎么配置</h2><p>每个 repo 的 resource 文件夹中都有两个配置文件，分别叫做 featuer-access.xml 和 role-access.xml。他们就是两层检测的配置文件</p>
+<h3 id="Feature-protected-Service-Command"><a href="#Feature-protected-Service-Command" class="headerlink" title="Feature-protected Service Command"></a>Feature-protected Service Command</h3><p>feature 控制配置文件如下</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">activity-feature-map</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">module</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">activity</span> <span class="attr">id</span>=<span class="string">&quot;com.path.CreateUser&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">feature</span> <span class="attr">id</span>=<span class="string">&quot;Manage User&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">activity</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!-- ... --&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">module</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">activity-feature-map</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>他表示的意思是，对于当前 company，只有开启的 Manage User 这个 feature 才被允许执行 CreateUser 这个 service。所有可用的 feature 都存在 FeatureEnum.java 中。他位于 provisioning 文件夹下，那我估计他是和 provisioning 里的 company feature 挂钩的，之前还以为是和 RBP 的 permission 有关呢。</p>
+<p>PS: 但是当前几乎所有的 feature 配置都会默认配置 <code>&lt;feature id=&quot;*&quot;/&gt;</code>，也就是说，feature check 名存实亡</p>
+<h3 id="Role-protected-Service-Command"><a href="#Role-protected-Service-Command" class="headerlink" title="Role-protected Service Command"></a>Role-protected Service Command</h3><p>基于 role 的校验可以达到没有配置的用户不能执行 service 的效果</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">activity-permission-map</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">module</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">activity-group</span> <span class="attr">id</span>=<span class="string">&quot;myGroup01&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">activity</span> <span class="attr">id</span>=<span class="string">&quot;com.path.CreateUser&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">activity-group</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">activity-group</span> <span class="attr">id</span>=<span class="string">&quot;myGroup02&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">activity</span> <span class="attr">id</span>=<span class="string">&quot;com.path.DeleteUser&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">activity-group</span>&gt;</span></span><br><span class="line">    </span><br><span class="line">        <span class="tag">&lt;<span class="name">role</span> <span class="attr">id</span>=<span class="string">&quot;processJob&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">activity-group</span> <span class="attr">refid</span>=<span class="string">&quot;myGroup01&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">role</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">role</span> <span class="attr">id</span>=<span class="string">&quot;user&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">activity-group</span> <span class="attr">refid</span>=<span class="string">&quot;myGroup02&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">role</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">module</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">activity-permission-map</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>按照上述配置，login user 只能执行 delete user 这个 service 而不能执行 create user，如果执行了会抛出异常</p>
+<p>所有支持爹 role 定义在 PermissionBean 中，也可以去 Permission table 的 permission_type 中查看</p>
+<h3 id="特殊的-role"><a href="#特殊的-role" class="headerlink" title="特殊的 role"></a>特殊的 role</h3><p>当一个用户通过 /login, /samllogin 登陆到系统中后，对应的 permission 会存到 PermissionListBean 中。但还有其他特殊情况</p>
+<table>
+<thead>
+<tr>
+<th align="left">User type</th>
+<th align="left">Role</th>
+<th align="left">Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">Provisioners</td>
+<td align="left">provisioner</td>
+<td align="left">users authenticated via /provisioning_login.</td>
+</tr>
+<tr>
+<td align="left">SFV4 Client or Quartz Job</td>
+<td align="left">processJob</td>
+<td align="left">allows the SFV4 client/Quartz Job to execute service</td>
+</tr>
+<tr>
+<td align="left">Any Login User</td>
+<td align="left">user</td>
+<td align="left">any user authenticated via /login or /samllogin</td>
+</tr>
+</tbody></table>
+<p>还有一个很神奇的 User type, Anonymous, ParamBean 有一个方法 getAnonymousPrincipal() 注释说，这个 type 表示一个没有经过授权的 user, 猜测，比如，登陆前需要做一些测试，比如看  account 是否存在，这个时候就要用到这种类型的 user type 了。</p>
+<h2 id="工作流程"><a href="#工作流程" class="headerlink" title="工作流程"></a>工作流程</h2><p><a href="https://confluence.successfactors.com/display/ENG/Unified+Authorization+Architecture+Technical+Specification">https://confluence.successfactors.com/display/ENG/Unified+Authorization+Architecture+Technical+Specification</a></p>
+<p>AppSec, short for application secirity. 看他的描述，是参考了 OWASP ESAPI 这个项目。</p>
+<p>This API will provide initially just two things:</p>
+<ul>
+<li>A thread local to store the current user</li>
+<li>A set of access control APIs</li>
+</ul>
+<p>The ThreadLocal principal is designed to be populated and cleared by a Servlet filter</p>
+<p>逻辑推测，server 启动的时候会加载分析 role/feature 配置文件，并存到一个静态类中，作为共用部分。后续当 SCA engine 调用 impl 之前，都会有一个 auth check 的过程。过程中会使用 AppSec 作为入口检测权限。大致过程就是这样，再细致的分析就得涉及到 RBP 那部分的内容了。最主要的参考文档应该是这个</p>
+<p><a href="https://confluence.successfactors.com/display/ENG/Unified+Authorization+Architecture+Technical+Specification">https://confluence.successfactors.com/display/ENG/Unified+Authorization+Architecture+Technical+Specification</a></p>
+<p>他告诉这个过程的规范，涉及到的类和关系等</p>
+<p>public class AppsecConfigListener implements ServletContextListener 这个 class 被注册到 web.xml 中，看实现的接口应该是 servlet 启动结束后，到各个 module 中的加载 feature 和 role 的配置信息。</p>
+<p>ProvisioningLoginServlet.java - process() - provisionerBean.createProvisionerParamBean()</p>
+<p>  public ParamBean createProvisionerParamBean(CompanyBean cb) {<br>    ParamBean p = ParamBean.createDefaultParamBean(cb, PROVISIONER_PARAMBEAN_ROLE);<br>    p.getAppSecRoles().addAll(getAppSecRoles());<br>    return p;<br>  }</p>
+<p>ParamBean role as provisioner, 并将 sf_provisioner 中 flag 这个 column 里解析出来的 permission 加上 APP_SEC_PREFIX 添加到 role 中</p>
+<p>UiAuthenticationProcessorImpl.java - process() - start login</p>
+<p>GenericAuthorizationFilter 每次结束之后会将 appsec current user 置为 null</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">09:35:44,710 ERROR [AuditConfigExecutor] getConfigsFromDb error, company:QAAUTOCAND_RCMGoldenApp7.</span><br><span class="line">sf_class&#x3D;com.successfactors.appsec.AbstractAccessController line&#x3D;39 method&#x3D;assertAuthorizedFor depth&#x3D;1 </span><br><span class="line">AccessDeniedException&#123;user&#x3D;[RCMGoldenApp7,RCMGoldenApp7,QAAUTOCAND_RCMGoldenApp7.,dbPool1,null,null,en_US] , activity&#x3D;Activity&#123;type&#x3D;SERVICE, name&#x3D;&#39;com.successfactors.auditloggingservice.service.audit.command.AuditConfigQueryCmd&#39;, context&#x3D;null&#125;&#125;</span><br><span class="line">    at com.successfactors.appsec.AbstractAccessController.assertAuthorizedFor(AbstractAccessController.java:39)</span><br><span class="line">    at com.successfactors.appsec.AppSec.assertAuthorizedForService(AppSec.java:231)</span><br><span class="line">    at com.successfactors.sca.ServiceCommandEngine.authorizeService(ServiceCommandEngine.java:312)</span><br><span class="line">    at com.successfactors.sca.ServiceCommandEngine.execute(ServiceCommandEngine.java:238)</span><br><span class="line">    at com.successfactors.sca.service.spring.ServiceCommandProcessorSpring.execute(ServiceCommandProcessorSpring.java:451)</span><br><span class="line">    at com.successfactors.sca.service.handler.spring.SpringAppSCAHandler.execute(SpringAppSCAHandler.java:36)</span><br><span class="line">    at com.successfactors.auditloggingservice.service.audit.executor.AuditConfigExecutor.getConfigsFromDb(AuditConfigExecutor.java:85)</span><br><span class="line">    at com.successfactors.auditloggingservice.service.audit.executor.AuditConfigExecutor.getConfigValue(AuditConfigExecutor.java:55)</span><br><span class="line">    at com.successfactors.auditloggingservice.service.audit.executor.AuditConfigExecutor.getConfigValue(AuditConfigExecutor.java:49)</span><br><span class="line">    at com.successfactors.auditloggingservice.service.audit.executor.AuditKafkaSaveExecutor.needSave(AuditKafkaSaveExecutor.java:118)</span><br><span class="line">    at com.successfactors.auditloggingservice.service.audit.executor.AuditKafkaSaveExecutor.update(AuditKafkaSaveExecutor.java:80)</span><br><span class="line">    at com.successfactors.auditloggingservice.service.audit.executor.AuditKafkaSaveExecutor.lambda$0(AuditKafkaSaveExecutor.java:69)</span><br><span class="line">    at java.base&#x2F;java.util.concurrent.ThreadPoolExecutor.runWorker(Unknown Source)</span><br><span class="line">    at java.base&#x2F;java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)</span><br><span class="line">    at java.base&#x2F;java.lang.Thread.run(Unknown Source)</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="怎么测试"><a href="#怎么测试" class="headerlink" title="怎么测试"></a>怎么测试</h2><p>针对之前的两个 P1 issue 应该怎么写测试</p>
+<h2 id="市面上的同类型产品"><a href="#市面上的同类型产品" class="headerlink" title="市面上的同类型产品"></a>市面上的同类型产品</h2><p><a href="https://confluence.successfactors.com/display/CST/12+SCA+Home">https://confluence.successfactors.com/display/CST/12+SCA+Home</a> 这个页面可以应该是 最全的 sca 文档了</p>
+<p>ESAPI</p>
+<feature id="Generic Objects"/>
+<activity-feature-map>
+    <module>
+        <activity id="com.successfactors.identityprofile.scimv2.service.pendingdata.SavePendingData">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.service.pendingdata.RemovePendingData">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.domainevent.incoming.personassignment.sca.ProcessPersonCreate">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.domainevent.incoming.personassignment.sca.SyncPersonDataAndClearPendingData">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.service.pendingdata.FindScimPendingDataEntityByAttributeNameAndValue">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.service.pendingdata.FindScimPendingDataEntitiesByUserResourceId">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.FindScimUserResourceByAccountId">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.FindScimUserResourceByPerPersonUuid">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.CreateScimUserResource">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.UpdateScimUserResource">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.DeleteScimUserResource">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.service.sca.SearchUserResourceV2">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.service.sca.CreateUserResourceV2">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.service.sca.UpdateUserResourceV2">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.service.sca.FindUserResourceV2ById">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.service.sca.DeleteUserResourceV2">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.ScimUserResourceMigration">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.realtimeidentitysync.identityconfiguration.dbmigration.CreateIdentityRealTimeSyncIgsConfiguration">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.technicaluser.service.sca.IPSRealTimeSyncTechnicalUserPermissions">
+            <feature id="*"/>
+        </activity>
+    </module>
+</activity-feature-map>
+
+
+<activity-permission-map>
+    <module>
+        <activity-group id="PendingData">
+            <activity id="com.successfactors.identityprofile.scimv2.service.pendingdata.SavePendingData"/>
+            <activity id="com.successfactors.identityprofile.scimv2.service.pendingdata.RemovePendingData"/>
+            <activity id="com.successfactors.identityprofile.scimv2.service.pendingdata.FindScimPendingDataEntityByAttributeNameAndValue"/>
+            <activity id="com.successfactors.identityprofile.scimv2.service.pendingdata.FindScimPendingDataEntitiesByUserResourceId"/>
+        </activity-group>
+        <activity-group id="personAssignmentDataHandler">
+            <activity id="com.successfactors.identityprofile.scimv2.domainevent.incoming.personassignment.sca.SyncPersonDataAndClearPendingData"/>
+            <activity id="com.successfactors.identityprofile.scimv2.domainevent.incoming.personassignment.sca.ProcessPersonCreate" />
+        </activity-group>
+        <activity-group id="ScimUserResoure">
+            <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.FindScimUserResourceByAccountId"/>
+            <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.FindScimUserResourceByPerPersonUuid"/>
+            <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.CreateScimUserResource"/>
+            <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.UpdateScimUserResource"/>
+            <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.DeleteScimUserResource"/>
+            <activity id="com.successfactors.identityprofile.scimv2.service.sca.SearchUserResourceV2"/>
+            <activity id="com.successfactors.identityprofile.scimv2.service.sca.CreateUserResourceV2"/>
+            <activity id="com.successfactors.identityprofile.scimv2.service.sca.UpdateUserResourceV2"/>
+            <activity id="com.successfactors.identityprofile.scimv2.service.sca.FindUserResourceV2ById"/>
+            <activity id="com.successfactors.identityprofile.scimv2.service.sca.DeleteUserResourceV2"/>
+            <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.ScimUserResourceMigration"/>
+        </activity-group>
+        <activity-group id="igsintegration">
+            <activity id="com.successfactors.identityprofile.realtimeidentitysync.identityconfiguration.dbmigration.CreateIdentityRealTimeSyncIgsConfiguration"/>
+            <activity id="com.successfactors.identityprofile.technicaluser.service.sca.IPSRealTimeSyncTechnicalUserPermissions"/>
+        </activity-group>
+
+<pre><code>    &lt;role id=&quot;processJob&quot;&gt;
+        &lt;activity-group refid=&quot;PendingData&quot;/&gt;
+        &lt;activity-group refid=&quot;ScimUserResoure&quot;/&gt;
+        &lt;activity-group refid=&quot;personAssignmentDataHandler&quot;/&gt;
+        &lt;activity-group refid=&quot;igsintegration&quot;/&gt;
+    &lt;/role&gt;
+    &lt;role id=&quot;user&quot;&gt;
+        &lt;activity-group refid=&quot;PendingData&quot;/&gt;
+        &lt;activity-group refid=&quot;ScimUserResoure&quot;/&gt;
+        &lt;activity-group refid=&quot;personAssignmentDataHandler&quot;/&gt;
+        &lt;activity-group refid=&quot;igsintegration&quot;/&gt;
+    &lt;/role&gt;
+    &lt;role id=&quot;anonymous&quot;&gt;
+        &lt;activity-group refid=&quot;PendingData&quot;/&gt;
+        &lt;activity-group refid=&quot;ScimUserResoure&quot;/&gt;
+        &lt;activity-group refid=&quot;personAssignmentDataHandler&quot;/&gt;
+    &lt;/role&gt;
+&lt;/module&gt;</code></pre></activity-permission-map>
+
+
+<p>a user which has not been authenticated.</p>
+<p>curl –location –request GET ‘<a href="http://localhost:8080/rest/iam/scim/v2/Users/0bfa4ec0-a35d-4f64-881f-ed759108ff47&#39;">http://localhost:8080/rest/iam/scim/v2/Users/0bfa4ec0-a35d-4f64-881f-ed759108ff47&#39;</a></p>
+<p>AppsecConfigListener</p>
+<p>ServiceCommandEngine</p>
+<activity-group refid="DynamicGroups"/>]]></content>
+      <categories>
+        <category>java</category>
+      </categories>
+      <tags>
+        <tag>权限校验</tag>
       </tags>
   </entry>
   <entry>
@@ -4213,6 +4453,7 @@
 <li>info(“msg”, ex)</li>
 </ul>
 <p>总的来说，第三种最好，前两种只会记录当前类的异常抛出记录，之前的信息都 miss 掉了</p>
+<p>PS: 在 SCIM API 项目中，实现也是只传了 e.getmessage() 而没有传递 ex 这个对象，导致追踪困难，引以为鉴</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExpTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">testMethod</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span> / <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExpClient</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = Logger.getLogger(ExpClient.class);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            ExpTest.testMethod();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;------------------------------&gt; msg, e &lt;------------------------------&quot;</span>);</span><br><span class="line">            logger.info(<span class="string">&quot;err...&quot;</span>, e);</span><br><span class="line">            System.out.println(<span class="string">&quot;------------------------------&gt; e &lt;------------------------------&quot;</span>);</span><br><span class="line">            logger.info(e);</span><br><span class="line">            System.out.println(<span class="string">&quot;------------------------------&gt; msg &lt;------------------------------&quot;</span>);</span><br><span class="line">            logger.info(e.getMessage());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 终端输出如下：</span></span><br><span class="line"><span class="comment">// ------------------------------&gt; msg, e &lt;------------------------------</span></span><br><span class="line"><span class="comment">//  INFO [main] (ExpClient.java:14) - err...</span></span><br><span class="line"><span class="comment">// java.lang.ArithmeticException: / by zero</span></span><br><span class="line"><span class="comment">//     at sementic.ExpTest.testMethod(ExpTest.java:5)</span></span><br><span class="line"><span class="comment">//     at sementic.ExpClient.main(ExpClient.java:11)</span></span><br><span class="line"><span class="comment">// ------------------------------&gt; e &lt;------------------------------</span></span><br><span class="line"><span class="comment">//  INFO [main] (ExpClient.java:16) - java.lang.ArithmeticException: / by zero</span></span><br><span class="line"><span class="comment">// ------------------------------&gt; msg &lt;------------------------------</span></span><br><span class="line"><span class="comment">//  INFO [main] (ExpClient.java:18) - / by zero</span></span><br></pre></td></tr></table></figure>
 
 <h2 id="try-catch-执行流程"><a href="#try-catch-执行流程" class="headerlink" title="try-catch 执行流程"></a>try-catch 执行流程</h2><p>今天在写一段补偿代码的时候突然想到一个问题，当异常发生时，后续代码是否还会被执行的问题。测试前根据主观猜测，感觉如果有 try-catch, 那么会继续执行；没有则直接跳出了，相当于 return.</p>
@@ -4227,6 +4468,7 @@
         <category>java</category>
       </categories>
       <tags>
+        <tag>best practice</tag>
         <tag>exception</tag>
       </tags>
   </entry>
@@ -6564,7 +6806,7 @@
   <entry>
     <title>Splunk 快速入门</title>
     <url>/hexo/2020/09/10/Splunk-Quick-Guide/</url>
-    <content><![CDATA[<h2 id="测试环境-setup"><a href="#测试环境-setup" class="headerlink" title="测试环境 setup"></a>测试环境 setup</h2><p>官方给出了 Splunk 的 docker image 我们可以通过它来创建本地测试环境 <a href="https://hub.docker.com/r/splunk/splunk/">docker hub link</a>。就两条命了，官方也给了很详细的命令解释，赞。</p>
+    <content><![CDATA[<h2 id="测试环境-setup"><a href="#测试环境-setup" class="headerlink" title="测试环境 setup"></a>测试环境 setup</h2><p>官方给出了 Splunk 的 docker image 我们可以通过它来创建本地测试环境 <a href="https://hub.docker.com/r/splunk/splunk/">docker hub link</a>。就两条命令，官方也给了很详细的命令解释，赞。</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">docker pull splunk/splunk:latest</span><br><span class="line"></span><br><span class="line">docker run -d -p 8000:8000 -e <span class="string">&quot;SPLUNK_START_ARGS=--accept-license&quot;</span> -e <span class="string">&quot;SPLUNK_PASSWORD=&lt;password&gt;&quot;</span> --name splunk splunk/splunk:latest</span><br></pre></td></tr></table></figure>
 
 <p>PS: 如果需要测试 Splunk REST API, 还需要开放其端口 -p 8089:8089。登陆系统后 Settings -&gt; Server settings -&gt; General settings 查看端口映射</p>
@@ -6577,13 +6819,17 @@
 
 <h2 id="最常用的-case-search-with-keyword"><a href="#最常用的-case-search-with-keyword" class="headerlink" title="最常用的 case - search with keyword"></a>最常用的 case - search with keyword</h2><p>直接输入 keyword + enter</p>
 <h2 id="常用统计操作-stats"><a href="#常用统计操作-stats" class="headerlink" title="常用统计操作 stats"></a>常用统计操作 stats</h2><p>对整个数据集做统计，可以结合 average，count 和 sum 使用，支持 by 做分组</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 创建 name-core 测试集</span></span><br><span class="line">| makeresults count=5</span><br><span class="line">| <span class="built_in">eval</span> name=<span class="string">&quot;Jerry Tom&quot;</span></span><br><span class="line">| makemv delim=<span class="string">&quot; &quot;</span> name</span><br><span class="line">| mvexpand name</span><br><span class="line">| <span class="built_in">eval</span> score=(random() % 100)</span><br><span class="line"><span class="comment"># 统计每个人的 score 总和，平均值</span></span><br><span class="line">| stats sum(score) avg(score) by name</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 创建 name-score 测试集</span></span><br><span class="line">| makeresults count=5</span><br><span class="line">| <span class="built_in">eval</span> name=<span class="string">&quot;Jerry Tom&quot;</span></span><br><span class="line">| makemv delim=<span class="string">&quot; &quot;</span> name</span><br><span class="line">| mvexpand name</span><br><span class="line">| <span class="built_in">eval</span> score=(random() % 100)</span><br><span class="line"><span class="comment"># 统计每个人的 score 总和，平均值</span></span><br><span class="line">| stats sum(score) avg(score) by name</span><br></pre></td></tr></table></figure>
 
-<h2 id="stats-vs-eventstats-vs-streamstats"><a href="#stats-vs-eventstats-vs-streamstats" class="headerlink" title="stats vs eventstats vs streamstats"></a>stats vs eventstats vs streamstats</h2><p>*<a href="https://docs.splunk.com/Documentation/Splunk/8.1.4/SearchReference/Commandsbytype#Streaming_commands">Command Type</a></p>
-<ul>
-<li>stats: transforming command, 数据集会发生改变</li>
-<li>eventstats: Dataset processing command, 需要所有 event 都找出来后才能工作</li>
-<li>streamstats: streaming command, 针对每一个 event 做操作</li>
+<h2 id="stats-vs-eventstats-vs-streamstats"><a href="#stats-vs-eventstats-vs-streamstats" class="headerlink" title="stats vs eventstats vs streamstats"></a>stats vs eventstats vs streamstats</h2><ul>
+<li><p><a href="https://docs.splunk.com/Documentation/Splunk/8.1.4/SearchReference/Commandsbytype#Streaming_commands">Command Type</a></p>
+</li>
+<li><p>stats: transforming command, 数据集会发生改变</p>
+</li>
+<li><p>eventstats: Dataset processing command, 需要所有 event 都找出来后才能工作</p>
+</li>
+<li><p>streamstats: streaming command, 针对每一个 event 做操作</p>
+</li>
 </ul>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 创建测试集</span></span><br><span class="line">| makeresults count=4 </span><br><span class="line">| streamstats count </span><br><span class="line">| <span class="built_in">eval</span> age = <span class="keyword">case</span>(count=1, 25, count=2, 39, count=3, 31, count=4, null())</span><br><span class="line">| <span class="built_in">eval</span> city = <span class="keyword">case</span>(count=1 OR count=3, <span class="string">&quot;San Francisco&quot;</span>, count=2 OR count=4, <span class="string">&quot;Seattle&quot;</span>) </span><br><span class="line"><span class="comment"># stats 类似 sql 中的聚合函数，计算之后，只会产出一行数据</span></span><br><span class="line">| stats sum(age)</span><br><span class="line"><span class="comment"># eventstats 工作时并不会改变原始数据，而是在原有的 raw 数据外新增一列数据</span></span><br><span class="line">| eventstats avg(age) by city</span><br><span class="line"><span class="comment"># streamstats 和 eventstats 很像，也是不改变原数据去新增一列的操作。</span></span><br><span class="line"><span class="comment"># 区别就在 stream 这个关键字，它是用流的方式处理。只在每条数据出现的节点做计算</span></span><br><span class="line"><span class="comment"># 本例中第一个 San Francisco 均值为自身，第二个则为两个之和做平均了，很神奇。</span></span><br><span class="line">| streamstats  avg(age) by city</span><br></pre></td></tr></table></figure>
 
@@ -6598,19 +6844,9 @@
 <p>eval 是针对每一行做计算，比如新增 field = field1 - field2</p>
 <p>eventstats 突出以总体概念，可以做 by group 的操作，比如 sum(field1) by field2</p>
 <h2 id="Comparison-and-Conditional-functions"><a href="#Comparison-and-Conditional-functions" class="headerlink" title="Comparison and Conditional functions"></a>Comparison and Conditional functions</h2><ul>
-<li><p><a href="https://docs.splunk.com/Documentation/SCS/current/SearchReference/ConditionalFunctions">condition</a></p>
+<li><p><a href="https://docs.splunk.com/Documentation/SCS/current/SearchReference/ConditionalFunctions">Comparison and Conditional functions Doc</a></p>
 </li>
 <li><p>case</p>
-</li>
-<li><p>cidrmath</p>
-</li>
-<li><p>coalesce</p>
-</li>
-<li><p>if</p>
-</li>
-<li><p>in</p>
-</li>
-<li><p>like</p>
 </li>
 <li><p>match</p>
 </li>
@@ -6619,6 +6855,8 @@
 <li><p>searchmatch</p>
 </li>
 <li><p>validate</p>
+</li>
+<li><p>…</p>
 </li>
 </ul>
 <p>eval 配合条件函数使用可以衍生出很多效果</p>
@@ -6735,7 +6973,14 @@
 </ol>
 </li>
 </ol>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Aspect</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">IssueAspect</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Before(&quot;within(issues.*)&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doBeforeLog</span><span class="params">(JoinPoint joinPoint)</span> </span>&#123;</span><br><span class="line">        String methodName = joinPoint.getSignature().getName();</span><br><span class="line">        System.out.printf(<span class="string">&quot;Before Advice of method %s is called...%n&quot;</span>, methodName);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Aspect</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">IssueAspect</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Before(&quot;within(issues.*)&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doBeforeLog</span><span class="params">(JoinPoint joinPoint)</span> </span>&#123;</span><br><span class="line">        String methodName = joinPoint.getSignature().getName();</span><br><span class="line">        System.out.printf(<span class="string">&quot;Before Advice of method %s is called...%n&quot;</span>, methodName);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="奇怪的-behavior"><a href="#奇怪的-behavior" class="headerlink" title="奇怪的 behavior"></a>奇怪的 behavior</h2><p>最近发现产品上的 AOP 代码在两个 aspect 嵌套的情况下只会执行第一个 aspect，第二个直接跳过了，不知道是公司特有的还是 AOP 本来就有这种设定，特意检测一下</p>
+<blockquote>
+<p>场景重现:<br>service A 有两个 method01，method02 并且 method01 会调用 method02. 创建 Aspect 同时覆盖这两个方法，当 method01 执行时，method02 并不会被检测到。</p>
+<p>搜了一下 stackoverflow, 有人指出这个现象底层原理已经在 5.8.1 中写了。。。。proxy 之后，对自己的调用将会失效<br>Spring 4.3 之后可以通过 class 中注入本身来绕过这个问题<br><a href="https://stackoverflow.com/questions/13564627/spring-aop-not-working-for-method-call-inside-another-method">stackoverflow exp + solution</a></p>
+</blockquote>
+]]></content>
       <categories>
         <category>Spring</category>
       </categories>

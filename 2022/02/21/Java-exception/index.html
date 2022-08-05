@@ -59,8 +59,9 @@
 <meta property="og:description" content="记录 log 并附带 stack trace今天看到同事给我代码 review 的时候推荐使用 log.info(e.getMessage()) 时，不太清楚推荐的原因，特意 Google 了一下几种 log 记录方式  info(ex) info(ex.getMessage()) info(“msg”, ex)  总的来说，第三种最好，前两种只会记录当前类的异常抛出记录，之前的信息都 miss">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-02-21T02:40:14.000Z">
-<meta property="article:modified_time" content="2022-07-27T08:39:04.360Z">
+<meta property="article:modified_time" content="2022-08-05T06:17:15.862Z">
 <meta property="article:author" content="Jack Zheng">
+<meta property="article:tag" content="best practice">
 <meta property="article:tag" content="exception">
 <meta name="twitter:card" content="summary">
 
@@ -239,7 +240,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -266,7 +267,7 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>2.1k</span>
+              <span>2.2k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -292,6 +293,7 @@
 <li>info(“msg”, ex)</li>
 </ul>
 <p>总的来说，第三种最好，前两种只会记录当前类的异常抛出记录，之前的信息都 miss 掉了</p>
+<p>PS: 在 SCIM API 项目中，实现也是只传了 e.getmessage() 而没有传递 ex 这个对象，导致追踪困难，引以为鉴</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExpTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">testMethod</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span> / <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExpClient</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = Logger.getLogger(ExpClient.class);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            ExpTest.testMethod();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;------------------------------&gt; msg, e &lt;------------------------------&quot;</span>);</span><br><span class="line">            logger.info(<span class="string">&quot;err...&quot;</span>, e);</span><br><span class="line">            System.out.println(<span class="string">&quot;------------------------------&gt; e &lt;------------------------------&quot;</span>);</span><br><span class="line">            logger.info(e);</span><br><span class="line">            System.out.println(<span class="string">&quot;------------------------------&gt; msg &lt;------------------------------&quot;</span>);</span><br><span class="line">            logger.info(e.getMessage());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 终端输出如下：</span></span><br><span class="line"><span class="comment">// ------------------------------&gt; msg, e &lt;------------------------------</span></span><br><span class="line"><span class="comment">//  INFO [main] (ExpClient.java:14) - err...</span></span><br><span class="line"><span class="comment">// java.lang.ArithmeticException: / by zero</span></span><br><span class="line"><span class="comment">//     at sementic.ExpTest.testMethod(ExpTest.java:5)</span></span><br><span class="line"><span class="comment">//     at sementic.ExpClient.main(ExpClient.java:11)</span></span><br><span class="line"><span class="comment">// ------------------------------&gt; e &lt;------------------------------</span></span><br><span class="line"><span class="comment">//  INFO [main] (ExpClient.java:16) - java.lang.ArithmeticException: / by zero</span></span><br><span class="line"><span class="comment">// ------------------------------&gt; msg &lt;------------------------------</span></span><br><span class="line"><span class="comment">//  INFO [main] (ExpClient.java:18) - / by zero</span></span><br></pre></td></tr></table></figure>
 
 <h2 id="try-catch-执行流程"><a href="#try-catch-执行流程" class="headerlink" title="try-catch 执行流程"></a>try-catch 执行流程</h2><p>今天在写一段补偿代码的时候突然想到一个问题，当异常发生时，后续代码是否还会被执行的问题。测试前根据主观猜测，感觉如果有 try-catch, 那么会继续执行；没有则直接跳出了，相当于 return.</p>
@@ -327,6 +329,7 @@
 
       <footer class="post-footer">
           <div class="post-tags">
+              <a href="/hexo/tags/best-practice/" rel="tag"># best practice</a>
               <a href="/hexo/tags/exception/" rel="tag"># exception</a>
           </div>
 
@@ -400,20 +403,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">220</span>
+          <span class="site-state-item-count">222</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/hexo/categories/">
           
-        <span class="site-state-item-count">36</span>
+        <span class="site-state-item-count">37</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">199</span>
+        <span class="site-state-item-count">203</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -452,7 +455,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">16:41</span>
+    <span title="站点阅读时长">16:48</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>

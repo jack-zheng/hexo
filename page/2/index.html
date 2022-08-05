@@ -206,6 +206,229 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/01/31/Nodejs-gitbook/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2022/01/31/Nodejs-gitbook/" class="post-title-link" itemprop="url">Nodejs + gitbook</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-01-31 15:26:22" itemprop="dateCreated datePublished" datetime="2022-01-31T15:26:22+08:00">2022-01-31</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/Nodejs/" itemprop="url" rel="index">
+                    <span itemprop="name">Nodejs</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>基于 Nodejs 的 gitbook， 感觉和 hexo 大同小意，不过还有额外的制作 pdf 和 ebook 等功能，值得一试</p>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p>最终各软件版本信息如下</p>
+<ul>
+<li>node: v13.14.0</li>
+<li>CLI version: 2.3.2</li>
+<li>GitBook version: 3.2.3</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装</span></span><br><span class="line">npm install -g gitbook-cli</span><br><span class="line"><span class="comment"># 检测</span></span><br><span class="line">gitbook-cli -V</span><br></pre></td></tr></table></figure>
+
+<p>安装抛错</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">No receipt <span class="keyword">for</span> <span class="string">&#x27;com.apple.pkg.CLTools_Executables&#x27;</span> found at <span class="string">&#x27;/&#x27;</span>.</span><br><span class="line"></span><br><span class="line">No receipt <span class="keyword">for</span> <span class="string">&#x27;com.apple.pkg.DeveloperToolsCLILeo&#x27;</span> found at <span class="string">&#x27;/&#x27;</span>.</span><br><span class="line"></span><br><span class="line">No receipt <span class="keyword">for</span> <span class="string">&#x27;com.apple.pkg.DeveloperToolsCLI&#x27;</span> found at <span class="string">&#x27;/&#x27;</span>.</span><br><span class="line"></span><br><span class="line">gyp: No Xcode or CLT version detected!</span><br><span class="line">/usr/<span class="built_in">local</span>/lib/node_modules/gitbook-cli/node_modules/npm/node_modules/graceful-fs/polyfills.js:287</span><br><span class="line">      <span class="keyword">if</span> (cb) cb.apply(this, arguments)</span><br><span class="line">                 ^</span><br></pre></td></tr></table></figure>
+
+<p>重新安装 xcode-select, 去 app store 中搜索 xcode 并安装，挺花时间的，后年还要重新签一下协议。。。</p>
+<p>折腾一阵子还是失败了，最后搜了下谁是 gitbook 使用的 polyfills.js 还是旧版的，没有跟新，可以直接去这个文件中，将饮用的语句删掉，或者更新对用的库文件即可，我用了后者</p>
+<p>根据提示，打开文件，将该文件中的引用语句注释掉, 再试运行，正常</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// fs.stat = statFix(fs.stat)</span></span><br><span class="line"><span class="comment">// fs.fstat = statFix(fs.fstat)</span></span><br><span class="line"><span class="comment">// fs.lstat = statFix(fs.lstat)</span></span><br></pre></td></tr></table></figure>
+
+<p><code>gitbook init</code> 又报错了</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">TypeError [ERR_INVALID_ARG_TYPE]: The <span class="string">&quot;data&quot;</span> argument must be of <span class="built_in">type</span> string or an instance of Buffer, TypedArray, or DataView. Received an instance of Promise</span><br></pre></td></tr></table></figure>
+
+<p>说是版本过高。。。。草了, 打算使用 nvm 降一下</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 然而 DNS 被污染了，并不能拿到对应的文件，直接下载过到本地就行了, 然后 bash install.sh 即可</span></span><br><span class="line">curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash</span><br><span class="line"></span><br><span class="line"><span class="built_in">source</span> ~/.zshrc</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看安装结果，nvm 提示很完善</span></span><br><span class="line">nvm --version </span><br><span class="line"></span><br><span class="line">nvm ls-remote</span><br><span class="line"></span><br><span class="line">nvm install v13.14.0</span><br><span class="line"></span><br><span class="line">nvm use v13.14.0</span><br></pre></td></tr></table></figure>
+
+<p>切换版本之后，运行正常, 我估计可能 nvm 之后前面的那些改 js 文件的操作都可以省了</p>
+<h2 id="gitbook-使用"><a href="#gitbook-使用" class="headerlink" title="gitbook 使用"></a>gitbook 使用</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://chrisniael.gitbooks.io/gitbook-documentation/content/">中文版</a></li>
+</ul>
+<ol>
+<li>创建书本文件并 <code>gitbook init</code> 生成目录</li>
+<li><code>gitbook serve</code> 生成本地版电子书，访问 4000 端口阅读</li>
+</ol>
+<p>常用规则</p>
+<p>常用插件</p>
+<ul>
+<li>gitbook-plugin-summary 可以更具文件夹目录帮你自动生成对应的 summary 文件内容，安装完后输入 <code>book sm</code> 自动更新</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/01/24/Redis-Docker/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2022/01/24/Redis-Docker/" class="post-title-link" itemprop="url">Redis + Docker 搭建方案</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-01-24 18:35:10" itemprop="dateCreated datePublished" datetime="2022-01-24T18:35:10+08:00">2022-01-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/Redis/" itemprop="url" rel="index">
+                    <span itemprop="name">Redis</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>通过 Redis 搭建 docker 实验环境</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">docker pull redis</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建容器</span></span><br><span class="line">docker run -itd --name redis-test -p 6379:6379 redis</span><br><span class="line"></span><br><span class="line"><span class="comment"># 进入容器</span></span><br><span class="line">docker <span class="built_in">exec</span> -it redis-test /bin/bash</span><br><span class="line"></span><br><span class="line"><span class="comment"># 开启客户端</span></span><br><span class="line">redis-cli</span><br><span class="line"><span class="comment"># 启动远程客户端</span></span><br><span class="line"><span class="comment"># redis-cli -h host -p port -a password</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 测试</span></span><br><span class="line">ping</span><br><span class="line"><span class="comment"># PONG</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 默认有 16 个数据库，默认用第 0 个</span></span><br><span class="line">select 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 显示当前库下所有的键</span></span><br><span class="line">keys *</span><br><span class="line"></span><br><span class="line"><span class="comment"># 清空当前 DB</span></span><br><span class="line">flushdb</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除所有数据库，危</span></span><br><span class="line">flushall</span><br></pre></td></tr></table></figure>
+
+<h3 id="Issues"><a href="#Issues" class="headerlink" title="Issues"></a>Issues</h3><p>清空的时候抛错，我估计是我的 docker redis 没有配置本地存储信息，并不能进行本地化相关操作，创建的时候挂在到本地可能就行了</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">flushdb </span><br><span class="line">(error) MISCONF Redis is configured to save RDB snapshots, but it is currently not able to persist on disk. Commands that may modify the data <span class="built_in">set</span> are disabled, because this instance is configured to report errors during writes <span class="keyword">if</span> RDB snapshotting fails (stop-writes-on-bgsave-error option). Please check the Redis logs <span class="keyword">for</span> details about the RDB error.</span><br></pre></td></tr></table></figure>
+
+<p>猜测失败，是配置问题，关闭了快找功能，导致保存失败，可以在客户端使用 <code>config set stop-writes-on-bgsave-error no</code> 解决问题</p>
+<h2 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 单个值最大能存储 512M</span></span><br><span class="line"><span class="built_in">set</span> name <span class="string">&quot;Jack&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 拿值</span></span><br><span class="line">get name</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看类型</span></span><br><span class="line"><span class="built_in">type</span> name</span><br><span class="line"></span><br><span class="line"><span class="comment"># 存储 hash</span></span><br><span class="line">HMSET runoob field1 <span class="string">&quot;Hello&quot;</span> field2 <span class="string">&quot;World&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># hash 取值</span></span><br><span class="line">HGET runoob field1</span><br><span class="line"><span class="comment">#&quot;Hello&quot;</span></span><br><span class="line">HGET runoob field2</span><br><span class="line"><span class="comment">#&quot;World&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># list 列表，左序存入</span></span><br><span class="line">lpush runoob redis</span><br><span class="line">lpush runoob mongodb</span><br><span class="line">lpush runoob rabbitmq</span><br><span class="line"></span><br><span class="line">lrange runoob 0 10</span><br><span class="line"><span class="comment"># 1) &quot;rabbitmq&quot;</span></span><br><span class="line"><span class="comment"># 2) &quot;mongodb&quot;</span></span><br><span class="line"><span class="comment"># 3) &quot;redis&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看列表大小</span></span><br><span class="line">llen runoob</span><br><span class="line"></span><br><span class="line"><span class="comment"># Set 无序集合</span></span><br><span class="line">sadd members jack</span><br><span class="line">sadd members tom</span><br><span class="line">sadd members tom</span><br><span class="line">smembers members</span><br><span class="line"><span class="comment"># 1) &quot;tom&quot;</span></span><br><span class="line"><span class="comment"># 2) &quot;jack&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看大小</span></span><br><span class="line">scard members</span><br><span class="line"></span><br><span class="line"><span class="comment"># zset 有序集合</span></span><br><span class="line">zadd dbs 0  mongodb</span><br><span class="line">zadd dbs 0  redis</span><br><span class="line">zadd dbs 0  rabit</span><br><span class="line"></span><br><span class="line">ZRANGEBYSCORE dbs 0 10000</span><br><span class="line"><span class="comment"># 1) &quot;mongodb&quot;</span></span><br><span class="line"><span class="comment"># 2) &quot;rabit&quot;</span></span><br><span class="line"><span class="comment"># 3) &quot;redis&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看大小</span></span><br><span class="line">zcard dbs</span><br></pre></td></tr></table></figure>
+
+<h2 id="Using-Redis-in-Python"><a href="#Using-Redis-in-Python" class="headerlink" title="Using Redis in Python"></a>Using Redis in Python</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装依赖</span></span><br><span class="line">pip install redis</span><br><span class="line"></span><br><span class="line"><span class="comment"># ipython 操作</span></span><br><span class="line">import redis</span><br><span class="line">r = redis.StrictRedis(host=<span class="string">&#x27;localhost&#x27;</span>, port=6379, db=0)</span><br><span class="line">r.set(<span class="string">&#x27;foo&#x27;</span>, <span class="string">&#x27;bar&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(r[<span class="string">&#x27;foo&#x27;</span>])</span><br><span class="line"><span class="comment"># b&#x27;bar&#x27;</span></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">type</span>(r.get(<span class="string">&#x27;foo&#x27;</span>)))</span><br><span class="line"><span class="comment"># &lt;class &#x27;bytes&#x27;&gt;</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/01/18/MongoDB-Python/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +460,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -363,7 +586,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -454,7 +677,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -559,7 +782,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -656,7 +879,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -758,7 +981,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -849,7 +1072,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -957,7 +1180,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1012,333 +1235,11 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/11/23/Nodejs-note/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/11/23/Nodejs-note/" class="post-title-link" itemprop="url">Nodejs 学习笔记</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-11-23 19:42:13" itemprop="dateCreated datePublished" datetime="2021-11-23T19:42:13+08:00">2021-11-23</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/Nodejs/" itemprop="url" rel="index">
-                    <span itemprop="name">Nodejs</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>5.7k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>5 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1Ns411N7HU">视屏教程</a></p>
-<h2 id="Day-1"><a href="#Day-1" class="headerlink" title="Day 1"></a>Day 1</h2><h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><p>TODO</p>
-<p>版本查询：<code>node --version</code></p>
-<h3 id="Hello-Word"><a href="#Hello-Word" class="headerlink" title="Hello Word"></a>Hello Word</h3><p>新建测试文件 hello.js，写入内容如下</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> foo = <span class="string">&#x27;bar&#x27;</span>;</span><br><span class="line"><span class="built_in">console</span>.log(foo);</span><br></pre></td></tr></table></figure>
-
-<p>执行文件 <code>node hello.js</code>, 可以看到 log 输出</p>
-<h3 id="读文件"><a href="#读文件" class="headerlink" title="读文件"></a>读文件</h3><p>输出文件内容</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> fs = <span class="built_in">require</span>(<span class="string">&#x27;fs&#x27;</span>)</span><br><span class="line"></span><br><span class="line">fs.readFile(<span class="string">&#x27;./helloworld.js&#x27;</span>, <span class="function"><span class="keyword">function</span>(<span class="params">error, data</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(data.toString())</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-
-<h3 id="写文件和错误处理"><a href="#写文件和错误处理" class="headerlink" title="写文件和错误处理"></a>写文件和错误处理</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> fs = <span class="built_in">require</span>(<span class="string">&#x27;fs&#x27;</span>)</span><br><span class="line"></span><br><span class="line">fs.writeFile(<span class="string">&#x27;./hello.md&#x27;</span>, <span class="string">&#x27;writing to file&#x27;</span>, <span class="function"><span class="keyword">function</span>(<span class="params">error</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">&#x27;write success...&#x27;</span>)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-
-<h3 id="简单-http-服务"><a href="#简单-http-服务" class="headerlink" title="简单 http 服务"></a>简单 http 服务</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> http = <span class="built_in">require</span>(<span class="string">&#x27;http&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> server = http.createServer()</span><br><span class="line"></span><br><span class="line">server.on(<span class="string">&#x27;request&#x27;</span>, <span class="function"><span class="keyword">function</span>(<span class="params">request, response</span>)</span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">&#x27;accept request, path: &#x27;</span> + request.url)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 中文需要自定义 header</span></span><br><span class="line">    response.setHeader(<span class="string">&#x27;Content-type&#x27;</span>, <span class="string">&#x27;text/plain; charset=utf-8&#x27;</span>)</span><br><span class="line">    response.write(<span class="string">&#x27;reponse given...&#x27;</span>)</span><br><span class="line">    response.write(<span class="string">&#x27;你好&#x27;</span>)</span><br><span class="line">    <span class="comment">// 必须用 end 结尾</span></span><br><span class="line">    response.end()</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">server.listen(<span class="number">3000</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">&#x27;server started...&#x27;</span>)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-
-<h3 id="核心模块"><a href="#核心模块" class="headerlink" title="核心模块"></a>核心模块</h3><p>Node 为 JS 提供了很多服务器级别的 API，包装到具名的核心模块中。例如 fs/http/path/os 等，通过 <code>require(&#39;xx&#39;)</code> 使用。</p>
-<h3 id="模块系统"><a href="#模块系统" class="headerlink" title="模块系统"></a>模块系统</h3><p>分三类：</p>
-<ul>
-<li>具名核心模块</li>
-<li>自己编写的文件模块 <code>require(&#39;/path/to/b.js&#39;)</code></li>
-</ul>
-<p>js 文件为顺序执行，包括 require 中的内容。</p>
-<p>Node 中可以通过 exports.foo = ‘hello’ 暴露文件中的变量，通过 <code>var bExports = require(&#39;./b&#39;)</code> 得到</p>
-<h3 id="Content-type"><a href="#Content-type" class="headerlink" title="Content-type"></a>Content-type</h3><p>fs.readFile() 之后可以通过指定 Content-type 来指定返回数据，专业名称叫做 mime 类型</p>
-<h3 id="无分号代码风格"><a href="#无分号代码风格" class="headerlink" title="无分号代码风格"></a>无分号代码风格</h3><p>代码以 (, [, ` 开头的，补分号确保语法解析正确。 ES6 中使用 反引号 凭借自负，支持换行。反引号中可以使用 ${} 做替换操作。</p>
-<h3 id="模版引擎"><a href="#模版引擎" class="headerlink" title="模版引擎"></a>模版引擎</h3><p>安装：<code>npm install art-template</code></p>
-<p>浏览器中使用 art-tempalte, 新建 html 文本，写入内容. 打开 browser 可以看到 console 中有对应的 ‘hello Jack’ log.</p>
-<p><code>&#123;&#123;&#125;&#125;</code> 被称为 mustach 语法</p>
-<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;UTF-8&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span> Test art template <span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">&quot;node_modules/art-template/lib/template-web.js&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;text/template&quot;</span> <span class="attr">id</span>=<span class="string">&quot;tpl&quot;</span>&gt;</span></span><br><span class="line"><span class="handlebars"><span class="xml">        我叫 </span><span class="template-variable">&#123;&#123; <span class="name">name</span> &#125;&#125;</span></span></span><br><span class="line"><span class="handlebars"><span class="xml">        今年 </span><span class="template-variable">&#123;&#123; <span class="name">age</span> &#125;&#125;</span></span></span><br><span class="line"><span class="handlebars"><span class="xml">        喜欢 </span><span class="template-variable">&#123;&#123; <span class="name"><span class="builtin-name">each</span></span> hobbies &#125;&#125;</span><span class="xml"> </span><span class="template-variable">&#123;&#123; <span class="name">$value</span> &#125;&#125;</span><span class="xml"> </span><span class="template-variable">&#123;&#123; <span class="name">/each</span> &#125;&#125;</span></span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="javascript">        <span class="keyword">var</span> ret = template(<span class="string">&#x27;tpl&#x27;</span>, &#123;</span></span><br><span class="line"><span class="javascript">            name: <span class="string">&#x27;Jack&#x27;</span>,</span></span><br><span class="line">            age: 11,</span><br><span class="line">            hobbies: [</span><br><span class="line"><span class="javascript">                <span class="string">&#x27;唱&#x27;</span>,</span></span><br><span class="line"><span class="javascript">                <span class="string">&#x27;跳&#x27;</span>,</span></span><br><span class="line"><span class="javascript">                <span class="string">&#x27;rap&#x27;</span></span></span><br><span class="line">            ]</span><br><span class="line">        &#125;)</span><br><span class="line"></span><br><span class="line"><span class="javascript">        <span class="built_in">console</span>.log(ret)</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>Node 中使用 模版引擎</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> template = <span class="built_in">require</span>(<span class="string">&#x27;art-template&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> ret = template.render(<span class="string">&#x27;hello &#123;&#123; name &#125;&#125;&#x27;</span>, &#123; <span class="attr">name</span>: <span class="string">&quot;Jack&quot;</span>&#125;)</span><br><span class="line"><span class="built_in">console</span>.log(ret)</span><br><span class="line"><span class="comment">// hello Jack</span></span><br></pre></td></tr></table></figure>
-
-<p>查看源代码能找到的都是服务器端渲染的，商品列表一般用服务器端渲染，方便 SEO 搜索引擎查找。</p>
-<p>终端直接输入 node 可以得到自带的交互界面（REPL）</p>
-<h3 id="Node-中的模块系统"><a href="#Node-中的模块系统" class="headerlink" title="Node 中的模块系统"></a>Node 中的模块系统</h3><p>程序主要在：</p>
-<ul>
-<li>EcmaScript 语言<ul>
-<li>和浏览器不一样，没有 BOM，DOM</li>
-</ul>
-</li>
-<li>核心模块<ul>
-<li>文件操作 fs</li>
-<li>http</li>
-<li>url</li>
-<li>…</li>
-</ul>
-</li>
-<li>第三方模块<ul>
-<li>art-template</li>
-</ul>
-</li>
-<li>自己写的模块</li>
-</ul>
-<h4 id="CommonJS-模块规范"><a href="#CommonJS-模块规范" class="headerlink" title="CommonJS 模块规范"></a>CommonJS 模块规范</h4><ul>
-<li>模块作用于</li>
-<li>使用 require 加载模块</li>
-<li>使用 exports 带出模块中成员</li>
-</ul>
-<p>require 语法：<code>var name = require(&#39;module&#39;)</code>, 作用：</p>
-<ul>
-<li>执行被夹在模块中的代码</li>
-<li>得到被夹在模块中 exports 到处接口对象</li>
-</ul>
-<p>exports 作用：</p>
-<ul>
-<li>Node 中是模块作用域，默认文件中所有的成员只在当前文件模块有效</li>
-<li>对于希望可以被其他模块访问的成员，我们需要把这个公开的成员挂在到 exports 接口对象上</li>
-</ul>
-<p>导出多个成员：</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">exports</span>.a = <span class="number">123</span></span><br><span class="line"><span class="built_in">exports</span>.b = <span class="string">&#x27;hello&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<p>导出单个成员:</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = add</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">    add: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> x + u</span><br><span class="line">    &#125;,</span><br><span class="line">    str: <span class="string">&#x27;hello&#x27;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>声明多个，后者覆盖前者</p>
-<p>如果模块想要直接到处成员，而非挂在的方式，可以使用 <code>module.exports=add</code></p>
-<p>加载规则：</p>
-<ul>
-<li>优先从缓存加载</li>
-<li>判断模块标识符<ul>
-<li>核心模块，核心模块文件已被编译成二进制文件，直接使用名字即可</li>
-<li>第三方模块，通过 npm 下载，通过 require(‘包名’) 引用</li>
-<li>自己写的模块</li>
-</ul>
-</li>
-</ul>
-<h3 id="package-json"><a href="#package-json" class="headerlink" title="package.json"></a>package.json</h3><p>建议每个项目都要有 package.json, 管理包依赖。 –save 选项可以将依赖加进去 e.g. <code>npm install jquery --save</code></p>
-<p>这个文件可以通过 <code>npm init</code> 向导生成</p>
-<h3 id="npm-常用命令"><a href="#npm-常用命令" class="headerlink" title="npm 常用命令"></a>npm 常用命令</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">npm --version</span><br><span class="line"></span><br><span class="line">npm install --gloabl npm <span class="comment"># 自己升级</span></span><br><span class="line"></span><br><span class="line">npm init</span><br><span class="line">    npm init -y 跳过向导，快速生成</span><br><span class="line"></span><br><span class="line">npm install packege_name</span><br><span class="line">npm install packege_name --save</span><br><span class="line">npm i -S package_name <span class="comment"># 简写</span></span><br><span class="line"></span><br><span class="line">npm uninstall package_name</span><br><span class="line"><span class="comment"># 新版的都不需要 --save 了</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="npm-加速"><a href="#npm-加速" class="headerlink" title="npm 加速"></a>npm 加速</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">npm install --gloabl cnpm</span><br><span class="line">cnpm install xxx</span><br></pre></td></tr></table></figure>
-
-<h3 id="Express"><a href="#Express" class="headerlink" title="Express"></a>Express</h3><p>原生的 http 在某些方面不足以满足开发需求，使用框架加快开发，代码高度统一。Express 是 node 的一个 web 框架。</p>
-<p>hello world 代码如下</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> express = <span class="built_in">require</span>(<span class="string">&#x27;express&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> app = express()</span><br><span class="line"></span><br><span class="line">app.get(<span class="string">&#x27;/&#x27;</span>, <span class="function"><span class="keyword">function</span>(<span class="params">req, res</span>)</span>&#123;</span><br><span class="line">    res.send(<span class="string">&#x27;hello express...&#x27;</span>)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 中文自动处理了</span></span><br><span class="line">app.get(<span class="string">&#x27;/about&#x27;</span>, <span class="function"><span class="keyword">function</span>(<span class="params">req, res</span>)</span>&#123;</span><br><span class="line">    res.send(<span class="string">&#x27;你好 express...&#x27;</span>)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">app.listen(<span class="number">3000</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">&#x27;app is running at 3000&#x27;</span>)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 方便的公开指定目录</span></span><br><span class="line">app.use(<span class="string">&#x27;/public&#x27;</span>, express.static(<span class="string">&#x27;./public/&#x27;</span>))</span><br></pre></td></tr></table></figure>
-
-<h3 id="热部署"><a href="#热部署" class="headerlink" title="热部署"></a>热部署</h3><p>nodemon, 代码修改完立刻生效 <code>npm install --global nodemon</code>, 使用时使用 <code>nodemon app.js</code> 即可</p>
-<h3 id="基本路由"><a href="#基本路由" class="headerlink" title="基本路由"></a>基本路由</h3><p>当</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">app.get(<span class="string">&#x27;/&#x27;</span>, <span class="function"><span class="keyword">function</span>(<span class="params">req, res</span>)</span>&#123;</span><br><span class="line">    res.send(<span class="string">&#x27;..&#x27;</span>)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">app.post(<span class="string">&#x27;/&#x27;</span>, <span class="function"><span class="keyword">function</span>(<span class="params">req, res</span>)</span>&#123;</span><br><span class="line">    res.send(<span class="string">&#x27;..&#x27;</span>)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-
-<h3 id="静态文件"><a href="#静态文件" class="headerlink" title="静态文件"></a>静态文件</h3><p>通过 <code>app.use(&#39;/public&#39;, express.static(&#39;./public/&#39;))</code> 的方式公开资源访问。第一个参数为别名，可以为任何表达式，同文件夹名更容易辨识</p>
-<h3 id="Express-中配置使用-art-template-模版引擎"><a href="#Express-中配置使用-art-template-模版引擎" class="headerlink" title="Express 中配置使用 art-template 模版引擎"></a>Express 中配置使用 art-template 模版引擎</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">npm install --save art-template</span><br><span class="line">npm install --save express-art-template</span><br></pre></td></tr></table></figure>
-
-<p>配置</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">app.engine(<span class="string">&#x27;art&#x27;</span>, <span class="built_in">require</span>(<span class="string">&#x27;express-art-template&#x27;</span>))</span><br></pre></td></tr></table></figure>
-
-<p>使用</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">app.get(<span class="string">&#x27;/&#x27;</span>, <span class="function"><span class="keyword">function</span>(<span class="params">req, res</span>)</span>&#123;</span><br><span class="line">    <span class="comment">// express 默认回去项目中的 views 目录找 index.html</span></span><br><span class="line">    res.render(<span class="string">&#x27;index.html&#x27;</span>, &#123;</span><br><span class="line">        title: <span class="string">&#x27;hello world&#x27;</span></span><br><span class="line">    &#125;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-
-<p>如果要改默认 views 试图渲染存储目录，可以</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">app.set(<span class="string">&#x27;views&#x27;</span>, 目录路径)</span><br></pre></td></tr></table></figure>
-
-<h3 id="express-获取表单-post-请求"><a href="#express-获取表单-post-请求" class="headerlink" title="express 获取表单 post 请求"></a>express 获取表单 post 请求</h3><p>安装：<code>npm install --save body-parser</code>, 貌似新版的已经自动集成了，不需要自己下载</p>
-<p>使用案例</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> express = <span class="built_in">require</span>(<span class="string">&#x27;express&#x27;</span>)</span><br><span class="line"><span class="keyword">var</span> bodyParser = <span class="built_in">require</span>(<span class="string">&#x27;body-parser&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> app = express()</span><br><span class="line"></span><br><span class="line"><span class="comment">// parse application/x-www-form-urlencoded</span></span><br><span class="line">app.use(bodyParser.urlencoded(&#123; <span class="attr">extended</span>: <span class="literal">false</span> &#125;))</span><br><span class="line"></span><br><span class="line"><span class="comment">// parse application/json</span></span><br><span class="line">app.use(bodyParser.json())</span><br><span class="line"></span><br><span class="line">app.use(<span class="function"><span class="keyword">function</span> (<span class="params">req, res</span>) </span>&#123;</span><br><span class="line">  res.setHeader(<span class="string">&#x27;Content-Type&#x27;</span>, <span class="string">&#x27;text/plain&#x27;</span>)</span><br><span class="line">  res.write(<span class="string">&#x27;you posted:\n&#x27;</span>)</span><br><span class="line">  res.end(<span class="built_in">JSON</span>.stringify(req.body, <span class="literal">null</span>, <span class="number">2</span>))</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-
-<p>PS: 对于 get 请求，内置了 req.query 对象作为 body 的容器</p>
-<h3 id="crud-demo"><a href="#crud-demo" class="headerlink" title="crud demo"></a>crud demo</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">npm init -y</span><br><span class="line">npm i -S express</span><br><span class="line">npm i -S bootstrap@3</span><br></pre></td></tr></table></figure>
-
-<h3 id="MongoDB"><a href="#MongoDB" class="headerlink" title="MongoDB"></a>MongoDB</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">mongo <span class="comment"># 启动终端</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">exit</span> <span class="comment"># 退出</span></span><br><span class="line"></span><br><span class="line">show dbs <span class="comment"># 显示数据库</span></span><br><span class="line"></span><br><span class="line">db <span class="comment"># 当前数据库</span></span><br><span class="line"></span><br><span class="line">use xxx <span class="comment"># 切换指定数据库</span></span><br><span class="line"></span><br><span class="line">db.students.insertOne(&#123; <span class="string">&quot;name&quot;</span>: <span class="string">&quot;Jack&quot;</span> &#125;) <span class="comment"># 插入数据</span></span><br><span class="line"></span><br><span class="line">db.students.find() <span class="comment"># 查询</span></span><br><span class="line"></span><br><span class="line">show collections <span class="comment"># 显示表</span></span><br></pre></td></tr></table></figure>
-
-<p>基本概念</p>
-<ul>
-<li>数据库</li>
-<li>集合 - 表</li>
-<li>文档 - 一条记录</li>
-<li>文档结构没有任何限制</li>
-<li>灵活，不需要建表，直接使用</li>
-</ul>
-<h3 id="Mongoose"><a href="#Mongoose" class="headerlink" title="Mongoose"></a>Mongoose</h3><p>基于官方包的再封装</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">npm init -y</span><br><span class="line">npm i mongoose</span><br></pre></td></tr></table></figure>
-
-<p>跟着官方文档跑了一个 demo</p>
-<h3 id="Promise"><a href="#Promise" class="headerlink" title="Promise"></a>Promise</h3><p>为了解决 回调地狱 引入 Promise 语法</p>
-<p>例子中用的 json-server， hp-server 工具挺有意思</p>
-<h3 id="Node-中的其他成员"><a href="#Node-中的其他成员" class="headerlink" title="Node 中的其他成员"></a>Node 中的其他成员</h3><p>每个模块中除了 require, exports 外，还默认带有两个字打的变量</p>
-<ul>
-<li>__dirname</li>
-<li>__filename</li>
-</ul>
-<p>文件相对路径是针对 node 执行命令来说的。同时结合 path.join() 拼接路径</p>
-<p>模块加载路径不受影响</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/11/17/Java-comparator-interface/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/11/17/Java-comparator-interface/" class="post-title-link" itemprop="url">Comparator 比较器</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-11-17 17:20:45" itemprop="dateCreated datePublished" datetime="2021-11-17T17:20:45+08:00">2021-11-17</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/java/" itemprop="url" rel="index">
-                    <span itemprop="name">java</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.2k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>看 Spring 的 BeanFactoryProcessor 部分的时候，看到 sort processor 方法中用了 Comparator 做比较依据， 已经忘的差不多了，复习一下</p>
-<p>创建一个简单的对象，有 name 和 age 属性，分别新建两个比较器，一个是 name 字母顺序，一个是 age 大小逆序。自定义的比较器实现 Comparator 接口并重写 compare 方法即可</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ComparatorTest</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        A a1 = <span class="keyword">new</span> A(<span class="string">&quot;a&quot;</span>, <span class="number">1</span>);</span><br><span class="line">        A a2 = <span class="keyword">new</span> A(<span class="string">&quot;b&quot;</span>, <span class="number">2</span>);</span><br><span class="line">        List&lt;A&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        list.add(a1);</span><br><span class="line">        list.add(a2);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;before sort: &quot;</span> + list);</span><br><span class="line">        list.sort(<span class="keyword">new</span> AgeSort());</span><br><span class="line">        System.out.println(<span class="string">&quot;after sort age: &quot;</span> + list);</span><br><span class="line">        list.sort(<span class="keyword">new</span> NameSort());</span><br><span class="line">        System.out.println(<span class="string">&quot;after sort name: &quot;</span> + list);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// before sort: [A(name=a, age=1), A(name=b, age=2)]</span></span><br><span class="line"><span class="comment">// after sort age: [A(name=b, age=2), A(name=a, age=1)]</span></span><br><span class="line"><span class="comment">// after sort name: [A(name=a, age=1), A(name=b, age=2)]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * age 逆序</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AgeSort</span> <span class="keyword">implements</span> <span class="title">Comparator</span>&lt;<span class="title">A</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compare</span><span class="params">(A o1, A o2)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> o2.getAge() - o1.getAge();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * name 顺序</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">NameSort</span> <span class="keyword">implements</span> <span class="title">Comparator</span>&lt;<span class="title">A</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compare</span><span class="params">(A o1, A o2)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> o1.getName().compareTo(o2.getName());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="meta">@AllArgsConstructor</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> age;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/hexo/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/hexo/">1</a><span class="page-number current">2</span><a class="page-number" href="/hexo/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/hexo/page/22/">22</a><a class="extend next" rel="next" href="/hexo/page/3/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <a class="extend prev" rel="prev" href="/hexo/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/hexo/">1</a><span class="page-number current">2</span><a class="page-number" href="/hexo/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/hexo/page/23/">23</a><a class="extend next" rel="next" href="/hexo/page/3/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1384,20 +1285,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">220</span>
+          <span class="site-state-item-count">222</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/hexo/categories/">
           
-        <span class="site-state-item-count">36</span>
+        <span class="site-state-item-count">37</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">199</span>
+        <span class="site-state-item-count">203</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1436,7 +1337,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">16:41</span>
+    <span title="站点阅读时长">16:48</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>

@@ -206,6 +206,288 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/06/05/Effective-Java-Item-34-%E8%83%BD%E7%94%A8%E6%9E%9A%E4%B8%BE%E5%B0%B1%E5%88%AB%E7%94%A8-int-%E5%B8%B8%E9%87%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2020/06/05/Effective-Java-Item-34-%E8%83%BD%E7%94%A8%E6%9E%9A%E4%B8%BE%E5%B0%B1%E5%88%AB%E7%94%A8-int-%E5%B8%B8%E9%87%8F/" class="post-title-link" itemprop="url">Effective Java Item 34 能用枚举就别用 int 常量</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-06-05 23:14:50" itemprop="dateCreated datePublished" datetime="2020-06-05T23:14:50+08:00">2020-06-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
+                    <span itemprop="name">编程</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5.4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>本节要点：</p>
+<ul>
+<li>使用 enum 代替 整型/字符型枚举模式</li>
+<li>enum 是 final，单例的安全</li>
+<li>在 enum 内部使用 abstract 方法使得实例和方法绑定</li>
+<li>用 values() 遍历，用 valueOf() 反向索取</li>
+<li>使用策略枚举来封装算法</li>
+</ul>
+<p>在枚举类加入到 java 大家族之前，为了表达达到枚举的效果，我们使用整形常量来表示，这种表达方式被叫做： int 枚举模式(int enum pattern), 例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> APPLE_FUJI = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> APPLE_PIPPIN = <span class="number">1</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> APPLE_GRANNY_SMITH = <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> ORANGE_NAVEL = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> ORANGE_TEMPLE = <span class="number">1</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> ORANGE_BLOOD = <span class="number">2</span>;</span><br></pre></td></tr></table></figure>
+
+<p>缺点： 类型不安全 + 描述性不好， 与之类似的还有 String 枚举模式(String enum pattern)。就是用 String 来代替上例中的 int, 这种做法更糟糕，就算拼写错误也能编译通过，很容易引入 bug。</p>
+<p>枚举中每个实例都是单例的，是 public static final 的 field。 枚举没有可访问的构造器，所以不能被继承，是真正的 final 类型的 class。enum 提供了一个命名空间，所以不同 enum 中重名是允许的。示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> Apple &#123; FUJI, PIPPIN, GRANNY_SMITH &#125;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> Orange &#123; NAVEL, TEMPLE, BLOOD &#125;</span><br></pre></td></tr></table></figure>
+
+<p>太阳系八大行星枚举示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> Planet &#123;</span><br><span class="line">    MERCURY(<span class="number">3.302e+23</span>, <span class="number">2.439e6</span>),</span><br><span class="line">    VENUS(<span class="number">4.869e+24</span>, <span class="number">6.052e6</span>),</span><br><span class="line">    EARTH(<span class="number">5.975e+24</span>, <span class="number">6.378e6</span>), </span><br><span class="line">    MARS(<span class="number">6.419e+23</span>, <span class="number">3.393e6</span>),</span><br><span class="line">    JUPITER(<span class="number">1.899e+27</span>, <span class="number">7.149e7</span>), </span><br><span class="line">    SATURN(<span class="number">5.685e+26</span>, <span class="number">6.027e7</span>),</span><br><span class="line">    URANUS(<span class="number">8.683e+25</span>, <span class="number">2.556e7</span>), </span><br><span class="line">    NEPTUNE(<span class="number">1.024e+26</span>, <span class="number">2.477e7</span>);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">double</span> mass;           <span class="comment">// In kilograms</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">double</span> radius;         <span class="comment">// In meters</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">double</span> surfaceGravity; <span class="comment">// In m / s^2</span></span><br><span class="line">    <span class="comment">// Universal gravitational constant in m^3 / kg s^2</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">double</span> G = <span class="number">6.67300E-11</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Constructor</span></span><br><span class="line">    Planet(<span class="keyword">double</span> mass, <span class="keyword">double</span> radius) &#123;</span><br><span class="line">        <span class="keyword">this</span>.mass = mass;</span><br><span class="line">        <span class="keyword">this</span>.radius = radius;</span><br><span class="line">        surfaceGravity = G * mass / (radius * radius);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">mass</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> mass;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">radius</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> radius;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">surfaceGravity</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> surfaceGravity;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">surfaceWeight</span><span class="params">(<span class="keyword">double</span> mass)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> mass * surfaceGravity;  <span class="comment">// F = ma&#125;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>枚举中所有的 field 都应该是 final 的。枚举都有 values() 静态方法， 按照声明顺序返回枚举值。</p>
+<p>根据枚举类的适用范围制定他的访问权限，如果是普适的，就把他定义成顶层类，比如 math 中控制舍入模式的 RoundingMode 类。</p>
+<p>枚举绑定行为的最佳实践：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 普通表示</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> Operation &#123;</span><br><span class="line">    PLUS, MINUS, TIMES, DIVIDE;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">switch</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">            <span class="keyword">case</span> PLUS:</span><br><span class="line">                <span class="keyword">return</span> x + y;</span><br><span class="line">            <span class="keyword">case</span> MINUS:</span><br><span class="line">                <span class="keyword">return</span> x - y;</span><br><span class="line">            <span class="keyword">case</span> TIMES:</span><br><span class="line">                <span class="keyword">return</span> x * y;</span><br><span class="line">            <span class="keyword">case</span> DIVIDE:</span><br><span class="line">                <span class="keyword">return</span> x / y;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> AssertionError(<span class="string">&quot;Unknown op: &quot;</span> + <span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>缺点：</p>
+<ul>
+<li>没有 throw exception 会编译失败</li>
+<li>代码脆弱，在添加新操作，如果没有添加 switch 分支的话，新操作不能生效</li>
+</ul>
+<p>改进版：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> Operation &#123;</span><br><span class="line">    PLUS(<span class="string">&quot;+&quot;</span>) &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> x + y;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;, MINUS(<span class="string">&quot;-&quot;</span>) &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> x - y;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;, TIMES(<span class="string">&quot;*&quot;</span>) &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> x * y;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;, DIVIDE(<span class="string">&quot;/&quot;</span>) &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> x / y;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String symbol;</span><br><span class="line"></span><br><span class="line">    Operation(String symbol) &#123;</span><br><span class="line">        <span class="keyword">this</span>.symbol = symbol;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> symbol;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过将 apply 方法声明为 abstrct 类型迫使枚举类的每个 field 都必须实现自己的 apply 方法达到绑定的效果，这种做法称为：constant-specific method implementation。</p>
+<p>通过使用 values() 方法，可以很方便的实现迭代</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">double</span> x = <span class="number">2.0</span>;</span><br><span class="line"><span class="keyword">double</span> y = <span class="number">4.0</span>;</span><br><span class="line"><span class="keyword">for</span> (Operation op : Operation.values()) &#123;</span><br><span class="line">    System.out.printf(<span class="string">&quot;%f %s %f = %f%n&quot;</span>, x, op , y, op.apply(x, y));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果 enum 的 toString 方法被重写了，可以订制 fromString() 方法实现字符到枚举的转化</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 将枚举的名称和枚举类型配对，存到 map 中</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Map&lt;String, Operation&gt; stringToEnum = Stream.of(Operation.values()).collect(Collectors.toMap(Object::toString, e-&gt; e));</span><br><span class="line"><span class="comment">// 新增 fromString 方法根据 toString 的值到 map 中取数据</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Optional&lt;Operation&gt; <span class="title">fromString</span><span class="params">(String symbol)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> Optional.ofNullable(stringToEnum.get(symbol));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">System.out.println(fromString(<span class="string">&quot;a&quot;</span>));</span><br><span class="line">System.out.println(fromString(<span class="string">&quot;-&quot;</span>));</span><br><span class="line"><span class="comment">// output:</span></span><br><span class="line"><span class="comment">// Optional.empty</span></span><br><span class="line"><span class="comment">// Optional[-]</span></span><br></pre></td></tr></table></figure>
+
+<p>通过 switch 来控制 enum 中的条件选择的例子, 该例用于计算薪资，根据工作日和休息日采取不同的薪资计算。在这个例子中周末工资的理解很有意思，它等于<strong>基本工资 + 从一开始就累加的加班工资</strong>，这样想的话这个例子理解起来会容易一点。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">enum</span> PayrollDay &#123;</span><br><span class="line">    MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> MINS_PER_SHIFT = <span class="number">8</span> * <span class="number">60</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">pay</span><span class="params">(<span class="keyword">int</span> minutesWorked, <span class="keyword">int</span> payRate)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> basePay = minutesWorked * payRate;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span> overtimePay;</span><br><span class="line">        <span class="keyword">switch</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">            <span class="comment">// weekends</span></span><br><span class="line">            <span class="keyword">case</span> SATURDAY:</span><br><span class="line">            <span class="keyword">case</span> SUNDAY:</span><br><span class="line">                overtimePay = basePay / <span class="number">2</span>;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="comment">// work day</span></span><br><span class="line">            <span class="keyword">default</span>:</span><br><span class="line">                overtimePay = minutesWorked &lt;= MINS_PER_SHIFT ? <span class="number">0</span> : (minutesWorked - MINS_PER_SHIFT) * payRate / <span class="number">2</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> basePay + overtimePay;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在 enum 中使用 switch 有一个弊端， 新添加的类型，比如我想加一个国亲节加班的薪资计算，如果忘了在 switch 中添加相应的分支， 虽然编译能过，然是薪资计算的规则已经出错了。我们通过在该 enum 中添加一个策略枚举来改善它</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">enum</span> PayrollDay &#123;</span><br><span class="line">    MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY,</span><br><span class="line">    SATURDAY(PayType.WEEKEND), SUNDAY(PayType.WEEKEND);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> PayType payType;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> MINS_PER_SHIFT = <span class="number">8</span> * <span class="number">60</span>;</span><br><span class="line"></span><br><span class="line">    PayrollDay(PayType payType) &#123;</span><br><span class="line">        <span class="keyword">this</span>.payType = payType;</span><br><span class="line">    &#125; <span class="comment">// constructor for weekend</span></span><br><span class="line"></span><br><span class="line">    PayrollDay() &#123;</span><br><span class="line">        <span class="keyword">this</span>(PayType.WEEKDAY);</span><br><span class="line">    &#125; <span class="comment">// constructor for weekday</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">pay</span><span class="params">(<span class="keyword">int</span> minutesWorked, <span class="keyword">int</span> payRate)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> payType.pay(minutesWorked, payRate);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">enum</span> PayType &#123;</span><br><span class="line">        WEEKDAY &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">int</span> <span class="title">overtimePay</span><span class="params">(<span class="keyword">int</span> minsWorked, <span class="keyword">int</span> payRate)</span> </span>&#123;</span><br><span class="line">                <span class="keyword">return</span> minsWorked &lt;= MINS_PER_SHIFT ? <span class="number">0</span> : (minsWorked - MINS_PER_SHIFT) * payRate / <span class="number">2</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        WEEKEND &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">int</span> <span class="title">overtimePay</span><span class="params">(<span class="keyword">int</span> minsWorked, <span class="keyword">int</span> payRate)</span> </span>&#123;</span><br><span class="line">                <span class="keyword">return</span> minsWorked * payRate / <span class="number">2</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">abstract</span> <span class="keyword">int</span> <span class="title">overtimePay</span><span class="params">(<span class="keyword">int</span> minsWorked, <span class="keyword">int</span> payRate)</span></span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> MINS_PER_SHIFT = <span class="number">8</span> * <span class="number">60</span>;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">int</span> <span class="title">pay</span><span class="params">(<span class="keyword">int</span> minsWorked, <span class="keyword">int</span> payRate)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">int</span> basePay = minsWorked * payRate;</span><br><span class="line">            <span class="keyword">return</span> basePay + overtimePay(minsWorked, payRate);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>所以总结起来就是在枚举内部别用 switch， 在外部鼓励使用。枚举在性能上与 int 相当，但是由于包装成对象形肯定要略差的，但是使用上感觉不出来。所以<strong>每当需要一组固定常量，并且在编译时就知道其成员的时候，就应该使用枚举</strong></p>
+<p>多个枚举共享行为是可以用<strong>策略枚举</strong>的形式</p>
+<p>枚举中的常量集并不一定要始终保持不变(?不是很清楚怎么理解，没碰到过这种情况)</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/06/04/Effective-Java-Item-42-Lambda-%E4%BC%98%E5%85%88%E4%BA%8E%E5%8C%BF%E5%90%8D%E7%B1%BB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2020/06/04/Effective-Java-Item-42-Lambda-%E4%BC%98%E5%85%88%E4%BA%8E%E5%8C%BF%E5%90%8D%E7%B1%BB/" class="post-title-link" itemprop="url">Effective Java Item 42 Lambda 优先于匿名类</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-06-04 21:41:24" itemprop="dateCreated datePublished" datetime="2020-06-04T21:41:24+08:00">2020-06-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
+                    <span itemprop="name">编程</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>本节要点：</p>
+<ul>
+<li>使用 lambda 代替匿名函数</li>
+<li>不要指定 lambda 中的数据类型，除非报错</li>
+<li>主要长度，最多三行</li>
+</ul>
+<p>名词对照表</p>
+<table>
+<thead>
+<tr>
+<th>EN</th>
+<th>CN</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>function type</td>
+<td>函数类型</td>
+</tr>
+<tr>
+<td>function object</td>
+<td>函数对象</td>
+</tr>
+<tr>
+<td>function interface</td>
+<td>函数接口</td>
+</tr>
+<tr>
+<td>type inference</td>
+<td>类型推导</td>
+</tr>
+<tr>
+<td>raw type</td>
+<td>原生类型</td>
+</tr>
+</tbody></table>
+<p>自从 java 1.1 发布依赖，如果我们想要创建一个方法对象那么就需要使用到匿名函数</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">List&lt;String&gt; list = Arrays.asList(<span class="string">&quot;jerry&quot;</span>, <span class="string">&quot;tom&quot;</span>);</span><br><span class="line">Collections.sort(list, <span class="keyword">new</span> Comparator&lt;String&gt;() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compare</span><span class="params">(String o1, String o2)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> Integer.compare(o1.length(), o2.length());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line">list.forEach(System.out::println);</span><br><span class="line"><span class="comment">// output:</span></span><br><span class="line"><span class="comment">// tom</span></span><br><span class="line"><span class="comment">// jerry</span></span><br></pre></td></tr></table></figure>
+
+<p>这种表述方式可以实现我们的需求，但是实现繁琐并且语义表达不顺畅， 在 java 8 中，我们可以使用 lambda 来代替匿名函数</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">List&lt;String&gt; list = Arrays.asList(<span class="string">&quot;jerry&quot;</span>, <span class="string">&quot;tom&quot;</span>);</span><br><span class="line">Collections.sort(list, (s1, s2) -&gt; Integer.compare(s1.length(), s2.length()));</span><br><span class="line">list.forEach(System.out::println);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 甚至可以简写为</span></span><br><span class="line">Collections.sort(list, Comparator.comparingInt(String::length));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 或者更甚</span></span><br><span class="line">list.sort(Comparator.comparingInt(String::length));</span><br></pre></td></tr></table></figure>
+
+<p>再使用 lambda 的时候有一条原则<strong>去掉 lambda 中的所有参数类型，除非它能使你的表达更清楚</strong>。默认情况下，程序会根据上下文推断出类型，实在不行它会报错的，那个时候你再自己修不迟。</p>
+<p>Operator 枚举类优化，可以将参数使用 DoubleBinaryOperator 这个方法接口做优化</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 原始代码</span></span><br><span class="line"><span class="keyword">enum</span> Operation &#123;</span><br><span class="line">    PLUS(<span class="string">&quot;+&quot;</span>) &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> x + y;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    MINUS(<span class="string">&quot;-&quot;</span>) &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> x - y;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    TIMES(<span class="string">&quot;*&quot;</span>) &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> x * y;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    DIVIDE(<span class="string">&quot;/&quot;</span>) &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String symbol;</span><br><span class="line"></span><br><span class="line">    Operation(String symbol) &#123; <span class="keyword">this</span>.symbol = symbol; &#125;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> symbol; &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过将上面的 apply() 方法抽象，这个 Operation 的枚举中的行为可以看作是传入两个数，进行计算， 我们将计算抽象，得到如下的简化形式</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">enum</span> Operation &#123;</span><br><span class="line">    PLUS(<span class="string">&quot;+&quot;</span>, (x, y) -&gt; x + y),</span><br><span class="line">    MINUS(<span class="string">&quot;-&quot;</span>, (x, y) -&gt; x - y),</span><br><span class="line">    TIMES(<span class="string">&quot;*&quot;</span>, (x, y) -&gt; x * y),</span><br><span class="line">    DIVIDE(<span class="string">&quot;/&quot;</span>, (x, y) -&gt; x / y);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String symbol;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> DoubleBinaryOperator operator;</span><br><span class="line"></span><br><span class="line">    Operation(String symbol, DoubleBinaryOperator operator) &#123;</span><br><span class="line">        <span class="keyword">this</span>.symbol = symbol;</span><br><span class="line">        <span class="keyword">this</span>.operator = operator;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> symbol; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> operator.applyAsDouble(x, y);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>缺点：lambda 没有名字和文档，如果一段算法不能自我描述，或者超出了几行，就别把他放到一个 lambda 函数中。 </p>
+<p>lambda 注意点：</p>
+<ul>
+<li>一个 lambda 一行是最理想的，最多不能超过三行！</li>
+<li>绝大多视情况下，使用 lambda 代替匿名函数，但是如果是对抽象类的实现，还是得依靠匿名函数， lambda 并不能完成这样的功能。</li>
+<li>lambda 不能获取自身引用， 在 lambda 中 this 指代的是外围示例，匿名类中 this 指自己</li>
+<li>可能的话，别去序列化 lambda 和 匿名函数</li>
+<li>lambda 是小函数的最佳表现方式，除非万不得已，不然就别用匿名类实现函数接口</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/06/03/function-package-introduce/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +519,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -488,7 +770,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -760,7 +1042,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -876,7 +1158,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -973,7 +1255,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1069,7 +1351,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1196,7 +1478,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1308,7 +1590,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
+                <time title="修改时间：2022-08-05 14:17:15" itemprop="dateModified" datetime="2022-08-05T14:17:15+08:00">2022-08-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1375,203 +1657,11 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/01/08/Lang%20%E5%8C%85%E7%B1%BB%E7%AE%80%E4%BB%8B/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2020/01/08/Lang%20%E5%8C%85%E7%B1%BB%E7%AE%80%E4%BB%8B/" class="post-title-link" itemprop="url">lang 包类简介</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-01-08 15:25:37" itemprop="dateCreated datePublished" datetime="2020-01-08T15:25:37+08:00">2020-01-08</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/java/" itemprop="url" rel="index">
-                    <span itemprop="name">java</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>用人话解释我用过的 Class 类中的方法</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* 食用方法：classA.isAssignableFrom(classB)</span></span><br><span class="line"><span class="comment">* 表达的意思：classB 是不是 classA 的子类/接口 或 本身</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">native</span> <span class="keyword">boolean</span> <span class="title">isAssignableFrom</span><span class="params">(Class&lt;?&gt; cls)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Samples, all tests passed.</span></span><br><span class="line"><span class="keyword">import</span> org.testng.Assert;</span><br><span class="line"><span class="keyword">import</span> org.testng.annotations.Test;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestIsAssignableFrom</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test_isAssignableFrom</span> <span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="comment">// 对自己使用，返回 true</span></span><br><span class="line">        Assert.assertTrue(ClassA.class.isAssignableFrom(ClassA.class));</span><br><span class="line">        <span class="comment">// 父类对子类使用，返回 true</span></span><br><span class="line">        Assert.assertTrue(ClassA.class.isAssignableFrom(ClassB.class));</span><br><span class="line">        <span class="comment">// 子类对父类使用，返回 false</span></span><br><span class="line">        Assert.assertFalse(ClassB.class.isAssignableFrom(ClassA.class));</span><br><span class="line">        <span class="comment">// 父接口对自接口使用，返回 true</span></span><br><span class="line">        Assert.assertTrue(InterfaceC.class.isAssignableFrom(InterfaceD.class));</span><br><span class="line">        <span class="comment">// 子接口对父接口使用，返回 false</span></span><br><span class="line">        Assert.assertFalse(InterfaceD.class.isAssignableFrom(InterfaceC.class));</span><br><span class="line">        <span class="comment">// 接口对实现了自己的类使用，返回 true</span></span><br><span class="line">        Assert.assertTrue(InterfaceC.class.isAssignableFrom(ClassB.class));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ClassA</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ClassB</span> <span class="keyword">extends</span> <span class="title">ClassA</span> <span class="keyword">implements</span> <span class="title">InterfaceC</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">InterfaceC</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">InterfaceD</span> <span class="keyword">extends</span> <span class="title">InterfaceC</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2020/01/06/NoClassDefFoundError%20%E8%AE%B0%E5%BD%95/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2020/01/06/NoClassDefFoundError%20%E8%AE%B0%E5%BD%95/" class="post-title-link" itemprop="url">NoClassDefFoundError 记录</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-01-06 10:37:39" itemprop="dateCreated datePublished" datetime="2020-01-06T10:37:39+08:00">2020-01-06</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-27 16:39:04" itemprop="dateModified" datetime="2022-07-27T16:39:04+08:00">2022-07-27</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index">
-                    <span itemprop="name">编程</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>写 UT 的时候遇到一个 NoClassDefFoundError, 以前没碰到过，记一笔</p>
-<h3 id="Root-Cause"><a href="#Root-Cause" class="headerlink" title="Root Cause"></a>Root Cause</h3><p>编译时能找到 class 但是运行时对应的类找不到了，听上去可能不点矛盾</p>
-<h3 id="与-ClassNotFoundException-的区别"><a href="#与-ClassNotFoundException-的区别" class="headerlink" title="与 ClassNotFoundException 的区别"></a>与 ClassNotFoundException 的区别</h3><p>ClassNotFoundException 的场景更多的是我们给出 class name, 然后 JVM 根据名字去 load 的时候找不到就会跑抛出这个异常</p>
-<p>NoClassDefFoundError 则是在编译期，JVM 是能找到对应的类的，但是等运行期时找不到了</p>
-<h3 id="怎么修复"><a href="#怎么修复" class="headerlink" title="怎么修复"></a>怎么修复</h3><ol>
-<li>检测 Classpath 是不是缺少你需要的 jar 包，缺少就加一下。我本地就是这个问题，测试的 dependency 中没有类的引用，挂了</li>
-<li>检查 error exception stack, 看看是不是类初始化时 static 部分出错了</li>
-</ol>
-<h3 id="打印-Classpath-调试"><a href="#打印-Classpath-调试" class="headerlink" title="打印 Classpath 调试"></a>打印 Classpath 调试</h3><p>通过打印 classpath 输出当前运行环境是否缺少需要的 jar 包。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.net.URL;</span><br><span class="line"><span class="keyword">import</span> java.net.URLClassLoader;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PrintClassPath</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ClassLoader cl = ClassLoader.getSystemClassLoader();</span><br><span class="line"></span><br><span class="line">        URL[] urls = ((URLClassLoader)cl).getURLs();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span>(URL url: urls)&#123;</span><br><span class="line">            System.out.println(url.getFile());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Output:</span></span><br><span class="line"><span class="comment">// /Library/Java/JavaVirtualMachines/jdk1.8.0_144.jdk/Contents/Home/jre/lib/charsets.jar</span></span><br><span class="line"><span class="comment">// /Library/Java/JavaVirtualMachines/jdk1.8.0_144.jdk/Contents/Home/jre/lib/deploy.jar</span></span><br><span class="line"><span class="comment">// /Library/Java/JavaVirtualMachines/jdk1.8.0_144.jdk/Contents/Home/jre/lib/ext/cldrdata.jar</span></span><br><span class="line"><span class="comment">// ...</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Refer"><a href="#Refer" class="headerlink" title="Refer"></a>Refer</h3><p><a target="_blank" rel="noopener" href="https://javarevisited.blogspot.com/2011/06/noclassdeffounderror-exception-in.html">很全面的一个 NoClassDefFoundError 异常分析博文</a></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/hexo/page/19/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/hexo/">1</a><span class="space">&hellip;</span><a class="page-number" href="/hexo/page/19/">19</a><span class="page-number current">20</span><a class="page-number" href="/hexo/page/21/">21</a><a class="page-number" href="/hexo/page/22/">22</a><a class="extend next" rel="next" href="/hexo/page/21/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <a class="extend prev" rel="prev" href="/hexo/page/19/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/hexo/">1</a><span class="space">&hellip;</span><a class="page-number" href="/hexo/page/19/">19</a><span class="page-number current">20</span><a class="page-number" href="/hexo/page/21/">21</a><span class="space">&hellip;</span><a class="page-number" href="/hexo/page/23/">23</a><a class="extend next" rel="next" href="/hexo/page/21/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1617,20 +1707,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">220</span>
+          <span class="site-state-item-count">222</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/hexo/categories/">
           
-        <span class="site-state-item-count">36</span>
+        <span class="site-state-item-count">37</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">199</span>
+        <span class="site-state-item-count">203</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1669,7 +1759,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">16:41</span>
+    <span title="站点阅读时长">16:48</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
