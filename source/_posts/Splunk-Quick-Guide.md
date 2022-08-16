@@ -239,9 +239,21 @@ eventtype="searchAccountLocked" | timechart span=1d count | stats avg(count) as 
 
 更多计算函数，参考 [math](https://docs.splunk.com/Documentation/Splunk/8.1.4/SearchReference/MathematicalFunctions)
 
-## fields
+## 显示时移除 fields
 
 指定显示结果 `search cmd | fields host, src`, 从结果集中 remove 某个 field `search cmd | fields - host, src`
+
+## 复制 field
+
+eval 和 rename 都能达到类似的效果，只不过 rename 之后原来的 field 不在了，eval 的话还在，相当于 copy
+
+```bash
+search cmd
+| eval field1=field2
+
+# or
+| rename field1 as field2
+```
 
 ## Splunk SDK
 

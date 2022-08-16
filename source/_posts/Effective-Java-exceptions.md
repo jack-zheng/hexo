@@ -29,7 +29,7 @@ public class BadPracticeServiceA {
     public long getPersonIdByPersonUUID(String personUuid) {
         Long person = getPersonId();
         if (person == null) {
-            throw new IllegalStateException("Can not find PersonID by PersonUUID");
+            throw new ServiceApplicationException("Can not find PersonID by PersonUUID");
         }
         return person;
     }
@@ -44,6 +44,8 @@ try {
 
 return null;
 ```
+
+看 Effective Java 中 Stack 实现的时候又有了新的感悟。这里的 get 方法和 stack 里的 pop() 方法很像，而 pop 在拿不到值的时候会抛异常，和上面找不到的情况也很类似。不过相对以 Stack 的例子，上面如果要在找不到的时候抛异常，也不应该是 Exception 而是更友好的 RuntimeException。或者其他自定义的 NotFoundExcepiton 才对。
 
 ## 对可恢复的情况使用 checked exception, 不可恢复的使用 runtime exception
 
