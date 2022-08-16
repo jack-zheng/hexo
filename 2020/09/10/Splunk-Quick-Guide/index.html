@@ -62,7 +62,7 @@
 <meta property="og:image" content="https://jack-zheng.github.io/hexo/2020/09/10/Splunk-Quick-Guide/bar.png">
 <meta property="og:image" content="https://jack-zheng.github.io/hexo/2020/09/10/Splunk-Quick-Guide/regex.png">
 <meta property="article:published_time" content="2020-09-10T07:43:42.000Z">
-<meta property="article:modified_time" content="2022-08-05T09:59:14.260Z">
+<meta property="article:modified_time" content="2022-08-16T10:29:28.276Z">
 <meta property="article:author" content="Jack Zheng">
 <meta property="article:tag" content="splunk">
 <meta name="twitter:card" content="summary">
@@ -243,7 +243,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-05 17:59:14" itemprop="dateModified" datetime="2022-08-05T17:59:14+08:00">2022-08-05</time>
+                <time title="修改时间：2022-08-16 18:29:28" itemprop="dateModified" datetime="2022-08-16T18:29:28+08:00">2022-08-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -270,7 +270,7 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>6.9k</span>
+              <span>7k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -384,7 +384,10 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">| makeresults </span><br><span class="line">| <span class="built_in">eval</span> n=10.3</span><br><span class="line">| <span class="built_in">eval</span> n_round=round(n)</span><br><span class="line">| <span class="built_in">eval</span> n_ceil=ceil(n)</span><br></pre></td></tr></table></figure>
 
 <p>更多计算函数，参考 <a target="_blank" rel="noopener" href="https://docs.splunk.com/Documentation/Splunk/8.1.4/SearchReference/MathematicalFunctions">math</a></p>
-<h2 id="fields"><a href="#fields" class="headerlink" title="fields"></a>fields</h2><p>指定显示结果 <code>search cmd | fields host, src</code>, 从结果集中 remove 某个 field <code>search cmd | fields - host, src</code></p>
+<h2 id="显示时移除-fields"><a href="#显示时移除-fields" class="headerlink" title="显示时移除 fields"></a>显示时移除 fields</h2><p>指定显示结果 <code>search cmd | fields host, src</code>, 从结果集中 remove 某个 field <code>search cmd | fields - host, src</code></p>
+<h2 id="复制-field"><a href="#复制-field" class="headerlink" title="复制 field"></a>复制 field</h2><p>eval 和 rename 都能达到类似的效果，只不过 rename 之后原来的 field 不在了，eval 的话还在，相当于 copy</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">search cmd</span><br><span class="line">| <span class="built_in">eval</span> field1=field2</span><br><span class="line"></span><br><span class="line"><span class="comment"># or</span></span><br><span class="line">| rename field1 as field2</span><br></pre></td></tr></table></figure>
+
 <h2 id="Splunk-SDK"><a href="#Splunk-SDK" class="headerlink" title="Splunk SDK"></a>Splunk SDK</h2><p>尝试了 python 版本的 SDK，香！</p>
 <p>参考 <a target="_blank" rel="noopener" href="https://dev.splunk.com/enterprise/docs/python/sdk-python/examplespython/commandline">官方文档</a> 下载依赖，在本地配置 <code>.splunkrc</code> 文件写入连接信息方便调用。第一次用的时候密码配错了，还以为内网不可用，需要用 vlab，再测试的时候发现了这个问题。总的来说很可以。</p>
 <p>Steps:</p>
@@ -511,7 +514,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E7%8E%AF%E5%A2%83-setup"><span class="nav-number">1.</span> <span class="nav-text">测试环境 setup</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E6%B5%8B%E8%AF%95%E6%95%B0%E6%8D%AE"><span class="nav-number">2.</span> <span class="nav-text">创建测试数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B8%B8%E7%94%A8%E7%9A%84-case-search-with-keyword"><span class="nav-number">3.</span> <span class="nav-text">最常用的 case - search with keyword</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E7%BB%9F%E8%AE%A1%E6%93%8D%E4%BD%9C-stats"><span class="nav-number">4.</span> <span class="nav-text">常用统计操作 stats</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#stats-vs-eventstats-vs-streamstats"><span class="nav-number">5.</span> <span class="nav-text">stats vs eventstats vs streamstats</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#eval"><span class="nav-number">6.</span> <span class="nav-text">eval</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Comparison-and-Conditional-functions"><span class="nav-number">7.</span> <span class="nav-text">Comparison and Conditional functions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#rex-%E6%8A%BD%E5%8F%96%E7%89%B9%E5%AE%9A%E7%9A%84-field"><span class="nav-number">8.</span> <span class="nav-text">rex 抽取特定的 field</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%94%B6%E9%9B%86%E5%88%86%E6%95%A3%E5%9C%A8%E5%A4%9A%E4%B8%AA-event-%E4%B8%AD%E7%9A%84%E6%95%B0%E6%8D%AE"><span class="nav-number">9.</span> <span class="nav-text">收集分散在多个 event 中的数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%8C%E8%BD%AC%E5%88%97-transpose"><span class="nav-number">10.</span> <span class="nav-text">行转列 transpose</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%BB%E9%87%8D"><span class="nav-number">11.</span> <span class="nav-text">去重</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8-where-%E8%BE%BE%E5%88%B0-filter-%E7%9A%84%E6%95%88%E6%9E%9C"><span class="nav-number">12.</span> <span class="nav-text">使用 where 达到 filter 的效果</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2-event-%E7%9A%84%E6%97%A5%E5%9D%87%E9%87%8F"><span class="nav-number">13.</span> <span class="nav-text">查询 event 的日均量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%96%E6%95%B4%E6%95%B0"><span class="nav-number">14.</span> <span class="nav-text">取整数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#fields"><span class="nav-number">15.</span> <span class="nav-text">fields</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Splunk-SDK"><span class="nav-number">16.</span> <span class="nav-text">Splunk SDK</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Splunk-REST-API"><span class="nav-number">17.</span> <span class="nav-text">Splunk REST API</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Splunk-dashboard-sample"><span class="nav-number">18.</span> <span class="nav-text">Splunk dashboard sample</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E4%B8%AA%E5%B0%8F%E4%BE%8B%E5%AD%90%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8"><span class="nav-number">19.</span> <span class="nav-text">三个小例子快速入门</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%90%9C%E7%B4%A2-event-%E5%B9%B6%E9%80%9A%E8%BF%87%E9%A5%BC%E5%9B%BE%E5%B1%95%E7%A4%BA"><span class="nav-number">19.1.</span> <span class="nav-text">搜索 event 并通过饼图展示</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%98%BE%E7%A4%BA%E6%AF%8F%E5%A4%A9%E7%9A%84-event-%E9%87%8F"><span class="nav-number">19.2.</span> <span class="nav-text">显示每天的 event 量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%9A%E8%BF%87%E6%AD%A3%E5%88%99%E5%88%A0%E9%80%89-event-%E5%B9%B6%E8%AE%A1%E7%AE%97%E7%99%BE%E5%88%86%E6%AF%94"><span class="nav-number">19.3.</span> <span class="nav-text">通过正则删选 event 并计算百分比</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E7%8E%AF%E5%A2%83-setup"><span class="nav-number">1.</span> <span class="nav-text">测试环境 setup</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E6%B5%8B%E8%AF%95%E6%95%B0%E6%8D%AE"><span class="nav-number">2.</span> <span class="nav-text">创建测试数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B8%B8%E7%94%A8%E7%9A%84-case-search-with-keyword"><span class="nav-number">3.</span> <span class="nav-text">最常用的 case - search with keyword</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E7%BB%9F%E8%AE%A1%E6%93%8D%E4%BD%9C-stats"><span class="nav-number">4.</span> <span class="nav-text">常用统计操作 stats</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#stats-vs-eventstats-vs-streamstats"><span class="nav-number">5.</span> <span class="nav-text">stats vs eventstats vs streamstats</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#eval"><span class="nav-number">6.</span> <span class="nav-text">eval</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Comparison-and-Conditional-functions"><span class="nav-number">7.</span> <span class="nav-text">Comparison and Conditional functions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#rex-%E6%8A%BD%E5%8F%96%E7%89%B9%E5%AE%9A%E7%9A%84-field"><span class="nav-number">8.</span> <span class="nav-text">rex 抽取特定的 field</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%94%B6%E9%9B%86%E5%88%86%E6%95%A3%E5%9C%A8%E5%A4%9A%E4%B8%AA-event-%E4%B8%AD%E7%9A%84%E6%95%B0%E6%8D%AE"><span class="nav-number">9.</span> <span class="nav-text">收集分散在多个 event 中的数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%8C%E8%BD%AC%E5%88%97-transpose"><span class="nav-number">10.</span> <span class="nav-text">行转列 transpose</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%BB%E9%87%8D"><span class="nav-number">11.</span> <span class="nav-text">去重</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8-where-%E8%BE%BE%E5%88%B0-filter-%E7%9A%84%E6%95%88%E6%9E%9C"><span class="nav-number">12.</span> <span class="nav-text">使用 where 达到 filter 的效果</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2-event-%E7%9A%84%E6%97%A5%E5%9D%87%E9%87%8F"><span class="nav-number">13.</span> <span class="nav-text">查询 event 的日均量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%96%E6%95%B4%E6%95%B0"><span class="nav-number">14.</span> <span class="nav-text">取整数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%98%BE%E7%A4%BA%E6%97%B6%E7%A7%BB%E9%99%A4-fields"><span class="nav-number">15.</span> <span class="nav-text">显示时移除 fields</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%8D%E5%88%B6-field"><span class="nav-number">16.</span> <span class="nav-text">复制 field</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Splunk-SDK"><span class="nav-number">17.</span> <span class="nav-text">Splunk SDK</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Splunk-REST-API"><span class="nav-number">18.</span> <span class="nav-text">Splunk REST API</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Splunk-dashboard-sample"><span class="nav-number">19.</span> <span class="nav-text">Splunk dashboard sample</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E4%B8%AA%E5%B0%8F%E4%BE%8B%E5%AD%90%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8"><span class="nav-number">20.</span> <span class="nav-text">三个小例子快速入门</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%90%9C%E7%B4%A2-event-%E5%B9%B6%E9%80%9A%E8%BF%87%E9%A5%BC%E5%9B%BE%E5%B1%95%E7%A4%BA"><span class="nav-number">20.1.</span> <span class="nav-text">搜索 event 并通过饼图展示</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%98%BE%E7%A4%BA%E6%AF%8F%E5%A4%A9%E7%9A%84-event-%E9%87%8F"><span class="nav-number">20.2.</span> <span class="nav-text">显示每天的 event 量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%9A%E8%BF%87%E6%AD%A3%E5%88%99%E5%88%A0%E9%80%89-event-%E5%B9%B6%E8%AE%A1%E7%AE%97%E7%99%BE%E5%88%86%E6%AF%94"><span class="nav-number">20.3.</span> <span class="nav-text">通过正则删选 event 并计算百分比</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -527,20 +530,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">222</span>
+          <span class="site-state-item-count">225</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/hexo/categories/">
           
-        <span class="site-state-item-count">37</span>
+        <span class="site-state-item-count">38</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">202</span>
+        <span class="site-state-item-count">203</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -579,7 +582,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">16:49</span>
+    <span title="站点阅读时长">16:52</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>

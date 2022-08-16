@@ -206,6 +206,338 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/10/13/Spring-jiemi-IoC/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/10/13/Spring-jiemi-IoC/" class="post-title-link" itemprop="url">Ioc 笔记</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-10-13 14:04:21" itemprop="dateCreated datePublished" datetime="2021-10-13T14:04:21+08:00">2021-10-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-08-16 18:29:28" itemprop="dateModified" datetime="2022-08-16T18:29:28+08:00">2022-08-16</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/Spring-%E6%8F%AD%E7%A7%98/" itemprop="url" rel="index">
+                    <span itemprop="name">Spring 揭秘</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>从广义上讲，不管 Spring 框架自发布到现在经过多少次迭代，其本质是始终不变的，都是为了提供各种服务，以帮助我们简化基于 POJO 的 Java 应用程序开发。</p>
+<p>Spring 框架为 POJO 提供的各种服务组成的生命树如下</p>
+<p><img src="spring_tree.png" alt="spring tree"></p>
+<p>Spring Core 是基础，提供了 IoC 容器的实现，帮助我们通过依赖注入方式管理对象之间的依赖关系。AOP 采用 Proxy 模式构建，结合 IoC, 增强 POJO 能力。</p>
+<p>在 Core 和 AOP 的基础上，提供数据库和事物的服务， Spring 中的事务管理抽象层是 AOP 的最佳实践。</p>
+<p>为了简化 Java EE 的各种服务，Spring 还提供了对应的简化服务，怎对 Web 开发，提供了对应的 Web MVC。</p>
+<h2 id="IoC"><a href="#IoC" class="headerlink" title="IoC"></a>IoC</h2><p>IoC(Inverse of Control) 控制反转，也有人叫做依赖注入(DI - Dependency Injection). 不过 Spring 的创始人说这两个是不同的概念， DI 是 IoC 的一种表现形式，这里不纠结这么多。为了便于理解，从书上抄一段代码如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FXNewsProvider</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> IFXNewsListener newsListener;</span><br><span class="line">    <span class="keyword">private</span> IFXNewsPersister newsPersister;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">getAndPersistNews</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        String[] newsIds = newsListener.getAvailableNewsIds();</span><br><span class="line">        <span class="keyword">if</span> (newsIds.length == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (String newsId : newsIds) &#123;</span><br><span class="line">            FXNewsBean newsBean = newsListener.getNewsByPK(newsId);</span><br><span class="line">            newsPersister.persistNews(newsBean);</span><br><span class="line">            newsListener.postProcessIfNecessary(newsId);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的类中为了提供 getAndPersistNews() 这个功能，需要调用内部两个接口的方法。传统做法中，为了拿到接口的实例我们会写类似如下的代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">FXNewsProvider</span> <span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.newsListener = <span class="keyword">new</span> DowJonesNewsListener();</span><br><span class="line">    <span class="keyword">this</span>.newsPersister = <span class="keyword">new</span> DowJonesNewsPersister();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这种方式中，我们通过新建接口示例拿到对象并提供服务。但是细想一下，其实我们并不需要知道接口的具体实现，我们想要的只是，当我们想要用借口的服务时，有对应的实例能调用方法即可，至于示例的表现形式我们根本不 care。</p>
+<p>PS: 这种做法的中二表现形式 - 神说，要有光！然后他就有了。</p>
+<p>Spring 提供了 IoC Service Provider, 充当你的管家，他可以帮你管理实例，你只需要调用方法即可，不需要你管理 bean。将这个 bean 的控制权托管给 IoC Service, 这就是控制反转。</p>
+<p>但是 IoC Service Provider 并不会读心术，当你给出上面的代码的时候，他并不知道去那里帮你找来接口的实例。这里就引入了一些规范，我们可以通过三种方式达到依赖注入的效果</p>
+<ul>
+<li>构造方式注入 - constructor injection</li>
+<li>setter 方法注入 - setter injection</li>
+<li>接口注入 - interface injection，过时了，了解即可</li>
+</ul>
+<p>一句话概括 IoC 可以带给我们什么：IoC 是一种可以帮助我们解偶各业务对象间依赖关系的对象绑定方式。</p>
+<p>IoC 是一种策略，而 IoC Service Provider 就是这个策略的实施者。Spring 的 IoC 容器就是一个提供以来注入服务的 IoC Service Provider。</p>
+<p>IoC Service Provider 职责就两个：</p>
+<ul>
+<li>业务对象的构建管理：将构建逻辑从客户端剥离，避免污染业务逻辑</li>
+<li>业务对象间的依赖绑定：最艰巨也是最重要的任务，正确的匹配对象之间的依赖</li>
+</ul>
+<p>IoC Service Provider 产品使用的注册对象管理信息方式主要有</p>
+<ul>
+<li>直接编码方式</li>
+<li>配置文件方式：properies, xml 等</li>
+<li>元数据方式：注解</li>
+</ul>
+<p>Spring 的 IoC 容器是一个超集，IoC Service Provider 只是其中的一部分，除此之外，他还提供了对象生命周期管理，API 等很多功能。</p>
+<p><img src="spring_ioc.png" alt="Spring IoC"></p>
+<p>Spring 提供了两种容器类型</p>
+<ul>
+<li>BeanFactory: 基础类型的 IoC 容器，提供完整的 IoC 服务支持，采用 lazy-load。</li>
+<li>ApplicationContext: 构建与 BeanFactory 之上，提供其他一些高级特性，比如 event，i18n 等。</li>
+</ul>
+<p><img src="beanfactory_applicationcontext.png" alt="ioc container relationship"></p>
+<p>BeanFactory 顾名思义就是一个工厂，你提供原料然后他给你成品，至于中间过程，作为用户，你并不需要知道，这是框架的职责范围。</p>
+<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>Q: Spring 的 容器 怎么体现的</p>
+<p>A: 容器即装东西的地方，项目中的 Bean 都是通过他保管的(存在 map 中)，所以还是很贴切的</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/10/13/Algorithm-binary-search/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/10/13/Algorithm-binary-search/" class="post-title-link" itemprop="url">704 二分查找</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-10-13 13:19:10" itemprop="dateCreated datePublished" datetime="2021-10-13T13:19:10+08:00">2021-10-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-08-16 18:29:28" itemprop="dateModified" datetime="2022-08-16T18:29:28+08:00">2022-08-16</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E7%AE%97%E6%B3%95/" itemprop="url" rel="index">
+                    <span itemprop="name">算法</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>763</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>给定一个 n 个元素有序的（升序）整型数组 nums 和一个目标值 target  ，写一个函数搜索 nums 中的 target，如果目标值存在返回下标，否则返回 -1。</p>
+<p>示例 1:</p>
+<p>输入: nums = [-1,0,3,5,9,12], target = 9<br>输出: 4<br>解释: 9 出现在 nums 中并且下标为 4<br>示例 2:</p>
+<p>输入: nums = [-1,0,3,5,9,12], target = 2<br>输出: -1<br>解释: 2 不存在 nums 中因此返回 -1</p>
+<p>提示：</p>
+<p>你可以假设 nums 中的所有元素是不重复的。<br>n 将在 [1, 10000]之间。<br>nums 的每个元素都将在 [-9999, 9999]之间。</p>
+<h2 id="题解"><a href="#题解" class="headerlink" title="题解"></a>题解</h2><p>出错的点：</p>
+<ol>
+<li>while 条件少了 ‘=’</li>
+<li>mid 取值没有考虑越界</li>
+<li>start, end 没有 +/-1 优化</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">S704</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] arr = <span class="keyword">new</span> <span class="keyword">int</span>[]&#123;-<span class="number">1</span>, <span class="number">0</span>, <span class="number">3</span>, <span class="number">5</span>, <span class="number">9</span>, <span class="number">12</span>&#125;;</span><br><span class="line">        System.out.println(<span class="keyword">new</span> S704().search(arr, <span class="number">9</span>));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">search</span><span class="params">(<span class="keyword">int</span>[] nums, <span class="keyword">int</span> target)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> start=<span class="number">0</span>, end=nums.length - <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">while</span> (start &lt;= end) &#123;</span><br><span class="line">            <span class="keyword">int</span> mid = start + (end - start) / <span class="number">2</span>;</span><br><span class="line">            <span class="keyword">if</span> (nums[mid] == target) &#123;</span><br><span class="line">                 <span class="keyword">return</span> mid;</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (nums[mid] &lt; target) &#123;</span><br><span class="line">                start = mid + <span class="number">1</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                end = mid - <span class="number">1</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/10/11/Interview-find-repeat-number/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/10/11/Interview-find-repeat-number/" class="post-title-link" itemprop="url">找出数组中重复的数字</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-10-11 14:30:29" itemprop="dateCreated datePublished" datetime="2021-10-11T14:30:29+08:00">2021-10-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-08-16 18:29:28" itemprop="dateModified" datetime="2022-08-16T18:29:28+08:00">2022-08-16</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/Leetcode/" itemprop="url" rel="index">
+                    <span itemprop="name">Leetcode</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>在一个长度为 n 的数组 nums 里的所有数字都在 0～n-1 的范围内。数组中某些数字是重复的，但不知道有几个数字重复了，也不知道每个数字重复了几次。请找出数组中任意一个重复的数字。</p>
+<p>示例 1：</p>
+<p>输入：<br>[2, 3, 1, 0, 2, 5, 3]<br>输出：2 或 3 </p>
+<h2 id="解题-1"><a href="#解题-1" class="headerlink" title="解题 1"></a>解题 1</h2><p>通过 Set 的特性解题，将元素一次存入 set, 如果 add 失败，则为重复元素，返回</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] arr = <span class="keyword">new</span> <span class="keyword">int</span>[]&#123; <span class="number">2</span>, <span class="number">3</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">2</span>, <span class="number">5</span>, <span class="number">3</span> &#125;;</span><br><span class="line">        System.out.println(<span class="keyword">new</span> Solution().findRepeatNumber(arr));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">findRepeatNumber</span><span class="params">(<span class="keyword">int</span>[] nums)</span> </span>&#123;</span><br><span class="line">        Set&lt;Integer&gt; set = <span class="keyword">new</span> HashSet&lt;&gt;();</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> num : nums) &#123;</span><br><span class="line">            <span class="keyword">if</span> (!set.add(num)) &#123;</span><br><span class="line">                <span class="keyword">return</span> num;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我很喜欢这个解法，很直接了当，时间/空间 复杂度都是 O(n)</p>
+<h2 id="解题-2"><a href="#解题-2" class="headerlink" title="解题 2"></a>解题 2</h2><p>活用题中另一个条: 件数字范围 0-(n-1), 如果将数组中的值一次排开，重复数字会在相同的下标下有冲突这一特性解题，时间复杂度 O(n), 空间复杂度 O(1)</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution2</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] arr = <span class="keyword">new</span> <span class="keyword">int</span>[]&#123;<span class="number">2</span>, <span class="number">3</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">2</span>, <span class="number">5</span>, <span class="number">3</span>&#125;;</span><br><span class="line">        System.out.println(<span class="keyword">new</span> Solution2().findRepeatNumber(arr));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">findRepeatNumber</span><span class="params">(<span class="keyword">int</span>[] nums)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span>(i &lt; nums.length) &#123;</span><br><span class="line">            <span class="keyword">if</span> (i == nums[i]) &#123;</span><br><span class="line">                i ++;</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (nums[i] == nums[nums[i]]) <span class="keyword">return</span> nums[i];</span><br><span class="line"></span><br><span class="line">            <span class="keyword">int</span> tmp = nums[i];</span><br><span class="line">            nums[i] = nums[tmp]; <span class="comment">// 使用 tmp 做索引，nums[i] 会改变</span></span><br><span class="line">            nums[tmp] = tmp;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/09/24/Java-JMX/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +569,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-05 17:59:14" itemprop="dateModified" datetime="2022-08-05T17:59:14+08:00">2022-08-05</time>
+                <time title="修改时间：2022-08-16 18:29:28" itemprop="dateModified" datetime="2022-08-16T18:29:28+08:00">2022-08-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -338,7 +670,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-05 17:59:14" itemprop="dateModified" datetime="2022-08-05T17:59:14+08:00">2022-08-05</time>
+                <time title="修改时间：2022-08-16 18:29:28" itemprop="dateModified" datetime="2022-08-16T18:29:28+08:00">2022-08-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -439,7 +771,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-05 17:59:14" itemprop="dateModified" datetime="2022-08-05T17:59:14+08:00">2022-08-05</time>
+                <time title="修改时间：2022-08-16 18:29:28" itemprop="dateModified" datetime="2022-08-16T18:29:28+08:00">2022-08-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -531,7 +863,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-05 17:59:14" itemprop="dateModified" datetime="2022-08-05T17:59:14+08:00">2022-08-05</time>
+                <time title="修改时间：2022-08-16 18:29:28" itemprop="dateModified" datetime="2022-08-16T18:29:28+08:00">2022-08-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -641,7 +973,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-05 17:59:14" itemprop="dateModified" datetime="2022-08-05T17:59:14+08:00">2022-08-05</time>
+                <time title="修改时间：2022-08-16 18:29:28" itemprop="dateModified" datetime="2022-08-16T18:29:28+08:00">2022-08-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -765,7 +1097,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-05 17:59:14" itemprop="dateModified" datetime="2022-08-05T17:59:14+08:00">2022-08-05</time>
+                <time title="修改时间：2022-08-16 18:29:28" itemprop="dateModified" datetime="2022-08-16T18:29:28+08:00">2022-08-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -906,7 +1238,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-05 17:59:14" itemprop="dateModified" datetime="2022-08-05T17:59:14+08:00">2022-08-05</time>
+                <time title="修改时间：2022-08-16 18:29:28" itemprop="dateModified" datetime="2022-08-16T18:29:28+08:00">2022-08-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -988,444 +1320,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/09/16/HTW-ex13/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/09/16/HTW-ex13/" class="post-title-link" itemprop="url">Ex13 Engine 和 Host</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-09-16 14:12:43" itemprop="dateCreated datePublished" datetime="2021-09-16T14:12:43+08:00">2021-09-16</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-05 17:59:14" itemprop="dateModified" datetime="2022-08-05T17:59:14+08:00">2022-08-05</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/Tomcat/" itemprop="url" rel="index">
-                    <span itemprop="name">Tomcat</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.8k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>2 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <blockquote>
-<p><strong>Chapter 13</strong> presents the two other containers: host and engine. You can also find the standard implementation of these two containers: org.apache.catalina.core.StandardHost and org.apache.catalina.core.StandardEngine.</p>
-</blockquote>
-<p>介绍了另外两个 Container 概念：engine 和 host。如果你的系统需要有一个以上的 context，那你就需要 host 了。如果只有一个 context，理论上可以不用 host。</p>
-<h2 id="The-Host-Interface"><a href="#The-Host-Interface" class="headerlink" title="The Host Interface"></a>The Host Interface</h2><p>Container 的一个接口实现，最重要的方法为 map</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Return the Context that would be used to process the specified</span></span><br><span class="line"><span class="comment">* host-relative request URI, if any; otherwise return &lt;code&gt;null&lt;/code&gt;.</span></span><br><span class="line"><span class="comment">*</span></span><br><span class="line"><span class="comment">* <span class="doctag">@param</span> uri Request URI to be mapped</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Context <span class="title">map</span><span class="params">(String uri)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<h2 id="StandardHost"><a href="#StandardHost" class="headerlink" title="StandardHost"></a>StandardHost</h2><p>Host 的具体实现，也没什么新鲜的，还是 Container + pipeline + valve 三件套。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">StandardHost</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>();</span><br><span class="line">    pipeline.setBasic(<span class="keyword">new</span> StandardHostValve());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>在它的 start() 方法中还会添加两个新的 valve 进 pipeline, 一个是 ErrorReportValve 另一个是 ErrorDispatcherValve</p>
-<p>StandardHost 的 map() 用来寻找匹配的 context。</p>
-<p>PS: Tomcat 5 已经不用 Mapper 机制的，直接从 request 中找到正确的 context</p>
-<h2 id="StandardHostMapper"><a href="#StandardHostMapper" class="headerlink" title="StandardHostMapper"></a>StandardHostMapper</h2><p>略</p>
-<h2 id="StandardHostValve"><a href="#StandardHostValve" class="headerlink" title="StandardHostValve"></a>StandardHostValve</h2><p>里面有涉及 Session 的操作，挺有意思</p>
-<h2 id="Why-You-Cannot-Live-without-a-Host"><a href="#Why-You-Cannot-Live-without-a-Host" class="headerlink" title="Why You Cannot Live without a Host"></a>Why You Cannot Live without a Host</h2><p>如果你的应用使用了默认的 ContextConfig 作为配置的对象，那你必须创建 Host。因为它的加载配置文件的方法 applicationConfig() 的实现如下</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">URL url = servletContext.getResource(Constants.ApplicationWebXml);</span><br><span class="line"></span><br><span class="line">InputSource is = <span class="keyword">new</span> InputSource(url.toExternalForm());</span><br><span class="line">is.setByteStream(stream);</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">webDigester.parse(is);</span><br></pre></td></tr></table></figure>
-
-<p>servletContext 的实现如下</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> URL <span class="title">getResource</span><span class="params">(String path)</span> <span class="keyword">throws</span> MalformedURLException </span>&#123;</span><br><span class="line">    DirContext resources = context.getResources();</span><br><span class="line">    <span class="keyword">if</span> (resources != <span class="keyword">null</span>) &#123;</span><br><span class="line">        String fullPath = context.getName() + path;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// this is the problem. Host must not be null</span></span><br><span class="line">        String hostName = context.getParent().getName();</span><br><span class="line">        <span class="comment">//...</span></span><br></pre></td></tr></table></figure>
-
-<p>最后一行表示，当使用 ContextConfig 时，你必须有一个 Host 类型的 parent</p>
-<h2 id="Bootstrap1"><a href="#Bootstrap1" class="headerlink" title="Bootstrap1"></a>Bootstrap1</h2><p>使用 Host 的案例</p>
-<h2 id="The-Engine-Interface"><a href="#The-Engine-Interface" class="headerlink" title="The Engine Interface"></a>The Engine Interface</h2><p>Engin 表示整个 Catalina servlet engine, 让你想要你的应用有多个 Host 的时候可以使用它。</p>
-<p>对应的实现是 org.apache.catalina.core.StandardEngine。和其他 Container 实现相比，StandardEngine 要单薄的多。套路还是一样，结合 valve 使用。在 addChild() 时，如果不是 Host 类型的 container 会抛异常。 setParent() 时，由于它是顶层 Container，setParent() 会抛异常。</p>
-<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>按理来说，学到这里应该就可以设置一个网站，多个域名了，怎么实现？</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/09/15/HTW-ex12/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/09/15/HTW-ex12/" class="post-title-link" itemprop="url">Ex12 StandardContext</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-09-15 19:52:57" itemprop="dateCreated datePublished" datetime="2021-09-15T19:52:57+08:00">2021-09-15</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-05 17:59:14" itemprop="dateModified" datetime="2022-08-05T17:59:14+08:00">2022-08-05</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/Tomcat/" itemprop="url" rel="index">
-                    <span itemprop="name">Tomcat</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>3.8k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>3 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <blockquote>
-<p><strong>Chapter 12</strong> covers the org.apache.catalina.core.StandardContext class that represents a web application. In particular this chapter discusses how a StandardContext object is configured, what happens in it for each incoming HTTP request, how it supports automatic reloading, and how Tomcat 5 shares a thread that executes periodic tasks in its associated components.</p>
-</blockquote>
-<p>本章沿用 11 章的代码，主要介绍一下内容</p>
-<ul>
-<li>StanadradContextMapper 和 ContextConfig</li>
-<li>Http request 接收到之后的调用链</li>
-<li>StandardContext 中的重要属性</li>
-<li>Tomcat 5 中的 backgroundProcess</li>
-</ul>
-<h2 id="StandardContext-Configuration"><a href="#StandardContext-Configuration" class="headerlink" title="StandardContext Configuration"></a>StandardContext Configuration</h2><p>创建完 StandardContext 的实例后必须调用一下他的 start() 方法，这个过程中他会做以下事情</p>
-<ul>
-<li>置位 available flag</li>
-<li>读取 CATALINA_HOME/conf 路径下的配置文件</li>
-<li>在 listener 中进行 context 的配置</li>
-</ul>
-<p>细节在 15 章中再讲</p>
-<h3 id="StandardContext-Class’s-Constructor"><a href="#StandardContext-Class’s-Constructor" class="headerlink" title="StandardContext Class’s Constructor"></a>StandardContext Class’s Constructor</h3><p>构造函数，设置默认的 valve</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">StandardContext</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>();</span><br><span class="line">    pipeline.setBasic(<span class="keyword">new</span> StandardContextValve());</span><br><span class="line">    namingResources.setContainer(<span class="keyword">this</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="Starting-StandardContext"><a href="#Starting-StandardContext" class="headerlink" title="Starting StandardContext"></a>Starting StandardContext</h3><p>只要做了 flag 置位和 listener 的处理，代码很清楚，主要做了如下事情</p>
-<ul>
-<li>fire BEFORE_START event</li>
-<li>availability flag 置位</li>
-<li>configured flag 置位</li>
-<li>set resources</li>
-<li>set manager</li>
-<li>init character set manager</li>
-<li>启动 context 相关联的其他 component</li>
-<li>启动子 container</li>
-<li>启动 pipeline</li>
-<li>启动 manager</li>
-<li>fire START event, listener(ContextConfig) 会进行一些配置，成功了之后 configured flag 置位</li>
-<li>如果 configured 为 true，进行一些其他配置工作</li>
-<li>fire AFTER_START event</li>
-</ul>
-<p>PS: Tomcat 5 中逻辑基本一致，此外还增加了 JMX 相关的代码</p>
-<h2 id="StandardContextMapper"><a href="#StandardContextMapper" class="headerlink" title="StandardContextMapper"></a>StandardContextMapper</h2><p>StandardContext 的 invoke 方法调用时，会调用自己的 StandardContextValve 的 invoke 方法，它做的第一件事是拿到处理 request 匹配的 wrapper。</p>
-<p>ContainerBase 类中有 addDefaultMapper() 方法，实现如下</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">addDefaultMapper</span><span class="params">(String mapperClass)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Do we need a default Mapper?</span></span><br><span class="line">    <span class="keyword">if</span> (mapperClass == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    <span class="keyword">if</span> (mappers.size() &gt;= <span class="number">1</span>)</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Instantiate and add a default Mapper</span></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        Class clazz = Class.forName(mapperClass);</span><br><span class="line">        Mapper mapper = (Mapper) clazz.newInstance();</span><br><span class="line">        mapper.setProtocol(<span class="string">&quot;http&quot;</span>);</span><br><span class="line">        addMapper(mapper);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        log(sm.getString(<span class="string">&quot;containerBase.addDefaultMapper&quot;</span>, mapperClass),</span><br><span class="line">            e);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>StandardContext 中定义了对应的 mapperClass 类</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> String mapperClass = <span class="string">&quot;org.apache.catalina.core.StandardContextMapper&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>Mapper 中最核心的方法为 map 方法 <code>public Container map(Request request, boolean update)</code> 返回 request 对应的 wrapper。mapper 中会一次通过四种筛选条件过滤出目标 wrapper</p>
-<ul>
-<li>精确匹配</li>
-<li>前缀匹配</li>
-<li>后缀匹配</li>
-<li>默认匹配</li>
-</ul>
-<p>如果还是没找到，就返回 null. Tomcat 5 中做了改进，直接从 request 中可以拿到对应的 wrapper</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Wrapper wrapper = request.getWrapper();</span><br></pre></td></tr></table></figure>
-
-<h2 id="Support-for-Reloading"><a href="#Support-for-Reloading" class="headerlink" title="Support for Reloading"></a>Support for Reloading</h2><p>StandardContext 中又一个 reloadable 属性，当 web.xml 改变或者 WEB-INF/classes 文件夹下文件发生改变时，这个 flag 会置位</p>
-<p>StandardContext 的 loader - WebappLoader 在执行 setContainer 时会启动一个线程，当上述目录的文件发生改变，loader 会重新加载 application</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">    * Set the Container with which this Logger has been associated.</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@param</span> container The associated Container</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setContainer</span><span class="params">(Container container)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Deregister from the old Container (if any)</span></span><br><span class="line">    <span class="keyword">if</span> ((<span class="keyword">this</span>.container != <span class="keyword">null</span>) &amp;&amp; (<span class="keyword">this</span>.container <span class="keyword">instanceof</span> Context))</span><br><span class="line">        ((Context) <span class="keyword">this</span>.container).removePropertyChangeListener(<span class="keyword">this</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Process this property change</span></span><br><span class="line">    Container oldContainer = <span class="keyword">this</span>.container;</span><br><span class="line">    <span class="keyword">this</span>.container = container;</span><br><span class="line">    support.firePropertyChange(<span class="string">&quot;container&quot;</span>, oldContainer, <span class="keyword">this</span>.container);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Register with the new Container (if any)</span></span><br><span class="line">    <span class="keyword">if</span> ((<span class="keyword">this</span>.container != <span class="keyword">null</span>) &amp;&amp; (<span class="keyword">this</span>.container <span class="keyword">instanceof</span> Context)) &#123;</span><br><span class="line">        setReloadable( ((Context) <span class="keyword">this</span>.container).getReloadable() );</span><br><span class="line">        ((Context) <span class="keyword">this</span>.container).addPropertyChangeListener(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>最后一段的 setReloadable() 方法实现如下</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Set the reloadable flag for this Loader.</span></span><br><span class="line"><span class="comment">*</span></span><br><span class="line"><span class="comment">* <span class="doctag">@param</span> reloadable The new reloadable flag</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setReloadable</span><span class="params">(<span class="keyword">boolean</span> reloadable)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Process this property change</span></span><br><span class="line"><span class="keyword">boolean</span> oldReloadable = <span class="keyword">this</span>.reloadable;</span><br><span class="line"><span class="keyword">this</span>.reloadable = reloadable;</span><br><span class="line">support.firePropertyChange(<span class="string">&quot;reloadable&quot;</span>,</span><br><span class="line">                            <span class="keyword">new</span> Boolean(oldReloadable),</span><br><span class="line">                            <span class="keyword">new</span> Boolean(<span class="keyword">this</span>.reloadable));</span><br><span class="line"></span><br><span class="line"><span class="comment">// Start or stop our background thread if required</span></span><br><span class="line"><span class="keyword">if</span> (!started)</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line"><span class="keyword">if</span> (!oldReloadable &amp;&amp; <span class="keyword">this</span>.reloadable)</span><br><span class="line">    threadStart();</span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (oldReloadable &amp;&amp; !<span class="keyword">this</span>.reloadable)</span><br><span class="line">    threadStop();</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>threadStart() 会启动一个线程，持续监测 WEB-INF 文件夹下文件的时间戳，threadStop() 则用来停止这个线程</p>
-<p>PS：Tomcat 5 中这个监测过程使用专门的 backgroundProcess 来完成</p>
-<h2 id="The-backgroundProcess-Method"><a href="#The-backgroundProcess-Method" class="headerlink" title="The backgroundProcess Method"></a>The backgroundProcess Method</h2><p>略</p>
-<p>PS：这本书看完之后，为了巩固他，可以看看 Stackoverflow 上 Tomcat 相关的问题，找找灵感</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/09/14/HTW-ex11/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/09/14/HTW-ex11/" class="post-title-link" itemprop="url">Ex11 StandardWrapper</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-09-14 16:15:04" itemprop="dateCreated datePublished" datetime="2021-09-14T16:15:04+08:00">2021-09-14</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-05 17:59:14" itemprop="dateModified" datetime="2022-08-05T17:59:14+08:00">2022-08-05</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/Tomcat/" itemprop="url" rel="index">
-                    <span itemprop="name">Tomcat</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>8.3k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>8 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <blockquote>
-<p><strong>Chapter 11</strong> explains in detail the org.apache.catalina.core.StandardWrapper class that represents a servlet in a web application. In particular, this chapter explains how filters and a servlet’s service method are invoked. The application accompanying this chapter uses StandardWrapper instances to represents servlets.</p>
-</blockquote>
-<p>本章主要介绍 Tomcat 的默认 Wrapper 实现，已经相关的接口 SingleThreadModel</p>
-<h2 id="Sequence-of-Methods-Invocation"><a href="#Sequence-of-Methods-Invocation" class="headerlink" title="Sequence of Methods Invocation"></a>Sequence of Methods Invocation</h2><p>当 connector 收到一个 HTTP request 之后，调用链如下</p>
-<p><img src="ex11_method_invocation.png" alt="method invocation"></p>
-<p>主要步骤：</p>
-<ul>
-<li>connector 创建 request/response 实例</li>
-<li>connector 调用 StandardContext 的 invoke 方法</li>
-<li>StandardContext 调用 StandardContextValve 的 invoke 方法</li>
-<li>StandardContextValve 找到对应的 wrapper 并调用其 invoke 方法</li>
-<li>wrapper 调用对应的 StandardWrapperValve 的 invoke 方法</li>
-<li>StandardWrapperValve 调用 wrapper 的 allocate() 方法加载 servlet 实例</li>
-<li>allocate 调用 load 方法加载 servlet</li>
-<li>load 方法调用 servlet 的 init 方法</li>
-<li>StandardWrapperValve 调用 servlet 的 service 方法</li>
-</ul>
-<h2 id="SingleThreadModel"><a href="#SingleThreadModel" class="headerlink" title="SingleThreadModel"></a>SingleThreadModel</h2><p>servlet 可以选择实现 javax.servlet.SingleThreadMode 接口，实现了该接口的 class 称为 SingleThreadModel (STM) servlet。</p>
-<p>Servlet 2.4 specification 中关于这个借口的描述如下: </p>
-<blockquote>
-<p>If a servlet implements this interface, you are guaranteed that no two threads will execute concurrently in a servlet’s service method. The servlet container can guarantee this by synchronizing access to a single instance of the servlet,<br>or by maintaining a pool of servlet instances and dispatching each new request to a free servlet. This interface does not prevent synchronization problems that result from servlets accessing shared resources such as static class variables or classes outside the scope of the servlet.</p>
-</blockquote>
-<p>实现这个接口可以保证再一个时间点上，只有一个 servlet 被处理。实现方式可能是 synchronized 或者 pool，但这并不意味着保证线程安全。比如一些静态变量，或者共享资源的调用还是有可能会长生多线程问题的。</p>
-<p>It is true that by implementing SingleThreadModel no two threads will execute a servlet’s service method at the same time. However, to enhance performance the servlet container can create multiple instances of an STM servlet. That means, the STM servlet’s service method can be executed concurrently in different instances. This will introduce synchronization problems if the servlet need to access static class variables or other resources outside the class.</p>
-<h2 id="StandardWrapper"><a href="#StandardWrapper" class="headerlink" title="StandardWrapper"></a>StandardWrapper</h2><p>StandardWrapper 的职责是加载对应的 servlet 并创建实例，调用 servlet 的 service 方法并不在它的职责范围内，是由 StandardWrapperValve 完成的。具体的调用点是在 ApplicationFilterChain 类中。</p>
-<p>加载在 <code>StandardWrapper#loadServlet</code> 中完成，过程的后段会置位 singleThreadModel flag</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Register our newly initialized instance</span></span><br><span class="line">singleThreadModel = servlet <span class="keyword">instanceof</span> SingleThreadModel;</span><br><span class="line"><span class="keyword">if</span> (singleThreadModel) &#123;</span><br><span class="line">    <span class="keyword">if</span> (instancePool == <span class="keyword">null</span>)</span><br><span class="line">        instancePool = <span class="keyword">new</span> Stack();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><code>StandardWrapper#allocate</code> 实现如下, 主要逻辑如下</p>
-<ol>
-<li>加载目标 servlet</li>
-<li>置位 singleThreadModel flag</li>
-<li>根据 flag 选择对应的维护 servlet 的形式，单例模式/Pool</li>
-</ol>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Servlet <span class="title">allocate</span><span class="params">()</span> <span class="keyword">throws</span> ServletException </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (debug &gt;= <span class="number">1</span>)</span><br><span class="line">        log(<span class="string">&quot;Allocating an instance&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// If we are currently unloading this servlet, throw an exception</span></span><br><span class="line">    <span class="keyword">if</span> (unloading)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> ServletException</span><br><span class="line">            (sm.getString(<span class="string">&quot;standardWrapper.unloading&quot;</span>, getName()));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// If not SingleThreadedModel, return the same instance every time</span></span><br><span class="line">    <span class="keyword">if</span> (!singleThreadModel) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Load and initialize our instance if necessary</span></span><br><span class="line">        <span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">                <span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">                    <span class="keyword">try</span> &#123;</span><br><span class="line">                        instance = loadServlet();</span><br><span class="line">                    &#125; <span class="keyword">catch</span> (ServletException e) &#123;</span><br><span class="line">                        <span class="keyword">throw</span> e;</span><br><span class="line">                    &#125; <span class="keyword">catch</span> (Throwable e) &#123;</span><br><span class="line">                        <span class="keyword">throw</span> <span class="keyword">new</span> ServletException</span><br><span class="line">                            (sm.getString(<span class="string">&quot;standardWrapper.allocate&quot;</span>), e);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!singleThreadModel) &#123;</span><br><span class="line">            <span class="keyword">if</span> (debug &gt;= <span class="number">2</span>)</span><br><span class="line">                log(<span class="string">&quot;  Returning non-STM instance&quot;</span>);</span><br><span class="line">            countAllocated++;</span><br><span class="line">            <span class="keyword">return</span> (instance);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">synchronized</span> (instancePool) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (countAllocated &gt;= nInstances) &#123;</span><br><span class="line">            <span class="comment">// Allocate a new instance if possible, or else wait</span></span><br><span class="line">            <span class="keyword">if</span> (nInstances &lt; maxInstances) &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    instancePool.push(loadServlet());</span><br><span class="line">                    nInstances++;</span><br><span class="line">                &#125; <span class="keyword">catch</span> (ServletException e) &#123;</span><br><span class="line">                    <span class="keyword">throw</span> e;</span><br><span class="line">                &#125; <span class="keyword">catch</span> (Throwable e) &#123;</span><br><span class="line">                    <span class="keyword">throw</span> <span class="keyword">new</span> ServletException</span><br><span class="line">                        (sm.getString(<span class="string">&quot;standardWrapper.allocate&quot;</span>), e);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    instancePool.wait();</span><br><span class="line">                &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                    ;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (debug &gt;= <span class="number">2</span>)</span><br><span class="line">            log(<span class="string">&quot;  Returning allocated STM instance&quot;</span>);</span><br><span class="line">        countAllocated++;</span><br><span class="line">        <span class="keyword">return</span> (Servlet) instancePool.pop();</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="StandardWrapperValve"><a href="#StandardWrapperValve" class="headerlink" title="StandardWrapperValve"></a>StandardWrapperValve</h2><p>StandardWrapperValve 是 StandardWrapper 的默认的 valve 实现，这个设置在 StandardWrapper 的构造函数中</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">StandardWrapper</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>();</span><br><span class="line">    pipeline.setBasic(<span class="keyword">new</span> StandardWrapperValve());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>主要干两件事</p>
-<ul>
-<li>执行 servlet 相关的所有 filters</li>
-<li>调用 sender 的 service 方法</li>
-</ul>
-<p>在这个 valve 的 invoke 中具体做了如下事情</p>
-<ul>
-<li>调用 StandardWrapper 的 allocate 方法，拿到 servlet 的实例</li>
-<li>调用 createFilterChain 创建 filter chain</li>
-<li>调用 chain 的 doFilter 方法，过程中会调用 servlet 的 service 方法</li>
-<li>释放 filter chain</li>
-<li>调用 wrapper 的 deallocate 方法</li>
-<li>如果 servlet 永远不可用了，调用 wrapper 的 unload 方法</li>
-</ul>
-<h2 id="FilterDef"><a href="#FilterDef" class="headerlink" title="FilterDef"></a>FilterDef</h2><p>org.apache.catalina.deploy.FilterDef 表示配置文件中的 filter 定义，他的每一个 property 都代表文件中该元素的一个可配置项。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">FilterDef</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> String description = <span class="keyword">null</span>;</span><br><span class="line">    <span class="comment">// getter and setter</span></span><br><span class="line">    <span class="keyword">private</span> String displayName = <span class="keyword">null</span>;</span><br><span class="line">    <span class="comment">// getter and setter</span></span><br><span class="line">    <span class="keyword">private</span> String filterClass = <span class="keyword">null</span>;</span><br><span class="line">    <span class="comment">// getter and setter</span></span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="ApplicationFilterConfig"><a href="#ApplicationFilterConfig" class="headerlink" title="ApplicationFilterConfig"></a>ApplicationFilterConfig</h2><p>org.apache.catalina.core.ApplicationFilterConfig 实现了 javax.servlet.FilterConfig 接口，管理 web application 启动时创建的  filter 实例。构造函数如下</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ApplicationFilterConfig</span><span class="params">(Context context, FilterDef filterDef)</span></span></span><br><span class="line"><span class="function">        <span class="keyword">throws</span> ClassCastException, ClassNotFoundException, IllegalAccessException, InstantiationException, ServletException </span>&#123;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
-
-<p>context 代表 web application, FilterDef 代表 filter 的定义。他有一个 getFilter() 方法可以返回 javax.servlet.Filter 对象实例</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Filter <span class="title">getFilter</span><span class="params">()</span> <span class="keyword">throws</span> ClassCastException, ClassNotFoundException,</span></span><br><span class="line"><span class="function">    IllegalAccessException, InstantiationException, ServletException </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Return the existing filter instance, if any</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.filter != <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">return</span> (<span class="keyword">this</span>.filter);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Identify the class loader we will be using</span></span><br><span class="line">    String filterClass = filterDef.getFilterClass();</span><br><span class="line">    ClassLoader classLoader = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">if</span> (filterClass.startsWith(<span class="string">&quot;org.apache.catalina.&quot;</span>))</span><br><span class="line">        classLoader = <span class="keyword">this</span>.getClass().getClassLoader();</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        classLoader = context.getLoader().getClassLoader();</span><br><span class="line"></span><br><span class="line">    ClassLoader oldCtxClassLoader =</span><br><span class="line">        Thread.currentThread().getContextClassLoader();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Instantiate a new instance of this filter and return it</span></span><br><span class="line">    Class clazz = classLoader.loadClass(filterClass);</span><br><span class="line">    <span class="keyword">this</span>.filter = (Filter) clazz.newInstance();</span><br><span class="line">    filter.init(<span class="keyword">this</span>);</span><br><span class="line">    <span class="keyword">return</span> (<span class="keyword">this</span>.filter);</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="ApplicationFilterChain"><a href="#ApplicationFilterChain" class="headerlink" title="ApplicationFilterChain"></a>ApplicationFilterChain</h2><p>org.apache.catalina.core.ApplicationFilterChain class 实现了 javax.servlet.FilterChain 接口，StandardWrapperValve 创建这个 chain 的实例并调用 doFilter 方法，doFilter 签名如下</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">doFilter</span><span class="params">(ServletRequest req, ServletResponse resp, FilterChain chain)</span> <span class="keyword">throws</span> IOException, ServletException</span>;</span><br></pre></td></tr></table></figure>
-
-<p>原理和 Valve 一致也用了 责任链 模式，下面是一个实现的例子</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doFilter</span><span class="params">(ServletRequest request, ServletResponse response, </span></span></span><br><span class="line"><span class="function"><span class="params">    FilterChain chain)</span> <span class="keyword">throws</span> IOException, ServletException </span>&#123; </span><br><span class="line">    <span class="comment">// do something here </span></span><br><span class="line">    ... </span><br><span class="line">    chain.doFilter(request, response); </span><br><span class="line">&#125; </span><br></pre></td></tr></table></figure>
-
-<h2 id="The-Application"><a href="#The-Application" class="headerlink" title="The Application"></a>The Application</h2><p>和之前的章节基本一致，最大的区别是在 Bootstrap 中使用了默认的 StandardWrapper 作为 wrapper 的实现</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Wrapper wrapper1 = <span class="keyword">new</span> StandardWrapper();</span><br><span class="line">wrapper1.setName(<span class="string">&quot;Primitive&quot;</span>);</span><br><span class="line">wrapper1.setServletClass(<span class="string">&quot;PrimitiveServlet&quot;</span>);</span><br><span class="line">Wrapper wrapper2 = <span class="keyword">new</span> StandardWrapper();</span><br><span class="line">wrapper2.setName(<span class="string">&quot;Modern&quot;</span>);</span><br><span class="line">wrapper2.setServletClass(<span class="string">&quot;ModernServlet&quot;</span>)</span><br></pre></td></tr></table></figure>
-
-<h2 id="Issue"><a href="#Issue" class="headerlink" title="Issue"></a>Issue</h2><p>setup 项目之后，访问 URL，抛异常</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">StandardWrapperValve[Primitive]: Allocate exception for servlet Primitive</span><br><span class="line">javax.servlet.ServletException: Error allocating a servlet instance</span><br><span class="line">javax.servlet.ServletException: Error allocating a servlet instance</span><br><span class="line">    at org.apache.catalina.core.StandardWrapper.allocate(StandardWrapper.java:654)</span><br><span class="line">    at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:137)</span><br><span class="line">    at org.apache.catalina.core.StandardPipeline$StandardPipelineValveContext.invokeNext(StandardPipeline.java:642)</span><br><span class="line">    at org.apache.catalina.core.StandardPipeline.invoke(StandardPipeline.java:479)</span><br><span class="line">    at org.apache.catalina.core.ContainerBase.invoke(ContainerBase.java:993)</span><br><span class="line">    at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:185)</span><br><span class="line">    at org.apache.catalina.core.StandardPipeline$StandardPipelineValveContext.invokeNext(StandardPipeline.java:642)</span><br><span class="line">    at org.apache.catalina.core.StandardPipeline.invoke(StandardPipeline.java:479)</span><br><span class="line">    at org.apache.catalina.core.ContainerBase.invoke(ContainerBase.java:993)</span><br><span class="line">    at org.apache.catalina.core.StandardContext.invoke(StandardContext.java:2377)</span><br><span class="line">    at org.apache.catalina.connector.http.HttpProcessor.process(HttpProcessor.java:972)</span><br><span class="line">    at org.apache.catalina.connector.http.HttpProcessor.run(HttpProcessor.java:1085)</span><br><span class="line">    at java.lang.Thread.run(Thread.java:748)</span><br></pre></td></tr></table></figure>
-
-<p>可以将 StandardWrapper 的 loadServlet() 中 SystemLogHandler 相关的方法注释掉即可。这个应该是 log 相关的操作，功能上没什么影响</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ...</span></span><br><span class="line">    SystemLogHandler.startCapture();</span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"><span class="comment">// &#125; finally &#123;</span></span><br><span class="line">    String log = SystemLogHandler.stopCapture();</span><br><span class="line">    <span class="keyword">if</span> (log != <span class="keyword">null</span> &amp;&amp; log.length() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (getServletContext() != <span class="keyword">null</span>) &#123;</span><br><span class="line">            getServletContext().log(log);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            out.println(log);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="comment">// &#125;</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h2><p>最后 Chain 相关的章节，在返回 chain 实例的时候用的是 servlet 包下 filter 的实例，这部分配合的部分可以深入探究一下</p>
-<p>Filter Vs Valve: 在 tomcat 中效果是一样的，但是 Filter 更像是一个行业标准，Jetty 中也可以用，Valve 更像是一个 Tomcat 实现，其他框架中是没有的。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1476,20 +1370,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">222</span>
+          <span class="site-state-item-count">225</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/hexo/categories/">
           
-        <span class="site-state-item-count">37</span>
+        <span class="site-state-item-count">38</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">202</span>
+        <span class="site-state-item-count">203</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1528,7 +1422,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">16:49</span>
+    <span title="站点阅读时长">16:52</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>
