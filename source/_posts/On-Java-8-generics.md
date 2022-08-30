@@ -1,92 +1,28 @@
 ---
-title: TIJ4 泛型
+title: 泛型
 date: 2020-12-17 17:42:08
 categories:
-- TIJ4
+- On Java 8
 tags:
-- generic
 - 泛型
 ---
 
-项目重构的时候刚好遇到一些泛型相关的问题，发现这块掌握的确实有点浅薄，重新认真读一遍 Think in Java 4th 相关章节并做笔记，顺便一提，100 页的内容有点心虚。
+## 简单泛型
 
-- [前述](#前述)
-- [Comparison with C++](#comparison-with-c)
-- [Simple generics](#simple-generics)
-  - [A tuple library](#a-tuple-library)
-  - [A stack class](#a-stack-class)
-  - [RandomList](#randomlist)
-- [Generic interfaces](#generic-interfaces)
-- [Generic methods](#generic-methods)
+多态是一种面向对象思想的泛化机制。你将方法参数设置为基类，这样方法就能接受任何派生类作为参数。不过拘泥于单一继承体系太过局限，如果以接口而不是类作为参数，限制就宽松多了。但即便是接口也有诸多限制，一旦制定了接口，就要求你的代码使用特定接口。Java 5 引入了泛型，实现了参数化类型的效果。泛型这个术语的含义是**适用于很多类**，初衷是通过结偶类或方法与所使用的类型之间的约束，使得类或方法具备最宽泛的表达力。
 
-想要解决的问题：
+泛型出现的最主要动机之一是为了创建集合类。一个集合中存储多种不同类型的对象的情况很少见，通常我们只会用集合存储同一种类型的对象。泛型的主要目的之一就是用来约定集合要存储什么类型的对象，并且通过编译器确保规约得以满足。
 
-- [ ] 泛型的定义是什么
-- [ ] 为什么需要泛型
-- [ ] 集合类中使用泛型的注意点
-
-## 前述
-
-范型提供了一种比 interface 更高的通用性，它代表的语义是：对一批 unspecified type 的对象生效，而不单单是某一类 class 或者接口。
-
-Java 的范型实现看作者的意思好像还不如 C++ 里实现的好。
-
-## Comparison with C++
-
-Java 灵感来源于 C++, 通过比较 C++ 的泛型(template)可以让你更清楚 Java 泛型的极限。
-
-## Simple generics
-
-generic 这个概念最初被提出来是为了创建容器 class，这是有别于 arrays 的一个概念，它会提供更高的扩展性，跟多信息要看 Holding your object 章节和后面的章节。(他这里提到的容器我估摸着就是 Collection 那一族类了)
-
-下面是一个很常见的 class 持有 object 的例子, 里面有一个 Automobile 类，还有一个 Holder1 类通过构造函数持有它：
+泛型类基本语法，通过类型参数限定使用的类：
 
 ```java
-class Automobile {}
-
-public class Holder1 {
-    private Automobile a;
-
-    public Holder1(Automobile a) {
-        this.a = a;
-    }
-
-    Automobile get() {
-        return a;
-    }
-}
+// class 类名称 <泛型标识:可以是任意标识符>{
+//   private 泛型标识 var; 
+//   .....
+//   }
+// }
+public class ArrayList<E> extends AbstractList<E> {}
 ```
-
-但是这种做法限制了你能传入的类型，在 Java 5 之前，如果你想把它变得更通用，你只能将它的参数类型改为 Object.
-
-```java
-public class Holder2 {
-    private Object a;
-
-    public Holder2(Object a) {
-        this.a = a;
-    }
-
-    public void set(Object a) {
-        this.a = a;
-    }
-
-    public Object get() {
-        return a;
-    }
-
-    public static void main(String[] args) {
-        Holder2 h2 = new Holder2(new Automobile());
-        Automobile a = (Automobile) h2.get();
-        h2.set("Not an Automobile");
-        String s = (String) h2.get();
-        h2.set(1); // Autoboxes to Integer
-        Integer x = (Integer) h2.get();
-    }
-} 
-```
-
-上例中 Holder2 持有了三种不同类型的数据，但是通常来说我们只希望容器持有一种特殊类型的数据就行了，指定之后，这种特殊性可以在编译期就被检测出来。这种语法就是范型，我们在 class 名字后面接一个 尖括号+字母 的形式表示
 
 ```java
 public class Holder3<T> {
@@ -117,7 +53,7 @@ public class Holder3<T> {
 
 ### A tuple library
 
-Java 语法限制一个 method 只能返回一个值，那么如果你想返回多个，怎么办？ 这种情况下我们可以定一个对象里面持有多个值，并且只读不能写。这种对象有个名字，叫做 Data Transfer Object/Message 也叫元组
+Java 语法限制一个 method 只能返回一个值，那么如果你想返回多个，怎么办？ 这种情况下我们可以定一个对象里面持有多个值，并且只读不能写。这种对象有个名字，叫做 Data Transfer Object(DTO)/Message 也叫元组
 
 元组长度可以是任意的，但是类型必须是确定的，这里我们可以用泛型绕过去，对于多个元素的问题，我们可以创建不同的元组来做兼容。
 
@@ -444,6 +380,145 @@ public class IterableFibonacci extends Fibonacci implements Iterable<Integer> {
 // output: 1 1 2 3 5 8 13 21 34 55 89 144 233 377 610 987 1597 2584
 ```
 
-## Generic methods
+## 泛型方法
 
-TBD...
+类本身可能是泛型的，也可能不是，不过这与她的方法是否是泛型的并没有关系。泛型方法独立于类而改变方法，尽可能使用泛型方法，通常将单个方法泛型化要比将整个类泛型化更清晰易懂。
+
+泛型方法定义：将泛型参数列表放置在返回值之前
+
+## 泛型擦除
+
+这个擦除好像只和集合有关系。
+
+在泛型代码的内部，无法获取任何有关泛型参数类型的信息。你可以知道泛型参数标识符和泛型边界的信息，但无法知道实际类型参数从而创建特定的实例。
+
+泛型只有在类型参数比某个具体类型更加泛化，代码能跨多个类工作时才有用。类型参数和他们在有用的泛型代码中的应用，通常比简单的类替换更加复杂。但不能因此认为使用 <T extends HasF> 形式就是有缺陷的。比如某个类有一个返回 T 的方法，此时泛型就帮你检测了返回值的类型。
+
+Java 的泛型不是一种语言特性，而是一种妥协。为了提供迁移兼容性。
+
+泛型类型只有在静态类型监测期间才出现，此后程序中的所有泛型类型都将被擦出，替换为他们的非泛型上界。
+
+泛型的所有动作都发生在边界处，即入参的编译器检查和对返回值的转型。
+
+## 补偿擦除
+
+为了创建泛型实例，书中的实例通过在构造函数中传入类型的 class 来解决这个问题, 但只对对象有无参构造是有用。这样的话一些错误不能在编译时捕获，语言创建团队建议使用显示工厂(Suplier)并约束类型
+
+我们无法创建泛型数组，通用解决办法是使用 ArrayList 代替
+
+这里很多关于数组类型的讲解，概念感觉很模糊，什么类型不能改变之类的，我觉得，这些定义作者可能在之前的数组篇章里有介绍，有机会看一看。
+
+## 边界
+
+边界潜在更重要的效果是我们可以在绑定的类型中调用方法
+
+## 通配符
+
+flist 现在是 List<? extends Fruit>， 可以读作 '一个具有任何从Fruit集成的类型的列表'，然而这并不意味着这个List将持有任何类型的Fruit。通配符引用的是明确的类型，因此它意味着 '某种flist引用没有指定的具体类型'
+
+```java
+// 表示 任何Fruit子类的list
+List<? extends Fruit> flist = new ArrayList<Apple>();
+// 不能确定具体子类，所以不能 add, null 除外
+// flist.add(new Apple());
+// 可以 get
+Fruit f = flist.get(0);
+```
+
+### 逆变
+
+<? super MyClass> 的这种表现形式
+
+```java
+// 表示 任何Fruit超类的list
+List<? super Fruit> flist = new ArrayList<Fruit>();
+// 所以至少是个 Fruit，不确定具体类型，不能 get, 可以 add
+flist.add(new Apple());
+// 不可以 get
+// Fruit f = flist.get(0);
+```
+
+这个和上面的 extend 贼TM绕
+
+### 无界通配符
+
+读起来很懵逼，找不到重点
+
+使用确切类型来代替通配符类型的好处是，可以用泛型参数来做更多的事情。使用通配符使得你必须接受范围更宽的参数化类型作为参数。因此，必须逐个情况的权衡利弊，找到更适合你的需求的方法。
+
+### 捕获转换
+
+TBD
+
+## 问题
+
+### 基本类型不能作为类型参数
+
+类似 List<int> 的写法是不允许的。解决办法，可以使用包装类型，自动装箱机制将自动实现类型转化
+
+### 实现参数化接口
+
+```java
+interface Payable<T> {}
+
+class Employee2 implements Payable<Employee2> {}
+
+// 编译失败
+class Hourly extends Employee2 implements Payable<Hourly> {}
+```
+
+这样的声明会有编译错误，第三局声明中，由于类型擦出，导致重复声明
+
+### 转型和警告
+
+### 重载
+
+由于擦除机制，下面两条语句语意是相同的，所以不能编译,通过修改方法名可以修复这个问题
+
+```java
+public class UseList<W, T> {
+    void f(List<T> v) {}
+    void f(List<W> v) {}
+}
+```
+
+### 基类劫持接口
+
+比如常见的 Comparable 接口，我们如果想将泛型范围限制到更小的范围，但是 Cat 的声明会有编译错误
+
+```java
+public class ComparablePet implements Comparable<ComparablePet> {
+    @Override
+    public int compareTo(ComparablePet o) {
+        return 0;
+    }
+}
+
+// 由于泛型指定的类型不同，不能编译。
+//class Cat extends ComparablePet implements Comparable<Cat> {
+//}
+```
+
+## 自限定的类型
+
+自限定指的是 `class SelfBounded<T extends SelfBounded<T>> {` 这样的定义，强调的是当 extends 关键字用于边界
+
+### 古怪的循环泛型
+
+### 自限定
+
+他可以保证类型参数必须与被自定义的类相同。如果使用自限定，这个累所用的类型参数将与使用这个参数的类具有相同的基本类型。这回强制要求使用这个累的每个人都要遵循这种形式。
+
+自限定还可以用于泛型方法。
+
+### 参数协变
+
+## 对缺乏潜在类型机制的补偿
+
+### 反射
+
+这个我之前在自己代码中就用过，就是在方法调用中通过 method name 来调用
+
+### 将一个方法应用于序列
+
+反射将类型监测移到了运行时，但是我们通常更希望在编译期就实现类型检测，更早的发现问题。

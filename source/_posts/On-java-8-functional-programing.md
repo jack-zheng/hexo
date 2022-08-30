@@ -1,5 +1,5 @@
 ---
-title: On java 8 functional programing
+title: On java 8 函数式编程
 date: 2022-08-12 16:48:53
 categories:
 - On Java 8
