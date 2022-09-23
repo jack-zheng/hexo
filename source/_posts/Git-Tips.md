@@ -7,6 +7,21 @@ tags:
 - git
 ---
 
+## git repo 迁移，附带 history
+
+想要将 git repo 从 public 复制到公司的 enterprise 版本的 git 上，但是想要保留历史记录。
+
+```bash
+# 复制 repo
+git clone https://gitee.com/oldxxx/oldxxx.git
+# 删除原有关联
+git remote remove origin
+# 关联到新 repo
+git remote add origin https://gitee.com/newxxx/newxxx.git
+# 推送至新 repo
+git push
+```
+
 ## 怎么更新 fork repo
 
 ```bash
