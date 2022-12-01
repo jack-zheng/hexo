@@ -206,6 +206,762 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/05/07/Algorithm-counting-sort/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/05/07/Algorithm-counting-sort/" class="post-title-link" itemprop="url">计数排序</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-05-07 18:47:57" itemprop="dateCreated datePublished" datetime="2021-05-07T18:47:57+08:00">2021-05-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-12-01 19:27:30" itemprop="dateModified" datetime="2022-12-01T19:27:30+08:00">2022-12-01</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E7%AE%97%E6%B3%95/" itemprop="url" rel="index">
+                    <span itemprop="name">算法</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5.7k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>计数排序不是比较排序，他将数据的值转化为键存储在额外空间中，时间复杂度是线性的。他要求输入的数据必须是有确定范围的整数。</p>
+<p>算法说明：</p>
+<ol>
+<li>找出待排数组中的最大，最小元素</li>
+<li>统计数组中每个值为 i 的元素出现的次数，存入索引数组的第 i 相中</li>
+<li>对所有计数累加</li>
+<li>反向填充目标数组：元素 i 放到新数组第 C[i] 位置，美方一个元素 C[i] - 1</li>
+</ol>
+<p>时间/空间复杂度：O(n+k)</p>
+<h2 id="普通实现"><a href="#普通实现" class="headerlink" title="普通实现"></a>普通实现</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CountingSort</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] arr = <span class="keyword">new</span> Random().ints(<span class="number">0</span>, <span class="number">100</span>).limit(<span class="number">10</span>).toArray();</span><br><span class="line">        System.out.println(<span class="string">&quot;Origin: &quot;</span> + Arrays.toString(arr));</span><br><span class="line">        <span class="keyword">int</span>[] result = countingSort(arr);</span><br><span class="line">        System.out.println(<span class="string">&quot;After:  &quot;</span> + Arrays.toString(result));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span>[] countingSort(<span class="keyword">int</span>[] arr) &#123;</span><br><span class="line">        <span class="comment">// 遍历数组，得到最大值</span></span><br><span class="line">        <span class="keyword">int</span> max = arr[<span class="number">0</span>];  <span class="comment">// 这里之前写的是 max = 0; 如果原数组包含负数就挂了。。</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> j : arr) &#123;</span><br><span class="line">            <span class="keyword">if</span> (max &lt; j) &#123;</span><br><span class="line">                max = j;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 根据这个值新建一个用于计数的数组, 比如原数组最大值为 2，新建的计数数组为 [0, 1, 2]，所以声明长度的时候为 max + 1</span></span><br><span class="line">        <span class="keyword">int</span>[] bucket = <span class="keyword">new</span> <span class="keyword">int</span>[max + <span class="number">1</span>];</span><br><span class="line">        <span class="comment">// 再次遍历数组，将对应的 bucket 下标坐 ++ 操作</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i : arr) &#123;</span><br><span class="line">            bucket[i]++;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 遍历 bucket 数组，将统计结果塞到新建结果集中</span></span><br><span class="line">        <span class="keyword">int</span>[] result = <span class="keyword">new</span> <span class="keyword">int</span>[arr.length];</span><br><span class="line">        <span class="keyword">int</span> index = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; bucket.length; i++) &#123;</span><br><span class="line">            <span class="keyword">while</span> (bucket[i] &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                result[index] = i;</span><br><span class="line">                index++;</span><br><span class="line">                bucket[i]--;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// Origin: [36, 7, 70, 84, 69, 65, 88, 11, 16, 87]</span></span><br><span class="line"><span class="comment">// After:  [7, 11, 16, 36, 65, 69, 70, 84, 87, 88]</span></span><br></pre></td></tr></table></figure>
+
+<p>步骤和思路很都简单明了，容易理解</p>
+<h2 id="稳定性"><a href="#稳定性" class="headerlink" title="稳定性"></a>稳定性</h2><p>但是上面的实现有一个弊端，就是，他是不稳定的。。。。</p>
+<p>所谓的稳定性，简单来说，如果原数组中，有两个相等的值 arr[i], arr[j]，在排序后他们的前后顺序还保持一致，那么就是稳定的。</p>
+<p>好处：稳定的算法，第一个键排序的结果可以当作第二次排序的输入使用</p>
+<p>PS：这个说法我大致有感觉，但是具体还是没把握。。。</p>
+<h2 id="保证稳定性的实现"><a href="#保证稳定性的实现" class="headerlink" title="保证稳定性的实现"></a>保证稳定性的实现</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CountingSort</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] arr = <span class="keyword">new</span> Random().ints(<span class="number">0</span>, <span class="number">10</span>).limit(<span class="number">10</span>).toArray();</span><br><span class="line">        System.out.printf(<span class="string">&quot;%-10s: %s%n&quot;</span>, <span class="string">&quot;Origin&quot;</span>, Arrays.toString(arr));</span><br><span class="line">        <span class="keyword">int</span>[] result = countingSort(arr);</span><br><span class="line">        System.out.printf(<span class="string">&quot;%-10s: %s%n&quot;</span>, <span class="string">&quot;After&quot;</span>, Arrays.toString(result));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span>[] countingSort(<span class="keyword">int</span>[] arr) &#123;</span><br><span class="line">        <span class="keyword">int</span> max = getMax(arr);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 根据这个值新建一个用于计数的数组, 比如原数组最大值为 2，新建的计数数组为 [0, 1, 2]，所以声明长度的时候为 max + 1</span></span><br><span class="line">        <span class="keyword">int</span>[] bucket = <span class="keyword">new</span> <span class="keyword">int</span>[max + <span class="number">1</span>];</span><br><span class="line">        <span class="comment">// 再次遍历数组，将对应的 bucket 下标做 ++ 操作</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i : arr) &#123;</span><br><span class="line">            bucket[i]++;</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.printf(<span class="string">&quot;%-10s: %s%n&quot;</span>, <span class="string">&quot;Bucket&quot;</span>, Arrays.toString(bucket));</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 新建一个数组存储下标结束的值，用于保证排序稳定性</span></span><br><span class="line">        <span class="keyword">int</span>[] endIndex = <span class="keyword">new</span> <span class="keyword">int</span>[bucket.length];</span><br><span class="line">        <span class="keyword">int</span> sum = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; endIndex.length; i++) &#123;</span><br><span class="line">            sum += bucket[i];</span><br><span class="line">            endIndex[i] = sum;</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.printf(<span class="string">&quot;%-10s: %s%n&quot;</span>, <span class="string">&quot;endIndex&quot;</span>, Arrays.toString(endIndex));</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 遍历 bucket 数组，将统计结果塞到新建结果集中</span></span><br><span class="line">        <span class="comment">// 这一段实现踩了好多坑</span></span><br><span class="line">        <span class="comment">//  1. i 结束条件 &gt;= 0，第一次实现没有把 = 纳入</span></span><br><span class="line">        <span class="comment">//  2. 后两句的 endIndex[arr[i]] 老是写成 endIndex[i]，对应关系还是没有写清楚</span></span><br><span class="line">        <span class="keyword">int</span>[] result = <span class="keyword">new</span> <span class="keyword">int</span>[arr.length];</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = arr.length - <span class="number">1</span>; i &gt;= <span class="number">0</span>; i--) &#123;</span><br><span class="line">            result[endIndex[arr[i]] - <span class="number">1</span>] = arr[i];</span><br><span class="line">            endIndex[arr[i]]--;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">getMax</span><span class="params">(<span class="keyword">int</span>[] arr)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 遍历数组，得到最大值</span></span><br><span class="line">        <span class="keyword">int</span> max = arr[<span class="number">0</span>];</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> j : arr) &#123;</span><br><span class="line">            <span class="keyword">if</span> (max &lt; j) &#123;</span><br><span class="line">                max = j;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> max;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Origin    : [4, 6, 8, 3, 8, 0, 0, 4, 3, 5]</span></span><br><span class="line"><span class="comment">// Bucket    : [2, 0, 0, 2, 2, 1, 1, 0, 2]</span></span><br><span class="line"><span class="comment">// endIndex  : [2, 2, 2, 4, 6, 7, 8, 8, 10]</span></span><br><span class="line"><span class="comment">// After     : [0, 0, 3, 3, 4, 4, 5, 6, 8, 8]</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="不是从-0-开始的实现"><a href="#不是从-0-开始的实现" class="headerlink" title="不是从 0 开始的实现"></a>不是从 0 开始的实现</h2><p>之前的实现还是有瑕疵，作为统计数组的下标都是从 0 开始的，在一开始统计最值的时候可以同时统计最小值，缩小样本空间，减少空间消耗</p>
+<p>在之前的练习中理解了下标，值之间的对应关系，修改一下并不十分麻烦，挺好理解的。</p>
+<p>有的示例中会把 bucket 和 endIndex 合并来减少内存开销，我觉得都 OK，这样写思路会清晰一点</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CountingSort</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] arr = <span class="keyword">new</span> Random().ints(<span class="number">0</span>, <span class="number">10</span>).limit(<span class="number">10</span>).toArray();</span><br><span class="line">        System.out.printf(<span class="string">&quot;%-10s: %s%n&quot;</span>, <span class="string">&quot;Origin&quot;</span>, Arrays.toString(arr));</span><br><span class="line">        <span class="keyword">int</span>[] result = countingSort(arr);</span><br><span class="line">        System.out.printf(<span class="string">&quot;%-10s: %s%n&quot;</span>, <span class="string">&quot;After&quot;</span>, Arrays.toString(result));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span>[] countingSort(<span class="keyword">int</span>[] arr) &#123;</span><br><span class="line">        <span class="comment">// 遍历数组，得到最值</span></span><br><span class="line">        <span class="keyword">int</span> max = arr[<span class="number">0</span>];</span><br><span class="line">        <span class="keyword">int</span> min = arr[<span class="number">0</span>];</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> j : arr) &#123;</span><br><span class="line">            <span class="keyword">if</span> (max &lt; j) &#123;</span><br><span class="line">                max = j;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (min &gt; j) &#123;</span><br><span class="line">                min = j;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 根据最值新建一个用于计数的数组, 比如原数组最大值为 4，最小值为 2，新建的计数数组为 [2，3，4]，所以声明长度的时候为 max - min + 1</span></span><br><span class="line">        <span class="keyword">int</span>[] bucket = <span class="keyword">new</span> <span class="keyword">int</span>[max - min + <span class="number">1</span>];</span><br><span class="line">        <span class="comment">// 再次遍历数组，将对应的 bucket 下标做 ++ 操作</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i : arr) &#123;</span><br><span class="line">            bucket[i - min]++;</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.printf(<span class="string">&quot;%-10s: %s%n&quot;</span>, <span class="string">&quot;Bucket&quot;</span>, Arrays.toString(bucket));</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 新建一个数组存储下标结束的值，用于保证排序稳定性</span></span><br><span class="line">        <span class="keyword">int</span>[] endIndex = <span class="keyword">new</span> <span class="keyword">int</span>[bucket.length];</span><br><span class="line">        <span class="keyword">int</span> sum = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; endIndex.length; i++) &#123;</span><br><span class="line">            sum += bucket[i];</span><br><span class="line">            endIndex[i] = sum;</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.printf(<span class="string">&quot;%-10s: %s%n&quot;</span>, <span class="string">&quot;endIndex&quot;</span>, Arrays.toString(endIndex));</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 遍历 bucket 数组，将统计结果塞到新建结果集中</span></span><br><span class="line">        <span class="keyword">int</span>[] result = <span class="keyword">new</span> <span class="keyword">int</span>[arr.length];</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = arr.length - <span class="number">1</span>; i &gt;= <span class="number">0</span>; i--) &#123;</span><br><span class="line">            result[endIndex[arr[i] - min] - <span class="number">1</span>] = arr[i];</span><br><span class="line">            endIndex[arr[i] - min]--;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// Origin    : [5, 1, 7, 6, 1, 0, 5, 2, 0, 3]</span></span><br><span class="line"><span class="comment">// Bucket    : [2, 2, 1, 1, 0, 2, 1, 1]</span></span><br><span class="line"><span class="comment">// endIndex  : [2, 4, 5, 6, 6, 8, 9, 10]</span></span><br><span class="line"><span class="comment">// After     : [0, 0, 1, 1, 2, 3, 5, 5, 6, 7]</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="继续演进"><a href="#继续演进" class="headerlink" title="继续演进"></a>继续演进</h2><p>既然都写到这里了，直接在源代码基础上，直接将 bucket 和 endIndex 合并了，so easy</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CountingSort</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] arr = <span class="keyword">new</span> Random().ints(<span class="number">0</span>, <span class="number">10</span>).limit(<span class="number">10</span>).toArray();</span><br><span class="line">        System.out.printf(<span class="string">&quot;%-10s: %s%n&quot;</span>, <span class="string">&quot;Origin&quot;</span>, Arrays.toString(arr));</span><br><span class="line">        <span class="keyword">int</span>[] result = countingSort(arr);</span><br><span class="line">        System.out.printf(<span class="string">&quot;%-10s: %s%n&quot;</span>, <span class="string">&quot;After&quot;</span>, Arrays.toString(result));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span>[] countingSort(<span class="keyword">int</span>[] arr) &#123;</span><br><span class="line">        <span class="comment">// 遍历数组，得到最值</span></span><br><span class="line">        <span class="keyword">int</span> max = arr[<span class="number">0</span>];</span><br><span class="line">        <span class="keyword">int</span> min = arr[<span class="number">0</span>];</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> j : arr) &#123;</span><br><span class="line">            <span class="keyword">if</span> (max &lt; j) &#123;</span><br><span class="line">                max = j;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (min &gt; j) &#123;</span><br><span class="line">                min = j;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 根据最值新建一个用于计数的数组, 比如原数组最大值为 4，最小值为 2，新建的计数数组为 [2，3，4]，所以声明长度的时候为 max - min + 1</span></span><br><span class="line">        <span class="keyword">int</span>[] bucket = <span class="keyword">new</span> <span class="keyword">int</span>[max - min + <span class="number">1</span>];</span><br><span class="line">        <span class="comment">// 再次遍历数组，将对应的 bucket 下标做 ++ 操作</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i : arr) &#123;</span><br><span class="line">            bucket[i - min]++;</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.printf(<span class="string">&quot;%-10s: %s%n&quot;</span>, <span class="string">&quot;Bucket&quot;</span>, Arrays.toString(bucket));</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 新建一个数组存储下标结束的值，用于保证排序稳定性</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; bucket.length; i++) &#123;</span><br><span class="line">            bucket[i] = bucket[i] + bucket[i - <span class="number">1</span>];</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.printf(<span class="string">&quot;%-10s: %s%n&quot;</span>, <span class="string">&quot;Index&quot;</span>, Arrays.toString(bucket));</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 遍历 bucket 数组，将统计结果塞到新建结果集中</span></span><br><span class="line">        <span class="keyword">int</span>[] result = <span class="keyword">new</span> <span class="keyword">int</span>[arr.length];</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = arr.length - <span class="number">1</span>; i &gt;= <span class="number">0</span>; i--) &#123;</span><br><span class="line">            result[bucket[arr[i] - min] - <span class="number">1</span>] = arr[i]; <span class="comment">// 下标计算注意一下，arr[i] - min 取出 bucket 存储的位置值，但是这个值比下标大1</span></span><br><span class="line">            bucket[arr[i] - min]--;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// Origin    : [1, 4, 6, 3, 9, 5, 0, 0, 9, 8]</span></span><br><span class="line"><span class="comment">// Bucket    : [2, 1, 0, 1, 1, 1, 1, 0, 1, 2]</span></span><br><span class="line"><span class="comment">// Index     : [2, 3, 3, 4, 5, 6, 7, 7, 8, 10]</span></span><br><span class="line"><span class="comment">// After     : [0, 0, 1, 3, 4, 5, 6, 8, 9, 9]</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/05/07/Shell-zsh-profile-load-order/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/05/07/Shell-zsh-profile-load-order/" class="post-title-link" itemprop="url">Zsh 配置文件的 load 顺序</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-05-07 15:59:38" itemprop="dateCreated datePublished" datetime="2021-05-07T15:59:38+08:00">2021-05-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-12-01 19:27:30" itemprop="dateModified" datetime="2022-12-01T19:27:30+08:00">2022-12-01</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/Shell/" itemprop="url" rel="index">
+                    <span itemprop="name">Shell</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>632</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>今天在看 sourcegraph 这个开源工具的时候，发现他有提供终端查询接口的，但是要配置参数到 <code>.zprofile</code> 中, 突然想问一句 <code>.zshrc</code> 和 <code>.zprofile</code> 有什么关系？</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://unix.stackexchange.com/questions/71253/what-should-shouldnt-go-in-zshenv-zshrc-zlogin-zprofile-zlogout">stackexchange</a></li>
+</ul>
+<blockquote>
+<p><code>.zprofile</code> is basically the same as <code>.zlogin</code> except that it’s sourced before <code>.zshrc</code> while <code>.zlogin</code> is sourced after <code>.zshrc</code>.<br> According to the zsh documentation, “.zprofile is meant as an alternative to .zlogin for ksh fans; the two are not intended to be used together, although this could certainly be done if desired.”</p>
+</blockquote>
+<p>PS: Ksh 是很早就出现的一种 shell</p>
+<p>由上面的描述我们可以直到，zsh 的 config file 生效顺序为 zprofile -&gt; zsh -&gt; zlogin</p>
+<h2 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># shell 的 config file 是可以直接执行 cmd 的，在 .zprofile 和 .zshrc 中分别加上 &quot;echo hello from .zprofile&quot;</span></span><br><span class="line"><span class="comment"># 和 &quot;echo hello from .zshrc&quot;. 新起一个终端会加载这两个配置，观察输出结果，和之前的描述一致</span></span><br><span class="line"></span><br><span class="line">hello from .zprofile</span><br><span class="line">hello from .zshrc</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/05/07/HomeBrew-in-China/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/05/07/HomeBrew-in-China/" class="post-title-link" itemprop="url">Brew in China</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-05-07 14:58:51" itemprop="dateCreated datePublished" datetime="2021-05-07T14:58:51+08:00">2021-05-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-12-01 19:27:30" itemprop="dateModified" datetime="2022-12-01T19:27:30+08:00">2022-12-01</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E5%B0%8F%E5%B7%A5%E5%85%B7/" itemprop="url" rel="index">
+                    <span itemprop="name">小工具</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>175</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>使用 HomeBrew 安装软件各种卡断，搜索了一下，在 gitee 上看到一个很赞的项目，对 HomeBrew 进行了本土优化，速度很快 - <a target="_blank" rel="noopener" href="https://gitee.com/cunkai/HomebrewCN">HomebrewCN</a></p>
+<p>突然对这个国内的 gitee 倍生好感，而且稍微撇了一下他的 UI，感觉要比 github 好看诶，666</p>
+<p>有兴趣可以看一下他是怎么实现加速的，难道是将所有 HomeBrew 的相关安装包都在 gitee 上做了备份吗？！</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/05/07/Python-requests-lib-and-certificate-verification/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/05/07/Python-requests-lib-and-certificate-verification/" class="post-title-link" itemprop="url">Requests 关闭 SSL 验证提示</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-05-07 12:11:08" itemprop="dateCreated datePublished" datetime="2021-05-07T12:11:08+08:00">2021-05-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-12-01 19:27:30" itemprop="dateModified" datetime="2022-12-01T19:27:30+08:00">2022-12-01</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/python/" itemprop="url" rel="index">
+                    <span itemprop="name">python</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>488</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>使用 requests lib 访问 HTTPS 网站的时候，如果关闭了认证，虽然访问可以继续，但是会抛 Warning 信息。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">requests.get(request_url, headers=headers, verify=<span class="literal">False</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># /Users/jack/.pyenv/versions/3.7.3/lib/python3.7/site-packages/urllib3/connectionpool.py:851: InsecureRequestWarning: Unverified HTTPS request is being made. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#ssl-warnings</span></span><br><span class="line"><span class="comment">#   InsecureRequestWarning)</span></span><br></pre></td></tr></table></figure>
+
+<p>按照提示，去对应的网页查看关闭提示信息的办法</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> urllib3</span><br><span class="line">urllib3.disable_warnings()</span><br></pre></td></tr></table></figure>
+
+<p>可行！ (●°u°●)​ 」</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/05/06/Java-getEnclosingClass-in-Class/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/05/06/Java-getEnclosingClass-in-Class/" class="post-title-link" itemprop="url">Class 类下的 getEnclosingClass() 方法使用案例</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-05-06 18:45:35" itemprop="dateCreated datePublished" datetime="2021-05-06T18:45:35+08:00">2021-05-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-12-01 19:27:30" itemprop="dateModified" datetime="2022-12-01T19:27:30+08:00">2022-12-01</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>今天在查找某个 bug 的 root cause 的时候，发现一个 Class.getEnclosingClass() 的调用。从来没有用个这玩意儿，做下笔记。</p>
+<h2 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h2><p>人话就是：返回这个类的外部类。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Returns the immediately enclosing class of the underlying</span></span><br><span class="line"><span class="comment"> * class.  If the underlying class is a top level class this</span></span><br><span class="line"><span class="comment"> * method returns &#123;<span class="doctag">@code</span> null&#125;.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span> the immediately enclosing class of the underlying class</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@exception</span>  SecurityException</span></span><br><span class="line"><span class="comment"> *             If a security manager, &lt;i&gt;s&lt;/i&gt;, is present and the caller&#x27;s</span></span><br><span class="line"><span class="comment"> *             class loader is not the same as or an ancestor of the class</span></span><br><span class="line"><span class="comment"> *             loader for the enclosing class and invocation of &#123;<span class="doctag">@link</span></span></span><br><span class="line"><span class="comment"> *             SecurityManager#checkPackageAccess s.checkPackageAccess()&#125;</span></span><br><span class="line"><span class="comment"> *             denies access to the package of the enclosing class</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since</span> 1.5</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@CallerSensitive</span></span><br><span class="line"><span class="keyword">public</span> Class&lt;?&gt; getEnclosingClass() <span class="keyword">throws</span> SecurityException</span><br></pre></td></tr></table></figure>
+
+<h2 id="案件重现"><a href="#案件重现" class="headerlink" title="案件重现"></a>案件重现</h2><p>以前有一段 code 组织形式如下，定义了一个 MyOuterClass，它有一个 field 动态实现了 MyAbsClass 这个抽象类。那么，当我们调用 MyOuterClass 实例的 <code>field.getClass().getEcloseingClass()</code> 的时候会返回外部类的 class name</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        System.out.println((<span class="keyword">new</span> MyOuterClass()).field.getClass().getEnclosingClass().getSimpleName());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">MyAbsClass</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyOuterClass</span> </span>&#123;</span><br><span class="line">    MyAbsClass field = <span class="keyword">new</span> MyAbsClass() &#123;&#125;;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// MyOuterClass</span></span><br></pre></td></tr></table></figure>
+
+<p>然后有个德国的 team 将这段代码重构了，形式如下。他们新建了一个类，继承了抽象类，并将原先的类成员变量声明的地方用这个新建类代替了。这种情况下，getEnclosingClass() 的调用方就变为一个 top level class 了，返回 null，随之导致 getSimpleName() 抛出 NPE 了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        System.out.println((<span class="keyword">new</span> MyOuterClass()).field.getClass().getEnclosingClass().getSimpleName());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">MyAbsClass</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyAbsClassIns</span> <span class="keyword">extends</span> <span class="title">MyAbsClass</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyOuterClass</span> </span>&#123;</span><br><span class="line">    MyAbsClass field = <span class="keyword">new</span> MyAbsClassIns();</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// Exception in thread &quot;main&quot; java.lang.NullPointerException</span></span><br><span class="line"><span class="comment">//     at reading.container.Test.main(Test.java:5)</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="其他的使用测试"><a href="#其他的使用测试" class="headerlink" title="其他的使用测试"></a>其他的使用测试</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">new</span> Person();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span> </span>&#123;</span><br><span class="line">    &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;log when init person: &quot;</span> + getClass().getEnclosingClass());</span><br><span class="line">        <span class="keyword">new</span> Outer();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Outer</span> </span>&#123;</span><br><span class="line">        &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;log when init Outer: &quot;</span> + getClass().getEnclosingClass());</span><br><span class="line">            <span class="keyword">new</span> Inner();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="class"><span class="keyword">class</span> <span class="title">Inner</span> </span>&#123;</span><br><span class="line">            &#123;</span><br><span class="line">                System.out.println(<span class="string">&quot;log when init Inner: &quot;</span> + getClass().getEnclosingClass());</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// log when init person: null</span></span><br><span class="line"><span class="comment">// log when init Outer: class reading.container.Person</span></span><br><span class="line"><span class="comment">// log when init Inner: class reading.container.Person$Outer</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/05/05/Algorithm-heap-sort/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/05/05/Algorithm-heap-sort/" class="post-title-link" itemprop="url">堆排序</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-05-05 13:06:04" itemprop="dateCreated datePublished" datetime="2021-05-05T13:06:04+08:00">2021-05-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-12-01 19:27:30" itemprop="dateModified" datetime="2022-12-01T19:27:30+08:00">2022-12-01</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E7%AE%97%E6%B3%95/" itemprop="url" rel="index">
+                    <span itemprop="name">算法</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>堆排序是一种利用堆特性的选择排序，复杂度为 O(nlog<sup>n</sup>)</p>
+<p>堆是一颗完全二叉树</p>
+<p>堆排序的基本思想是：将待排序序列构造成一个大顶堆，此时，整个序列的最大值就是堆顶的根节点。将其与末尾元素进行交换，此时末尾就为最大值。然后将剩余n-1个元素重新构造成一个堆，这样会得到n个元素的次小值。如此反复执行，便能得到一个有序序列了</p>
+<p>将数组映射为二叉树结构，对应关系如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">@startuml</span><br><span class="line">(50) --&gt; (45)</span><br><span class="line">(50) --&gt; (40)</span><br><span class="line">(45) --&gt; (20)</span><br><span class="line">(45) --&gt; (25)</span><br><span class="line">(40) --&gt; (35)</span><br><span class="line">(40) --&gt; (30)</span><br><span class="line">(20) --&gt; (10)</span><br><span class="line">(20) --&gt; (15)</span><br><span class="line">@enduml</span><br></pre></td></tr></table></figure>
+
+<img  src=http://www.plantuml.com/plantuml/svg/qp0rq5JGrRLJq30nrUJIGF0CW3oW48HdXCe3gJI1gJH6vO5K6i5uXgWyKqq0>
+
+<table>
+<thead>
+<tr>
+<th align="center">#</th>
+<th align="center">0</th>
+<th align="center">1</th>
+<th align="center">2</th>
+<th align="center">3</th>
+<th align="center">4</th>
+<th align="center">5</th>
+<th align="center">6</th>
+<th align="center">7</th>
+<th align="center">8</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">arr</td>
+<td align="center">50</td>
+<td align="center">45</td>
+<td align="center">40</td>
+<td align="center">20</td>
+<td align="center">25</td>
+<td align="center">35</td>
+<td align="center">30</td>
+<td align="center">10</td>
+<td align="center">15</td>
+</tr>
+</tbody></table>
+<p>该数组从逻辑上讲就是一个堆结构，我们用简单的公式来描述一下堆的定义就是：</p>
+<p>大顶堆：arr[i] &gt;= arr[2i+1] &amp;&amp; arr[i] &gt;= arr[2i+2]  </p>
+<p>小顶堆：arr[i] &lt;= arr[2i+1] &amp;&amp; arr[i] &lt;= arr[2i+2]  </p>
+<p>下标与节点位置关系：</p>
+<ul>
+<li>下标为 i 的节点父节点下标： (i-1)/2 整数除法</li>
+<li>下标为 i 的节点的左孩子下标：i*2 + 1</li>
+<li>下标为 i 的节点的右孩子下标：i*2 + 2</li>
+<li>最后一个非叶子节点位置：(数组长度/2) - 1</li>
+</ul>
+<p>最后一点是怎么得到的？隐隐记得之前看过的那本数据结构数上貌似有类似的答案。。。</p>
+<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HeapSort</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] arr = <span class="keyword">new</span> <span class="keyword">int</span>[]&#123; <span class="number">50</span>, <span class="number">45</span>, <span class="number">40</span>, <span class="number">20</span>, <span class="number">25</span>, <span class="number">35</span>, <span class="number">30</span>, <span class="number">10</span>, <span class="number">15</span> &#125;;</span><br><span class="line">        System.out.println(<span class="string">&quot;Origin: &quot;</span> + Arrays.toString(arr));</span><br><span class="line">        heapSort(arr);</span><br><span class="line">        System.out.println(<span class="string">&quot;After:  &quot;</span> + Arrays.toString(arr));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">heapSort</span><span class="params">(<span class="keyword">int</span>[] arr)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 构建大顶堆, 即从最后一个非叶子节点开始对之前的节点分别做大顶堆调整</span></span><br><span class="line">        <span class="comment">// i=0 时也需要计算，指的时 0 号位元素的排序</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = arr.length / <span class="number">2</span> - <span class="number">1</span>; i &gt;= <span class="number">0</span>; i--) &#123;</span><br><span class="line">            heapify(arr, arr.length, i); <span class="comment">// 起始点是最后一个节点，有时候我会写成 0</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 已经是大顶堆了，先交换，在调整，一直重复 n-1 次</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = arr.length - <span class="number">1</span>; i &gt; <span class="number">0</span>; i--) &#123;</span><br><span class="line">            swap(arr, <span class="number">0</span>, i);</span><br><span class="line">            heapify(arr, i, <span class="number">0</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">heapify</span><span class="params">(<span class="keyword">int</span>[] arr, <span class="keyword">int</span> length, <span class="keyword">int</span> pos)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> largest = pos;</span><br><span class="line">        <span class="keyword">int</span> lson = pos * <span class="number">2</span> + <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">int</span> rson = pos * <span class="number">2</span> + <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// lson &lt; length, 不包含相等的情况，不然数组越界了</span></span><br><span class="line">        <span class="keyword">if</span> (lson &lt; length &amp;&amp; arr[largest] &lt; arr[lson]) &#123;</span><br><span class="line">            largest = lson;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (rson &lt; length &amp;&amp; arr[largest] &lt; arr[rson]) &#123;</span><br><span class="line">            largest = rson;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (largest != pos) &#123;</span><br><span class="line">            swap(arr, largest, pos);</span><br><span class="line">            heapify(arr, length, largest);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">swap</span><span class="params">(<span class="keyword">int</span>[] arr, <span class="keyword">int</span> pos1, <span class="keyword">int</span> pos2)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> tmp = arr[pos1];</span><br><span class="line">        arr[pos1] = arr[pos2];</span><br><span class="line">        arr[pos2] = tmp;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Refer"><a href="#Refer" class="headerlink" title="Refer"></a>Refer</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/chengxiao/p/6129630.html">CNBLOG</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1fp4y1D7cj?from=search&seid=3873546409410814895">虽然是 C 实现，但是思路很清晰</a></li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/05/04/Java-clone-object/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2021/05/04/Java-clone-object/" class="post-title-link" itemprop="url">Java clone object</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-05-04 17:45:09" itemprop="dateCreated datePublished" datetime="2021-05-04T17:45:09+08:00">2021-05-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-12-01 19:27:30" itemprop="dateModified" datetime="2022-12-01T19:27:30+08:00">2022-12-01</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.6k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="为什么要拷贝"><a href="#为什么要拷贝" class="headerlink" title="为什么要拷贝"></a>为什么要拷贝</h2><p>因为方便，如果我有一个类有好多属性，固然可以用 new Object + set attribute 的方式达到拷贝的目的，但是麻烦。。。</p>
+<h2 id="如何拷贝"><a href="#如何拷贝" class="headerlink" title="如何拷贝"></a>如何拷贝</h2><ol>
+<li>实现 Cloneable 接口，否则会抛 CloneNotSupportedException </li>
+<li>重写 clone 方法，修改修饰符为 public</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CloneTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Person person = <span class="keyword">new</span> Person(<span class="number">1</span>, <span class="string">&quot;jack&quot;</span>);</span><br><span class="line">        System.out.println(person);</span><br><span class="line">        Person clone = person.clone();</span><br><span class="line">        System.out.println(clone);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span> <span class="keyword">implements</span> <span class="title">Cloneable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> age;</span><br><span class="line">    String name;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// constructor + toString</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Person <span class="title">clone</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Person clone = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            clone = (Person)<span class="keyword">super</span>.clone();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (CloneNotSupportedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> clone;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Person&#123;age=1, name=&#x27;jack&#x27;&#125;</span></span><br><span class="line"><span class="comment">// Person&#123;age=1, name=&#x27;jack&#x27;&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="浅拷贝-shallow-Vs-深拷贝-deep"><a href="#浅拷贝-shallow-Vs-深拷贝-deep" class="headerlink" title="浅拷贝(shallow) Vs 深拷贝(deep)"></a>浅拷贝(shallow) Vs 深拷贝(deep)</h2><blockquote>
+<p>浅拷贝</p>
+</blockquote>
+<p>引用类型(接口，对象等复杂类型)的成员变量不会做拷贝，克隆对象会持有和原对象同一个引用</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* 修改 Person 类定义，新增一个引用类型的成员变量 Address</span></span><br><span class="line"><span class="comment">* 为原型 person 设置 Address 变量，并设置值为 shanghai</span></span><br><span class="line"><span class="comment">* clone 一个 person，然后修改 Address 值为 hangzhou</span></span><br><span class="line"><span class="comment">* 由于是浅拷贝，持有的 Address 引用是同一个，所以两个 Person 实例的 Address 都改变了</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CloneTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> CloneNotSupportedException </span>&#123;</span><br><span class="line">        Person person = <span class="keyword">new</span> Person(<span class="number">1</span>, <span class="string">&quot;jack&quot;</span>);</span><br><span class="line">        Address addr = <span class="keyword">new</span> Address(<span class="string">&quot;shanghai&quot;</span>);</span><br><span class="line">        person.addr = addr;</span><br><span class="line"></span><br><span class="line">        Person clone = person.clone();</span><br><span class="line">        addr.addr = <span class="string">&quot;hangzhou&quot;</span>;</span><br><span class="line"></span><br><span class="line">        System.out.println(person);</span><br><span class="line">        System.out.println(clone);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span> <span class="keyword">implements</span> <span class="title">Cloneable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> age;</span><br><span class="line">    String name;</span><br><span class="line">    Address addr;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// constructor + toString</span></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Person <span class="title">clone</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Person clone = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            clone = (Person)<span class="keyword">super</span>.clone();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (CloneNotSupportedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> clone;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Address</span> </span>&#123;</span><br><span class="line">    String addr;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// constructor + toString </span></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>上面这种表现方式和我们想要的有很大的出入, 我们想要的是连这些 field 也一起拷贝，深拷贝由此而来</p>
+<blockquote>
+<p>深拷贝</p>
+</blockquote>
+<p>在浅拷贝的基础上，你还需要做如下事情</p>
+<ol>
+<li>成员变量也需要实现 Cloneable 接口并重写 clone 方法</li>
+<li>在原来 clone 方法后面，添加成员变量的 clone 调用并赋值</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CloneTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> CloneNotSupportedException </span>&#123;</span><br><span class="line">        Person person = <span class="keyword">new</span> Person(<span class="number">1</span>, <span class="string">&quot;jack&quot;</span>);</span><br><span class="line">        Address addr = <span class="keyword">new</span> Address(<span class="string">&quot;shanghai&quot;</span>);</span><br><span class="line">        person.addr = addr;</span><br><span class="line"></span><br><span class="line">        Person clone = person.clone();</span><br><span class="line">        addr.addr = <span class="string">&quot;hangzhou&quot;</span>;</span><br><span class="line"></span><br><span class="line">        System.out.println(person);</span><br><span class="line">        System.out.println(clone);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span> <span class="keyword">implements</span> <span class="title">Cloneable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> age;</span><br><span class="line">    String name;</span><br><span class="line">    Address addr;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// constructor + toString</span></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Person <span class="title">clone</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Person clone = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            clone = (Person)<span class="keyword">super</span>.clone();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (CloneNotSupportedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        clone.addr = addr.clone(); <span class="comment">// field 的 clone 调用和赋值</span></span><br><span class="line">        <span class="keyword">return</span> clone;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Address</span> <span class="keyword">implements</span> <span class="title">Cloneable</span> </span>&#123;</span><br><span class="line">    String addr;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// constructor + toString</span></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> Address <span class="title">clone</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Address addr = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            addr = (Address) <span class="keyword">super</span>.clone();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (CloneNotSupportedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> addr;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Person&#123;age=1, name=&#x27;jack&#x27;, addr=Address&#123;addr=&#x27;hangzhou&#x27;&#125;&#125;</span></span><br><span class="line"><span class="comment">// Person&#123;age=1, name=&#x27;jack&#x27;, addr=Address&#123;addr=&#x27;shanghai&#x27;&#125;&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="解决多层-clone-问题"><a href="#解决多层-clone-问题" class="headerlink" title="解决多层 clone 问题"></a>解决多层 clone 问题</h2><p>如果需要复制的对象包含很多成员变量，或者潜逃了很多层，那么重写 clone 也会变得相当麻烦，这个时候可以使用 Serializable 接口来简化序列化操作</p>
+<p>这种实现不需要实现 Cloneable 接口，只需要相关的类实现 Serializable 接口即可，感觉就是代码看着会复杂一点，其他倒是没什么弊端</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CloneTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> CloneNotSupportedException </span>&#123;</span><br><span class="line">        Person person = <span class="keyword">new</span> Person(<span class="number">1</span>, <span class="string">&quot;jack&quot;</span>);</span><br><span class="line">        Address addr = <span class="keyword">new</span> Address(<span class="string">&quot;shanghai&quot;</span>);</span><br><span class="line">        person.addr = addr;</span><br><span class="line"></span><br><span class="line">        Person clone = person.clone();</span><br><span class="line">        addr.addr = <span class="string">&quot;hangzhou&quot;</span>;</span><br><span class="line"></span><br><span class="line">        System.out.println(person);</span><br><span class="line">        System.out.println(clone);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span> <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = -<span class="number">926205369611773951L</span>;</span><br><span class="line">    <span class="keyword">int</span> age;</span><br><span class="line">    String name;</span><br><span class="line">    Address addr;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// constructor + toString</span></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Person <span class="title">clone</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Person clone = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">// 将该对象序列化成流,因为写在流里的是对象的一个拷贝，而原对象仍然存在于JVM里面。所以利用这个特性可以实现对象的深拷贝</span></span><br><span class="line">            ByteArrayOutputStream baos = <span class="keyword">new</span> ByteArrayOutputStream();</span><br><span class="line">            ObjectOutputStream oos = <span class="keyword">new</span> ObjectOutputStream(baos);</span><br><span class="line">            oos.writeObject(<span class="keyword">this</span>);</span><br><span class="line">            <span class="comment">// 将流序列化成对象</span></span><br><span class="line">            ByteArrayInputStream bais = <span class="keyword">new</span> ByteArrayInputStream(baos.toByteArray());</span><br><span class="line">            ObjectInputStream ois = <span class="keyword">new</span> ObjectInputStream(bais);</span><br><span class="line">            clone = (Person) ois.readObject();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException | ClassNotFoundException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> clone;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Address</span> <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = -<span class="number">1360519918551295988L</span>;</span><br><span class="line">    String addr;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// constructor + toString</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// Person&#123;age=1, name=&#x27;jack&#x27;, addr=Address&#123;addr=&#x27;hangzhou&#x27;&#125;&#125;</span></span><br><span class="line"><span class="comment">// Person&#123;age=1, name=&#x27;jack&#x27;, addr=Address&#123;addr=&#x27;shanghai&#x27;&#125;&#125;</span></span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/05/04/Algorithm-shell-sort/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +993,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-30 15:56:47" itemprop="dateModified" datetime="2022-08-30T15:56:47+08:00">2022-08-30</time>
+                <time title="修改时间：2022-12-01 19:27:30" itemprop="dateModified" datetime="2022-12-01T19:27:30+08:00">2022-12-01</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -373,7 +1129,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-30 15:56:47" itemprop="dateModified" datetime="2022-08-30T15:56:47+08:00">2022-08-30</time>
+                <time title="修改时间：2022-12-01 19:27:30" itemprop="dateModified" datetime="2022-12-01T19:27:30+08:00">2022-12-01</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -618,7 +1374,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-30 15:56:47" itemprop="dateModified" datetime="2022-08-30T15:56:47+08:00">2022-08-30</time>
+                <time title="修改时间：2022-12-01 19:27:30" itemprop="dateModified" datetime="2022-12-01T19:27:30+08:00">2022-12-01</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -706,730 +1462,11 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/04/28/Python-with-json/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/04/28/Python-with-json/" class="post-title-link" itemprop="url">Python 操作 json</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-04-28 16:34:03" itemprop="dateCreated datePublished" datetime="2021-04-28T16:34:03+08:00">2021-04-28</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-30 15:56:47" itemprop="dateModified" datetime="2022-08-30T15:56:47+08:00">2022-08-30</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/python/" itemprop="url" rel="index">
-                    <span itemprop="name">python</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.1k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="基操"><a href="#基操" class="headerlink" title="基操"></a>基操</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line"></span><br><span class="line"><span class="comment">#### 从 string 加载</span></span><br><span class="line">person = <span class="string">&#x27;&#123;&quot;name&quot;: &quot;Bob&quot;, &quot;languages&quot;: [&quot;English&quot;, &quot;Fench&quot;]&#125;&#x27;</span></span><br><span class="line">person_dict = json.loads(person)</span><br><span class="line"></span><br><span class="line"><span class="comment">#### 从文件加载</span></span><br><span class="line"><span class="keyword">with</span> open(<span class="string">&#x27;path_to_file/person.json&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">    data = json.load(f)</span><br><span class="line"></span><br><span class="line"><span class="comment">#### json 转 string</span></span><br><span class="line">person_dict = &#123;<span class="string">&#x27;name&#x27;</span>: <span class="string">&#x27;Bob&#x27;</span>,</span><br><span class="line"><span class="string">&#x27;age&#x27;</span>: <span class="number">12</span>,</span><br><span class="line"><span class="string">&#x27;children&#x27;</span>: <span class="literal">None</span></span><br><span class="line">&#125;</span><br><span class="line">person_json = json.dumps(person_dict)</span><br><span class="line"><span class="comment"># Output: &#123;&quot;name&quot;: &quot;Bob&quot;, &quot;age&quot;: 12, &quot;children&quot;: null&#125;</span></span><br><span class="line"></span><br><span class="line">person_dict = &#123;<span class="string">&quot;name&quot;</span>: <span class="string">&quot;Bob&quot;</span>,</span><br><span class="line"><span class="string">&quot;languages&quot;</span>: [<span class="string">&quot;English&quot;</span>, <span class="string">&quot;Fench&quot;</span>],</span><br><span class="line"><span class="string">&quot;married&quot;</span>: <span class="literal">True</span>,</span><br><span class="line"><span class="string">&quot;age&quot;</span>: <span class="number">32</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">#### json 写入文件</span></span><br><span class="line"><span class="keyword">with</span> open(<span class="string">&#x27;person.txt&#x27;</span>, <span class="string">&#x27;w&#x27;</span>) <span class="keyword">as</span> json_file:</span><br><span class="line">    json.dump(person_dict, json_file)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">#### 格式化输出</span></span><br><span class="line">person_string = <span class="string">&#x27;&#123;&quot;name&quot;: &quot;Bob&quot;, &quot;languages&quot;: &quot;English&quot;, &quot;numbers&quot;: [2, 1.6, null]&#125;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Getting dictionary</span></span><br><span class="line">person_dict = json.loads(person_string)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Pretty Printing JSON string back</span></span><br><span class="line">print(json.dumps(person_dict, indent = <span class="number">4</span>, sort_keys=<span class="literal">True</span>))</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/04/28/Regex-zero-length-assertion/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/04/28/Regex-zero-length-assertion/" class="post-title-link" itemprop="url">零宽断言</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-04-28 15:11:39" itemprop="dateCreated datePublished" datetime="2021-04-28T15:11:39+08:00">2021-04-28</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-30 15:56:47" itemprop="dateModified" datetime="2022-08-30T15:56:47+08:00">2022-08-30</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/regex/" itemprop="url" rel="index">
-                    <span itemprop="name">regex</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>817</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="Positive-Lookahead-零宽度正预测先行断言-匹配以-xx-结尾的-XX"><a href="#Positive-Lookahead-零宽度正预测先行断言-匹配以-xx-结尾的-XX" class="headerlink" title="Positive Lookahead, 零宽度正预测先行断言: 匹配以 xx 结尾的, (?=XX)"></a>Positive Lookahead, 零宽度正预测先行断言: 匹配以 xx 结尾的, (?=XX)</h2><p>特性： 这个断言是从右边开始匹配</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">e.g.01 </span><br><span class="line">use .*(?&#x3D;ing) as pattern to match &#39;cooking, doing&#39; </span><br><span class="line">matched: &#39;cooking, do&#39;</span><br><span class="line"></span><br><span class="line">e.g.02</span><br><span class="line">use [a-z]*(?&#x3D;ing) as pattern to match &#39;cooking, doing, singing&#39; </span><br><span class="line">matched: &#39;cook, do, sing&#39;</span><br></pre></td></tr></table></figure>
-
-<h2 id="Negtive-Lookahead-负向零宽先行断言-匹配不以-xx-结尾的-XX"><a href="#Negtive-Lookahead-负向零宽先行断言-匹配不以-xx-结尾的-XX" class="headerlink" title="Negtive Lookahead, 负向零宽先行断言: 匹配不以 xx 结尾的, (?!XX)"></a>Negtive Lookahead, 负向零宽先行断言: 匹配不以 xx 结尾的, (?!XX)</h2><p>特性： 这个断言是从右边开始匹配</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">e.g.01 </span><br><span class="line">pattern: yolo(?!lo)</span><br><span class="line">matched: yolo yololo yolo</span><br><span class="line">result: 匹配到第一个 yolo 和最后一个 yolo</span><br><span class="line">refer: https:&#x2F;&#x2F;regex101.com&#x2F;r&#x2F;UyC8Z1&#x2F;1&#x2F;</span><br><span class="line"></span><br><span class="line">感觉上零宽断言适合做 词 这个level 的 match, 普通的 regex 经常会带进来空格</span><br></pre></td></tr></table></figure>
-
-<h2 id="Positive-Lookbehind-负向零宽先行断言-匹配以-xx-开始的-lt-XX"><a href="#Positive-Lookbehind-负向零宽先行断言-匹配以-xx-开始的-lt-XX" class="headerlink" title="Positive Lookbehind, 负向零宽先行断言: 匹配以 xx 开始的, (?&lt;=XX)"></a>Positive Lookbehind, 负向零宽先行断言: 匹配以 xx 开始的, (?&lt;=XX)</h2><p>特性： 这个断言是从左边开始匹配</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">e.g.01 </span><br><span class="line">use (?&lt;&#x3D;abc).* to match abcdefgabc</span><br><span class="line">result: defgabc, not abcdefg</span><br></pre></td></tr></table></figure>
-
-<h2 id="Negative-Lookbehind-负向零宽先行断言-匹配不以-xx-开始的-lt-XX"><a href="#Negative-Lookbehind-负向零宽先行断言-匹配不以-xx-开始的-lt-XX" class="headerlink" title="Negative Lookbehind, 负向零宽先行断言: 匹配不以 xx 开始的, (?&lt;!XX)"></a>Negative Lookbehind, 负向零宽先行断言: 匹配不以 xx 开始的, (?&lt;!XX)</h2><p>特性： 这个断言是从左边开始匹配</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">e.g.01</span><br><span class="line">use (?&lt;!yo)lol to match lol yolol</span><br><span class="line">result: the first lol on left</span><br></pre></td></tr></table></figure>
-
-<h2 id="Refer"><a href="#Refer" class="headerlink" title="Refer"></a>Refer</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://regex101.com/">Regex Online</a></li>
-<li><a target="_blank" rel="noopener" href="http://www.ibloger.net/article/31.html">Sample Blog Source, CN</a></li>
-<li><a target="_blank" rel="noopener" href="https://coderwall.com/p/5c7kjq/lookahead-and-lookbehind-regex">Sample Blog Source</a></li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/04/28/Algorithm-merge-sort/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/04/28/Algorithm-merge-sort/" class="post-title-link" itemprop="url">归并排序</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-04-28 14:02:39" itemprop="dateCreated datePublished" datetime="2021-04-28T14:02:39+08:00">2021-04-28</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-30 15:56:47" itemprop="dateModified" datetime="2022-08-30T15:56:47+08:00">2022-08-30</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E7%AE%97%E6%B3%95/" itemprop="url" rel="index">
-                    <span itemprop="name">算法</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.3k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>采用分治(Divide and Conquer)的思想，解题思路如下：</p>
-<ol>
-<li>先将整个数组分为有序数组(对半分，直到长度为1)</li>
-<li>两两合并，并确保合并后的数组有序 - 二路归并</li>
-<li>重复直到所有数组合并完成</li>
-</ol>
-<p>时间复杂度 O(nlog<sup>n</sup>)</p>
-<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"><span class="keyword">import</span> java.util.Random;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MergeSort</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] sample = <span class="keyword">new</span> Random().ints(<span class="number">0</span>, <span class="number">100</span>).limit(<span class="number">10</span>).toArray();</span><br><span class="line">        System.out.println(<span class="string">&quot;Origin: &quot;</span> + Arrays.toString(sample));</span><br><span class="line"></span><br><span class="line">        mergeSort(sample, <span class="number">0</span>, sample.length - <span class="number">1</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;Origin: &quot;</span> + Arrays.toString(sample));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">mergeSort</span><span class="params">(<span class="keyword">int</span>[] sample, <span class="keyword">int</span> low, <span class="keyword">int</span> high)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 结束条件</span></span><br><span class="line">        <span class="keyword">if</span> (low &gt;= high)</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        <span class="comment">// 对半分</span></span><br><span class="line">        <span class="keyword">int</span> mid = (low + high) / <span class="number">2</span>;</span><br><span class="line">        <span class="comment">// 分别对两个子数组做归并排序</span></span><br><span class="line">        mergeSort(sample, low, mid);</span><br><span class="line">        mergeSort(sample, mid + <span class="number">1</span>, high);</span><br><span class="line">        <span class="comment">// 合并两个子数组</span></span><br><span class="line">        merge(sample, low, mid, high);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">merge</span><span class="params">(<span class="keyword">int</span>[] sample, <span class="keyword">int</span> low, <span class="keyword">int</span> mid, <span class="keyword">int</span> high)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 声明零时数组存放排序结果</span></span><br><span class="line">        <span class="keyword">int</span>[] tmp = <span class="keyword">new</span> <span class="keyword">int</span>[high - low + <span class="number">1</span>];</span><br><span class="line">        <span class="keyword">int</span> i = low, j = mid + <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">int</span> index = <span class="number">0</span>;</span><br><span class="line">        <span class="comment">// 比较两个子数组的最值，并放到临时数组中</span></span><br><span class="line">        <span class="keyword">while</span> (i &lt;= mid &amp;&amp; j &lt;= high) &#123;</span><br><span class="line">            <span class="keyword">if</span> (sample[i] &lt; sample[j]) &#123;</span><br><span class="line">                tmp[index++] = sample[i++];</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                tmp[index++] = sample[j++];</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 将子数组剩余值放入临时数组中，经过上一步之后其中一个数组已经空了，所以下面两个 while 先后顺序没关系</span></span><br><span class="line">        <span class="keyword">while</span> (i &lt;= mid) &#123;</span><br><span class="line">            tmp[index++] = sample[i++];</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (j &lt;= high) &#123;</span><br><span class="line">            tmp[index++] = sample[j++];</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 将临时数组中的结果覆盖到原数组中</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> pos = <span class="number">0</span>; pos &lt; tmp.length; pos++) &#123;</span><br><span class="line">            sample[low + pos] = tmp[pos];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/04/25/Alicloud-apply-new-service/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/04/25/Alicloud-apply-new-service/" class="post-title-link" itemprop="url">阿里云购买服务器</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-04-25 21:36:31" itemprop="dateCreated datePublished" datetime="2021-04-25T21:36:31+08:00">2021-04-25</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-30 15:56:47" itemprop="dateModified" datetime="2022-08-30T15:56:47+08:00">2022-08-30</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E9%85%8D%E7%BD%AE/" itemprop="url" rel="index">
-                    <span itemprop="name">配置</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.4k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>阿里云购买云服务，本地通过终端连接使用，终端工具，弹幕各种推荐 Mobaxtream, 打算试用一下</p>
-<h2 id="创建安全组"><a href="#创建安全组" class="headerlink" title="创建安全组"></a>创建安全组</h2><p>阿里云上创建实例后，你只能通过他们提供的终端工具访问，如果你想要通过其他终端工具访问服务器，需要设置安全组。这个安全组你可以理解为云服务形势下的开启防火墙端口。</p>
-<p>常用端口：</p>
-<ul>
-<li>21: FTP</li>
-<li>22: SSH</li>
-<li>80: HTTP</li>
-<li>443: HTTPS</li>
-<li>3306: mysql</li>
-<li>8080: tomcat</li>
-<li>6379: redis</li>
-</ul>
-<p>安全组 -&gt; 创建安全组，将常用端口添加进去即可</p>
-<h2 id="创建实例"><a href="#创建实例" class="headerlink" title="创建实例"></a>创建实例</h2><p>实例可以理解为远程虚拟机，进入阿里云主界面，顶部选择 控制台 -&gt; 点右上角三条杠 -&gt; 下拉单选择 实例 -&gt; 右上角选择 创建实例</p>
-<p>自定义购买下面选择：</p>
-<ul>
-<li>付费模式： 按量付费</li>
-<li>地域：就近 - 上海</li>
-<li>规格：测试 docker 选 1 核 2 G</li>
-</ul>
-<p>其他只需要注意一下安全组设置即可，创建完毕后，点击你创建的实例，进入面板后就可以看到你创建的实例的公网 IP，然后点击右上角的全部操作下拉单 -&gt; 修改密码</p>
-<h2 id="远程链接"><a href="#远程链接" class="headerlink" title="远程链接"></a>远程链接</h2><p>下载 Mobaxtream 并安装，没什么好说的，新建 session 然后填写账号密码尝试链接，没什么问题的话都 OK 的</p>
-<h2 id="安装-docker"><a href="#安装-docker" class="headerlink" title="安装 docker"></a>安装 docker</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">yum update</span><br><span class="line"></span><br><span class="line">yum install docker -y</span><br><span class="line"></span><br><span class="line">docker -v <span class="comment"># 检查版本</span></span><br><span class="line"></span><br><span class="line">service docker start <span class="comment"># 启动 docker 服务，不然 docker ps 都没法运行</span></span><br><span class="line">chkconfig docker on <span class="comment"># 设置开机运行</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="镜像加速"><a href="#镜像加速" class="headerlink" title="镜像加速"></a>镜像加速</h2><p>控制台界面搜索 容器镜像服务 -&gt; 镜像工具 -&gt; 镜像加速器</p>
-<p>他会根据账号给出加速地址和配置方法，很直观， 对于 CentOS 可以通过修改 daemon 配置文件/etc/docker/daemon.json来使用加速器</p>
-<p>sudo mkdir -p /etc/docker<br>sudo tee /etc/docker/daemon.json &lt;&lt;-‘EOF’<br>{<br>  “registry-mirrors”: [“<a href="https://xxx.mirror.aliyuncs.com&quot;]">https://xxx.mirror.aliyuncs.com&quot;]</a><br>}<br>EOF<br>sudo systemctl daemon-reload<br>sudo systemctl restart docker</p>
-<h2 id="启动-nginx-镜像测试"><a href="#启动-nginx-镜像测试" class="headerlink" title="启动 nginx 镜像测试"></a>启动 nginx 镜像测试</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">docker run -d -p 8080:80 --name my-nginx nginx </span><br><span class="line"></span><br><span class="line"><span class="comment"># 本地测试</span></span><br><span class="line">curl localhost:8080</span><br><span class="line"><span class="comment"># &lt;!DOCTYPE html&gt;</span></span><br><span class="line"><span class="comment"># &lt;html&gt;</span></span><br><span class="line"><span class="comment"># &lt;head&gt;</span></span><br><span class="line"><span class="comment"># &lt;title&gt;Welcome to nginx!&lt;/title&gt;</span></span><br><span class="line"><span class="comment"># ...</span></span><br><span class="line"><span class="comment"># &lt;h1&gt;Welcome to nginx!&lt;/h1&gt;</span></span><br><span class="line"><span class="comment"># &lt;p&gt;If you see this page, the nginx web server is successfully installed and</span></span><br><span class="line"><span class="comment"># working. Further configuration is required.&lt;/p&gt;</span></span><br><span class="line"><span class="comment"># ...</span></span><br><span class="line"><span class="comment"># &lt;/body&gt;</span></span><br><span class="line"><span class="comment"># &lt;/html&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 外网直接通过浏览器输入 ip:8080 可以看到 nginx 页面显示成功！</span></span><br></pre></td></tr></table></figure>
-
-<p>PS: 第一次测试内部访问成功，外部失败，查看安全组，发现添加输入框末端需要点击保存…</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/04/22/Post-rules/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/04/22/Post-rules/" class="post-title-link" itemprop="url">博客行文规范</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-04-22 17:10:49" itemprop="dateCreated datePublished" datetime="2021-04-22T17:10:49+08:00">2021-04-22</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-30 15:56:47" itemprop="dateModified" datetime="2022-08-30T15:56:47+08:00">2022-08-30</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E5%8D%9A%E5%AE%A2/" itemprop="url" rel="index">
-                    <span itemprop="name">博客</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>306</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>文件名规范</p>
-<ul>
-<li>全英文, 包含中文的话, web 访问地址里会带转意符号, 不喜欢</li>
-<li>首字母大写</li>
-<li>单词之间用 <code>-</code> 链接, 这时 <code>hexo</code> 命令自己的规范, 如果我用命令 <code>hexo n &#39;my new post&#39;</code> 它会自动把文件命名为 ‘my-new-post’</li>
-<li>文件名中间中间如果包含专有名词, 允许大写, 如 ‘Java-Windows-setting.md’</li>
-</ul>
-<p>内容规范</p>
-<ul>
-<li>行文中不出现中文标点符号, 中文句点感觉上格式很奇怪, 看上去空格很大的感觉。可以在替换栏中用 <code>,</code> 替换 <code>, [\s]*</code>, 句号同理</li>
-</ul>
-<p>PS: 有兴趣的话可以做一个 VS 插件玩玩</p>
-<p>插件注意点:</p>
-<ol>
-<li>替换逗号</li>
-<li>替换所有句号</li>
-<li>所有冒号替换成英文版+空格</li>
-<li>去掉所有在末尾的冒号的空格</li>
-<li>所有末尾的句号去掉空格 <code>\. $</code> -&gt; <code>.</code></li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/04/21/Java-random-int/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/04/21/Java-random-int/" class="post-title-link" itemprop="url">Java 生成随机数</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-04-21 11:14:00" itemprop="dateCreated datePublished" datetime="2021-04-21T11:14:00+08:00">2021-04-21</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-30 15:56:47" itemprop="dateModified" datetime="2022-08-30T15:56:47+08:00">2022-08-30</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/java/" itemprop="url" rel="index">
-                    <span itemprop="name">java</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>457</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>遇到一个问题，在写测试的时候需要产生一串随机数，找了一下解决方案，记录一下</p>
-<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><p>需求：</p>
-<ol>
-<li>字符串以 Test 开头</li>
-<li>中间加指定格式的日期</li>
-<li>结尾加上前面补0的4位随机整数</li>
-</ol>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RandomDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        String prefix = <span class="string">&quot;Test&quot;</span>;</span><br><span class="line"></span><br><span class="line">        SimpleDateFormat sdfDate = <span class="keyword">new</span> SimpleDateFormat(<span class="string">&quot;yyMMdd&quot;</span>);</span><br><span class="line">        String mid = sdfDate.format(<span class="keyword">new</span> Date());</span><br><span class="line"></span><br><span class="line">        String suffix = String.format(<span class="string">&quot;%04d&quot;</span>, <span class="keyword">new</span> Random().nextInt(<span class="number">10000</span>));</span><br><span class="line"></span><br><span class="line">        System.out.println(prefix + mid + suffix);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// Test2104215709</span></span><br></pre></td></tr></table></figure>
-
-<p>%04d 的含义：</p>
-<ul>
-<li>0: 前面补0</li>
-<li>4: 长度为4</li>
-<li>d: 对整形做操作</li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/04/20/Algorithm-selection-sort/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/04/20/Algorithm-selection-sort/" class="post-title-link" itemprop="url">选择排序</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-04-20 13:13:54" itemprop="dateCreated datePublished" datetime="2021-04-20T13:13:54+08:00">2021-04-20</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-30 15:56:47" itemprop="dateModified" datetime="2022-08-30T15:56:47+08:00">2022-08-30</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E7%AE%97%E6%B3%95/" itemprop="url" rel="index">
-                    <span itemprop="name">算法</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>960</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>算法描述</p>
-<ol>
-<li>首先在未排序序列中找到最小（大）元素，存放到排序序列的起始位置。</li>
-<li>再从剩余未排序元素中继续寻找最小（大）元素，然后放到已排序序列的末尾。</li>
-<li>重复第二步，直到所有元素均排序完毕。</li>
-</ol>
-<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SelectionSortDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] sample = <span class="keyword">new</span> Random().ints(<span class="number">0</span>, <span class="number">100</span>).limit(<span class="number">10</span>).toArray();</span><br><span class="line">        System.out.println(<span class="string">&quot;Origin: &quot;</span> + Arrays.toString(sample));</span><br><span class="line"></span><br><span class="line">        selectionSort(sample);</span><br><span class="line">        System.out.println(<span class="string">&quot;After:  &quot;</span> + Arrays.toString(sample));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">selectionSort</span><span class="params">(<span class="keyword">int</span>[] sample)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; sample.length - <span class="number">1</span>; i++) &#123;</span><br><span class="line">            <span class="keyword">int</span> max_idx = i;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> j = i; j &lt; sample.length; j++) &#123; <span class="comment">// 这里注意一下，是对整个数组做 selection，所以为 sample.length, 如果写为 sample.length-1 则最后一个元素会跳过排序</span></span><br><span class="line">                <span class="keyword">if</span> (sample[max_idx] &lt; sample[j]) &#123;</span><br><span class="line">                    max_idx = j;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (max_idx != i) &#123;</span><br><span class="line">                swap(sample, i, max_idx);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">swap</span><span class="params">(<span class="keyword">int</span>[] sample, <span class="keyword">int</span> i, <span class="keyword">int</span> j)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> tmp = sample[i];</span><br><span class="line">        sample[i] = sample[j];</span><br><span class="line">        sample[j] = tmp;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// Origin: [32, 47, 97, 16, 3, 81, 61, 78, 43, 65]</span></span><br><span class="line"><span class="comment">// After:  [97, 81, 78, 65, 61, 47, 43, 32, 16, 3]</span></span><br></pre></td></tr></table></figure>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/hexo/page/9/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/hexo/">1</a><span class="space">&hellip;</span><a class="page-number" href="/hexo/page/9/">9</a><span class="page-number current">10</span><a class="page-number" href="/hexo/page/11/">11</a><span class="space">&hellip;</span><a class="page-number" href="/hexo/page/23/">23</a><a class="extend next" rel="next" href="/hexo/page/11/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <a class="extend prev" rel="prev" href="/hexo/page/9/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/hexo/">1</a><span class="space">&hellip;</span><a class="page-number" href="/hexo/page/9/">9</a><span class="page-number current">10</span><a class="page-number" href="/hexo/page/11/">11</a><span class="space">&hellip;</span><a class="page-number" href="/hexo/page/24/">24</a><a class="extend next" rel="next" href="/hexo/page/11/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1475,20 +1512,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">225</span>
+          <span class="site-state-item-count">232</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/hexo/categories/">
           
-        <span class="site-state-item-count">38</span>
+        <span class="site-state-item-count">39</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">203</span>
+        <span class="site-state-item-count">208</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1527,7 +1564,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">16:53</span>
+    <span title="站点阅读时长">17:06</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>

@@ -206,6 +206,908 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/08/05/Effective-Java-exceptions/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2022/08/05/Effective-Java-exceptions/" class="post-title-link" itemprop="url">Effective Java 异常</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-08-05 10:44:32" itemprop="dateCreated datePublished" datetime="2022-08-05T10:44:32+08:00">2022-08-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-12-01 19:27:30" itemprop="dateModified" datetime="2022-12-01T19:27:30+08:00">2022-12-01</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/Effective-Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Effective Java</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.9k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>异常章节摘抄</p>
+<ul>
+<li>只针对异常的情况才使用异常</li>
+<li>对可恢复的情况使用 checked exception, 不可恢复的使用 runtime exception</li>
+<li>避免滥用 checked exception</li>
+<li>优先使用 JDK 提供的标准异常</li>
+<li>抛出与上下文匹配的异常</li>
+<li>在方法注释上，为每个抛出的异常编写文档</li>
+<li>异常信息中包含失败信息</li>
+<li>让失败保持源字形</li>
+<li>不要忽略异常</li>
+</ul>
+<h2 id="只针对异常的情况才使用异常"><a href="#只针对异常的情况才使用异常" class="headerlink" title="只针对异常的情况才使用异常"></a>只针对异常的情况才使用异常</h2><p>展示一个产品代码中遇到的违反这条建议的的奇葩例子。底层 team 给了一个很奇葩的接口，一个 findPersonIdByPersonUUID 的方法，当找不到结果的时候，竟然会抛出 exception 而不是返回 null, 导致我这个调用方处理起来像是吃了屎一样难受。。。而且这样的逻辑把 ‘找不到’ 和 ‘代码异常’ 两中情况混在一起了，抛出了异常之后都不知道具体的 root cause，简直了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 底层实现</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BadPracticeServiceA</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">long</span> <span class="title">getPersonIdByPersonUUID</span><span class="params">(String personUuid)</span> </span>&#123;</span><br><span class="line">        Long person = getPersonId();</span><br><span class="line">        <span class="keyword">if</span> (person == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> ServiceApplicationException(<span class="string">&quot;Can not find PersonID by PersonUUID&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> person;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 作为上层的调用者，我在调用上述方法的时候不得不显示的处理他抛出的异常</span></span><br><span class="line"><span class="keyword">try</span> &#123;   </span><br><span class="line">    <span class="keyword">long</span> target = badPracticeServiceA.getPersonIdByPersonUUID(<span class="string">&quot;uuid&quot;</span>);</span><br><span class="line">&#125; <span class="keyword">catch</span> (IllegalStateException e) &#123;</span><br><span class="line">    log.info(<span class="string">&quot;Exception when get person id by person uuid &#123;&#125;, detail log msg: &#123;&#125;&quot;</span>, <span class="string">&quot;uuid&quot;</span>, e.getMessage());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> <span class="keyword">null</span>;</span><br></pre></td></tr></table></figure>
+
+<p>看 Effective Java 中 Stack 实现的时候又有了新的感悟。这里的 get 方法和 stack 里的 pop() 方法很像，而 pop 在拿不到值的时候会抛异常，和上面找不到的情况也很类似。不过相对以 Stack 的例子，上面如果要在找不到的时候抛异常，也不应该是 Exception 而是更友好的 RuntimeException。或者其他自定义的 NotFoundExcepiton 才对。</p>
+<h2 id="对可恢复的情况使用-checked-exception-不可恢复的使用-runtime-exception"><a href="#对可恢复的情况使用-checked-exception-不可恢复的使用-runtime-exception" class="headerlink" title="对可恢复的情况使用 checked exception, 不可恢复的使用 runtime exception"></a>对可恢复的情况使用 checked exception, 不可恢复的使用 runtime exception</h2><ul>
+<li>如果期望调用者能够适当的恢复，对于这种情况应该使用 checked exception</li>
+<li>runtime exception 和 error 行为上是等同的，没有捕获，当前线程停止</li>
+<li>runtime exception 表明程序错误</li>
+</ul>
+<h2 id="避免滥用-checked-exception"><a href="#避免滥用-checked-exception" class="headerlink" title="避免滥用 checked exception"></a>避免滥用 checked exception</h2><p>滥用 checked exception 会使你的 API 调用极其麻烦。一旦抛出 checked exception，调用者就必须 catch 他或者在方法标签中 throw，传播出去，无论哪种处理方式，都是对调用者不可忽视的负担。</p>
+<p>绕过 checked exception 的方法：</p>
+<ul>
+<li>使用 runtime exception 代替</li>
+<li>重构逻辑</li>
+</ul>
+<h2 id="优先使用-JDK-提供的标准异常"><a href="#优先使用-JDK-提供的标准异常" class="headerlink" title="优先使用 JDK 提供的标准异常"></a>优先使用 JDK 提供的标准异常</h2><p>常见的标准异常</p>
+<ul>
+<li>IllegalArgmentException</li>
+<li>IllegalStateException</li>
+<li>NullPointException</li>
+<li>IndexOutOfBoundsException</li>
+<li>ConcurrentModificationException</li>
+<li>UnsupportedOperaitonException</li>
+</ul>
+<h2 id="抛出与上下文匹配的异常"><a href="#抛出与上下文匹配的异常" class="headerlink" title="抛出与上下文匹配的异常"></a>抛出与上下文匹配的异常</h2><p>底层异常，传递到上层是可能和当前上下文不匹配，污染 API。这是需要在上层转译一下，重新抛出异常。如果异常栈对错误排查很有帮助，可以将 exception chain 一并传递给新的异常(Throwable 的 initCause 方法)</p>
+<p>异常转译比直接传递底层异常好，但更好的处理方式应该是调用底层方法之前确保他能执行成功，避免抛出一场。有时调用底层之前，先做一下参数监测可能是更好的方式。</p>
+<p>如果无法避免底层异常，次选方案是让上层悄悄绕开这些异常，从而使上层调用者和底层问题隔离开来，通常这是还会打个 log 记录，方便回溯问题。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/07/27/Java-Unified-Authorization-Architecture/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2022/07/27/Java-Unified-Authorization-Architecture/" class="post-title-link" itemprop="url">Java Unified Authorization Architecture</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-07-27 16:57:48" itemprop="dateCreated datePublished" datetime="2022-07-27T16:57:48+08:00">2022-07-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-12-01 19:27:30" itemprop="dateModified" datetime="2022-12-01T19:27:30+08:00">2022-12-01</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>6.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>6 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>前段时间，组内连续出了两个和 SCA 的 role/feature config 相关的 P1 issue，由于不知道它的实现原理，只能通过对比 PR 来找问题，太 low 了，特意读一下他的源码，学习一下下次再出现这种情况要怎么处理</p>
+<h2 id="Unified-Authorization-Architecture-是什么"><a href="#Unified-Authorization-Architecture-是什么" class="headerlink" title="Unified Authorization Architecture 是什么"></a>Unified Authorization Architecture 是什么</h2><p>这套框架的最终目的是阻止没有授权的用户执行某些 service command。从 MVC 分层上来说，它是在 controller 和 service 之间新加了一层逻辑，每次 service 执行之前都会检测一下，当前用户是否有权执行该 service。</p>
+<p>检测分两层，第一层是 company feature test, 第二层是 Role test</p>
+<h2 id="怎么配置"><a href="#怎么配置" class="headerlink" title="怎么配置"></a>怎么配置</h2><p>每个 repo 的 resource 文件夹中都有两个配置文件，分别叫做 featuer-access.xml 和 role-access.xml。他们就是两层检测的配置文件</p>
+<h3 id="Feature-protected-Service-Command"><a href="#Feature-protected-Service-Command" class="headerlink" title="Feature-protected Service Command"></a>Feature-protected Service Command</h3><p>feature 控制配置文件如下</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">activity-feature-map</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">module</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">activity</span> <span class="attr">id</span>=<span class="string">&quot;com.path.CreateUser&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">feature</span> <span class="attr">id</span>=<span class="string">&quot;Manage User&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">activity</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!-- ... --&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">module</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">activity-feature-map</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>他表示的意思是，对于当前 company，只有开启的 Manage User 这个 feature 才被允许执行 CreateUser 这个 service。所有可用的 feature 都存在 FeatureEnum.java 中。他位于 provisioning 文件夹下，那我估计他是和 provisioning 里的 company feature 挂钩的，之前还以为是和 RBP 的 permission 有关呢。</p>
+<p>PS: 但是当前几乎所有的 feature 配置都会默认配置 <code>&lt;feature id=&quot;*&quot;/&gt;</code>，也就是说，feature check 名存实亡</p>
+<h3 id="Role-protected-Service-Command"><a href="#Role-protected-Service-Command" class="headerlink" title="Role-protected Service Command"></a>Role-protected Service Command</h3><p>基于 role 的校验可以达到没有配置的用户不能执行 service 的效果</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">activity-permission-map</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">module</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">activity-group</span> <span class="attr">id</span>=<span class="string">&quot;myGroup01&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">activity</span> <span class="attr">id</span>=<span class="string">&quot;com.path.CreateUser&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">activity-group</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">activity-group</span> <span class="attr">id</span>=<span class="string">&quot;myGroup02&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">activity</span> <span class="attr">id</span>=<span class="string">&quot;com.path.DeleteUser&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">activity-group</span>&gt;</span></span><br><span class="line">    </span><br><span class="line">        <span class="tag">&lt;<span class="name">role</span> <span class="attr">id</span>=<span class="string">&quot;processJob&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">activity-group</span> <span class="attr">refid</span>=<span class="string">&quot;myGroup01&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">role</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">role</span> <span class="attr">id</span>=<span class="string">&quot;user&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">activity-group</span> <span class="attr">refid</span>=<span class="string">&quot;myGroup02&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">role</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">module</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">activity-permission-map</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>按照上述配置，login user 只能执行 delete user 这个 service 而不能执行 create user，如果执行了会抛出异常</p>
+<p>所有支持爹 role 定义在 PermissionBean 中，也可以去 Permission table 的 permission_type 中查看</p>
+<h3 id="特殊的-role"><a href="#特殊的-role" class="headerlink" title="特殊的 role"></a>特殊的 role</h3><p>当一个用户通过 /login, /samllogin 登陆到系统中后，对应的 permission 会存到 PermissionListBean 中。但还有其他特殊情况</p>
+<table>
+<thead>
+<tr>
+<th align="left">User type</th>
+<th align="left">Role</th>
+<th align="left">Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">Provisioners</td>
+<td align="left">provisioner</td>
+<td align="left">users authenticated via /provisioning_login.</td>
+</tr>
+<tr>
+<td align="left">SFV4 Client or Quartz Job</td>
+<td align="left">processJob</td>
+<td align="left">allows the SFV4 client/Quartz Job to execute service</td>
+</tr>
+<tr>
+<td align="left">Any Login User</td>
+<td align="left">user</td>
+<td align="left">any user authenticated via /login or /samllogin</td>
+</tr>
+</tbody></table>
+<p>还有一个很神奇的 User type, Anonymous, ParamBean 有一个方法 getAnonymousPrincipal() 注释说，这个 type 表示一个没有经过授权的 user, 猜测，比如，登陆前需要做一些测试，比如看  account 是否存在，这个时候就要用到这种类型的 user type 了。</p>
+<h2 id="工作流程"><a href="#工作流程" class="headerlink" title="工作流程"></a>工作流程</h2><p><a target="_blank" rel="noopener" href="https://confluence.successfactors.com/display/ENG/Unified+Authorization+Architecture+Technical+Specification">https://confluence.successfactors.com/display/ENG/Unified+Authorization+Architecture+Technical+Specification</a></p>
+<p>AppSec, short for application secirity. 看他的描述，是参考了 OWASP ESAPI 这个项目。</p>
+<p>This API will provide initially just two things:</p>
+<ul>
+<li>A thread local to store the current user</li>
+<li>A set of access control APIs</li>
+</ul>
+<p>The ThreadLocal principal is designed to be populated and cleared by a Servlet filter</p>
+<p>逻辑推测，server 启动的时候会加载分析 role/feature 配置文件，并存到一个静态类中，作为共用部分。后续当 SCA engine 调用 impl 之前，都会有一个 auth check 的过程。过程中会使用 AppSec 作为入口检测权限。大致过程就是这样，再细致的分析就得涉及到 RBP 那部分的内容了。最主要的参考文档应该是这个</p>
+<p><a target="_blank" rel="noopener" href="https://confluence.successfactors.com/display/ENG/Unified+Authorization+Architecture+Technical+Specification">https://confluence.successfactors.com/display/ENG/Unified+Authorization+Architecture+Technical+Specification</a></p>
+<p>他告诉这个过程的规范，涉及到的类和关系等</p>
+<p>public class AppsecConfigListener implements ServletContextListener 这个 class 被注册到 web.xml 中，看实现的接口应该是 servlet 启动结束后，到各个 module 中的加载 feature 和 role 的配置信息。</p>
+<p>ProvisioningLoginServlet.java - process() - provisionerBean.createProvisionerParamBean()</p>
+<p>  public ParamBean createProvisionerParamBean(CompanyBean cb) {<br>    ParamBean p = ParamBean.createDefaultParamBean(cb, PROVISIONER_PARAMBEAN_ROLE);<br>    p.getAppSecRoles().addAll(getAppSecRoles());<br>    return p;<br>  }</p>
+<p>ParamBean role as provisioner, 并将 sf_provisioner 中 flag 这个 column 里解析出来的 permission 加上 APP_SEC_PREFIX 添加到 role 中</p>
+<p>UiAuthenticationProcessorImpl.java - process() - start login</p>
+<p>GenericAuthorizationFilter 每次结束之后会将 appsec current user 置为 null</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">09:35:44,710 ERROR [AuditConfigExecutor] getConfigsFromDb error, company:QAAUTOCAND_RCMGoldenApp7.</span><br><span class="line">sf_class&#x3D;com.successfactors.appsec.AbstractAccessController line&#x3D;39 method&#x3D;assertAuthorizedFor depth&#x3D;1 </span><br><span class="line">AccessDeniedException&#123;user&#x3D;[RCMGoldenApp7,RCMGoldenApp7,QAAUTOCAND_RCMGoldenApp7.,dbPool1,null,null,en_US] , activity&#x3D;Activity&#123;type&#x3D;SERVICE, name&#x3D;&#39;com.successfactors.auditloggingservice.service.audit.command.AuditConfigQueryCmd&#39;, context&#x3D;null&#125;&#125;</span><br><span class="line">    at com.successfactors.appsec.AbstractAccessController.assertAuthorizedFor(AbstractAccessController.java:39)</span><br><span class="line">    at com.successfactors.appsec.AppSec.assertAuthorizedForService(AppSec.java:231)</span><br><span class="line">    at com.successfactors.sca.ServiceCommandEngine.authorizeService(ServiceCommandEngine.java:312)</span><br><span class="line">    at com.successfactors.sca.ServiceCommandEngine.execute(ServiceCommandEngine.java:238)</span><br><span class="line">    at com.successfactors.sca.service.spring.ServiceCommandProcessorSpring.execute(ServiceCommandProcessorSpring.java:451)</span><br><span class="line">    at com.successfactors.sca.service.handler.spring.SpringAppSCAHandler.execute(SpringAppSCAHandler.java:36)</span><br><span class="line">    at com.successfactors.auditloggingservice.service.audit.executor.AuditConfigExecutor.getConfigsFromDb(AuditConfigExecutor.java:85)</span><br><span class="line">    at com.successfactors.auditloggingservice.service.audit.executor.AuditConfigExecutor.getConfigValue(AuditConfigExecutor.java:55)</span><br><span class="line">    at com.successfactors.auditloggingservice.service.audit.executor.AuditConfigExecutor.getConfigValue(AuditConfigExecutor.java:49)</span><br><span class="line">    at com.successfactors.auditloggingservice.service.audit.executor.AuditKafkaSaveExecutor.needSave(AuditKafkaSaveExecutor.java:118)</span><br><span class="line">    at com.successfactors.auditloggingservice.service.audit.executor.AuditKafkaSaveExecutor.update(AuditKafkaSaveExecutor.java:80)</span><br><span class="line">    at com.successfactors.auditloggingservice.service.audit.executor.AuditKafkaSaveExecutor.lambda$0(AuditKafkaSaveExecutor.java:69)</span><br><span class="line">    at java.base&#x2F;java.util.concurrent.ThreadPoolExecutor.runWorker(Unknown Source)</span><br><span class="line">    at java.base&#x2F;java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)</span><br><span class="line">    at java.base&#x2F;java.lang.Thread.run(Unknown Source)</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="怎么测试"><a href="#怎么测试" class="headerlink" title="怎么测试"></a>怎么测试</h2><p>针对之前的两个 P1 issue 应该怎么写测试</p>
+<h2 id="市面上的同类型产品"><a href="#市面上的同类型产品" class="headerlink" title="市面上的同类型产品"></a>市面上的同类型产品</h2><p><a target="_blank" rel="noopener" href="https://confluence.successfactors.com/display/CST/12+SCA+Home">https://confluence.successfactors.com/display/CST/12+SCA+Home</a> 这个页面可以应该是 最全的 sca 文档了</p>
+<p>ESAPI</p>
+<feature id="Generic Objects"/>
+<activity-feature-map>
+    <module>
+        <activity id="com.successfactors.identityprofile.scimv2.service.pendingdata.SavePendingData">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.service.pendingdata.RemovePendingData">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.domainevent.incoming.personassignment.sca.ProcessPersonCreate">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.domainevent.incoming.personassignment.sca.SyncPersonDataAndClearPendingData">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.service.pendingdata.FindScimPendingDataEntityByAttributeNameAndValue">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.service.pendingdata.FindScimPendingDataEntitiesByUserResourceId">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.FindScimUserResourceByAccountId">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.FindScimUserResourceByPerPersonUuid">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.CreateScimUserResource">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.UpdateScimUserResource">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.DeleteScimUserResource">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.service.sca.SearchUserResourceV2">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.service.sca.CreateUserResourceV2">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.service.sca.UpdateUserResourceV2">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.service.sca.FindUserResourceV2ById">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.service.sca.DeleteUserResourceV2">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.ScimUserResourceMigration">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.realtimeidentitysync.identityconfiguration.dbmigration.CreateIdentityRealTimeSyncIgsConfiguration">
+            <feature id="*"/>
+        </activity>
+        <activity id="com.successfactors.identityprofile.technicaluser.service.sca.IPSRealTimeSyncTechnicalUserPermissions">
+            <feature id="*"/>
+        </activity>
+    </module>
+</activity-feature-map>
+
+
+<activity-permission-map>
+    <module>
+        <activity-group id="PendingData">
+            <activity id="com.successfactors.identityprofile.scimv2.service.pendingdata.SavePendingData"/>
+            <activity id="com.successfactors.identityprofile.scimv2.service.pendingdata.RemovePendingData"/>
+            <activity id="com.successfactors.identityprofile.scimv2.service.pendingdata.FindScimPendingDataEntityByAttributeNameAndValue"/>
+            <activity id="com.successfactors.identityprofile.scimv2.service.pendingdata.FindScimPendingDataEntitiesByUserResourceId"/>
+        </activity-group>
+        <activity-group id="personAssignmentDataHandler">
+            <activity id="com.successfactors.identityprofile.scimv2.domainevent.incoming.personassignment.sca.SyncPersonDataAndClearPendingData"/>
+            <activity id="com.successfactors.identityprofile.scimv2.domainevent.incoming.personassignment.sca.ProcessPersonCreate" />
+        </activity-group>
+        <activity-group id="ScimUserResoure">
+            <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.FindScimUserResourceByAccountId"/>
+            <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.FindScimUserResourceByPerPersonUuid"/>
+            <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.CreateScimUserResource"/>
+            <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.UpdateScimUserResource"/>
+            <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.DeleteScimUserResource"/>
+            <activity id="com.successfactors.identityprofile.scimv2.service.sca.SearchUserResourceV2"/>
+            <activity id="com.successfactors.identityprofile.scimv2.service.sca.CreateUserResourceV2"/>
+            <activity id="com.successfactors.identityprofile.scimv2.service.sca.UpdateUserResourceV2"/>
+            <activity id="com.successfactors.identityprofile.scimv2.service.sca.FindUserResourceV2ById"/>
+            <activity id="com.successfactors.identityprofile.scimv2.service.sca.DeleteUserResourceV2"/>
+            <activity id="com.successfactors.identityprofile.scimv2.scimuserresource.sca.ScimUserResourceMigration"/>
+        </activity-group>
+        <activity-group id="igsintegration">
+            <activity id="com.successfactors.identityprofile.realtimeidentitysync.identityconfiguration.dbmigration.CreateIdentityRealTimeSyncIgsConfiguration"/>
+            <activity id="com.successfactors.identityprofile.technicaluser.service.sca.IPSRealTimeSyncTechnicalUserPermissions"/>
+        </activity-group>
+
+<pre><code>    &lt;role id=&quot;processJob&quot;&gt;
+        &lt;activity-group refid=&quot;PendingData&quot;/&gt;
+        &lt;activity-group refid=&quot;ScimUserResoure&quot;/&gt;
+        &lt;activity-group refid=&quot;personAssignmentDataHandler&quot;/&gt;
+        &lt;activity-group refid=&quot;igsintegration&quot;/&gt;
+    &lt;/role&gt;
+    &lt;role id=&quot;user&quot;&gt;
+        &lt;activity-group refid=&quot;PendingData&quot;/&gt;
+        &lt;activity-group refid=&quot;ScimUserResoure&quot;/&gt;
+        &lt;activity-group refid=&quot;personAssignmentDataHandler&quot;/&gt;
+        &lt;activity-group refid=&quot;igsintegration&quot;/&gt;
+    &lt;/role&gt;
+    &lt;role id=&quot;anonymous&quot;&gt;
+        &lt;activity-group refid=&quot;PendingData&quot;/&gt;
+        &lt;activity-group refid=&quot;ScimUserResoure&quot;/&gt;
+        &lt;activity-group refid=&quot;personAssignmentDataHandler&quot;/&gt;
+    &lt;/role&gt;
+&lt;/module&gt;</code></pre></activity-permission-map>
+
+
+<p>a user which has not been authenticated.</p>
+<p>curl –location –request GET ‘<a target="_blank" rel="noopener" href="http://localhost:8080/rest/iam/scim/v2/Users/0bfa4ec0-a35d-4f64-881f-ed759108ff47&#39;">http://localhost:8080/rest/iam/scim/v2/Users/0bfa4ec0-a35d-4f64-881f-ed759108ff47&#39;</a></p>
+<p>AppsecConfigListener</p>
+<p>ServiceCommandEngine</p>
+<activity-group refid="DynamicGroups"/>
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/07/25/Statistics-histogram-and-distribution-curve/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2022/07/25/Statistics-histogram-and-distribution-curve/" class="post-title-link" itemprop="url">Statistics histogram and distribution curve</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-07-25 16:15:44" itemprop="dateCreated datePublished" datetime="2022-07-25T16:15:44+08:00">2022-07-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-12-01 19:27:30" itemprop="dateModified" datetime="2022-12-01T19:27:30+08:00">2022-12-01</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E6%95%B0%E5%AD%A6/" itemprop="url" rel="index">
+                    <span itemprop="name">数学</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>207</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>总结柱状图，分布曲线，平均值等概念</p>
+<h2 id="柱状图和分布曲线"><a href="#柱状图和分布曲线" class="headerlink" title="柱状图和分布曲线"></a>柱状图和分布曲线</h2><p>柱状图: 通过方块面积表示占比</p>
+<p>分布曲线: 是柱状图的一个大致的拟合</p>
+<p>正态分布曲线: 分布曲线的一种特殊形式</p>
+<h2 id="mean-vs-median-vs-mode"><a href="#mean-vs-median-vs-mode" class="headerlink" title="mean vs median vs mode"></a>mean vs median vs mode</h2><ul>
+<li>mean 很好理解，就是平均数，(N0 + N1 + … Nn )/n</li>
+<li>median 所有数排序，取中间那个即为 median</li>
+<li>mode, 用单词 most often 来解释好了，出现频率最高的那个数。比如有数组 1，2，3，3，5，5，5，5 那么 mode 为 5</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/07/22/Java-Autocloseable/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2022/07/22/Java-Autocloseable/" class="post-title-link" itemprop="url">Autocloseable 接口示例</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-07-22 17:51:52" itemprop="dateCreated datePublished" datetime="2022-07-22T17:51:52+08:00">2022-07-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-12-01 19:27:30" itemprop="dateModified" datetime="2022-12-01T19:27:30+08:00">2022-12-01</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>最近在看其他 team 的代码时，看到一个在 Filter 中添加 AutoCloseable 的方式来达到记录 perf log 的目的，听新颖的，记录一下并熟悉一下 AutoCloseable 接口的用法</p>
+<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><p>在这之前，我一直以为，想要在方法(request)执行前后记录执行时间，只能通过新建一个 拦截器 或者使用类似 Aspect 的技术。API team 的这个实现着实让我对 AutoCloseable 的使用有了新认识，之前对这个接口只是看到过的程度，哈哈。大致模型如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// perf 类实现 AutoCloseable 接口，在 close</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SimpleAutoCloseable</span> <span class="keyword">implements</span> <span class="title">AutoCloseable</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">SimpleAutoCloseable</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Start to record time cost for scope: &quot;</span> + name);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">close</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Stop record, print time cost: xx ms&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doFilter</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">try</span>(SimpleAutoCloseable auto = <span class="keyword">new</span> SimpleAutoCloseable(<span class="string">&quot;Request&quot;</span>)) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;special filter logic...&quot;</span>);</span><br><span class="line">            System.out.println(<span class="string">&quot;filterChain.doFilter(request, response)&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>测试类中，我们调用 client 的方法触发 try-with-resource 流程，查看 console log, 可以看到当 chain 的 doFilter 整体执行结束之后，自动打印了 perf 信息，666</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test_AutoCloseable_class_will_execute_close_after_try_block</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    Client client = <span class="keyword">new</span> Client();</span><br><span class="line">    client.doFilter();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Start to record time cost for scope: Request</span></span><br><span class="line"><span class="comment">// special filter logic...</span></span><br><span class="line"><span class="comment">// filterChain.doFilter(request, response)</span></span><br><span class="line"><span class="comment">// Stop record, print time cost: xx ms</span></span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/07/22/Python-Superset-quick-start/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2022/07/22/Python-Superset-quick-start/" class="post-title-link" itemprop="url">Python Superset install</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-07-22 11:19:30" itemprop="dateCreated datePublished" datetime="2022-07-22T11:19:30+08:00">2022-07-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-12-01 19:27:30" itemprop="dateModified" datetime="2022-12-01T19:27:30+08:00">2022-12-01</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/python/" itemprop="url" rel="index">
+                    <span itemprop="name">python</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>在同事的安利下安装完了 Superset, 然后大致浏览了一下他的功能特性，发现并不是我想要的。。。他属于一个 BI(Business Inteligence)工具，定位应该是提供了一整套数据可视化的方案。让你可以很方便的将数据展示给别人看。对于我现在的需求，我想要画一下某组数据的分布曲线，这个需求反而太原始了，用这个工具有点牛刀小用，而且效果不怎么好，可能我还是得回到 jupyter 那边去，哈哈</p>
+<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><p>docker 方式安装 Superset 的步骤中有一步是 load_example, 这步的过程中会去 github 上下载案例。不过由于 GFW 的问题，下载会失败。解决方案为，手动下载这个 repo 并在本地起一个服务器挂载这些资源，然后修改 docker 中下载 sample 脚本的配置即可。以下是下载资源，起服务部分配置</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">wget https://github.com/apache-superset/examples-data/archive/refs/heads/master.zip</span><br><span class="line">unzip master.zip</span><br><span class="line"><span class="comment"># 或者</span></span><br><span class="line">git <span class="built_in">clone</span> https://github.com/apache-superset/examples-data.git</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果是 zip 包方式，输入 cd examples-data-master</span></span><br><span class="line"><span class="built_in">cd</span> examples-data </span><br><span class="line"><span class="comment"># 启动服务器，这是你通过访问 localhost:9999 就能看到这个网站服务了</span></span><br><span class="line">python -m http.server 9999 </span><br><span class="line"><span class="comment"># 查看本机 ip 用于后续修改下载地址</span></span><br><span class="line"><span class="comment"># 显示结果中有一行格式类似 inet xx.xx.xx.xx netmask 0xffffe000 broadcast xx.xx.xx.xx</span></span><br><span class="line"><span class="comment"># 第一个 ip 段就是我们想要的</span></span><br><span class="line">ifconfig | grep inet</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="安装-Superset"><a href="#安装-Superset" class="headerlink" title="安装 Superset"></a>安装 Superset</h2><p>访问 <a target="_blank" rel="noopener" href="https://hub.docker.com/r/apache/superset">dockerhub</a> 查看安装文档，其实就是跟着指导 CV 一遍指令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 拉镜像并启动服务，通过 -p 参数修改外部暴露的端口 -p port_you_want:8088</span></span><br><span class="line">docker run -d -p 8080:8088 --name superset apache/superset</span><br><span class="line"><span class="comment"># 创建账户</span></span><br><span class="line">docker <span class="built_in">exec</span> -it superset superset fab create-admin \</span><br><span class="line">              --username admin \</span><br><span class="line">              --firstname Superset \</span><br><span class="line">              --lastname Admin \</span><br><span class="line">              --email admin@superset.com \</span><br><span class="line">              --password admin</span><br><span class="line"><span class="comment"># 升级 DB</span></span><br><span class="line">docker <span class="built_in">exec</span> -it superset superset db upgrade</span><br><span class="line"><span class="comment"># 修改下载地址</span></span><br><span class="line">docker <span class="built_in">exec</span> -it superset /bin/bash</span><br><span class="line">sed -i <span class="string">&#x27;s/BASE_URL = .*&quot;/BASE_URL = &quot;http:\/\/xx.xx.xx.xx:9999\/&quot;/g&#x27;</span> superset/examples/helpers.py</span><br><span class="line">sed -i <span class="string">&#x27;s/https:\/\/github.com\/apache-superset\/examples-data\/raw\/master\//http:\/\/xx.xx.xx.xx:9999\//g&#x27;</span> superset/examples/configs/datasets/examples/*.yaml</span><br><span class="line">sed -i <span class="string">&#x27;s/https:\/\/github.com\/apache-superset\/examples-data\/raw\/lowercase_columns_examples\//http:\/\/xx.xx.xx.xx:9999\//g&#x27;</span> superset/examples/configs/datasets/examples/*.yaml</span><br><span class="line">sed -i <span class="string">&#x27;s/https:\/\/raw.githubusercontent.com\/apache-superset\/examples-data\/master\//http:\/\/xx.xx.xx.xx:9999\//g&#x27;</span> superset/examples/configs/datasets/examples/*.yaml</span><br><span class="line"><span class="built_in">exit</span></span><br><span class="line"><span class="comment"># 加载案例</span></span><br><span class="line">docker <span class="built_in">exec</span> -it superset superset load_examples</span><br><span class="line"><span class="comment"># 官方说是 setup roles, 目测是账号权限之类的东西</span></span><br><span class="line">docker <span class="built_in">exec</span> -it superset superset init</span><br></pre></td></tr></table></figure>
+
+<p>到这里安装结束，通过访问 <a target="_blank" rel="noopener" href="http://localhost:8080/login/">http://localhost:8080/login/</a> 查看页面，使用 admin/admin 登陆</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/07/20/Statistics-concept/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2022/07/20/Statistics-concept/" class="post-title-link" itemprop="url">统计学上的一些概念</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-07-20 14:38:06" itemprop="dateCreated datePublished" datetime="2022-07-20T14:38:06+08:00">2022-07-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-12-01 19:27:30" itemprop="dateModified" datetime="2022-12-01T19:27:30+08:00">2022-12-01</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E6%95%B0%E5%AD%A6/" itemprop="url" rel="index">
+                    <span itemprop="name">数学</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>133</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="mean-vs-median-vs-mode"><a href="#mean-vs-median-vs-mode" class="headerlink" title="mean vs median vs mode"></a>mean vs median vs mode</h2><ul>
+<li>mean 很好理解，就是平均数，(N0 + N1 + … Nn )/n</li>
+<li>median 所有数排序，取中间那个即为 median</li>
+<li>mode, 用单词 most often 来解释好了，出现频率最高的那个数。比如有数组 1，2，3，3，5，5，5，5 那么 mode 为 5</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/07/04/Lesson-keep-humble/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo/images/jack.jpg">
+      <meta itemprop="name" content="Jack Zheng">
+      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jackpot">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/hexo/2022/07/04/Lesson-keep-humble/" class="post-title-link" itemprop="url">学徒的心</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-07-04 13:24:24" itemprop="dateCreated datePublished" datetime="2022-07-04T13:24:24+08:00">2022-07-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-12-01 19:27:30" itemprop="dateModified" datetime="2022-12-01T19:27:30+08:00">2022-12-01</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E6%9D%82%E8%AE%B0/" itemprop="url" rel="index">
+                    <span itemprop="name">杂记</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.6k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>最近这个从 session 中删除 provisioner bean 的工作做的确实不细致，有点懈怠了。在项目开始之前就没有做好工作安排，导致测试环境上出了 bug, 而且被其他 team challenge 了，实力打脸。以后应该吸取这个教训，案件还原如下。</p>
+<p>某日 MCAP 的需求提上日程(MCAP 是将现有服务移到公有云上的这么一个项目，所以要减小内存开销)，突然要落地这个 remove 的项目。前期有调研过，可行性方面还是没问题的，原始业务如下：</p>
+<p>在登陆时，将 provisioner bean 塞入 session， 在后续如果需要用到这个 bean, 通过 <code>context.get(&quot;provisionerBean&quot;)</code> 或者 <code>@Inject ProvisionerBean provisionerBean</code> 的方式获取。在查看原有业务时，我们发现，在存入 bean 的时候还会将对应的 id 存入 session。 那么作为解决方案，我们可以在现有拿 bean 的地方，通过拿 id 并查 DB 拿到 user 的方式绕过去。</p>
+<p>在给 module team 实施修改方案的时候，他们提出一些 concern：多了访问 DB 的过程，有降低 performance 的风险。和 arch review 了这种风险，结合我们的实际使用场景，这个 provisioner 是后台管理人员，作为维护和系统 setup 的角色，使用频率很低，所以可以忽略这种风险。</p>
+<p>目前为止都 OK 但是改代码的时候就有点粗暴，原来使用方式</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ProvisionerBean provisionerBean = SFContext.getContext().getInstance(SessionConstants.PROVISIONER_BEAN, <span class="keyword">false</span>);</span><br><span class="line"><span class="comment">// 或者</span></span><br><span class="line"><span class="meta">@Qualifier(SessionConstants.PROVISIONER_BEAN)</span></span><br><span class="line"><span class="meta">@Inject</span></span><br><span class="line"><span class="keyword">private</span> ProvisionerBean provisionerBean;</span><br></pre></td></tr></table></figure>
+
+<p>这种使用方式是不会抛异常的，只要 get 就行了，但是用查 DB 的方式代替之后，会额外附带异常处理类似</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">String provisionerId = SFContext.getContext().getInstance(SessionConstants.PROVISIONER_ID, <span class="keyword">false</span>);</span><br><span class="line">ProvisionerDataService provisionerDataService = SFContext.getContext().getInstance(ProvisionerDataService.NAME, <span class="keyword">true</span>);</span><br><span class="line">ProvisionerBean provisionerBean = <span class="keyword">null</span>;</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    provisionerBean = provisionerDataService.findProvisionerById(provisionerId);</span><br><span class="line">&#125; <span class="keyword">catch</span> (ServiceApplicationException e) &#123;</span><br><span class="line">    LOGGER.error(<span class="string">&quot;Exception occured while getting provisionerBean&quot;</span>,e);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>module team 反馈这种改法侵入性太强，会对他们的代码结构有很大的改变，涉及到源码和大批的 UT 改动。和他们讨论之后，我们打算将这个改动封装到我们内部的类中，并通过统一的接口暴露给外部使用。接口中处理异常，module 只负责调用而不产生其他副作用</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// provisionerServiceImpl.class</span></span><br><span class="line">fetchProvisionerFromContext() &#123;</span><br><span class="line">    String provisionerId = context.get(<span class="string">&quot;provisionerId&quot;</span>);</span><br><span class="line">    ProvisionerBean provisionerBean = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">if</span> (provisionerId != empty) &#123;</span><br><span class="line">        provisionerBean = service.findProvisionerFromDB(provisionerId);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        provisionerBean = context.get(provisionerBean);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> provisionerBean</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的只是简化版，实际代码中的逻辑还包括了从 session 中拿 provisioner bean 和 db 中查询结果做比较，如果不同则返回 session 中的结果并打印 log 记录。然后我们有另外一套 Splunk 的系统，我们可以在代码部署后通过检查 log 检测是否有预期外的行为，而且这种方式不会对现有的行为产生任何影响。</p>
+<p>然而世事难料，和 Arch review 代码的时候，他提出了一种新的修改方式，由于我们要改的那些东西是在 SFContext 里面的，我们也许可以通过框架层面的修改来改变 bean 的生成方式，这种方式的侵入性是最小的。ProvisionerBean 是通过 factory bean 的方式向 context 的中注入 bean 的，我们可以 refactor 一下生成方式，改为先从 session 中拿到 id 然后调用 service 拿 DB 数据组成 bean。这样的话，所有调用点都不用改了，perfect！</p>
+<p>又经过一轮 research，大致确定了通过修改 factory bean 的方案，我们返回 prototype 类型的 bean, 使用过后通过 GC 回收。而且后续其他 module 需要修改的代码量减少了很多, 对比如下</p>
+<table>
+<thead>
+<tr>
+<th align="left">Before</th>
+<th align="left">After</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">repo:13, call: 34</td>
+<td align="left">repo: 6, call: 9</td>
+</tr>
+</tbody></table>
+<p>如果修改点比较多，还需要专门建立一个文档记录修改做追踪用</p>
+<p>感觉这才是 Arch 这个角色的价值。contract, 就硬改，也不会看修改的地方是什么feature，不会想测测是不是有可能做回归。我现能达到的程度是，能够将这个 refactor 的任务条理理清楚，做改动的时候有这个 sense 去看看调用栈，看看会不会有什么没考虑到的情况并考虑如何测试改动。Arch 则是看了要改的地方，先看看系统本身是不是有地方提供了统一处理的能里，在达到目的的同时，将影响最小化，做法很优雅。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/06/27/Spring-AOP-quick-start/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -237,7 +1139,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-30 15:56:47" itemprop="dateModified" datetime="2022-08-30T15:56:47+08:00">2022-08-30</time>
+                <time title="修改时间：2022-12-01 19:27:30" itemprop="dateModified" datetime="2022-12-01T19:27:30+08:00">2022-12-01</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -257,14 +1159,14 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>1k</span>
+              <span>4.8k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
+              <span>4 分钟</span>
             </span>
 
         </div>
@@ -276,7 +1178,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>快速了解 AOP 必要只是并写出 demo。这篇文上是在我系统学了 AOP 的基本使用之后再写的，之前遇到的很多痛点都体现不出来了。花了挺多时间读官方文档的时候，很多问题都迎刃而解了，就是比较花时间。之前失败的主要原因是 pointcut 的表达式写错了，tomcat 起了，但是服务都失败了。。。。</p>
+          <p>快速了解 AOP 必要知识并给出 demo。这篇文章是在我系统学了 AOP 的基本使用之后再写的，之前遇到的很多痛点都体现不出来了。花了挺多时间读官方文档的时候，然后很多问题都迎刃而解了，就是比较花时间。之前失败的主要原因是 pointcut 的表达式写错了，tomcat 起了，但是服务都失败了。。。。</p>
 <h2 id="简单概括什么是-AOP"><a href="#简单概括什么是-AOP" class="headerlink" title="简单概括什么是 AOP"></a>简单概括什么是 AOP</h2><p>不破坏代码结构的情况下，为代码添加功能，典型案例如打印方法的执行时间。</p>
 <h2 id="AOP-涉及的专有名词"><a href="#AOP-涉及的专有名词" class="headerlink" title="AOP 涉及的专有名词"></a>AOP 涉及的专有名词</h2><ul>
 <li>Joinpoint - 要匹配的方法</li>
@@ -284,17 +1186,25 @@
 <li>Advice - 检测到匹配方法的时候要执行的 额外 逻辑</li>
 <li>Aspect - 带 @Aspect 的那个类</li>
 </ul>
+<p>详细的指代会在下面的例子中标记出来，光是名词实在难记</p>
 <h2 id="怎么写"><a href="#怎么写" class="headerlink" title="怎么写"></a>怎么写</h2><p>如果 Spring 整体环境已经搭建完成，如果你想要新建一个 Aspect 只需要做两件事</p>
 <ol>
-<li>写 Aspect 文件，最简单的方式是，写 Advice 方法，并在注解中添加 pointcut 表达式</li>
-<li>注册 Aspect, 不过如果是已经运行的系统，这步应该不用做，都是自动扫描的<ol>
-<li>Xml</li>
-<li>Annotation</li>
+<li>写 Aspect 文件，最简单的方式是写 Advice 方法，并在注解中添加 pointcut 表达式</li>
+<li>注册 Aspect, 可以通过 Xml 或者 Annotation 注册</li>
 </ol>
-</li>
-</ol>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Aspect</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">IssueAspect</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Before(&quot;within(issues.*)&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doBeforeLog</span><span class="params">(JoinPoint joinPoint)</span> </span>&#123;</span><br><span class="line">        String methodName = joinPoint.getSignature().getName();</span><br><span class="line">        System.out.printf(<span class="string">&quot;Before Advice of method %s is called...%n&quot;</span>, methodName);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在实际例子中标注 AOP 相关的概念，直接看名词很难记住，理解</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// @Aspect 指代的就是一个切面，即 aspect 这个概念</span></span><br><span class="line"><span class="meta">@Aspect</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyAspect</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// pointcut expression, 表示匹配规则，哪些方法需要被处理</span></span><br><span class="line">    <span class="meta">@Pointcut(&quot;target(official.AopTestService)&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">pointcutName</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// @Around 即为 Advice, 表示切入方式，其他还有 @Before, @After 等多种方式</span></span><br><span class="line">    <span class="meta">@Around(&quot;pointcutName()&quot;)</span></span><br><span class="line">    <span class="comment">// 可以合并简写为 @Around(&quot;target(official.AopTestService)&quot;)</span></span><br><span class="line">    <span class="comment">// join point 表示被拦截的方法，可以从它里面拿到方法名，参数等信息</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">aroundSayHello</span><span class="params">(ProceedingJoinPoint joinPoint)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Before join point...&quot;</span>);</span><br><span class="line">        Object obj = joinPoint.proceed();</span><br><span class="line">        System.out.println(<span class="string">&quot;After join point...&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> obj;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 目标 service，当 service 方法执行时会触发切面</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AopTestService</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sayHello</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Hello, &quot;</span> + name);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">greet</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Hello, there&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 配置类</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableAspectJAutoProxy</span></span><br><span class="line"><span class="meta">@ComponentScan(basePackages = &quot;official&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AppConfig</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 执行方法</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ApplicationContext ctx = <span class="keyword">new</span> AnnotationConfigApplicationContext(AppConfig.class);</span><br><span class="line">        ctx.getBean(<span class="string">&quot;aopTestService&quot;</span>, AopTestService.class).greet();</span><br><span class="line">        ctx.getBean(<span class="string">&quot;aopTestService&quot;</span>, AopTestService.class).sayHello(&quot;Jack&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<h2 id="原理剖析"><a href="#原理剖析" class="headerlink" title="原理剖析"></a>原理剖析</h2><p>所有的实现都是基于代理模式完成的。基础版本，不借助任何 lib, 纯 Java 实现。假设我们有 ISubject 接口，和对应的实现类 SubjectImpl，代理类 SubjectProxy。我们可以通过调用 SubjectProxy 来触发 SubjectImpl 并添加我们自己的定制逻辑。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 抽象的业务逻辑接口</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">ISubject</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">request</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 具体的实现类</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SubjectImpl</span> <span class="keyword">implements</span> <span class="title">ISubject</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">request</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Invoke request in SubjectImpl...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 代理类，可以添加定制的方法</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SubjectProxy</span> <span class="keyword">implements</span> <span class="title">ISubject</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> ISubject subject;</span><br><span class="line"></span><br><span class="line">   <span class="comment">// constructor + set method</span></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">request</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Call request in proxy...&quot;</span>);</span><br><span class="line">        subject.request();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 调用场景</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ISubject subject = <span class="keyword">new</span> SubjectProxy(<span class="keyword">new</span> SubjectImpl());</span><br><span class="line">        subject.request();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>进阶使用，如果还有其他接口比如 IRequestable 也有 request 方法，那么为了实现代理，我们还需要为他新建一个代理类，如果类似的类很多，就会有很多代码冗余。JDK提供了动态代理的机制解决这种问题，概括来就是给出时间对象和目标接口，就能实现代理逻辑的统一操作</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RequestCtrlInvocationHandler</span> <span class="keyword">implements</span> <span class="title">InvocationHandler</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Object target;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">RequestCtrlInvocationHandler</span><span class="params">(Object target)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.target = target;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">invoke</span><span class="params">(Object proxy, Method method, Object[] args)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Invoke method in InvocationHandler...&quot;</span>);</span><br><span class="line">        <span class="keyword">if</span> (method.getName().equals(<span class="string">&quot;request&quot;</span>)) &#123;</span><br><span class="line">            <span class="keyword">return</span> method.invoke(target, args);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">InvocationHandlerClient</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        SubjectImpl impl = <span class="keyword">new</span> SubjectImpl();</span><br><span class="line">        ISubject subject = (ISubject) Proxy.newProxyInstance(</span><br><span class="line">                impl.getClass().getClassLoader(),</span><br><span class="line">                <span class="keyword">new</span> Class[]&#123;ISubject.class&#125;,</span><br><span class="line">                <span class="keyword">new</span> RequestCtrlInvocationHandler(impl));</span><br><span class="line">        subject.request();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>再进一步，上面的方法只能处理实现了接口的情况，如果类并没有实现接口，还想要增强的话，我们需要借助 Cglib 这个第三方库，在类上派生出一个子类，通过复写方法达到扩展的目的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 目标类，虽然后 request 方法，但是没有任何的接口</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Requestable</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">request</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Call in Requestable, without interface...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 通过 Cglib 实现的方法扩展</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RequestCtrlCallBack</span> <span class="keyword">implements</span> <span class="title">MethodInterceptor</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">intercept</span><span class="params">(Object o, Method method, Object[] objects, MethodProxy methodProxy)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (method.getName().equals(<span class="string">&quot;request&quot;</span>)) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Invoke method in MethodInterceptor...&quot;</span>);</span><br><span class="line">            <span class="keyword">return</span> methodProxy.invokeSuper(o, objects);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 调用方式</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CallBackClient</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Enhancer enhancer = <span class="keyword">new</span> Enhancer();</span><br><span class="line">        enhancer.setSuperclass(Requestable.class);</span><br><span class="line">        enhancer.setCallback(<span class="keyword">new</span> RequestCtrlCallBack());</span><br><span class="line"></span><br><span class="line">        Requestable proxy = (Requestable) enhancer.create();</span><br><span class="line">        proxy.request();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Spring 的实现中，会判断是否有接口，如果有则使用动态代理，如果没有则使用字节码增强。</p>
 <h2 id="奇怪的-behavior"><a href="#奇怪的-behavior" class="headerlink" title="奇怪的 behavior"></a>奇怪的 behavior</h2><p>最近发现产品上的 AOP 代码在两个 aspect 嵌套的情况下只会执行第一个 aspect，第二个直接跳过了，不知道是公司特有的还是 AOP 本来就有这种设定，特意检测一下</p>
 <blockquote>
 <p>场景重现:<br>service A 有两个 method01，method02 并且 method01 会调用 method02. 创建 Aspect 同时覆盖这两个方法，当 method01 执行时，method02 并不会被检测到。</p>
@@ -350,7 +1260,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-30 15:56:47" itemprop="dateModified" datetime="2022-08-30T15:56:47+08:00">2022-08-30</time>
+                <time title="修改时间：2022-12-01 19:27:30" itemprop="dateModified" datetime="2022-12-01T19:27:30+08:00">2022-12-01</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -465,7 +1375,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-30 15:56:47" itemprop="dateModified" datetime="2022-08-30T15:56:47+08:00">2022-08-30</time>
+                <time title="修改时间：2022-12-01 19:27:30" itemprop="dateModified" datetime="2022-12-01T19:27:30+08:00">2022-12-01</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -537,755 +1447,11 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/01/31/Nodejs-gitbook/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2022/01/31/Nodejs-gitbook/" class="post-title-link" itemprop="url">Nodejs + gitbook</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2022-01-31 15:26:22" itemprop="dateCreated datePublished" datetime="2022-01-31T15:26:22+08:00">2022-01-31</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-30 15:56:47" itemprop="dateModified" datetime="2022-08-30T15:56:47+08:00">2022-08-30</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/Nodejs/" itemprop="url" rel="index">
-                    <span itemprop="name">Nodejs</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.4k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>基于 Nodejs 的 gitbook， 感觉和 hexo 大同小意，不过还有额外的制作 pdf 和 ebook 等功能，值得一试</p>
-<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p>最终各软件版本信息如下</p>
-<ul>
-<li>node: v13.14.0</li>
-<li>CLI version: 2.3.2</li>
-<li>GitBook version: 3.2.3</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装</span></span><br><span class="line">npm install -g gitbook-cli</span><br><span class="line"><span class="comment"># 检测</span></span><br><span class="line">gitbook-cli -V</span><br></pre></td></tr></table></figure>
-
-<p>安装抛错</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">No receipt <span class="keyword">for</span> <span class="string">&#x27;com.apple.pkg.CLTools_Executables&#x27;</span> found at <span class="string">&#x27;/&#x27;</span>.</span><br><span class="line"></span><br><span class="line">No receipt <span class="keyword">for</span> <span class="string">&#x27;com.apple.pkg.DeveloperToolsCLILeo&#x27;</span> found at <span class="string">&#x27;/&#x27;</span>.</span><br><span class="line"></span><br><span class="line">No receipt <span class="keyword">for</span> <span class="string">&#x27;com.apple.pkg.DeveloperToolsCLI&#x27;</span> found at <span class="string">&#x27;/&#x27;</span>.</span><br><span class="line"></span><br><span class="line">gyp: No Xcode or CLT version detected!</span><br><span class="line">/usr/<span class="built_in">local</span>/lib/node_modules/gitbook-cli/node_modules/npm/node_modules/graceful-fs/polyfills.js:287</span><br><span class="line">      <span class="keyword">if</span> (cb) cb.apply(this, arguments)</span><br><span class="line">                 ^</span><br></pre></td></tr></table></figure>
-
-<p>重新安装 xcode-select, 去 app store 中搜索 xcode 并安装，挺花时间的，后年还要重新签一下协议。。。</p>
-<p>折腾一阵子还是失败了，最后搜了下谁是 gitbook 使用的 polyfills.js 还是旧版的，没有跟新，可以直接去这个文件中，将饮用的语句删掉，或者更新对用的库文件即可，我用了后者</p>
-<p>根据提示，打开文件，将该文件中的引用语句注释掉, 再试运行，正常</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// fs.stat = statFix(fs.stat)</span></span><br><span class="line"><span class="comment">// fs.fstat = statFix(fs.fstat)</span></span><br><span class="line"><span class="comment">// fs.lstat = statFix(fs.lstat)</span></span><br></pre></td></tr></table></figure>
-
-<p><code>gitbook init</code> 又报错了</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">TypeError [ERR_INVALID_ARG_TYPE]: The <span class="string">&quot;data&quot;</span> argument must be of <span class="built_in">type</span> string or an instance of Buffer, TypedArray, or DataView. Received an instance of Promise</span><br></pre></td></tr></table></figure>
-
-<p>说是版本过高。。。。草了, 打算使用 nvm 降一下</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 然而 DNS 被污染了，并不能拿到对应的文件，直接下载过到本地就行了, 然后 bash install.sh 即可</span></span><br><span class="line">curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash</span><br><span class="line"></span><br><span class="line"><span class="built_in">source</span> ~/.zshrc</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看安装结果，nvm 提示很完善</span></span><br><span class="line">nvm --version </span><br><span class="line"></span><br><span class="line">nvm ls-remote</span><br><span class="line"></span><br><span class="line">nvm install v13.14.0</span><br><span class="line"></span><br><span class="line">nvm use v13.14.0</span><br></pre></td></tr></table></figure>
-
-<p>切换版本之后，运行正常, 我估计可能 nvm 之后前面的那些改 js 文件的操作都可以省了</p>
-<h2 id="gitbook-使用"><a href="#gitbook-使用" class="headerlink" title="gitbook 使用"></a>gitbook 使用</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://chrisniael.gitbooks.io/gitbook-documentation/content/">中文版</a></li>
-</ul>
-<ol>
-<li>创建书本文件并 <code>gitbook init</code> 生成目录</li>
-<li><code>gitbook serve</code> 生成本地版电子书，访问 4000 端口阅读</li>
-</ol>
-<p>常用规则</p>
-<p>常用插件</p>
-<ul>
-<li>gitbook-plugin-summary 可以更具文件夹目录帮你自动生成对应的 summary 文件内容，安装完后输入 <code>book sm</code> 自动更新</li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/01/24/Redis-Docker/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2022/01/24/Redis-Docker/" class="post-title-link" itemprop="url">Redis + Docker 搭建方案</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2022-01-24 18:35:10" itemprop="dateCreated datePublished" datetime="2022-01-24T18:35:10+08:00">2022-01-24</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-30 15:56:47" itemprop="dateModified" datetime="2022-08-30T15:56:47+08:00">2022-08-30</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/Redis/" itemprop="url" rel="index">
-                    <span itemprop="name">Redis</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.8k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>2 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>通过 Redis 搭建 docker 实验环境</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">docker pull redis</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建容器</span></span><br><span class="line">docker run -itd --name redis-test -p 6379:6379 redis</span><br><span class="line"></span><br><span class="line"><span class="comment"># 进入容器</span></span><br><span class="line">docker <span class="built_in">exec</span> -it redis-test /bin/bash</span><br><span class="line"></span><br><span class="line"><span class="comment"># 开启客户端</span></span><br><span class="line">redis-cli</span><br><span class="line"><span class="comment"># 启动远程客户端</span></span><br><span class="line"><span class="comment"># redis-cli -h host -p port -a password</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 测试</span></span><br><span class="line">ping</span><br><span class="line"><span class="comment"># PONG</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 默认有 16 个数据库，默认用第 0 个</span></span><br><span class="line">select 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 显示当前库下所有的键</span></span><br><span class="line">keys *</span><br><span class="line"></span><br><span class="line"><span class="comment"># 清空当前 DB</span></span><br><span class="line">flushdb</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除所有数据库，危</span></span><br><span class="line">flushall</span><br></pre></td></tr></table></figure>
-
-<h3 id="Issues"><a href="#Issues" class="headerlink" title="Issues"></a>Issues</h3><p>清空的时候抛错，我估计是我的 docker redis 没有配置本地存储信息，并不能进行本地化相关操作，创建的时候挂在到本地可能就行了</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">flushdb </span><br><span class="line">(error) MISCONF Redis is configured to save RDB snapshots, but it is currently not able to persist on disk. Commands that may modify the data <span class="built_in">set</span> are disabled, because this instance is configured to report errors during writes <span class="keyword">if</span> RDB snapshotting fails (stop-writes-on-bgsave-error option). Please check the Redis logs <span class="keyword">for</span> details about the RDB error.</span><br></pre></td></tr></table></figure>
-
-<p>猜测失败，是配置问题，关闭了快找功能，导致保存失败，可以在客户端使用 <code>config set stop-writes-on-bgsave-error no</code> 解决问题</p>
-<h2 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 单个值最大能存储 512M</span></span><br><span class="line"><span class="built_in">set</span> name <span class="string">&quot;Jack&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 拿值</span></span><br><span class="line">get name</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看类型</span></span><br><span class="line"><span class="built_in">type</span> name</span><br><span class="line"></span><br><span class="line"><span class="comment"># 存储 hash</span></span><br><span class="line">HMSET runoob field1 <span class="string">&quot;Hello&quot;</span> field2 <span class="string">&quot;World&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># hash 取值</span></span><br><span class="line">HGET runoob field1</span><br><span class="line"><span class="comment">#&quot;Hello&quot;</span></span><br><span class="line">HGET runoob field2</span><br><span class="line"><span class="comment">#&quot;World&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># list 列表，左序存入</span></span><br><span class="line">lpush runoob redis</span><br><span class="line">lpush runoob mongodb</span><br><span class="line">lpush runoob rabbitmq</span><br><span class="line"></span><br><span class="line">lrange runoob 0 10</span><br><span class="line"><span class="comment"># 1) &quot;rabbitmq&quot;</span></span><br><span class="line"><span class="comment"># 2) &quot;mongodb&quot;</span></span><br><span class="line"><span class="comment"># 3) &quot;redis&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看列表大小</span></span><br><span class="line">llen runoob</span><br><span class="line"></span><br><span class="line"><span class="comment"># Set 无序集合</span></span><br><span class="line">sadd members jack</span><br><span class="line">sadd members tom</span><br><span class="line">sadd members tom</span><br><span class="line">smembers members</span><br><span class="line"><span class="comment"># 1) &quot;tom&quot;</span></span><br><span class="line"><span class="comment"># 2) &quot;jack&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看大小</span></span><br><span class="line">scard members</span><br><span class="line"></span><br><span class="line"><span class="comment"># zset 有序集合</span></span><br><span class="line">zadd dbs 0  mongodb</span><br><span class="line">zadd dbs 0  redis</span><br><span class="line">zadd dbs 0  rabit</span><br><span class="line"></span><br><span class="line">ZRANGEBYSCORE dbs 0 10000</span><br><span class="line"><span class="comment"># 1) &quot;mongodb&quot;</span></span><br><span class="line"><span class="comment"># 2) &quot;rabit&quot;</span></span><br><span class="line"><span class="comment"># 3) &quot;redis&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看大小</span></span><br><span class="line">zcard dbs</span><br></pre></td></tr></table></figure>
-
-<h2 id="Using-Redis-in-Python"><a href="#Using-Redis-in-Python" class="headerlink" title="Using Redis in Python"></a>Using Redis in Python</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装依赖</span></span><br><span class="line">pip install redis</span><br><span class="line"></span><br><span class="line"><span class="comment"># ipython 操作</span></span><br><span class="line">import redis</span><br><span class="line">r = redis.StrictRedis(host=<span class="string">&#x27;localhost&#x27;</span>, port=6379, db=0)</span><br><span class="line">r.set(<span class="string">&#x27;foo&#x27;</span>, <span class="string">&#x27;bar&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(r[<span class="string">&#x27;foo&#x27;</span>])</span><br><span class="line"><span class="comment"># b&#x27;bar&#x27;</span></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">type</span>(r.get(<span class="string">&#x27;foo&#x27;</span>)))</span><br><span class="line"><span class="comment"># &lt;class &#x27;bytes&#x27;&gt;</span></span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/01/18/MongoDB-Python/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2022/01/18/MongoDB-Python/" class="post-title-link" itemprop="url">MongoDB 基本概念 + Python 访问</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2022-01-18 16:12:21" itemprop="dateCreated datePublished" datetime="2022-01-18T16:12:21+08:00">2022-01-18</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-30 15:56:47" itemprop="dateModified" datetime="2022-08-30T15:56:47+08:00">2022-08-30</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/DB/" itemprop="url" rel="index">
-                    <span itemprop="name">DB</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>5.5k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>5 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="Setup-MongoDB-the-Docker-Way"><a href="#Setup-MongoDB-the-Docker-Way" class="headerlink" title="Setup MongoDB the Docker Way"></a>Setup MongoDB the Docker Way</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://hub.docker.com/_/mongo">镜像地址</a>, 包含了很多常用操作，比如挂载卷，导出数据，设置密码等</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 下载并启动一个镜像, 映射到 27017 端口并设置密码访问</span></span><br><span class="line"><span class="comment"># docker run -itd --name mymongo -p 27017:27017 mongo --auth</span></span><br><span class="line"><span class="comment"># 测试时不要加 --auth, 自找麻烦</span></span><br><span class="line">docker run -itd --name mymongo -v /Users/i306454/mongodb/data/db:/data/db -p 27017:27017 mongo</span><br><span class="line"></span><br><span class="line"><span class="comment"># 链接到 db 终端</span></span><br><span class="line">docker <span class="built_in">exec</span> -it mymongo mongo admin</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建 root/root 用户, 指定可操作的数据库</span></span><br><span class="line">db.createUser(&#123; user:<span class="string">&#x27;root&#x27;</span>,<span class="built_in">pwd</span>:<span class="string">&#x27;root&#x27;</span>,roles:[ &#123; role:<span class="string">&#x27;userAdminAnyDatabase&#x27;</span>, db: <span class="string">&#x27;admin&#x27;</span>&#125;,<span class="string">&quot;readWriteAnyDatabase&quot;</span>]&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment"># 以指定用户登陆</span></span><br><span class="line">db.auth(<span class="string">&#x27;root&#x27;</span>, <span class="string">&#x27;root&#x27;</span>)</span><br><span class="line"><span class="comment"># 1 授权成功</span></span><br><span class="line"></span><br><span class="line">use admin</span><br><span class="line"><span class="comment"># 查看系统信息</span></span><br><span class="line">db.getCollectionNames()</span><br></pre></td></tr></table></figure>
-
-<h3 id="Issues"><a href="#Issues" class="headerlink" title="Issues"></a>Issues</h3><p>mymongo 启动失败(之前遇到过，我记得我记录过了，怎么找不到那片文章了呢（；￣ェ￣）), 使用 docker logs mymongo 可以看到异常信息 “{“t”:{“$date”:”2022-01-18T08:26:55.448+00:00”},”s”:”E”,  “c”:”STORAGE”,  “id”:22312,   “ctx”:”initandlisten”,”msg”:”Error creating journal directory”,”attr”:{“directory”:”/data/db/journal”,”error”:”boost::filesystem::create_directory: No space left on device: &quot;/data/db/journal&quot;“}}”，创建容器时指定挂在位置即可</p>
-<h2 id="MongoDB-基本操作"><a href="#MongoDB-基本操作" class="headerlink" title="MongoDB 基本操作"></a>MongoDB 基本操作</h2><table>
-<thead>
-<tr>
-<th align="left">RDBMS</th>
-<th align="left">MongoDB</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left">表</td>
-<td align="left">集合</td>
-</tr>
-<tr>
-<td align="left">行</td>
-<td align="left">文档</td>
-</tr>
-<tr>
-<td align="left">列</td>
-<td align="left">字段</td>
-</tr>
-<tr>
-<td align="left">表联合</td>
-<td align="left">嵌入文档</td>
-</tr>
-<tr>
-<td align="left">主键</td>
-<td align="left">主键(MongoDB 提供了 key 为 _id)</td>
-</tr>
-</tbody></table>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 显示当前库对象，默认为 test 库</span></span><br><span class="line">db</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建并使用库</span></span><br><span class="line">use <span class="built_in">local</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 插入数据时会自动创建数据库</span></span><br><span class="line">db.local.insert(&#123;<span class="string">&quot;name&quot;</span>:<span class="string">&quot;Jack&quot;</span>&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除数据库</span></span><br><span class="line">use <span class="built_in">local</span></span><br><span class="line">db.dropDatabase()</span><br><span class="line"><span class="comment"># 查看结果</span></span><br><span class="line">show dbs</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建集合</span></span><br><span class="line">db.createCollection(<span class="string">&quot;runoob&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看集合</span></span><br><span class="line">show collections</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建集合并指定参数</span></span><br><span class="line">db.createCollection(<span class="string">&quot;mycol&quot;</span>, &#123; capped: <span class="literal">true</span>, autoIndexId: <span class="literal">true</span>, size: 6142800, max: 10000&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 其实不需要特别创建集合，插入文档时会自动生成</span></span><br><span class="line">db.mycal2.insert(&#123;<span class="string">&quot;name&quot;</span>:<span class="string">&quot;Jack&quot;</span>&#125;)</span><br><span class="line">&gt; show collections </span><br><span class="line">mycal2</span><br><span class="line">mycol</span><br><span class="line">runoob</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除集合</span></span><br><span class="line">db.mycal2.drop()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 插入文档</span></span><br><span class="line">db.collection_name.insert(doc)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 插入多个文档</span></span><br><span class="line"><span class="comment"># db.collection.insertMany(</span></span><br><span class="line"><span class="comment">#    [ &lt;document 1&gt; , &lt;document 2&gt;, ... ],</span></span><br><span class="line"><span class="comment">#    &#123;</span></span><br><span class="line"><span class="comment">#       writeConcern: &lt;document&gt;,</span></span><br><span class="line"><span class="comment">#       ordered: &lt;boolean&gt;</span></span><br><span class="line"><span class="comment">#    &#125;</span></span><br><span class="line"><span class="comment"># )</span></span><br><span class="line">db.runoob.insertMany([&#123;<span class="string">&quot;key&quot;</span>:<span class="string">&quot;name&quot;</span>&#125;, &#123;<span class="string">&quot;a&quot;</span>:1&#125;])</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看已插入的文档</span></span><br><span class="line">db.runoob.find()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 更新文档</span></span><br><span class="line">db.runoob.update(&#123;<span class="string">&quot;name&quot;</span>:<span class="string">&quot;Jack&quot;</span>&#125;, &#123;<span class="variable">$set</span>:&#123;<span class="string">&quot;name&quot;</span>:<span class="string">&quot;Jerry&quot;</span>&#125;&#125;)</span><br><span class="line"><span class="comment"># 修改多条</span></span><br><span class="line">db.col.update(&#123;<span class="string">&quot;name&quot;</span>:<span class="string">&quot;Jack&quot;</span>&#125;, &#123;<span class="variable">$set</span>:&#123;<span class="string">&quot;name&quot;</span>:<span class="string">&quot;Jerry&quot;</span>&#125;&#125;,&#123;multi:<span class="literal">true</span>&#125;)</span><br><span class="line"><span class="comment"># save 主键存在就更新，不存在就插入</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除文档</span></span><br><span class="line"><span class="comment"># db.collection.remove(</span></span><br><span class="line"><span class="comment">#    &lt;query&gt;,</span></span><br><span class="line"><span class="comment">#    &lt;justOne&gt;</span></span><br><span class="line"><span class="comment"># )</span></span><br><span class="line"><span class="comment"># 2.6以上版本</span></span><br><span class="line"><span class="comment"># db.collection.remove(</span></span><br><span class="line"><span class="comment">#    &lt;query&gt;,</span></span><br><span class="line"><span class="comment">#    &#123;</span></span><br><span class="line"><span class="comment">#      justOne: &lt;boolean&gt;,</span></span><br><span class="line"><span class="comment">#      writeConcern: &lt;document&gt;</span></span><br><span class="line"><span class="comment">#    &#125;</span></span><br><span class="line"><span class="comment"># )</span></span><br><span class="line">db.runoob.remove(&#123;<span class="string">&quot;a&quot;</span>:1&#125;)</span><br><span class="line"><span class="comment"># remove 已过时，官方推荐 deleteOne(), deleteMany()</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询文档</span></span><br><span class="line"><span class="comment"># db.collection.find(query, projection)</span></span><br><span class="line"><span class="comment"># .pretty() 格式化输出</span></span><br><span class="line">db.runoob.find(&#123;<span class="variable">$or</span>:[&#123;<span class="string">&quot;name&quot;</span>:<span class="string">&quot;Jerry&quot;</span>&#125;, &#123;<span class="string">&quot;key&quot;</span>:<span class="string">&quot;test&quot;</span>&#125;]&#125;).pretty()</span><br><span class="line"></span><br><span class="line"><span class="comment"># AND + OR 的例子</span></span><br><span class="line">db.col.find(&#123;<span class="string">&quot;likes&quot;</span>: &#123;<span class="variable">$gt</span>:50&#125;, <span class="variable">$or</span>: [&#123;<span class="string">&quot;by&quot;</span>: <span class="string">&quot;菜鸟教程&quot;</span>&#125;,&#123;<span class="string">&quot;title&quot;</span>: <span class="string">&quot;MongoDB 教程&quot;</span>&#125;]&#125;).pretty()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 条件操作</span></span><br><span class="line"><span class="comment"># (&gt;) 大于 - $gt</span></span><br><span class="line"><span class="comment"># (&lt;) 小于 - $lt</span></span><br><span class="line"><span class="comment"># (&gt;=) 大于等于 - $gte</span></span><br><span class="line"><span class="comment"># (&lt;= ) 小于等于 - $lte</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 清空集合</span></span><br><span class="line">db.col.remove(&#123;&#125;)</span><br><span class="line"><span class="comment"># 查看 likes &gt; 100 的数据</span></span><br><span class="line">db.col.find(&#123;likes : &#123;<span class="variable">$gt</span> : 100&#125;&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment"># type 操作</span></span><br><span class="line">db.col.find(&#123;title: &#123;<span class="variable">$type</span>:2&#125;&#125;)</span><br><span class="line"><span class="comment"># or</span></span><br><span class="line">db.col.find(&#123;title: &#123;<span class="variable">$type</span>:<span class="string">&#x27;string&#x27;</span>&#125;&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment"># limit, 同 SQL 中的 limit</span></span><br><span class="line"><span class="comment"># db.collection.find(query, projection)</span></span><br><span class="line"><span class="comment"># 查询返回所有数据，只显示 title, _id 属性</span></span><br><span class="line">db.col.find(&#123;&#125;,&#123;<span class="string">&quot;title&quot;</span>:1,_id:0&#125;).<span class="built_in">limit</span>(2)</span><br><span class="line"></span><br><span class="line"><span class="comment"># skip 跳过指定数量的数据</span></span><br><span class="line">db.col.find(&#123;&#125;,&#123;<span class="string">&quot;title&quot;</span>:1,_id:0&#125;).<span class="built_in">limit</span>(1).skip(1)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 排序，1 升序，-1 降序</span></span><br><span class="line">db.col.find(&#123;&#125;,&#123;<span class="string">&quot;title&quot;</span>:1,_id:0&#125;).sort(&#123;<span class="string">&quot;likes&quot;</span>:-1&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建索引</span></span><br><span class="line">db.col.createIndex(&#123;<span class="string">&quot;title&quot;</span>:1&#125;)</span><br><span class="line"><span class="comment"># 也可以创建复合索引</span></span><br><span class="line"><span class="comment"># 索引可以有额外参数</span></span><br><span class="line">db.values.createIndex(&#123;open: 1, close: 1&#125;, &#123;background: <span class="literal">true</span>&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 聚合，类似 count(*)</span></span><br><span class="line">db.COLLECTION_NAME.aggregate(AGGREGATE_OPERATION)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 其实只是 count 的话有更简单的方法</span></span><br><span class="line">db.col.count()</span><br><span class="line">db.col.count(&#123;<span class="string">&#x27;age&#x27;</span>:24&#125;)</span><br></pre></td></tr></table></figure>
-
-<h2 id="集成-pymongo"><a href="#集成-pymongo" class="headerlink" title="集成 pymongo"></a>集成 pymongo</h2><p>安装 lib <code>pip install pymongo</code></p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pymongo <span class="keyword">import</span> MongoClient</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果是默认配置</span></span><br><span class="line">client = MongoClient()</span><br><span class="line"><span class="comment"># 如果特殊配制</span></span><br><span class="line"><span class="comment"># myclient = pymongo.MongoClient(&quot;mongodb://localhost:27017/&quot;)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 显示 db 名字</span></span><br><span class="line">client.list_database_names()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建集合</span></span><br><span class="line">collection = client[<span class="string">&quot;ttt&quot;</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 展示集合名字</span></span><br><span class="line">collection.list_collection_names()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建文档</span></span><br><span class="line">mydoc = collection[<span class="string">&quot;sites&quot;</span>]</span><br><span class="line"><span class="comment"># 插入集合</span></span><br><span class="line">mydict = &#123; <span class="string">&quot;name&quot;</span>: <span class="string">&quot;RUNOOB&quot;</span>, <span class="string">&quot;alexa&quot;</span>: <span class="string">&quot;10000&quot;</span>, <span class="string">&quot;url&quot;</span>: <span class="string">&quot;https://www.runoob.com&quot;</span> &#125;</span><br><span class="line">mydoc.insert_one(mydict)</span><br><span class="line"><span class="comment"># 插入多条</span></span><br><span class="line">mydoc.insert_many(mylist)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询</span></span><br><span class="line">mydoc.find_one()</span><br><span class="line"><span class="comment"># 查询所有</span></span><br><span class="line"><span class="keyword">for</span> sub <span class="keyword">in</span> mydoc.find():</span><br><span class="line">    print(sub)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 指定字段</span></span><br><span class="line"><span class="keyword">for</span> x <span class="keyword">in</span> mydoc.find(&#123;&#125;,&#123; <span class="string">&quot;_id&quot;</span>: <span class="number">0</span>, <span class="string">&quot;name&quot;</span>: <span class="number">1</span>, <span class="string">&quot;alexa&quot;</span>: <span class="number">1</span> &#125;): </span><br><span class="line">    print(x)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 指定条件</span></span><br><span class="line">mydoc.find(&#123; <span class="string">&quot;name&quot;</span>: <span class="string">&quot;RUNOOB&quot;</span> &#125;)</span><br><span class="line"><span class="comment"># 比较</span></span><br><span class="line">mydoc.find(&#123; <span class="string">&quot;name&quot;</span>: &#123; <span class="string">&quot;$gt&quot;</span>: <span class="string">&quot;H&quot;</span> &#125; &#125;)</span><br><span class="line"><span class="comment"># 正则</span></span><br><span class="line">mydoc.find(&#123; <span class="string">&quot;name&quot;</span>: &#123; <span class="string">&quot;$regex&quot;</span>: <span class="string">&quot;^R&quot;</span> &#125; &#125;)</span><br><span class="line"><span class="comment"># 限制数量</span></span><br><span class="line">mydoc.find().limit(<span class="number">3</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 修改</span></span><br><span class="line">myquery = &#123; <span class="string">&quot;alexa&quot;</span>: <span class="string">&quot;10000&quot;</span> &#125;</span><br><span class="line">newvalues = &#123; <span class="string">&quot;$set&quot;</span>: &#123; <span class="string">&quot;alexa&quot;</span>: <span class="string">&quot;12345&quot;</span> &#125; &#125;</span><br><span class="line">mydoc.update_one(myquery, newvalues)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 排序</span></span><br><span class="line">mydoc.find().sort(<span class="string">&quot;alexa&quot;</span>)</span><br><span class="line">mydoc.find().sort(<span class="string">&quot;alexa&quot;</span>, <span class="number">-1</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除</span></span><br><span class="line">myquery = &#123; <span class="string">&quot;name&quot;</span>: <span class="string">&quot;Taobao&quot;</span> &#125;</span><br><span class="line">mydoc.delete_one(myquery)</span><br><span class="line"><span class="comment"># 删除多个</span></span><br><span class="line">myquery = &#123; <span class="string">&quot;name&quot;</span>: &#123;<span class="string">&quot;$regex&quot;</span>: <span class="string">&quot;^F&quot;</span>&#125; &#125;</span><br><span class="line">mydoc.delete_many(myquery)</span><br><span class="line"><span class="comment"># 删除所有</span></span><br><span class="line">mydoc.delete_many(&#123;&#125;)</span><br><span class="line"><span class="comment"># 删除集合</span></span><br><span class="line">mydoc.drop()</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2022/01/04/Spring-xml-to-bean-definition/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2022/01/04/Spring-xml-to-bean-definition/" class="post-title-link" itemprop="url">Spring XML 转化为 bean definition</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2022-01-04 15:04:23" itemprop="dateCreated datePublished" datetime="2022-01-04T15:04:23+08:00">2022-01-04</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-30 15:56:47" itemprop="dateModified" datetime="2022-08-30T15:56:47+08:00">2022-08-30</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/Spring/" itemprop="url" rel="index">
-                    <span itemprop="name">Spring</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>271</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>本文主要 focus 在 xml 到 bean definition 转化的过程，即 AbstractApplicationContext 的 refresh 方法的 obtainFreshBeanFactory()。转化过程是这个方法的一部分。本文会先介绍一些这个过程中用到的一些底层类实现，最后再总的将这部分内容捋一遍。</p>
-<h2 id="Document"><a href="#Document" class="headerlink" title="Document"></a>Document</h2><h2 id="BeanDefinitionHolder"><a href="#BeanDefinitionHolder" class="headerlink" title="BeanDefinitionHolder"></a>BeanDefinitionHolder</h2><p>BeanDefinitionHolder 是解析 xml 时的一个中间类，不对外暴露。只包含了三个属性 beanDefinition, beanName 和 alias。代表一个被解析的 bean 节点。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/12/27/Algorithm-binary-tree-special/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/12/27/Algorithm-binary-tree-special/" class="post-title-link" itemprop="url">二叉树专题讲解</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-12-27 17:03:23" itemprop="dateCreated datePublished" datetime="2021-12-27T17:03:23+08:00">2021-12-27</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-30 15:56:47" itemprop="dateModified" datetime="2022-08-30T15:56:47+08:00">2022-08-30</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/%E7%AE%97%E6%B3%95/" itemprop="url" rel="index">
-                    <span itemprop="name">算法</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>737</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="指南"><a href="#指南" class="headerlink" title="指南"></a>指南</h2><p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MzAxODQxMDM0Mw==&mid=2247484852&idx=1&sn=85b50b8b0470bb4897e517955f4e5002&chksm=9bd7fbbcaca072aa75e2a241064a403fde1e579d57ab846cd8537a54253ceb2c8b93cc3bf38e&scene=21#wechat_redirect">数据结构和算法学习指南</a></p>
-<p>数据结构的存储方式只有两种：数组(顺序存储) 和 链表(链式存储)。其他的结构，如队列，栈，图等都是以这两种为基础演变的。</p>
-<p>数据结构的基本操作：遍历 + 访问，具体一点就是：增删改查。数据结构类型有很多，但是他们的目的都是在不同的应用场景下，尽可能高效的增删改查，这就是数据结构的使命。</p>
-<p>数组遍历是典型的线性迭代结构，链表便利兼具迭代和递归，二叉树则是典型的非线性递归。</p>
-<p>数据结构是工具，算法则是通过合适的工具解决特定问题的方法。算法刷题建议从二叉树开始。二叉树最容易培养框架思维，大部分算法技巧，本质上都是树的遍历问题。</p>
-<h2 id="刷通二叉树第一期"><a href="#刷通二叉树第一期" class="headerlink" title="刷通二叉树第一期"></a>刷通二叉树第一期</h2><p>前置的一些基本概念：深度遍历/广度遍历。深度遍历有前序，中序和后序三种遍历方式。广度便利及我们平时说的层次遍历。</p>
-<p>前序遍历: 根结点 -&gt; 左子树 -&gt; 右子树</p>
-<p>中序遍历: 左子树 -&gt; 根结点 -&gt; 右子树</p>
-<p>后序遍历: 左子树 -&gt; 右子树 -&gt; 根结点</p>
-<p>层次便利: 只需按层次遍历既可</p>
-<p>PS: 吐槽一下前中后的定义，老是搞错，抓住根本，这些形容词都是用来表述根节点的。前序就是 root 先，左右子树的顺序都是固定的。</p>
-<p>完美二叉树(Perfect Binary Tree)：也翻译为满二叉树，理解为正三角形就行</p>
-<p>完全二叉树(Complete Binary Tree)：倒数第二层为完美二叉树，最后一层不全，叶子结点左对齐</p>
-<p>完满二叉树(Full Binary Tree): 只要有孩子，就是两个</p>
-<p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MzAxODQxMDM0Mw==&mid=2247487126&idx=1&sn=4de13e66397bc35970963c5a1330ce18&chksm=9bd7f09eaca0798853c41fba05ad5fa958b31054eba18b69c785ae92f4bd8e4cc7a2179d7838&scene=178&cur_album_id=2121994699837177859#rd">第一期</a></p>
-<p>通过练习，熟悉树的遍历框架</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 二叉树遍历框架 */</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">traverse</span><span class="params">(TreeNode root)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 前序遍历</span></span><br><span class="line">    traverse(root.left)</span><br><span class="line">    <span class="comment">// 中序遍历</span></span><br><span class="line">    traverse(root.right)</span><br><span class="line">    <span class="comment">// 后序遍历</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/12/13/Webssh2-quick-start/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/12/13/Webssh2-quick-start/" class="post-title-link" itemprop="url">Webssh2 quick start</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-12-13 15:49:18" itemprop="dateCreated datePublished" datetime="2021-12-13T15:49:18+08:00">2021-12-13</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-30 15:56:47" itemprop="dateModified" datetime="2022-08-30T15:56:47+08:00">2022-08-30</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/Webssh/" itemprop="url" rel="index">
-                    <span itemprop="name">Webssh</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>699</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>搭建 Webssh2 实验平台，熟悉工具使用模式，等后期试着拆解一下这个项目的细节，用到自己的小项目上。感觉道路有点崎岖。。。。</p>
-<p>这个东西本地部分挺简单的，clone 下来之后直接启动就行了，但是作为目标对象，需要一个测试用虚拟机，打算用 docker 起一个</p>
-<h2 id="Docker-测试对象创建"><a href="#Docker-测试对象创建" class="headerlink" title="Docker 测试对象创建"></a>Docker 测试对象创建</h2><p>之前还打算用 Centos 镜像自己搞一个的，结果各种换源出问题，然后找找 Ubuntu 的资源，直接发现一个配置好的镜像资源，6 啊，直接拿来用，香</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 作者在官方镜像基础上搭建的 https://hub.docker.com/r/rastasheep/ubuntu-sshd/</span></span><br><span class="line">docker pull rastasheep/ubuntu-sshd</span><br><span class="line"></span><br><span class="line">docker run -d -P --name test_sshd rastasheep/ubuntu-sshd</span><br><span class="line"></span><br><span class="line"><span class="comment"># 显示本地映射的端口</span></span><br><span class="line">docker port test_sshd 22</span><br><span class="line"><span class="comment"># 0.0.0.0:55000</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 本地测试，默认密码 root, 成功</span></span><br><span class="line">ssh root@localhost -p 55000</span><br></pre></td></tr></table></figure>
-
-<h2 id="webssh2-测试"><a href="#webssh2-测试" class="headerlink" title="webssh2 测试"></a>webssh2 测试</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> git@github.com:billchurch/webssh2.git</span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> webssh2/app</span><br><span class="line"></span><br><span class="line">npm install --production</span><br><span class="line"></span><br><span class="line">npm start</span><br></pre></td></tr></table></figure>
-
-<p>然后开启 browser 并访问 <a target="_blank" rel="noopener" href="http://localhost:2222/ssh/host/127.0.0.1?port=55000&amp;header=My%20Header&amp;headerBackground=red">http://localhost:2222/ssh/host/127.0.0.1?port=55000&amp;header=My%20Header&amp;headerBackground=red</a> 即可访问网站。而且貌似还能记住密码，登陆一次之后就不需要再次输入了</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jack-zheng.github.io/hexo/hexo/2021/12/02/Mongo-install/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/hexo/images/jack.jpg">
-      <meta itemprop="name" content="Jack Zheng">
-      <meta itemprop="description" content="我是张江搬砖小码农, 知识搬运工">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Jackpot">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/hexo/2021/12/02/Mongo-install/" class="post-title-link" itemprop="url">Mongo DB 安装</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-12-02 20:20:53" itemprop="dateCreated datePublished" datetime="2021-12-02T20:20:53+08:00">2021-12-02</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-30 15:56:47" itemprop="dateModified" datetime="2022-08-30T15:56:47+08:00">2022-08-30</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/hexo/categories/DB/" itemprop="url" rel="index">
-                    <span itemprop="name">DB</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.4k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>使用 Docker 的方式安装 MongoDB</p>
-<ol>
-<li>docker pull mongo</li>
-<li><code>docker run --name mymongo -d mongo</code> 使用默认设置启动</li>
-<li><code>docker exec -it mymongo bash</code> 链接控制台输入 <code>mongod --version</code> 验证安装情况</li>
-<li><code>mongo</code> 链接数据库, <code>exit</code> 退出</li>
-</ol>
-<h2 id="基本命令"><a href="#基本命令" class="headerlink" title="基本命令"></a>基本命令</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> dbs <span class="comment">-- 查看库</span></span><br><span class="line"></span><br><span class="line">db <span class="comment">-- 当前库名</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> 库名 <span class="comment">-- 使用</span></span><br><span class="line"></span><br><span class="line">&gt; db.students.insertOne(&#123;<span class="string">&quot;name&quot;</span>:<span class="string">&quot;Jack&quot;</span>&#125;) <span class="comment">-- 插入数据</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;acknowledged&quot;</span> : <span class="literal">true</span>,</span><br><span class="line">    <span class="string">&quot;insertedId&quot;</span> : ObjectId(<span class="string">&quot;61a8bfa9e0344414ad0ee1e3&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&gt; <span class="keyword">show</span> collections <span class="comment">-- 查看插入结果</span></span><br><span class="line">students</span><br><span class="line"></span><br><span class="line">&gt; db.students.find() <span class="comment">-- 查询</span></span><br><span class="line">&#123; <span class="string">&quot;_id&quot;</span> : ObjectId(<span class="string">&quot;61a8bfa9e0344414ad0ee1e3&quot;</span>), <span class="string">&quot;name&quot;</span> : <span class="string">&quot;Jack&quot;</span> &#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>Mac 上测试，启动立马停止，通过 <code>docker logs mymongo</code> 可以看到异常</p>
-<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;&quot;t&quot;:&#123;&quot;$date&quot;:&quot;2021-12-02T12:12:30.478+00:00&quot;&#125;,&quot;s&quot;:&quot;E&quot;,  &quot;c&quot;:&quot;STORAGE&quot;,  &quot;id&quot;:22312,   &quot;ctx&quot;:&quot;initandlisten&quot;,&quot;msg&quot;:&quot;Error creating journal directory&quot;,&quot;attr&quot;:&#123;&quot;directory&quot;:&quot;/data/db/journal&quot;,&quot;error&quot;:&quot;boost::filesystem::create_directory: No space left on device: \&quot;/data/db/journal\&quot;&quot;&#125;&#125;</span><br></pre></td></tr></table></figure>
-
-<p>Google 了一下，说是 Mac 才有的，docker volumn 不够了，可以通过指定挂在的 volumn 或者清理不用的 volumn 解决问题</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">docker run -d -p 3000:27017 -v /Users/user/work/m1:/data/db --name m1 --net mongo-net mongo mongod</span><br><span class="line"><span class="comment"># or</span></span><br><span class="line">docker volume prune</span><br><span class="line"><span class="comment"># 最后，上面那个 prune 没用，用了下面这个简化版的</span></span><br><span class="line">docker  run -d -p 3000:27017 -v /Users/xxxx/mongodb/data/db:/data/db --name mymongo mongo</span><br><span class="line"></span><br><span class="line">docker <span class="built_in">exec</span> -it some-mongo bash</span><br><span class="line">docker logs some-mongo</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/hexo/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/hexo/">1</a><span class="page-number current">2</span><a class="page-number" href="/hexo/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/hexo/page/23/">23</a><a class="extend next" rel="next" href="/hexo/page/3/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <a class="extend prev" rel="prev" href="/hexo/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/hexo/">1</a><span class="page-number current">2</span><a class="page-number" href="/hexo/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/hexo/page/24/">24</a><a class="extend next" rel="next" href="/hexo/page/3/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1331,20 +1497,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/hexo/archives/">
         
-          <span class="site-state-item-count">225</span>
+          <span class="site-state-item-count">232</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/hexo/categories/">
           
-        <span class="site-state-item-count">38</span>
+        <span class="site-state-item-count">39</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/hexo/tags/">
           
-        <span class="site-state-item-count">203</span>
+        <span class="site-state-item-count">208</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1383,7 +1549,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">16:53</span>
+    <span title="站点阅读时长">17:06</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v5.0.0
   </div>

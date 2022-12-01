@@ -1083,6 +1083,7 @@
 </ol>
 <p>插入类图 Here…</p>
 <p>这里我们举一个生活中常见的例子，外卖小哥。在这个情境下，外卖小哥就是我们的代理。帮我们执行买餐这个动作。同时作为扩展，它还可以帮我们买烟买水，倒垃圾等。。。虽然我不提倡这种做法，只用于举例，无伤大雅。</p>
+<p>PS: 最近更新了 Spring AOP 的 post，那边关于 Proxy 的 Java 实现会有更多的记载</p>
 <h2 id="静态代理"><a href="#静态代理" class="headerlink" title="静态代理"></a>静态代理</h2><p>公共接口，用来点单</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Order</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">order</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -1189,54 +1190,6 @@
       </categories>
       <tags>
         <tag>Design Pattern</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>深入理解 mybatis</title>
-    <url>/hexo/2020/10/12/Dive-into-mybatis/</url>
-    <content><![CDATA[<p>通过阅读 mybatis 源码，尝试深入理解其设计理念和实现方式。学习思路，通过对比 mybatis 代码结构和传统的 JDBC 实现来理解。说白了 mybatis 只是把传统的实现做了封装，避免了很多冗余代码。</p>
-<p>JDBC 流程和 mybatis 的对应比较：</p>
-<table>
-<thead>
-<tr>
-<th align="left">JDBC</th>
-<th align="left">Mybatis</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left">加载驱动, 获取连接</td>
-<td align="left">mybatis-config.xml</td>
-</tr>
-<tr>
-<td align="left">执行 SQL</td>
-<td align="left">SqlSessionFactory, SqlSession</td>
-</tr>
-<tr>
-<td align="left">组装结果</td>
-<td align="left">MappedStatement</td>
-</tr>
-</tbody></table>
-<h2 id="配置加载"><a href="#配置加载" class="headerlink" title="配置加载"></a>配置加载</h2><p>在 JDBC 实现中，我们通过类似如下代码得到连接信息</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DBUtils</span></span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String URL=<span class="string">&quot;jdbc:mysql://localhost:3306/mybatis&quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String NAME=<span class="string">&quot;root&quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String PASSWORD=<span class="string">&quot;root&quot;</span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">       </span><br><span class="line">    <span class="comment">//1.加载驱动程序</span></span><br><span class="line">    Class.forName(<span class="string">&quot;com.mysql.jdbc.Driver&quot;</span>);</span><br><span class="line">    <span class="comment">//2.获得数据库的连接</span></span><br><span class="line">    Connection conn = DriverManager.getConnection(URL, NAME, PASSWORD);</span><br><span class="line">    <span class="comment">// other actions...</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>在 mybatis 中，这些信息都是写在核心配置文件 xml 中的。样板如下</p>
-<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">configuration</span></span></span><br><span class="line"><span class="meta">        <span class="meta-keyword">PUBLIC</span> <span class="meta-string">&quot;-//mybatis.org//DTD Config 3.0//EN&quot;</span></span></span><br><span class="line"><span class="meta">        <span class="meta-string">&quot;http://mybatis.org/dtd/mybatis-3-config.dtd&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">environments</span> <span class="attr">default</span>=<span class="string">&quot;development&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">environment</span> <span class="attr">id</span>=<span class="string">&quot;development&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">transactionManager</span> <span class="attr">type</span>=<span class="string">&quot;JDBC&quot;</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">dataSource</span> <span class="attr">type</span>=<span class="string">&quot;POOLED&quot;</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;driver&quot;</span> <span class="attr">value</span>=<span class="string">&quot;com.mysql.jdbc.Driver&quot;</span>/&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;url&quot;</span> <span class="attr">value</span>=<span class="string">&quot;jdbc:mysql://localhost:3306/mybatis?...&quot;</span>/&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;username&quot;</span> <span class="attr">value</span>=<span class="string">&quot;root&quot;</span>/&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;password&quot;</span> <span class="attr">value</span>=<span class="string">&quot;12345678&quot;</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">dataSource</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">environment</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">environments</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">mappers</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">mapper</span> <span class="attr">resource</span>=<span class="string">&quot;com/jzheng/mapper/UserMapper.xml&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">mappers</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>加载相关的代码</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">String resource = <span class="string">&quot;mybatis-config.xml&quot;</span>;</span><br><span class="line"><span class="comment">// 获取文件流</span></span><br><span class="line">InputStream inputStream = Resources.getResourceAsStream(resource); </span><br><span class="line"><span class="comment">// 构建工厂</span></span><br><span class="line">SqlSessionFactory sqlSessionFactory = <span class="keyword">new</span> SqlSessionFactoryBuilder().build(inputStream);</span><br></pre></td></tr></table></figure>
-
-<p>想要了解的点：</p>
-<ol>
-<li>mybatis 是如何解析 xml 的 - 写一篇 Builder pattern 的文章，解析的时候重度使用这种模式</li>
-<li>在解析的时候都塞了一些什么东西</li>
-</ol>
-]]></content>
-      <categories>
-        <category>编程</category>
-      </categories>
-      <tags>
-        <tag>java</tag>
-        <tag>mybatis</tag>
       </tags>
   </entry>
   <entry>
@@ -2223,7 +2176,10 @@
   <entry>
     <title>Git 小贴士</title>
     <url>/hexo/2019/11/15/Git-Tips/</url>
-    <content><![CDATA[<h2 id="怎么更新-fork-repo"><a href="#怎么更新-fork-repo" class="headerlink" title="怎么更新 fork repo"></a>怎么更新 fork repo</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 检查 repo 状态</span></span><br><span class="line">git remote -v</span><br><span class="line">origin    git@github.corp:jack/vault.git (fetch)</span><br><span class="line">origin    git@github.corp:jack/vault.git (push)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 关联到原项目</span></span><br><span class="line">git remote add upstream git@github.corp:platform-core/vault.git</span><br><span class="line"><span class="comment"># 检查 repo 状态</span></span><br><span class="line">git remote -v</span><br><span class="line">origin    git@github.corp:jack/vault.git (fetch)</span><br><span class="line">origin    git@github.corp:jack/vault.git (push)</span><br><span class="line">upstream    git@github.corp:platform-core/vault.git (fetch)</span><br><span class="line">upstream    git@github.corp:platform-core/vault.git (push)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将原项目改动 sync 到本地</span></span><br><span class="line">git fetch upstream</span><br><span class="line"><span class="comment"># 更新本地分支</span></span><br><span class="line">git merge upstream/master</span><br><span class="line"><span class="comment"># 推送到本地分支的 remote，打完收工</span></span><br><span class="line">git push</span><br></pre></td></tr></table></figure>
+    <content><![CDATA[<h2 id="git-repo-迁移，附带-history"><a href="#git-repo-迁移，附带-history" class="headerlink" title="git repo 迁移，附带 history"></a>git repo 迁移，附带 history</h2><p>想要将 git repo 从 public 复制到公司的 enterprise 版本的 git 上，但是想要保留历史记录。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 复制 repo</span></span><br><span class="line">git <span class="built_in">clone</span> https://gitee.com/oldxxx/oldxxx.git</span><br><span class="line"><span class="comment"># 删除原有关联</span></span><br><span class="line">git remote remove origin</span><br><span class="line"><span class="comment"># 关联到新 repo</span></span><br><span class="line">git remote add origin https://gitee.com/newxxx/newxxx.git</span><br><span class="line"><span class="comment"># 推送至新 repo</span></span><br><span class="line">git push</span><br></pre></td></tr></table></figure>
+
+<h2 id="怎么更新-fork-repo"><a href="#怎么更新-fork-repo" class="headerlink" title="怎么更新 fork repo"></a>怎么更新 fork repo</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 检查 repo 状态</span></span><br><span class="line">git remote -v</span><br><span class="line">origin    git@github.corp:jack/vault.git (fetch)</span><br><span class="line">origin    git@github.corp:jack/vault.git (push)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 关联到原项目</span></span><br><span class="line">git remote add upstream git@github.corp:platform-core/vault.git</span><br><span class="line"><span class="comment"># 检查 repo 状态</span></span><br><span class="line">git remote -v</span><br><span class="line">origin    git@github.corp:jack/vault.git (fetch)</span><br><span class="line">origin    git@github.corp:jack/vault.git (push)</span><br><span class="line">upstream    git@github.corp:platform-core/vault.git (fetch)</span><br><span class="line">upstream    git@github.corp:platform-core/vault.git (push)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将原项目改动 sync 到本地</span></span><br><span class="line">git fetch upstream</span><br><span class="line"><span class="comment"># 更新本地分支</span></span><br><span class="line">git merge upstream/master</span><br><span class="line"><span class="comment"># 推送到本地分支的 remote，打完收工</span></span><br><span class="line">git push</span><br></pre></td></tr></table></figure>
 
 <h2 id="怎么查看一个月之前的版本信息"><a href="#怎么查看一个月之前的版本信息" class="headerlink" title="怎么查看一个月之前的版本信息"></a>怎么查看一个月之前的版本信息</h2><p>最近发现一个 bug 不知道是不是自己的代码改出来的，由于是一些 context 的改动不好查。打算直接一点，使用一个月之前(我的改动还没有进去的节点)的 build 起一个服务测试一下, git 支持类似的查找</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git <span class="built_in">log</span> --after=<span class="string">&quot;2014-02-12T16:36:00-07:00&quot;</span></span><br><span class="line">git <span class="built_in">log</span> --before=<span class="string">&quot;2014-02-12T16:36:00-07:00&quot;</span></span><br><span class="line">git <span class="built_in">log</span> --since=<span class="string">&quot;1 month ago&quot;</span></span><br><span class="line">git <span class="built_in">log</span> --since=<span class="string">&quot;2 weeks 3 days 2 hours 30 minutes 59 seconds ago&quot;</span></span><br></pre></td></tr></table></figure>
@@ -3949,6 +3905,42 @@
       </tags>
   </entry>
   <entry>
+    <title>JUnit5 快速入门</title>
+    <url>/hexo/2022/09/22/JUnit5-quick-start/</url>
+    <content><![CDATA[<p>进度：最终只是草草的过了一遍官方文档，知道了他只用法，以后要用到的时候再深入看看吧</p>
+<p>最近用到 SAP 的 scimono 这个 repo, 里面用到了 JUnit5，使用中发现和之前用的 TestNG 相比增加了很多有意思的特性，特意看下官方文档顺便写一些 demo 实践一下。</p>
+<p>官方文档：<a href="https://junit.org/junit5/docs/current/user-guide/">JUnit5</a></p>
+<p>PS: JUnit5 有一个相关的子项目 junit-platform-console-standalone，提供一个叫 ConsoleLauncher 的东西，可以通过命令行运行测试，给出的结果 UI 还挺好看</p>
+<h3 id="2-8-1-Operating-System-and-Architecture-Conditions"><a href="#2-8-1-Operating-System-and-Architecture-Conditions" class="headerlink" title="2.8.1 Operating System and Architecture Conditions"></a>2.8.1 Operating System and Architecture Conditions</h3><p>JUnit 中竟然还自带操作系统的删选，有点意思。下面的例子中，只有 MAC 相关的 case 能够执行。</p>
+<p>PS: 标签的 compose 使用还是挺有意思的，就是在新的标签上添加已有标签实现功能继承，有机会可以深入看看他是怎么实现这个特性的。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">QuickGuide</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="meta">@EnabledOnOs(MAC)</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">onlyOnMacOs</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;onlyOnMacOs&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@TestOnMac</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">testOnMac</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;testOnMac&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="meta">@EnabledOnOs(&#123; LINUX, MAC &#125;)</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">onLinuxOrMac</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;onLinuxOrMac&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="meta">@DisabledOnOs(WINDOWS)</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">notOnWindows</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;notOnWindows&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="meta">@EnabledOnOs(WINDOWS)</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">onWindows</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;notOnWindows&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Target(ElementType.METHOD)</span></span><br><span class="line">    <span class="meta">@Retention(RetentionPolicy.RUNTIME)</span></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="meta">@EnabledOnOs(MAC)</span></span><br><span class="line">    <span class="meta">@interface</span> TestOnMac &#123;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Disabled on operating system: Mac OS X</span></span><br><span class="line"><span class="comment">// notOnWindows</span></span><br><span class="line"><span class="comment">// testOnMac</span></span><br><span class="line"><span class="comment">// onlyOnMacOs</span></span><br><span class="line"><span class="comment">// onLinuxOrMac</span></span><br></pre></td></tr></table></figure>
+
+<p>除了操作系统，还有很多其他的筛选条件可供选择</p>
+<ul>
+<li>根据芯片架构，5.7 可配 <code>@DisabledOnOs(architectures = &quot;x86_64&quot;)</code></li>
+<li>根据JRE版本 <code>@DisabledForJreRange(max = JAVA_11)</code></li>
+<li>根据JVM删选 <code>@EnabledInNativeImage</code></li>
+<li>根据系统的 property 配置删选 <code>@EnabledIfSystemProperty(named = &quot;os.arch&quot;, matches = &quot;.*64.*&quot;)</code></li>
+<li>根据环境变量 <code>@EnabledIfEnvironmentVariable(named = &quot;ENV&quot;, matches = &quot;staging-server&quot;)</code></li>
+<li>自定义条件, 通过自己制定方法返回结果判断是否执行 UT, 示例如下，效果上和 ExecutionCondition 很像</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">QuickGuide3</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="meta">@EnabledIf(&quot;customCondition&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">enabled</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;enabled&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="meta">@DisabledIf(&quot;customCondition&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">disabled</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;disabled&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">customCondition</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// enabled</span></span><br><span class="line"><span class="comment">// @DisabledIf(&quot;customCondition&quot;) evaluated to true</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="2-11-Test-Instance-Lifecycle"><a href="#2-11-Test-Instance-Lifecycle" class="headerlink" title="2.11 Test Instance Lifecycle"></a>2.11 Test Instance Lifecycle</h2><p>JUnit 会在每个 test case 执行的时候新建一个 test instance 来达到隔离的目的，如果想要每个 class 共用一个 test instance, 可以在 class 上添加 <code>@TestInstance(Lifecycle.PER_CLASS)</code> 注释</p>
+<h2 id="2-12-Nested-Tests"><a href="#2-12-Nested-Tests" class="headerlink" title="2.12. Nested Tests"></a>2.12. Nested Tests</h2><p>通过 <code>@Nested</code> 注解可以将测试以一种更结构化的形式组织起来</p>
+<h2 id="2-13-Dependency-Injection-for-Constructors-and-Methods"><a href="#2-13-Dependency-Injection-for-Constructors-and-Methods" class="headerlink" title="2.13. Dependency Injection for Constructors and Methods"></a>2.13. Dependency Injection for Constructors and Methods</h2><p>可以通过 TestInfo 作为测试或这 class 的参数，提供一些环境信息，比如 case 名字，method 名字，annotation 信息等。</p>
+<h2 id="2-14-Test-Interfaces-and-Default-Methods"><a href="#2-14-Test-Interfaces-and-Default-Methods" class="headerlink" title="2.14. Test Interfaces and Default Methods"></a>2.14. Test Interfaces and Default Methods</h2><p>介绍如何在不使用 mock lib 的情况下测试 interface，不是很明白，用到再看</p>
+<h2 id="2-16-Parameterized-Tests"><a href="#2-16-Parameterized-Tests" class="headerlink" title="2.16. Parameterized Tests"></a>2.16. Parameterized Tests</h2><p>通过 @ParameterizedTest + @ValueSource 实现 TestNG 中 dataProvider 的效果</p>
+<h2 id="2-18-Dynamic-Tests"><a href="#2-18-Dynamic-Tests" class="headerlink" title="2.18. Dynamic Tests"></a>2.18. Dynamic Tests</h2><p>动态生成测试用例</p>
+]]></content>
+      <categories>
+        <category>java</category>
+      </categories>
+      <tags>
+        <tag>JUnit5</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Java内存模型与线程</title>
     <url>/hexo/2021/04/01/JVM-c12-java-memory-model-and-thread/</url>
     <content><![CDATA[<p>深入理解 Java 虚拟机第 12 章Java内存模型与线程笔记</p>
@@ -4093,6 +4085,35 @@
       </categories>
       <tags>
         <tag>snippet</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java 数据库基础</title>
+    <url>/hexo/2020/10/12/Java-DB-basic/</url>
+    <content><![CDATA[<h2 id="创建-JDBC-链接"><a href="#创建-JDBC-链接" class="headerlink" title="创建 JDBC 链接"></a>创建 JDBC 链接</h2><p>项目的 pom 文件中添加驱动引用</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line">// https://mvnrepository.com/artifact/mysql/mysql-connector-java</span><br><span class="line">implementation group: &#x27;mysql&#x27;, name: &#x27;mysql-connector-java&#x27;, version: &#x27;8.0.28&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>在 JDBC 实现中，我们通过类似如下代码得到连接信息</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JdbcConnectionTest</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String URL = <span class="string">&quot;jdbc:mysql://localhost:3306/mybatis&quot;</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String USER = <span class="string">&quot;root&quot;</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String PASSWORD = <span class="string">&quot;123456&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="comment">//1.加载驱动程序</span></span><br><span class="line">        Class.forName(<span class="string">&quot;com.mysql.jdbc.Driver&quot;</span>);</span><br><span class="line">        <span class="comment">//2. 获得数据库连接</span></span><br><span class="line">        Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);</span><br><span class="line">        <span class="comment">//3.操作数据库，实现增删改查</span></span><br><span class="line">        Statement stmt = conn.createStatement();</span><br><span class="line">        ResultSet rs = stmt.executeQuery(<span class="string">&quot;SELECT id, name, pwd FROM user&quot;</span>);</span><br><span class="line">        <span class="comment">//如果有数据，rs.next()返回true</span></span><br><span class="line">        <span class="keyword">while</span> (rs.next()) &#123;</span><br><span class="line">            System.out.println(rs.getInt(<span class="string">&quot;id&quot;</span>) + <span class="string">&quot;;&quot;</span> + rs.getString(<span class="string">&quot;name&quot;</span>) + <span class="string">&quot;;&quot;</span> + rs.getInt(<span class="string">&quot;pwd&quot;</span>));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在 mybatis 中，这些信息都是写在核心配置文件 xml 中的。样板如下</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">configuration</span></span></span><br><span class="line"><span class="meta">        <span class="meta-keyword">PUBLIC</span> <span class="meta-string">&quot;-//mybatis.org//DTD Config 3.0//EN&quot;</span></span></span><br><span class="line"><span class="meta">        <span class="meta-string">&quot;http://mybatis.org/dtd/mybatis-3-config.dtd&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">environments</span> <span class="attr">default</span>=<span class="string">&quot;development&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">environment</span> <span class="attr">id</span>=<span class="string">&quot;development&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">transactionManager</span> <span class="attr">type</span>=<span class="string">&quot;JDBC&quot;</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">dataSource</span> <span class="attr">type</span>=<span class="string">&quot;POOLED&quot;</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;driver&quot;</span> <span class="attr">value</span>=<span class="string">&quot;com.mysql.jdbc.Driver&quot;</span>/&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;url&quot;</span> <span class="attr">value</span>=<span class="string">&quot;jdbc:mysql://localhost:3306/mybatis?...&quot;</span>/&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;username&quot;</span> <span class="attr">value</span>=<span class="string">&quot;root&quot;</span>/&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;password&quot;</span> <span class="attr">value</span>=<span class="string">&quot;12345678&quot;</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">dataSource</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">environment</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">environments</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">mappers</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">mapper</span> <span class="attr">resource</span>=<span class="string">&quot;com/jzheng/mapper/UserMapper.xml&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">mappers</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>加载相关的代码</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">String resource = <span class="string">&quot;mybatis-config.xml&quot;</span>;</span><br><span class="line"><span class="comment">// 获取文件流</span></span><br><span class="line">InputStream inputStream = Resources.getResourceAsStream(resource); </span><br><span class="line"><span class="comment">// 构建工厂</span></span><br><span class="line">SqlSessionFactory sqlSessionFactory = <span class="keyword">new</span> SqlSessionFactoryBuilder().build(inputStream);</span><br></pre></td></tr></table></figure>
+
+<p>想要了解的点：</p>
+<ol>
+<li>mybatis 是如何解析 xml 的 - 写一篇 Builder pattern 的文章，解析的时候重度使用这种模式</li>
+<li>在解析的时候都塞了一些什么东西</li>
+</ol>
+]]></content>
+      <categories>
+        <category>DB</category>
+      </categories>
+      <tags>
+        <tag>java</tag>
+        <tag>mybatis</tag>
       </tags>
   </entry>
   <entry>
@@ -4459,6 +4480,48 @@
       </tags>
   </entry>
   <entry>
+    <title>创建可执行 jar</title>
+    <url>/hexo/2022/08/30/Java-create-executable-jar/</url>
+    <content><![CDATA[<p>今天在做 feature 的时候需要用到 SCIMono 这个项目里的 compliance test。看了一下它的执行逻辑，他是通过 jar 运行的，之前没有做过这种类型的东西，特别记录一下怎么创建类似的 jar 包。项目地址</p>
+<ul>
+<li><a href="https://github.com/jack-zheng/executable-jar">executable-jar</a></li>
+</ul>
+<h2 id="idea-创建创建可执行-jar"><a href="#idea-创建创建可执行-jar" class="headerlink" title="idea 创建创建可执行 jar"></a>idea 创建创建可执行 jar</h2><ul>
+<li><a href="https://blog.csdn.net/ouyang111222/article/details/73105086">参考 CSDN</a> </li>
+</ul>
+<ol>
+<li>创建测试 project，添加测试类 jk.Main 并添加测试方法 psvm 类型的即可</li>
+<li>右键 project -&gt; Open Module Settings -&gt; 选中 Artifacts</li>
+<li>在界面中间部分点击 ‘+’ 号，选择 JAR -&gt; From modules with dependencies</li>
+<li>‘Main Class:’ 中填入入口 class 的<strong>全路径</strong>, 也可以点文件夹 icon 选择，更方便</li>
+<li>点击 OK, idea 自动为你生成 MANIFEST.MF 文件。借助 idea 很多配置自动生成了，避免了很多错误</li>
+<li>在同一个界面的最右侧，勾选 ‘include in project build’，这个 jar 就会在 build 的时候自动创建，生产路径在同一界面给出了</li>
+<li>选择窗口顶部的 Build, 然后选择 rebuild project 或者 build artifacts 都行，可以看到目录树那边有生产 out 文件夹，里面就有对应的jar</li>
+<li>展开 out, 选中 jar 所在文件夹，右键 open in -&gt; Terminal, 输入 <code>java -jar executable-jar.jar jack</code> 和 <code>java -jar executable-jar.jar</code> 测试</li>
+</ol>
+<p>测试类代码如下</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(args.length &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Hello &quot;</span> + args[<span class="number">0</span>]);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Hello world&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Manifest-Version: 1.0</span><br><span class="line">Main-Class: jk.Main</span><br></pre></td></tr></table></figure>
+
+<h2 id="通过-maven-shade-插件简化创建过程"><a href="#通过-maven-shade-插件简化创建过程" class="headerlink" title="通过 maven shade 插件简化创建过程"></a>通过 maven shade 插件简化创建过程</h2><ul>
+<li><a href="https://maven.apache.org/plugins/maven-shade-plugin/">官方文档</a></li>
+<li><a href="https://github.com/apache/maven-shade-plugin">Git Repo</a></li>
+</ul>
+<p>官方文档有挺详细的说明文档，还包括使用例子。基本流程可以概括为，在 pom 文件中添加配置，然后在项目中运行 <code>maven package</code> 即可, 不过我看好多文章都写的 <code>maven clean package</code> 也不知道哪里抄的。运行结束后可以在 target 下看到两个 jar 包，不以 origin 开头的就是我们需要的那个 jar 包。使用这个 plugin 省去了很多配置的工作。</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-shade-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.3.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">goal</span>&gt;</span>shade<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">transformers</span>&gt;</span></span><br><span class="line">                    <span class="comment">&lt;!-- 指定入口程序 --&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">transformer</span> <span class="attr">implementation</span>=<span class="string">&quot;org.apache.maven.plugins.shade.resource.ManifestResourceTransformer&quot;</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">manifestEntries</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">Main-Class</span>&gt;</span>jk.Main<span class="tag">&lt;/<span class="name">Main-Class</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">manifestEntries</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">transformer</span>&gt;</span></span><br><span class="line">                    <span class="comment">&lt;!-- 整合 MF --&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">transformer</span> <span class="attr">implementation</span>=<span class="string">&quot;org.apache.maven.plugins.shade.resource.ServicesResourceTransformer&quot;</span>/&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">transformers</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="其他问题"><a href="#其他问题" class="headerlink" title="其他问题"></a>其他问题</h2><p>在 SCIMono 项目中，他将控制台收到的参数存到 System.properties 中，case 中从系统配置中那这些变量来使用。本地测试的时候可以在 UT 的 configuration 中添加 <code>-Dkey=value</code> 的方式添加这些配置</p>
+]]></content>
+      <categories>
+        <category>java</category>
+      </categories>
+      <tags>
+        <tag>可执行文件</tag>
+        <tag>jar</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>创建可运行 jar 应用</title>
     <url>/hexo/2021/11/11/Java-create-jar-application/</url>
     <content><![CDATA[<p>gradle, maven 都提供了现成的打 jar 功能</p>
@@ -4604,6 +4667,27 @@
         <tag>jsp</tag>
         <tag>servlet</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>Java jackson issue investigation</title>
+    <url>/hexo/2022/09/08/Java-jackson-issue-investigation/</url>
+    <content><![CDATA[<p>在测试 jackson API 的时候遇到一个很奇怪的问题，ObjectMapper 调用 print 之后再设置就不起作用了。下面的代码，最后的打印语句不能输出 protected 的 field，如果将第一个打印语句注释掉就可以。谷歌了半天没看到有人解答这个问题，汗，看来得自己看源码了。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SetVisibilityTest</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> String attr1 = <span class="string">&quot;public attr&quot;</span>;</span><br><span class="line">    <span class="keyword">protected</span> String attr5 = <span class="string">&quot;protected str&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        SetVisibilityTest bean = <span class="keyword">new</span> SetVisibilityTest();</span><br><span class="line"></span><br><span class="line">        ObjectMapper mapper = <span class="keyword">new</span> ObjectMapper();</span><br><span class="line">        System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(bean));</span><br><span class="line">        mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);</span><br><span class="line">        System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(bean));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>呃。。。下了源码，读了 ObjectMapper 的文档，至少从使用方面找到了这个限制。</p>
+<blockquote>
+<p>Mapper instances are fully thread-safe provided that ALL configuration of the<br>instance occurs before ANY read or write calls. If configuration of a mapper instance<br>is modified after first usage, changes may or may not take effect, and configuration<br>calls themselves may fail.</p>
+</blockquote>
+<p>解决方案有两种，一个是使用 ObjectReader/Writer 代替，另一个是新建一个 mapper 或者使用 mapper.copy() 效果一样。不过我对为什么会有这种 behavior 还是很好奇，可以继续看看源码</p>
+<h2 id="Jackson-基本信息"><a href="#Jackson-基本信息" class="headerlink" title="Jackson 基本信息"></a>Jackson 基本信息</h2><p>官网 <a href="https://github.com/FasterXML/jackson">Github - jackson</a></p>
+<p>主要由三部分组成</p>
+<ul>
+<li>Streaming, jackson-core 底层实现</li>
+<li>Annotation, jackson-annotation 注解相关</li>
+<li>Databind, jackson-databind 我们直接使用的层，做 POJO 到 Json 的 map</li>
+</ul>
+<p>貌似它里面还有关于对象树的处理，我对这种数据结构挺感兴趣，刚好看看他是怎么实现的。</p>
+]]></content>
   </entry>
   <entry>
     <title>Lambda 使用时遇到的一些奇奇怪怪的问题</title>
@@ -5191,6 +5275,10 @@
     <url>/hexo/2020/07/08/Linux-cmd-tips/</url>
     <content><![CDATA[<p>常用 Linux command 备忘录</p>
 <h2 id="sh-Vs-bash"><a href="#sh-Vs-bash" class="headerlink" title="sh Vs bash"></a>sh Vs bash</h2><p><code>sh</code> 是一种协议 shell command language. 而 <code>/bin/sh</code> 和 <code>/bin/bash</code> 是对他的两种不同的实现, 早起他们基本是一致的，但是随着 bash 的发展，他们变得不兼容起来。<code>/bin/sh</code> 还是标准，<code>/bin/bash</code> 则效率更高</p>
+<h2 id="快捷键"><a href="#快捷键" class="headerlink" title="快捷键"></a>快捷键</h2><ul>
+<li><code>ctr + w</code> 光标处开始删除一个 word</li>
+<li><code>ctr + /</code>, <code>ctr + _</code> 撤销删除，具体细节有所不同，但是都能达到目的</li>
+</ul>
 <h2 id="查看当前目录下文件最近修改时间"><a href="#查看当前目录下文件最近修改时间" class="headerlink" title="查看当前目录下文件最近修改时间"></a>查看当前目录下文件最近修改时间</h2><p>两种方式，一种是通过 <code>ls --full-time</code> 显示</p>
 <figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">ls --full-time</span><br><span class="line">total 60</span><br><span class="line">drwxr-xr-x    2 root     root          4096 2021-04-14 10:24:04 +0000 srv</span><br><span class="line">dr-xr-xr-x   13 root     root             0 2021-07-12 02:52:11 +0000 sys</span><br><span class="line">drwxr-xr-x    2 root     root          4096 2021-07-12 02:53:15 +0000 <span class="built_in">test</span></span><br><span class="line">drwxrwxrwt    1 root     root          4096 2021-05-04 17:21:05 +0000 tmp</span><br></pre></td></tr></table></figure>
 
@@ -5378,17 +5466,37 @@
 <h2 id="集成-pymongo"><a href="#集成-pymongo" class="headerlink" title="集成 pymongo"></a>集成 pymongo</h2><p>安装 lib <code>pip install pymongo</code></p>
 <figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> pymongo <span class="keyword">import</span> MongoClient</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果是默认配置</span></span><br><span class="line">client = MongoClient()</span><br><span class="line"><span class="comment"># 如果特殊配制</span></span><br><span class="line"><span class="comment"># myclient = pymongo.MongoClient(&quot;mongodb://localhost:27017/&quot;)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 显示 db 名字</span></span><br><span class="line">client.list_database_names()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建集合</span></span><br><span class="line">collection = client[<span class="string">&quot;ttt&quot;</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 展示集合名字</span></span><br><span class="line">collection.list_collection_names()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建文档</span></span><br><span class="line">mydoc = collection[<span class="string">&quot;sites&quot;</span>]</span><br><span class="line"><span class="comment"># 插入集合</span></span><br><span class="line">mydict = &#123; <span class="string">&quot;name&quot;</span>: <span class="string">&quot;RUNOOB&quot;</span>, <span class="string">&quot;alexa&quot;</span>: <span class="string">&quot;10000&quot;</span>, <span class="string">&quot;url&quot;</span>: <span class="string">&quot;https://www.runoob.com&quot;</span> &#125;</span><br><span class="line">mydoc.insert_one(mydict)</span><br><span class="line"><span class="comment"># 插入多条</span></span><br><span class="line">mydoc.insert_many(mylist)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询</span></span><br><span class="line">mydoc.find_one()</span><br><span class="line"><span class="comment"># 查询所有</span></span><br><span class="line"><span class="keyword">for</span> sub <span class="keyword">in</span> mydoc.find():</span><br><span class="line">    print(sub)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 指定字段</span></span><br><span class="line"><span class="keyword">for</span> x <span class="keyword">in</span> mydoc.find(&#123;&#125;,&#123; <span class="string">&quot;_id&quot;</span>: <span class="number">0</span>, <span class="string">&quot;name&quot;</span>: <span class="number">1</span>, <span class="string">&quot;alexa&quot;</span>: <span class="number">1</span> &#125;): </span><br><span class="line">    print(x)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 指定条件</span></span><br><span class="line">mydoc.find(&#123; <span class="string">&quot;name&quot;</span>: <span class="string">&quot;RUNOOB&quot;</span> &#125;)</span><br><span class="line"><span class="comment"># 比较</span></span><br><span class="line">mydoc.find(&#123; <span class="string">&quot;name&quot;</span>: &#123; <span class="string">&quot;$gt&quot;</span>: <span class="string">&quot;H&quot;</span> &#125; &#125;)</span><br><span class="line"><span class="comment"># 正则</span></span><br><span class="line">mydoc.find(&#123; <span class="string">&quot;name&quot;</span>: &#123; <span class="string">&quot;$regex&quot;</span>: <span class="string">&quot;^R&quot;</span> &#125; &#125;)</span><br><span class="line"><span class="comment"># 限制数量</span></span><br><span class="line">mydoc.find().limit(<span class="number">3</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 修改</span></span><br><span class="line">myquery = &#123; <span class="string">&quot;alexa&quot;</span>: <span class="string">&quot;10000&quot;</span> &#125;</span><br><span class="line">newvalues = &#123; <span class="string">&quot;$set&quot;</span>: &#123; <span class="string">&quot;alexa&quot;</span>: <span class="string">&quot;12345&quot;</span> &#125; &#125;</span><br><span class="line">mydoc.update_one(myquery, newvalues)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 排序</span></span><br><span class="line">mydoc.find().sort(<span class="string">&quot;alexa&quot;</span>)</span><br><span class="line">mydoc.find().sort(<span class="string">&quot;alexa&quot;</span>, <span class="number">-1</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除</span></span><br><span class="line">myquery = &#123; <span class="string">&quot;name&quot;</span>: <span class="string">&quot;Taobao&quot;</span> &#125;</span><br><span class="line">mydoc.delete_one(myquery)</span><br><span class="line"><span class="comment"># 删除多个</span></span><br><span class="line">myquery = &#123; <span class="string">&quot;name&quot;</span>: &#123;<span class="string">&quot;$regex&quot;</span>: <span class="string">&quot;^F&quot;</span>&#125; &#125;</span><br><span class="line">mydoc.delete_many(myquery)</span><br><span class="line"><span class="comment"># 删除所有</span></span><br><span class="line">mydoc.delete_many(&#123;&#125;)</span><br><span class="line"><span class="comment"># 删除集合</span></span><br><span class="line">mydoc.drop()</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
-        <category>DB</category>
+        <category>database</category>
       </categories>
       <tags>
         <tag>mongodb</tag>
       </tags>
   </entry>
   <entry>
-    <title>Mysql 安装教程</title>
+    <title>Mysql 各环境安装</title>
     <url>/hexo/2020/09/16/Mysql-Installation/</url>
-    <content><![CDATA[<h2 id="Docker-安装"><a href="#Docker-安装" class="headerlink" title="Docker 安装"></a>Docker 安装</h2><p>直接跟着官方文档走就行了</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">docker pull mysql</span><br><span class="line"></span><br><span class="line"><span class="comment"># -e MYSQL_ROOT_PASSWORD=my-secret-pw           # 按官方镜像文档提示，启动容器时设置密码</span></span><br><span class="line">docker run -d -p 3000:3306 -v /Users/id/tmp/mysql/conf:/etc/mysql/conf.d -v /Users/id/tmp/mysql/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 --name=mysql01 mysql</span><br><span class="line"></span><br><span class="line"><span class="comment"># 启动 DBeaver，链接数据库，报错：`Unable to load authentication plugin &#x27;caching_sha2_password&#x27;.`</span></span><br><span class="line"><span class="comment"># 搜索之后，发现是 mysql 驱动有跟新，需要修稿客户端的 pom, 升级到 8.x 就行。DBeaver 直接就在创建选项里给了方案，选 8.x 那个就行 [GitIssue](https://github.com/dbeaver/dbeaver/issues/4691)</span></span><br><span class="line"><span class="comment"># 使用高版本的 Mysql connection 还是有问题，不过 msg 变了：`Public Key Retrieval is not allowed`</span></span><br><span class="line"><span class="comment"># 搜索之后，发现还要改配置, connection setting -&gt; Driver properties -&gt; &#x27;allowPlblicKeyRetrieval&#x27; 改为 true</span></span><br><span class="line"><span class="comment"># 还有问题。。。继续抛错：`Access denied for user &#x27;root&#x27;@&#x27;localhost&#x27; (using password: YES)`</span></span><br><span class="line">docker <span class="built_in">exec</span> -it mysql01 /bin/bash               <span class="comment"># 进去容器，输入 `mysql -u root -p` 尝试登陆，成功。推测是链接客户端的问题</span></span><br><span class="line">ps -ef | grep mysql                             <span class="comment"># 查看了一下，突然想起来，本地我也有安装 mysql 可能有冲突。果断将之前安装的 docker mysql 删除，重新指定一个新的端口，用 DBeaver 链接，成功！</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 通过客户端创建一个新的数据库 new_test, 在本地映射的 data 目录下 ls 一下，可以看到新数据库文件可以同步创建</span></span><br><span class="line"><span class="comment"># &gt; ~/tmp/mydb/data ls</span></span><br><span class="line"><span class="comment"># auto.cnf           ca.pem             client-key.pem     ib_logfile0        ibdata1            mysql              performance_schema public_key.pem     server-key.pem</span></span><br><span class="line"><span class="comment"># ca-key.pem         client-cert.pem    ib_buffer_pool     ib_logfile1        ibtmp1             new_test           private_key.pem    server-cert.pem    sys</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除容器，本地文件依然存在！</span></span><br></pre></td></tr></table></figure>
+    <content><![CDATA[<p>没事儿别瞎折腾，docker + mysql 香的不得了</p>
+<h2 id="Docker-安装"><a href="#Docker-安装" class="headerlink" title="Docker 安装"></a>Docker 安装</h2><p>直接跟着官方文档走就行了</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">docker pull mysql</span><br><span class="line"></span><br><span class="line"><span class="comment"># -e MYSQL_ROOT_PASSWORD=my-secret-pw           # 按官方镜像文档提示，启动容器时设置密码</span></span><br><span class="line"><span class="comment"># -p 主机(宿主)端口:容器端口</span></span><br><span class="line"><span class="comment"># mac 上查看端口是否关联成功</span></span><br><span class="line"><span class="comment">#     * netstat -vanp tcp | grep 3306 </span></span><br><span class="line"><span class="comment">#     * lsof -i tcp:3306</span></span><br><span class="line"><span class="comment"># 必须指定 -p，不指定连不上，还以为会默认匹配呢，着了半天才发现的</span></span><br><span class="line">docker run -d -p 3306:3306 -v /Users/id/tmp/mysql/conf:/etc/mysql/conf.d -v /Users/id/tmp/mysql/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 --name=mysql221130 mysql</span><br><span class="line"></span><br><span class="line"><span class="comment"># 启动 DBeaver，链接数据库，报错：`Unable to load authentication plugin &#x27;caching_sha2_password&#x27;.`</span></span><br><span class="line"><span class="comment"># 搜索之后，发现是 mysql 驱动有跟新，需要修改客户端的 pom, 升级到 8.x 就行。DBeaver 直接就在创建选项里给了方案，选 8.x 那个就行 [GitIssue](https://github.com/dbeaver/dbeaver/issues/4691)</span></span><br><span class="line"><span class="comment"># Q: 使用高版本的 Mysql connection 还是有问题，不过 msg 变了：`Public Key Retrieval is not allowed`</span></span><br><span class="line"><span class="comment"># A: 右键数据库，选择 Edit Connection, connection setting -&gt; Driver properties -&gt; &#x27;allowPlblicKeyRetrieval&#x27; 改为 true</span></span><br><span class="line"><span class="comment"># 还有问题。。。继续抛错：`Access denied for user &#x27;root&#x27;@&#x27;localhost&#x27; (using password: YES)`</span></span><br><span class="line">docker <span class="built_in">exec</span> -it mysql01 /bin/bash               <span class="comment"># 进去容器，输入 `mysql -u root -p` 尝试登陆，成功。推测是链接客户端的问题</span></span><br><span class="line">ps -ef | grep mysql                             <span class="comment"># 查看了一下，突然想起来，本地我也有安装 mysql 可能有冲突。果断将之前安装的 docker mysql 删除，重新指定一个新的端口，用 DBeaver 链接，成功！</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 通过客户端创建一个新的数据库 new_test, 在本地映射的 data 目录下 ls 一下，可以看到新数据库文件可以同步创建</span></span><br><span class="line"><span class="comment"># &gt; ~/tmp/mydb/data ls</span></span><br><span class="line"><span class="comment"># auto.cnf           ca.pem             client-key.pem     ib_logfile0        ibdata1            mysql              performance_schema public_key.pem     server-key.pem</span></span><br><span class="line"><span class="comment"># ca-key.pem         client-cert.pem    ib_buffer_pool     ib_logfile1        ibtmp1             new_test           private_key.pem    server-cert.pem    sys</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除容器，本地文件依然存在！</span></span><br></pre></td></tr></table></figure>
+
+<p>有了 Docker 版本的之后没有必要我果断不会再用其他安装方式了，希碎而且卸载不干净。</p>
+<h2 id="测试数据"><a href="#测试数据" class="headerlink" title="测试数据"></a>测试数据</h2><p>有一个叫 test_db 的 git 项目提供了百万级别的 mysql 测试数据集，有 3.3k 的 star 以后可以拿它来做练手的数据源，挺方便，貌似还是 mysql 的官方推荐。</p>
+<ul>
+<li><a href="https://github.com/datacharmer/test_db">test db</a></li>
+</ul>
+<p>git repo 有将近 300M，直接将文件夹 copy 到容器中貌似不怎么合适，试试共享文件夹的形式。好像不能在容器启动之后再 share，得重新创建一遍了 （；￣ェ￣）</p>
+<p>官方推荐的 share 方式是通过 <a href="https://docs.docker.com/storage/volumes/#mount-a-host-directory-as-a-data-volume">volumn</a> 完成 </p>
+<ul>
+<li><code>docker rm -f mysql221130</code> 删除原有项目</li>
+<li><code>git clone</code> 下载测试 repo</li>
+<li>新建容器，带上测试文件夹</li>
+<li>cd 到 share 文件夹下，运行 <code>mysql -uroot -p &lt; employees.sql</code> 导入数据</li>
+<li><code>mysql -uroot -p -t &lt; test_employees_md5.sql</code> 查看数据是否导入成功</li>
+<li>IDE 中可以看到新的数据库 employees, 他下面有 6 张表，数据还挺多</li>
+</ul>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">docker run -d -p <span class="number">3306</span>:<span class="number">3306</span> \</span><br><span class="line">    -v /Users/&lt;uid&gt;/tmp/mysql/conf:/etc/mysql/conf.d \</span><br><span class="line">    -v /Users/&lt;uid&gt;/tmp/mysql/data:/var/lib/mysql \</span><br><span class="line">    -v /Users/&lt;uid&gt;/tmp/mysql/test_db:/share \</span><br><span class="line">    -e MYSQL_ROOT_PASSWORD=<span class="number">123456</span> --name=mysql221130 mysql</span><br></pre></td></tr></table></figure>
+
+
 
 <h2 id="Windows-版本安装"><a href="#Windows-版本安装" class="headerlink" title="Windows 版本安装"></a>Windows 版本安装</h2><ol>
 <li>下载安装包 <a href="https://dev.mysql.com/downloads/mysql/">官方地址</a> 下载比较小的，不到测试套件的版本即可</li>
@@ -5434,7 +5542,7 @@
 <p>设置完毕之后就可以使用 <code>mysql -uroot -p</code> 登陆测试了。没有遇到其他问题，还挺顺利的 ε-(´∀｀; )</p>
 ]]></content>
       <categories>
-        <category>配置</category>
+        <category>database</category>
       </categories>
       <tags>
         <tag>mysql</tag>
@@ -7053,9 +7161,28 @@
       </tags>
   </entry>
   <entry>
+    <title>Spring AOP 实现细节</title>
+    <url>/hexo/2022/10/28/Spring-AOP-implement-detail/</url>
+    <content><![CDATA[<ul>
+<li>Join Point: In Spring AOP, a join point always represents a method execution. 事件触发点</li>
+<li>Advice: Action taken by an aspect at a particular join point. 遇到 join point 时会执行的动作，行为</li>
+<li>Pointcut: A predicate that matches join points. 匹配 method 的表达式</li>
+<li>Advisor: an Advisor is an aspect that contains only a single advice object associated with a pointcut expression. 只包含一个 advice 的 aspect</li>
+<li>Advised: However you create AOP proxies, you can manipulate them BY using the advised interface. 代理对象的配置信息</li>
+</ul>
+<h2 id="AOP-模型"><a href="#AOP-模型" class="headerlink" title="AOP 模型"></a>AOP 模型</h2><p>AOP 有两种注册方式 Xml 或者 Annotation, 做这两种设置时，底层其实就是注册了一个特殊的 BeanPostProcessor(DefaultAdvisorAutoProxyCreator/AnnotationAwareAspectJAutoProxyCreator)，剩下的气势和普通的 getBean() 流程一样，到处理 BeanPostProcessor 时，上面的说的两个 processor 会判断当前 bean 是不是需要代理，如果要的话，通过 ProxyFactory 创建代理并返回。</p>
+]]></content>
+      <categories>
+        <category>Spring</category>
+      </categories>
+      <tags>
+        <tag>AOP</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Spring AOP quick start</title>
     <url>/hexo/2022/06/27/Spring-AOP-quick-start/</url>
-    <content><![CDATA[<p>快速了解 AOP 必要只是并写出 demo。这篇文上是在我系统学了 AOP 的基本使用之后再写的，之前遇到的很多痛点都体现不出来了。花了挺多时间读官方文档的时候，很多问题都迎刃而解了，就是比较花时间。之前失败的主要原因是 pointcut 的表达式写错了，tomcat 起了，但是服务都失败了。。。。</p>
+    <content><![CDATA[<p>快速了解 AOP 必要知识并给出 demo。这篇文章是在我系统学了 AOP 的基本使用之后再写的，之前遇到的很多痛点都体现不出来了。花了挺多时间读官方文档的时候，然后很多问题都迎刃而解了，就是比较花时间。之前失败的主要原因是 pointcut 的表达式写错了，tomcat 起了，但是服务都失败了。。。。</p>
 <h2 id="简单概括什么是-AOP"><a href="#简单概括什么是-AOP" class="headerlink" title="简单概括什么是 AOP"></a>简单概括什么是 AOP</h2><p>不破坏代码结构的情况下，为代码添加功能，典型案例如打印方法的执行时间。</p>
 <h2 id="AOP-涉及的专有名词"><a href="#AOP-涉及的专有名词" class="headerlink" title="AOP 涉及的专有名词"></a>AOP 涉及的专有名词</h2><ul>
 <li>Joinpoint - 要匹配的方法</li>
@@ -7063,17 +7190,25 @@
 <li>Advice - 检测到匹配方法的时候要执行的 额外 逻辑</li>
 <li>Aspect - 带 @Aspect 的那个类</li>
 </ul>
+<p>详细的指代会在下面的例子中标记出来，光是名词实在难记</p>
 <h2 id="怎么写"><a href="#怎么写" class="headerlink" title="怎么写"></a>怎么写</h2><p>如果 Spring 整体环境已经搭建完成，如果你想要新建一个 Aspect 只需要做两件事</p>
 <ol>
-<li>写 Aspect 文件，最简单的方式是，写 Advice 方法，并在注解中添加 pointcut 表达式</li>
-<li>注册 Aspect, 不过如果是已经运行的系统，这步应该不用做，都是自动扫描的<ol>
-<li>Xml</li>
-<li>Annotation</li>
+<li>写 Aspect 文件，最简单的方式是写 Advice 方法，并在注解中添加 pointcut 表达式</li>
+<li>注册 Aspect, 可以通过 Xml 或者 Annotation 注册</li>
 </ol>
-</li>
-</ol>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Aspect</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">IssueAspect</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Before(&quot;within(issues.*)&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doBeforeLog</span><span class="params">(JoinPoint joinPoint)</span> </span>&#123;</span><br><span class="line">        String methodName = joinPoint.getSignature().getName();</span><br><span class="line">        System.out.printf(<span class="string">&quot;Before Advice of method %s is called...%n&quot;</span>, methodName);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在实际例子中标注 AOP 相关的概念，直接看名词很难记住，理解</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// @Aspect 指代的就是一个切面，即 aspect 这个概念</span></span><br><span class="line"><span class="meta">@Aspect</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyAspect</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// pointcut expression, 表示匹配规则，哪些方法需要被处理</span></span><br><span class="line">    <span class="meta">@Pointcut(&quot;target(official.AopTestService)&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">pointcutName</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// @Around 即为 Advice, 表示切入方式，其他还有 @Before, @After 等多种方式</span></span><br><span class="line">    <span class="meta">@Around(&quot;pointcutName()&quot;)</span></span><br><span class="line">    <span class="comment">// 可以合并简写为 @Around(&quot;target(official.AopTestService)&quot;)</span></span><br><span class="line">    <span class="comment">// join point 表示被拦截的方法，可以从它里面拿到方法名，参数等信息</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">aroundSayHello</span><span class="params">(ProceedingJoinPoint joinPoint)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Before join point...&quot;</span>);</span><br><span class="line">        Object obj = joinPoint.proceed();</span><br><span class="line">        System.out.println(<span class="string">&quot;After join point...&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> obj;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 目标 service，当 service 方法执行时会触发切面</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AopTestService</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sayHello</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Hello, &quot;</span> + name);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">greet</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Hello, there&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 配置类</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableAspectJAutoProxy</span></span><br><span class="line"><span class="meta">@ComponentScan(basePackages = &quot;official&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AppConfig</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 执行方法</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ApplicationContext ctx = <span class="keyword">new</span> AnnotationConfigApplicationContext(AppConfig.class);</span><br><span class="line">        ctx.getBean(<span class="string">&quot;aopTestService&quot;</span>, AopTestService.class).greet();</span><br><span class="line">        ctx.getBean(<span class="string">&quot;aopTestService&quot;</span>, AopTestService.class).sayHello(&quot;Jack&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<h2 id="原理剖析"><a href="#原理剖析" class="headerlink" title="原理剖析"></a>原理剖析</h2><p>所有的实现都是基于代理模式完成的。基础版本，不借助任何 lib, 纯 Java 实现。假设我们有 ISubject 接口，和对应的实现类 SubjectImpl，代理类 SubjectProxy。我们可以通过调用 SubjectProxy 来触发 SubjectImpl 并添加我们自己的定制逻辑。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 抽象的业务逻辑接口</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">ISubject</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">request</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 具体的实现类</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SubjectImpl</span> <span class="keyword">implements</span> <span class="title">ISubject</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">request</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Invoke request in SubjectImpl...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 代理类，可以添加定制的方法</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SubjectProxy</span> <span class="keyword">implements</span> <span class="title">ISubject</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> ISubject subject;</span><br><span class="line"></span><br><span class="line">   <span class="comment">// constructor + set method</span></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">request</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Call request in proxy...&quot;</span>);</span><br><span class="line">        subject.request();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 调用场景</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ISubject subject = <span class="keyword">new</span> SubjectProxy(<span class="keyword">new</span> SubjectImpl());</span><br><span class="line">        subject.request();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>进阶使用，如果还有其他接口比如 IRequestable 也有 request 方法，那么为了实现代理，我们还需要为他新建一个代理类，如果类似的类很多，就会有很多代码冗余。JDK提供了动态代理的机制解决这种问题，概括来就是给出时间对象和目标接口，就能实现代理逻辑的统一操作</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RequestCtrlInvocationHandler</span> <span class="keyword">implements</span> <span class="title">InvocationHandler</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Object target;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">RequestCtrlInvocationHandler</span><span class="params">(Object target)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.target = target;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">invoke</span><span class="params">(Object proxy, Method method, Object[] args)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Invoke method in InvocationHandler...&quot;</span>);</span><br><span class="line">        <span class="keyword">if</span> (method.getName().equals(<span class="string">&quot;request&quot;</span>)) &#123;</span><br><span class="line">            <span class="keyword">return</span> method.invoke(target, args);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">InvocationHandlerClient</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        SubjectImpl impl = <span class="keyword">new</span> SubjectImpl();</span><br><span class="line">        ISubject subject = (ISubject) Proxy.newProxyInstance(</span><br><span class="line">                impl.getClass().getClassLoader(),</span><br><span class="line">                <span class="keyword">new</span> Class[]&#123;ISubject.class&#125;,</span><br><span class="line">                <span class="keyword">new</span> RequestCtrlInvocationHandler(impl));</span><br><span class="line">        subject.request();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>再进一步，上面的方法只能处理实现了接口的情况，如果类并没有实现接口，还想要增强的话，我们需要借助 Cglib 这个第三方库，在类上派生出一个子类，通过复写方法达到扩展的目的。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 目标类，虽然后 request 方法，但是没有任何的接口</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Requestable</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">request</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Call in Requestable, without interface...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 通过 Cglib 实现的方法扩展</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RequestCtrlCallBack</span> <span class="keyword">implements</span> <span class="title">MethodInterceptor</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">intercept</span><span class="params">(Object o, Method method, Object[] objects, MethodProxy methodProxy)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (method.getName().equals(<span class="string">&quot;request&quot;</span>)) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Invoke method in MethodInterceptor...&quot;</span>);</span><br><span class="line">            <span class="keyword">return</span> methodProxy.invokeSuper(o, objects);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 调用方式</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CallBackClient</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Enhancer enhancer = <span class="keyword">new</span> Enhancer();</span><br><span class="line">        enhancer.setSuperclass(Requestable.class);</span><br><span class="line">        enhancer.setCallback(<span class="keyword">new</span> RequestCtrlCallBack());</span><br><span class="line"></span><br><span class="line">        Requestable proxy = (Requestable) enhancer.create();</span><br><span class="line">        proxy.request();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Spring 的实现中，会判断是否有接口，如果有则使用动态代理，如果没有则使用字节码增强。</p>
 <h2 id="奇怪的-behavior"><a href="#奇怪的-behavior" class="headerlink" title="奇怪的 behavior"></a>奇怪的 behavior</h2><p>最近发现产品上的 AOP 代码在两个 aspect 嵌套的情况下只会执行第一个 aspect，第二个直接跳过了，不知道是公司特有的还是 AOP 本来就有这种设定，特意检测一下</p>
 <blockquote>
 <p>场景重现:<br>service A 有两个 method01，method02 并且 method01 会调用 method02. 创建 Aspect 同时覆盖这两个方法，当 method01 执行时，method02 并不会被检测到。</p>
@@ -7147,6 +7282,61 @@
       </tags>
   </entry>
   <entry>
+    <title>Spring bean 生命周期</title>
+    <url>/hexo/2022/10/14/Spring-bean-lifecycle/</url>
+    <content><![CDATA[<p>IoC容器的两个主要阶段：容器启动阶段 + Bean实例化阶段</p>
+<ol>
+<li>bean def load</li>
+<li>post process bean definition - BeanFactoryPostProcessor</li>
+<li>instantiate beans</li>
+<li>populate property</li>
+<li>before bean post processor</li>
+<li>initializer</li>
+<li>init-method</li>
+<li>after bean post processor</li>
+<li>ready to use bean</li>
+<li>destory</li>
+</ol>
+<p>如何记忆：</p>
+<ul>
+<li>1-2 属于 def 部分</li>
+<li>3-4 属于创建 bean</li>
+<li>5-8 属于修改 bean, 根据扩展点不同所以有这么多接口，主旨都是一样的</li>
+<li>9 容器中的状态</li>
+<li>10 销毁对象的时候会执行，很少接触</li>
+</ul>
+<h2 id="BeanFactoryPostProcessor-bfpp"><a href="#BeanFactoryPostProcessor-bfpp" class="headerlink" title="BeanFactoryPostProcessor - bfpp"></a>BeanFactoryPostProcessor - bfpp</h2><p>在加载 def 的时候更具配置来修改 def 属性的值。比如可以在 xml 中通过使用 <code>$&#123;&#125;</code> 的语法来指代配置文件中的内容。典型应用如 PropertyOverrideConfigurer 和 PropertySourcesPlaceholderConfigurer。如果是想改变 bean 实例属性，使用 BeanPostProcessor。</p>
+<p>在 Spring doc 的这个章节出现了 eagerly 的描述，目的是说，这种 processor 是用来对 def, bean 做操作的，所以 container 找到后会立即加载，lazy-load 也不生效的。这是从 processor 的定义决定的。</p>
+<p>如果使用 BeanFactory + bfpp 的方式，需要显示的注册 bfpp <code>cfg.postProcessBeanFactory(factory);</code> 不是很方便，所以一般都直接用 ApplicationContext 来操作，自动实现 processor 的注册</p>
+<p>ApplicationContext 中的 refresh() 方法中的</p>
+<ul>
+<li>obtainFreshBeanFactory() 方法包含加载 bean definition 的步骤</li>
+<li>invokeBeanFactoryPostProcessors() 方法就是处理 bfpp 的地方</li>
+</ul>
+<h2 id="对象实例化"><a href="#对象实例化" class="headerlink" title="对象实例化"></a>对象实例化</h2><p>refresh() 的 finishBeanFactoryInitialization() 方法负责实现 bean 的实例化，具体逻辑托管给 doGetBean() 方法。</p>
+<ul>
+<li>AbstractAutowireCapableBeanFactory::createBeanInstance 负责创建空壳 bean</li>
+<li>AbstractAutowireCapableBeanFactory::populateBean 填充属性</li>
+<li>AbstractAutowireCapableBeanFactory::initializeBean 初始化，包括处理 processor, init, init-method</li>
+<li>AbstractAutowireCapableBeanFactory::registerDisposableBeanIfNecessary 注册 disposable 方法备用</li>
+<li>initializeBean::invokeAwareMethods, 部分 aware 接口注入(BeanName, ClassLoader, BeanFactory)</li>
+<li>initializeBean::applyBeanPostProcessorsBeforeInitialization 处理 processor before 部分</li>
+<li>initializeBean::invokeInitMethod，分两块<ul>
+<li>第一部分对应 InitializingBean 接口的方法</li>
+<li>第二部分对应 init-method 的方法, 使得 bean 执行 init-method 方法作为初始化的一步，可以通过 xml 和 @Bean 配置</li>
+</ul>
+</li>
+<li>initializeBean::applyBeanPostProcessorsAfterInitialization</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Spring</category>
+      </categories>
+      <tags>
+        <tag>lifecycle</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Spring compile spring framework in your local</title>
     <url>/hexo/2021/10/21/Spring-compile-spring-framework-in-your-local/</url>
     <content><![CDATA[<p>最近看的 Spring 课程上面，那些讲师都会把 Spring 源码下载到本地然后在上面写 demo, 做笔记什么的，感觉这个方式很棒，实践一下。</p>
@@ -7178,6 +7368,43 @@
       </categories>
       <tags>
         <tag>源码编译</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Spring database access</title>
+    <url>/hexo/2022/11/16/Spring-database-access/</url>
+    <content><![CDATA[<h2 id="统一的异常管理"><a href="#统一的异常管理" class="headerlink" title="统一的异常管理"></a>统一的异常管理</h2><ol>
+<li>DAO 模式通过接口编程隔离的 DB 实现</li>
+<li>实现的时候，由于 JDBC 规范将异常下方给供应商，导致接口代码会随着实现的改变而改变</li>
+<li>DAO 模式描述的场景实在是诱人，我们通过统一异常来 apply DAO 模式</li>
+<li>不能直接在实现层吞了异常，所以把他们包装成 unchecked exception 抛出，这样客户端就不需要强制检查了</li>
+<li>各供应商的异常包装形式不同，比如错误信息存放位置，错误代码规定等。所以 Spring 提供了异常转译功能做统一处理</li>
+</ol>
+<h2 id="JDBC-API-最佳实践"><a href="#JDBC-API-最佳实践" class="headerlink" title="JDBC API 最佳实践"></a>JDBC API 最佳实践</h2><ul>
+<li>通过模版方法封装重复代码</li>
+<li>对 SQL Exception 进行转译</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Spring</category>
+      </categories>
+      <tags>
+        <tag>database</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Spring event</title>
+    <url>/hexo/2022/10/19/Spring-event/</url>
+    <content><![CDATA[<p>Spring支持 event 模型，自带了几种 event，比如 ContextRefreshedEvent，ContextStartedEvent 等，会在 application context setup 的时候发出来，还可以自定义 event，参考官方文档中的 BlockedListEvent 例子。</p>
+<p>自带的 event 是在 AbstractApplicationContext::finishRefresh::publishEvent 中处理的。如果是自定义的 event，我们还需要定义出对应的 Listener，可以通过实现 ApplicationListener 接口，在 context setup 的时候自动注入到 context 中。这个 listener 其实就是一段如何处理 event 的逻辑。</p>
+<p>目标和受体都准备好了，接下来就是如何触发的问题了。我们可以让 service 实现 ApplicationEventPublisherAware 接口，然后调用 <code>publish()</code> 触发事件。publish 即 context，实现在 AbstractApplicationContext::publishEvent 中。他会根据 event type 等条件，删选出匹配的 listener 并执行，逻辑还是很直观的。</p>
+<p>这整个 event 处理模型，使用了观察者的设计模式，实现的时候很简单，就是将所有的观察者放到一个 list 中，当事件发生时，通过 for 或者 iterator 遍历所有的观察者执行目标函数即可。</p>
+]]></content>
+      <categories>
+        <category>Spring</category>
+      </categories>
+      <tags>
+        <tag>event</tag>
       </tags>
   </entry>
   <entry>
@@ -8145,6 +8372,17 @@
     <content><![CDATA[<p>记录一下工作中常用到的 TestNG, Jmockit 使用案例</p>
 <h2 id="DataProvider"><a href="#DataProvider" class="headerlink" title="DataProvider"></a>DataProvider</h2><h3 id="单个参数"><a href="#单个参数" class="headerlink" title="单个参数"></a>单个参数</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@DataProvider(name = &quot;singleParam&quot;)</span></span><br><span class="line"><span class="keyword">public</span> Object[][] singleParam() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Object[][]&#123;</span><br><span class="line">            &#123;<span class="string">&quot;Jerry&quot;</span>&#125;,</span><br><span class="line">            &#123;<span class="string">&quot;Tom&quot;</span>&#125;,</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Test(dataProvider = &quot;singleParam&quot;)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">single_data</span><span class="params">(String username)</span> </span>&#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;Get username: &quot;</span> + username);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<p>idea 中通过设置 live template 简化操作</p>
+<ul>
+<li>cmd + , 调出设置界面，搜索 live template </li>
+<li>点击 +， 添加 group, 命名为 Unit Test</li>
+<li>选中 group，点击 + 添加新规则</li>
+<li>模版中输入下面的模版案例</li>
+<li>点击 Context 的 define, 选中 java -&gt; declear</li>
+<li>点击 Edit variables, Expression 中输入默认值，比如 “methodName”, 这里的规则比较绕，试了好久，至少能 work</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@org</span>.testng.annotations.DataProvider(name = <span class="string">&quot;$DATA_PROVIDER_NAME$&quot;</span>)</span><br><span class="line"><span class="keyword">public</span> Object[][] $METHOD_NAME$() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Object[][]&#123;</span><br><span class="line">            &#123;$OBJECT$&#125;</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 <h3 id="多个参数"><a href="#多个参数" class="headerlink" title="多个参数"></a>多个参数</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@DataProvider(name = &quot;multiParam&quot;)</span></span><br><span class="line"><span class="keyword">public</span> Object[][] multiParam() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Object[][]&#123;</span><br><span class="line">            &#123;<span class="string">&quot;Jerry&quot;</span>, <span class="number">12</span>&#125;,</span><br><span class="line">            &#123;<span class="string">&quot;Tom&quot;</span>, <span class="number">11</span>&#125;,</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Test(dataProvider = &quot;multiParam&quot;)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">single_data</span><span class="params">(String username, <span class="keyword">int</span> age)</span> </span>&#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;Get username: &quot;</span> + username + <span class="string">&quot;, age: &quot;</span> + age);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <h2 id="Mock-类的静态代码块"><a href="#Mock-类的静态代码块" class="headerlink" title="Mock 类的静态代码块"></a>Mock 类的静态代码块</h2><p>测试类结构如下</p>
@@ -8409,6 +8647,14 @@
 <li>Ctrl + g: 快速跳到 x 行</li>
 </ul>
 <h2 id="很酷的操作"><a href="#很酷的操作" class="headerlink" title="很酷的操作"></a>很酷的操作</h2><blockquote>
+<p>替换成换行</p>
+</blockquote>
+<p><code>cmd + f</code> 唤出搜索看，点击 <code>.*</code>, 然后，查找框输入 <code>,</code> 替换框输入 <code>\n</code> 即可</p>
+<blockquote>
+<p>重复一行</p>
+</blockquote>
+<p>光标停留在目标行，opt + shit + 上/下 即可，666</p>
+<blockquote>
 <p>批量修改字符串，比如第 1，3，5 行 ‘est’ 关键字前添加 ‘T’, 即多光标操作</p>
 </blockquote>
 <ol>
@@ -8433,6 +8679,7 @@
 <li>VSCode Icons: 为目录树上中的文件添加类型图标</li>
 <li>Bracket Pair Colorizer: 括号色彩标识</li>
 <li>rainbow csv: CSV 文件色彩标识</li>
+<li>vscode-input-sequence: 输入顺序数字，好用到飞起</li>
 </ul>
 ]]></content>
       <categories>
