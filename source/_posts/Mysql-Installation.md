@@ -1,11 +1,13 @@
 ---
-title: Mysql 安装教程
+title: Mysql 各环境安装
 date: 2020-09-16 21:29:43
 categories:
-- 配置
+- database
 tags:
 - mysql
 ---
+
+没事儿别瞎折腾，docker + mysql 香的不得了
 
 ## Docker 安装
 
@@ -15,12 +17,17 @@ tags:
 docker pull mysql
 
 # -e MYSQL_ROOT_PASSWORD=my-secret-pw           # 按官方镜像文档提示，启动容器时设置密码
-docker run -d -p 3000:3306 -v /Users/id/tmp/mysql/conf:/etc/mysql/conf.d -v /Users/id/tmp/mysql/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 --name=mysql01 mysql
+# -p 主机(宿主)端口:容器端口
+# mac 上查看端口是否关联成功
+#     * netstat -vanp tcp | grep 3306 
+#     * lsof -i tcp:3306
+# 必须指定 -p，不指定连不上，还以为会默认匹配呢，着了半天才发现的
+docker run -d -p 3306:3306 -v /Users/id/tmp/mysql/conf:/etc/mysql/conf.d -v /Users/id/tmp/mysql/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 --name=mysql221130 mysql
 
 # 启动 DBeaver，链接数据库，报错：`Unable to load authentication plugin 'caching_sha2_password'.`
-# 搜索之后，发现是 mysql 驱动有跟新，需要修稿客户端的 pom, 升级到 8.x 就行。DBeaver 直接就在创建选项里给了方案，选 8.x 那个就行 [GitIssue](https://github.com/dbeaver/dbeaver/issues/4691)
-# 使用高版本的 Mysql connection 还是有问题，不过 msg 变了：`Public Key Retrieval is not allowed`
-# 搜索之后，发现还要改配置, connection setting -> Driver properties -> 'allowPlblicKeyRetrieval' 改为 true
+# 搜索之后，发现是 mysql 驱动有跟新，需要修改客户端的 pom, 升级到 8.x 就行。DBeaver 直接就在创建选项里给了方案，选 8.x 那个就行 [GitIssue](https://github.com/dbeaver/dbeaver/issues/4691)
+# Q: 使用高版本的 Mysql connection 还是有问题，不过 msg 变了：`Public Key Retrieval is not allowed`
+# A: 右键数据库，选择 Edit Connection, connection setting -> Driver properties -> 'allowPlblicKeyRetrieval' 改为 true
 # 还有问题。。。继续抛错：`Access denied for user 'root'@'localhost' (using password: YES)`
 docker exec -it mysql01 /bin/bash               # 进去容器，输入 `mysql -u root -p` 尝试登陆，成功。推测是链接客户端的问题
 ps -ef | grep mysql                             # 查看了一下，突然想起来，本地我也有安装 mysql 可能有冲突。果断将之前安装的 docker mysql 删除，重新指定一个新的端口，用 DBeaver 链接，成功！
@@ -32,6 +39,35 @@ ps -ef | grep mysql                             # 查看了一下，突然想起
 
 # 删除容器，本地文件依然存在！
 ```
+
+有了 Docker 版本的之后没有必要我果断不会再用其他安装方式了，希碎而且卸载不干净。
+
+## 测试数据
+
+有一个叫 test_db 的 git 项目提供了百万级别的 mysql 测试数据集，有 3.3k 的 star 以后可以拿它来做练手的数据源，挺方便，貌似还是 mysql 的官方推荐。
+
+* [test db](https://github.com/datacharmer/test_db)
+
+git repo 有将近 300M，直接将文件夹 copy 到容器中貌似不怎么合适，试试共享文件夹的形式。好像不能在容器启动之后再 share，得重新创建一遍了 （；￣ェ￣）
+
+官方推荐的 share 方式是通过 [volumn](https://docs.docker.com/storage/volumes/#mount-a-host-directory-as-a-data-volume) 完成 
+
+* `docker rm -f mysql221130` 删除原有项目
+* `git clone ` 下载测试 repo
+* 新建容器，带上测试文件夹
+* cd 到 share 文件夹下，运行 `mysql -uroot -p < employees.sql` 导入数据
+* `mysql -uroot -p -t < test_employees_md5.sql` 查看数据是否导入成功
+* IDE 中可以看到新的数据库 employees, 他下面有 6 张表，数据还挺多
+
+```cmd
+docker run -d -p 3306:3306 \
+    -v /Users/<uid>/tmp/mysql/conf:/etc/mysql/conf.d \
+    -v /Users/<uid>/tmp/mysql/data:/var/lib/mysql \
+    -v /Users/<uid>/tmp/mysql/test_db:/share \
+    -e MYSQL_ROOT_PASSWORD=123456 --name=mysql221130 mysql
+```
+
+
 
 ## Windows 版本安装
 

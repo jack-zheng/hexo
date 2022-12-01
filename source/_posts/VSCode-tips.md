@@ -20,6 +20,14 @@ tags:
 
 ## 很酷的操作
 
+> 替换成换行
+
+`cmd + f` 唤出搜索看，点击 `.*`, 然后，查找框输入 `,` 替换框输入 `\n` 即可
+
+> 重复一行
+
+光标停留在目标行，opt + shit + 上/下 即可，666
+
 > 批量修改字符串，比如第 1，3，5 行 'est' 关键字前添加 'T', 即多光标操作
 
 1. `option + 鼠标左键` 自定义操作锚点
@@ -43,3 +51,4 @@ Preference -> settings, 搜索关键字 editor.copyWithSyntaxHighlighting 然后
 * VSCode Icons: 为目录树上中的文件添加类型图标
 * Bracket Pair Colorizer: 括号色彩标识
 * rainbow csv: CSV 文件色彩标识
+* vscode-input-sequence: 输入顺序数字，好用到飞起

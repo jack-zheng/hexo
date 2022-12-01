@@ -1,40 +1,43 @@
 ---
-title: 深入理解 mybatis
+title: Java 数据库基础
 date: 2020-10-12 17:31:18
 categories:
-- 编程
+- DB
 tags:
 - java
 - mybatis
 ---
 
-通过阅读 mybatis 源码，尝试深入理解其设计理念和实现方式。学习思路，通过对比 mybatis 代码结构和传统的 JDBC 实现来理解。说白了 mybatis 只是把传统的实现做了封装，避免了很多冗余代码。
+## 创建 JDBC 链接
 
-JDBC 流程和 mybatis 的对应比较：
+项目的 pom 文件中添加驱动引用
 
-| JDBC               | Mybatis                       |
-| :----------------- | :---------------------------- |
-| 加载驱动, 获取连接 | mybatis-config.xml            |
-| 执行 SQL           | SqlSessionFactory, SqlSession |
-| 组装结果           | MappedStatement               |
-
-## 配置加载
+```xml
+// https://mvnrepository.com/artifact/mysql/mysql-connector-java
+implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.28'
+```
 
 在 JDBC 实现中，我们通过类似如下代码得到连接信息
 
 ```java
-public class DBUtils{
-    private static final String URL="jdbc:mysql://localhost:3306/mybatis";
-    private static final String NAME="root";
-    private static final String PASSWORD="root";
-    public static void main(String[] args) throws Exception{
-       
-    //1.加载驱动程序
-    Class.forName("com.mysql.jdbc.Driver");
-    //2.获得数据库的连接
-    Connection conn = DriverManager.getConnection(URL, NAME, PASSWORD);
-    // other actions...
-    }
+public class JdbcConnectionTest {
+	public static final String URL = "jdbc:mysql://localhost:3306/mybatis";
+	public static final String USER = "root";
+	public static final String PASSWORD = "123456";
+
+	public static void main(String[] args) throws Exception {
+		//1.加载驱动程序
+		Class.forName("com.mysql.jdbc.Driver");
+		//2. 获得数据库连接
+		Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+		//3.操作数据库，实现增删改查
+		Statement stmt = conn.createStatement();
+		ResultSet rs = stmt.executeQuery("SELECT id, name, pwd FROM user");
+		//如果有数据，rs.next()返回true
+		while (rs.next()) {
+			System.out.println(rs.getInt("id") + ";" + rs.getString("name") + ";" + rs.getInt("pwd"));
+		}
+	}
 }
 ```
 

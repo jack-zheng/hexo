@@ -30,6 +30,24 @@ tags:
     }
 ```
 
+idea 中通过设置 live template 简化操作
+
+* cmd + , 调出设置界面，搜索 live template 
+* 点击 +， 添加 group, 命名为 Unit Test
+* 选中 group，点击 + 添加新规则
+* 模版中输入下面的模版案例
+* 点击 Context 的 define, 选中 java -> declear
+* 点击 Edit variables, Expression 中输入默认值，比如 "methodName", 这里的规则比较绕，试了好久，至少能 work
+
+```java
+@org.testng.annotations.DataProvider(name = "$DATA_PROVIDER_NAME$")
+public Object[][] $METHOD_NAME$() {
+    return new Object[][]{
+            {$OBJECT$}
+    };
+}
+```
+
 ### 多个参数
 
 ```java

@@ -2,7 +2,7 @@
 title: MongoDB 基本概念 + Python 访问
 date: 2022-01-18 16:12:21
 categories:
-- DB
+- database
 tags:
 - mongodb
 ---
