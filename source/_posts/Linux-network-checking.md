@@ -52,3 +52,5 @@ en0: flags=8863<UP,BROADCAST,SMART,RUNNING,SIMPLEX,MULTICAST> mtu 1500
 输入 `sudo ifconfig en0 down` 密码为登陆密码来关闭网卡，可以看到 Wi-Fi 标志被关闭了， 同理输入 `sudo ifconfig en0 up` 来重新启动网卡
 
 下次断网了可以用上面的命令先看看网卡状态，并试试重启。之前直接通过 UI 去重启并没有什么卵用。
+
+如果还不能解决问题，可能是一些其他配置有问题，比如 网关，DNS，DHCP 等，这个到时候再看看吧，我倒是挺希望遇到这种问题的，可以涨涨见识。
