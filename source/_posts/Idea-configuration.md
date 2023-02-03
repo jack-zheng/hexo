@@ -45,6 +45,10 @@ File -> project setting -> SDKs -> 右边有个 Sourcepath -> 导航到 JDK 文�
 
 debug 时一些值比如 `byte[]` 想要看具体的值时多少，可以右键 -> Evaluate Expression... 输入表达式 `new String(dmBytes)` 查看，也可以通过 add to watch 输入同样的表达式
 
+### Debug 时查看过滤变量
+
+e.g. debug 窗口中，变量存在集合中，比如 List，而且这个变量是个复杂变量，我想要检测某一个变量是否在这个集合中，可以右键 list -> Filter, 输入删选条件，比如 `this.name.startWith("ja")` 即可，贼方便
+
 ### 复制代码段的时候，取消格式复制
 
 cmd+shift+A 打开搜索框，输入关键字 'copy as rich text', 关闭对应的开关
